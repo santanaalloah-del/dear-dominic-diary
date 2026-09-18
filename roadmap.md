@@ -3,4 +3,4 @@
 - [x] Use “Diário” as the discreet visible app name.
 - [x] Keep Home editorial and asymmetrical, Room object-rich, and Chat highly usable.
 - [x] Keep all content mocked and local with no backend, APIs, authentication, storage, or AI.
-- [ ] Verify every screen at a mobile viewport.
+- [x] Verify every screen at a mobile viewport.
