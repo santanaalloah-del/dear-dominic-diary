@@ -2,11 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import {
   ArrowLeft,
-  Camera,
   ChevronRight,
   Disc3,
   Home,
-  Image,
   LampDesk,
   Menu,
   Mic,
@@ -15,7 +13,6 @@ import {
   Paperclip,
   Play,
   Send,
-  Sparkles,
 } from "lucide-react";
 import dominic from "@/assets/dominic-candid.jpg";
 import room from "@/assets/dominic-room.jpg";
@@ -105,9 +102,9 @@ function ChatScreen() {
 }
 
 function RoomScreen() {
-  const objects = [{x:"43%",y:"45%",label:"his guitar"},{x:"76%",y:"38%",label:"desk notes"},{x:"24%",y:"61%",label:"headphones"},{x:"58%",y:"68%",label:"record pile"},{x:"84%",y:"71%",label:"worn converse"}];
+  const objects = ["his guitar", "desk notes", "headphones", "record pile", "worn converse"];
   return <section className="room-screen"><ScreenIntro eyebrow="Friday evening" title="his room"><p className="intro-copy">things are exactly where he left them.</p></ScreenIntro>
-    <figure className="room-view"><img src={room} alt="Dominic's lived-in bedroom" width={1280} height={960}/>{objects.map((o)=><button key={o.label} className="object-pin" style={{left:o.x,top:o.y}} aria-label={o.label}><span/><small>{o.label}</small></button>)}</figure>
+    <figure className="room-view"><img src={room} alt="Dominic's lived-in bedroom" width={1280} height={960}/>{objects.map((label)=><button key={label} className="object-pin" aria-label={label}><span/><small>{label}</small></button>)}</figure>
     <div className="room-caption"><span>lamp on · record still spinning</span><p>There’s a page open on the desk, and half a song waiting by the amp.</p></div>
   </section>;
 }
