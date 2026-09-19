@@ -1,5 +1,12 @@
 import type { Session } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { BookHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,7 +65,11 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
   }, [session]);
 
   if (!ready) {
-    return <main className="private-entry private-entry-loading"><span className="brand-mark">Diário</span></main>;
+    return (
+      <main className="private-entry private-entry-loading">
+        <span className="brand-mark">Diário</span>
+      </main>
+    );
   }
 
   if (!session) return <PrivateLogin />;
@@ -103,14 +114,32 @@ function PrivateLogin() {
         <form onSubmit={onSubmit}>
           <label>
             Email
-            <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+            <input
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
           </label>
           <label>
             Password
-            <input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
           </label>
-          <Button type="submit" disabled={busy}>{busy ? "Opening…" : "Come in"}</Button>
-          {error && <p className="private-error" role="alert">{error}</p>}
+          <Button type="submit" disabled={busy}>
+            {busy ? "Opening…" : "Come in"}
+          </Button>
+          {error && (
+            <p className="private-error" role="alert">
+              {error}
+            </p>
+          )}
         </form>
       </section>
     </main>

@@ -29,7 +29,9 @@ type ChatMessage = {
 };
 
 const formatTime = (value: string) =>
-  new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(value));
+  new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(
+    new Date(value),
+  );
 
 export function DiarioChat() {
   const { session, preferredName } = usePrivateDiario();
@@ -47,7 +49,8 @@ export function DiarioChat() {
       .order("updated_at", { ascending: false });
 
     const conversation =
-      conversations?.find((item) => item.title?.toLowerCase().includes("dominic")) ?? conversations?.[0];
+      conversations?.find((item) => item.title?.toLowerCase().includes("dominic")) ??
+      conversations?.[0];
 
     if (!conversation) {
       setMessages([]);
@@ -97,7 +100,12 @@ export function DiarioChat() {
       if (error || typeof data?.reply !== "string") throw error ?? new Error("Missing reply");
       setMessages((current) => [
         ...current,
-        { id: `reply-${Date.now()}`, role: "assistant", content: data.reply, createdAt: new Date().toISOString() },
+        {
+          id: `reply-${Date.now()}`,
+          role: "assistant",
+          content: data.reply,
+          createdAt: new Date().toISOString(),
+        },
       ]);
     } catch {
       setFailedMessage(clean);
@@ -113,18 +121,30 @@ export function DiarioChat() {
   return (
     <section className="live-chat-screen">
       <header className="live-chat-header">
-        <div className="dominic-avatar"><img src={dominic} alt="Dominic" /></div>
-        <div><h1>Dominic</h1><p><i /> with you</p></div>
-        <span className="chat-keepsake" aria-hidden="true">always, here</span>
+        <div className="dominic-avatar">
+          <img src={dominic} alt="Dominic" />
+        </div>
+        <div>
+          <h1>Dominic</h1>
+          <p>
+            <i /> with you
+          </p>
+        </div>
+        <span className="chat-keepsake" aria-hidden="true">
+          always, here
+        </span>
       </header>
 
       <Conversation className="live-conversation">
         <ConversationContent className="live-messages">
           {loading ? (
-            <div className="history-loading"><Shimmer>finding the page…</Shimmer></div>
+            <div className="history-loading">
+              <Shimmer>finding the page…</Shimmer>
+            </div>
           ) : messages.length === 0 ? (
             <ConversationEmptyState className="chat-empty">
-              <p>the page is quiet.</p><span>write when you’re ready, {preferredName}.</span>
+              <p>the page is quiet.</p>
+              <span>write when you’re ready, {preferredName}.</span>
             </ConversationEmptyState>
           ) : (
             messages.map((message) => (
@@ -138,30 +158,59 @@ export function DiarioChat() {
           )}
           {sending && (
             <Message from="assistant" className="diario-message typing-message">
-              <MessageContent className="diario-message-content"><Shimmer>Dominic is writing…</Shimmer></MessageContent>
+              <MessageContent className="diario-message-content">
+                <Shimmer>Dominic is writing…</Shimmer>
+              </MessageContent>
             </Message>
           )}
         </ConversationContent>
-        <ConversationScrollButton className="conversation-scroll" aria-label="Go to newest message" />
+        <ConversationScrollButton
+          className="conversation-scroll"
+          aria-label="Go to newest message"
+        />
       </Conversation>
 
       <div className="live-composer-wrap">
         {failedMessage && (
           <div className="send-error" role="status">
             <span>couldn’t reach him. try again.</span>
-            <Button type="button" variant="ghost" size="sm" onClick={() => sendMessage(failedMessage)} disabled={sending}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => sendMessage(failedMessage)}
+              disabled={sending}
+            >
               <RotateCcw /> Retry
             </Button>
           </div>
         )}
         <PromptInput onSubmit={handleSubmit} className="live-composer">
-          <PromptInputTextarea placeholder="write to him..." disabled={sending} aria-label="Message Dominic" />
+          <PromptInputTextarea
+            placeholder="write to him..."
+            disabled={sending}
+            aria-label="Message Dominic"
+          />
           <PromptInputFooter>
             <PromptInputTools>
-              <Button type="button" size="icon" variant="ghost" aria-label="Add a photo" disabled><Image /></Button>
-              <Button type="button" size="icon" variant="ghost" aria-label="Record a voice note" disabled><Mic /></Button>
+              <Button type="button" size="icon" variant="ghost" aria-label="Add a photo" disabled>
+                <Image />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                aria-label="Record a voice note"
+                disabled
+              >
+                <Mic />
+              </Button>
             </PromptInputTools>
-            <PromptInputSubmit status={sending ? "submitted" : "ready"} disabled={sending} className="live-send" />
+            <PromptInputSubmit
+              status={sending ? "submitted" : "ready"}
+              disabled={sending}
+              className="live-send"
+            />
           </PromptInputFooter>
         </PromptInput>
       </div>
