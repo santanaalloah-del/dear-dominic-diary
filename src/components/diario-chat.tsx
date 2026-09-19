@@ -15,7 +15,6 @@ import {
   PromptInputTools,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
-import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { usePrivateDiario } from "@/components/private-diario";
@@ -128,24 +127,29 @@ export function DiarioChat() {
     <section className="live-chat-screen">
       <header className="live-chat-header">
         <div className="dominic-avatar">
+          <span className="avatar-tape" aria-hidden="true" />
           <img src={dominic} alt="Dominic" />
         </div>
-        <div>
+        <div className="dominic-caption">
           <h1>Dominic</h1>
-          <p>
-            <i /> with you
-          </p>
+          <p>with you</p>
         </div>
-        <span className="chat-keepsake" aria-hidden="true">
-          always, here
-        </span>
+        <div className="chat-postmark" aria-hidden="true">
+          <span>PRIVATE</span>
+          <b>18 · IX</b>
+        </div>
       </header>
 
       <Conversation className="live-conversation">
         <ConversationContent className="live-messages">
+          <div className="correspondence-heading" aria-hidden="true">
+            <span>from the pages kept between us</span>
+            <i>❦</i>
+          </div>
           {loading ? (
             <div className="history-loading">
-              <Shimmer>finding the page…</Shimmer>
+              <span>finding the page</span>
+              <span className="ink-dots"><i /><i /><i /></span>
             </div>
           ) : messages.length === 0 ? (
             <ConversationEmptyState className="chat-empty">
@@ -165,7 +169,12 @@ export function DiarioChat() {
           {sending && (
             <Message from="assistant" className="diario-message typing-message">
               <MessageContent className="diario-message-content">
-                <Shimmer>Dominic is writing…</Shimmer>
+                <span className="typing-name">Dominic</span>
+                <span className="ink-dots" aria-label="Dominic is writing">
+                  <i />
+                  <i />
+                  <i />
+                </span>
               </MessageContent>
             </Message>
           )}
@@ -177,6 +186,7 @@ export function DiarioChat() {
       </Conversation>
 
       <div className="live-composer-wrap">
+        <span className="composer-tape" aria-hidden="true" />
         {failedMessage && (
           <div className="send-error" role="status">
             <span>couldn’t reach him. try again.</span>
@@ -199,7 +209,14 @@ export function DiarioChat() {
           />
           <PromptInputFooter>
             <PromptInputTools>
-              <Button type="button" size="icon" variant="ghost" aria-label="Add a photo" disabled>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                aria-label="Add a photo"
+                disabled
+                title="Add a photo"
+              >
                 <Image />
               </Button>
               <Button
@@ -208,6 +225,7 @@ export function DiarioChat() {
                 variant="ghost"
                 aria-label="Record a voice note"
                 disabled
+                title="Record a voice note"
               >
                 <Mic />
               </Button>
