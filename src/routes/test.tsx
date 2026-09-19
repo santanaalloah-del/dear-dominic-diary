@@ -83,7 +83,7 @@ function TestScreen() {
     setError(null);
     setReply(null);
     try {
-      const { data, error } = await supabase.functions.invoke("chat", {
+      const { data, error } = await supabase.functions.invoke("clever-service", {
         body: { message },
       });
       if (error) {
