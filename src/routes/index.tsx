@@ -31,6 +31,7 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "An intimate private companion app concept, gathered like a personal archive." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: Index,
