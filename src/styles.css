@@ -64,3 +64,17 @@
 @keyframes page-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}@keyframes pin{0%,100%{box-shadow:0 0 0 4px oklch(0.98 0.01 80 / 20%)}50%{box-shadow:0 0 0 8px oklch(0.98 0.01 80 / 7%)}}
 @media (min-width:700px){.prototype-stage{padding:28px 0}.phone-shell{min-height:880px;height:880px;border-radius:28px}.screen-scroll{height:846px}.statusbar{height:34px}.bottom-nav{border-radius:0 0 28px 28px}.chat-screen{min-height:760px}.night-screen{min-height:846px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
+/* minimal backend test interface (/test) */
+.test-page{min-height:100dvh;display:grid;place-items:center;background:var(--cream);color:var(--foreground);padding:24px;font-family:var(--font-body)}
+.test-panel{width:100%;max-width:380px;background:var(--paper);border:1px solid var(--border);padding:28px 24px;box-shadow:2px 6px 18px oklch(0.3 0.03 40 / 10%)}
+.test-panel h1{font:28px var(--font-display);font-weight:400;margin:0 0 14px}
+.test-panel label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-foreground);margin-bottom:14px}
+.test-panel input{display:block;width:100%;margin-top:5px;padding:9px 11px;border:1px solid var(--border);background:var(--cream);font:14px var(--font-body);color:var(--foreground)}
+.test-panel button{width:100%;padding:10px;border:0;background:var(--wine);color:var(--cream);font:12px var(--font-body);letter-spacing:.06em;cursor:pointer}
+.test-panel button:disabled{opacity:.6;cursor:default}
+.test-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.test-logout{background:var(--paper)!important;color:var(--wine)!important;border:1px solid var(--wine)!important}
+.test-response{margin-top:16px;padding:12px;border:1px dashed var(--border);min-height:64px}
+.test-note{font:12px var(--font-body);color:var(--muted-foreground);margin:0}
+.test-error{font:12px var(--font-body);color:var(--cherry);margin:10px 0 0;word-break:break-word}
+.test-reply{font:15px/1.5 var(--font-body);margin:0;white-space:pre-wrap;word-break:break-word}

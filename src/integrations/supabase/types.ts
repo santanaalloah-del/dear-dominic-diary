@@ -70,39 +70,63 @@ export type Database = {
       }
       memories: {
         Row: {
-          confidence: string | null
+          access_count: number
+          confidence: number | null
           content: string
           created_at: string | null
+          embedding: string | null
           event_date: string | null
           id: number
           importance: number | null
+          is_core: boolean
+          last_accessed_at: string | null
+          memory_key: string | null
           memory_type: string
           message_id: number | null
           source: string | null
+          status: string
+          superseded_by: number | null
+          updated_at: string
           user_id: string | null
         }
         Insert: {
-          confidence?: string | null
+          access_count?: number
+          confidence?: number | null
           content: string
           created_at?: string | null
+          embedding?: string | null
           event_date?: string | null
           id?: number
           importance?: number | null
+          is_core?: boolean
+          last_accessed_at?: string | null
+          memory_key?: string | null
           memory_type: string
           message_id?: number | null
           source?: string | null
+          status?: string
+          superseded_by?: number | null
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
-          confidence?: string | null
+          access_count?: number
+          confidence?: number | null
           content?: string
           created_at?: string | null
+          embedding?: string | null
           event_date?: string | null
           id?: number
           importance?: number | null
+          is_core?: boolean
+          last_accessed_at?: string | null
+          memory_key?: string | null
           memory_type?: string
           message_id?: number | null
           source?: string | null
+          status?: string
+          superseded_by?: number | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: [
@@ -111,6 +135,13 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memories_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "memories"
             referencedColumns: ["id"]
           },
         ]
@@ -153,12 +184,60 @@ export type Database = {
           },
         ]
       }
+      user_profile: {
+        Row: {
+          about_me: string | null
+          created_at: string
+          id: number
+          name: string
+          preferred_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          about_me?: string | null
+          created_at?: string
+          id?: number
+          name?: string
+          preferred_name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          about_me?: string | null
+          created_at?: string
+          id?: number
+          name?: string
+          preferred_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      match_memories: {
+        Args: {
+          match_count?: number
+          match_user_id: string
+          query_embedding: string
+        }
+        Returns: {
+          confidence: number
+          content: string
+          event_date: string
+          id: number
+          importance: number
+          is_core: boolean
+          memory_key: string
+          memory_type: string
+          similarity: number
+          status: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
