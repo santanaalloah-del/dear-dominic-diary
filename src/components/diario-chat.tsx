@@ -40,8 +40,8 @@ export function DiarioChat() {
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
 
-  const loadHistory = useCallback(async () => {
-    setLoading(true);
+  const loadHistory = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     const { data: conversations } = await supabase
       .from("conversations")
       .select("id,title,updated_at")
@@ -107,6 +107,9 @@ export function DiarioChat() {
           createdAt: new Date().toISOString(),
         },
       ]);
+      window.setTimeout(() => {
+        void loadHistory(false);
+      }, 500);
     } catch {
       setFailedMessage(clean);
     } finally {
