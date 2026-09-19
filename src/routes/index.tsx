@@ -6,14 +6,15 @@ import {
   Disc3,
   Home,
   LampDesk,
+  LogOut,
   Menu,
-  Mic,
-  MoreHorizontal,
   Music2,
-  Paperclip,
   Play,
   Send,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DiarioChat } from "@/components/diario-chat";
+import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import dominic from "@/assets/dominic-candid.jpg";
 import room from "@/assets/dominic-room.jpg";
 import cafe from "@/assets/cafe-hands.jpg";
@@ -43,6 +44,10 @@ const navItems: { id: Screen; label: string; icon: typeof Home }[] = [
 ];
 
 function Index() {
+  return <PrivateDiario><DiarioApp /></PrivateDiario>;
+}
+
+function DiarioApp() {
   const [screen, setScreen] = useState<Screen>("home");
   const detail = !["home", "chat", "room", "more"].includes(screen);
   return (
@@ -52,7 +57,7 @@ function Index() {
         {detail && <button className="back-button" onClick={() => setScreen("more")} aria-label="Back to more"><ArrowLeft size={20} /></button>}
         <div className="screen-scroll" key={screen}>
           {screen === "home" && <HomeScreen />}
-          {screen === "chat" && <ChatScreen />}
+          {screen === "chat" && <DiarioChat />}
           {screen === "room" && <RoomScreen />}
           {screen === "more" && <MoreScreen onOpen={setScreen} />}
           {screen === "diary" && <DiaryScreen />}
@@ -85,22 +90,6 @@ function HomeScreen() {
   </section>;
 }
 
-function ChatScreen() {
-  return <section className="chat-screen">
-    <header className="chat-header"><img src={dominic} alt="Dominic" width={1024} height={1280}/><div><h1>Dominic</h1><p><i /> here, with you</p></div><MoreHorizontal size={20}/></header>
-    <div className="day-divider"><span>today, 18 september</span></div>
-    <div className="messages">
-      <div className="bubble theirs">made it home. the rain started exactly when i got off the bus</div>
-      <div className="message-photo"><img src={street} alt="Rainy street at sunset" width={768} height={1024} loading="lazy"/><span>the city looked like this though</span></div>
-      <div className="bubble mine">worth getting a little soaked for</div>
-      <div className="voice-note"><button aria-label="Play voice note"><Play size={14} fill="currentColor" /></button><div className="waveform">▂▅▃▇▆▂▃▅▇▃▂▆▅▃▂</div><span>0:18</span></div>
-      <div className="bubble theirs">call me when you’re settled? no rush.</div>
-      <div className="typing" aria-label="Dominic is typing"><i/><i/><i/></div>
-    </div>
-    <div className="composer"><button aria-label="Add attachment"><Paperclip size={19}/></button><div>Message Dominic…</div><button aria-label="Record voice note"><Mic size={19}/></button><button className="send-button" aria-label="Send"><Send size={17}/></button></div>
-  </section>;
-}
-
 function RoomScreen() {
   const objects = ["his guitar", "desk notes", "headphones", "record pile", "worn converse"];
   return <section className="room-screen"><ScreenIntro eyebrow="Friday evening" title="his room"><p className="intro-copy">things are exactly where he left them.</p></ScreenIntro>
@@ -110,10 +99,11 @@ function RoomScreen() {
 }
 
 function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
+  const { preferredName, signOut } = usePrivateDiario();
   const entries: {name:string; note:string; target?:Screen}[] = [
     {name:"Diary",note:"page 47 · friday",target:"diary"},{name:"Gallery",note:"86 photographs",target:"gallery"},{name:"Memories",note:"places, days, firsts"},{name:"Letters",note:"3 waiting for you",target:"letters"},{name:"Music",note:"songs left on repeat"},{name:"Now",note:"a small life update"},{name:"Little Things",note:"everything worth keeping"},{name:"Night",note:"after the lamps come on",target:"night"},{name:"Settings",note:"keep this place yours"},
   ];
-  return <section className="more-screen"><ScreenIntro eyebrow="An index of us" title="kept here"/><div className="index-list">{entries.map((e,i)=><button key={e.name} onClick={()=>e.target && onOpen(e.target)} className={e.target ? "available" : ""}><span>{String(i+1).padStart(2,"0")}</span><div><strong>{e.name}</strong><small>{e.note}</small></div>{e.target && <ChevronRight size={17}/>}</button>)}</div><p className="index-signoff">with care, always.</p></section>;
+  return <section className="more-screen"><ScreenIntro eyebrow={`Kept for ${preferredName}`} title="kept here"/><div className="index-list">{entries.map((e,i)=><button key={e.name} onClick={()=>e.target && onOpen(e.target)} className={e.target ? "available" : ""}><span>{String(i+1).padStart(2,"0")}</span><div><strong>{e.name}</strong><small>{e.note}</small></div>{e.target && <ChevronRight size={17}/>}</button>)}</div><div className="more-signoff"><p className="index-signoff">with care, always.</p><Button variant="ghost" size="sm" onClick={signOut}><LogOut /> Leave for now</Button></div></section>;
 }
 
 function DiaryScreen() {
