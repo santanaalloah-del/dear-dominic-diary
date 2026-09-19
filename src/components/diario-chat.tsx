@@ -40,42 +40,45 @@ export function DiarioChat() {
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
 
-  const loadHistory = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoading(true);
-    const { data: conversations } = await supabase
-      .from("conversations")
-      .select("id,title,updated_at")
-      .eq("user_id", session.user.id)
-      .order("updated_at", { ascending: false });
+  const loadHistory = useCallback(
+    async (showLoading = true) => {
+      if (showLoading) setLoading(true);
+      const { data: conversations } = await supabase
+        .from("conversations")
+        .select("id,title,updated_at")
+        .eq("user_id", session.user.id)
+        .order("updated_at", { ascending: false });
 
-    const conversation =
-      conversations?.find((item) => item.title?.toLowerCase().includes("dominic")) ??
-      conversations?.[0];
+      const conversation =
+        conversations?.find((item) => item.title?.toLowerCase().includes("dominic")) ??
+        conversations?.[0];
 
-    if (!conversation) {
-      setMessages([]);
+      if (!conversation) {
+        setMessages([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("messages")
+        .select("id,role,content,created_at")
+        .eq("user_id", session.user.id)
+        .eq("conversation_id", conversation.id)
+        .in("role", ["user", "assistant"])
+        .order("created_at", { ascending: true });
+
+      setMessages(
+        (data ?? []).map((message) => ({
+          id: String(message.id),
+          role: message.role === "user" ? "user" : "assistant",
+          content: message.content,
+          createdAt: message.created_at,
+        })),
+      );
       setLoading(false);
-      return;
-    }
-
-    const { data } = await supabase
-      .from("messages")
-      .select("id,role,content,created_at")
-      .eq("user_id", session.user.id)
-      .eq("conversation_id", conversation.id)
-      .in("role", ["user", "assistant"])
-      .order("created_at", { ascending: true });
-
-    setMessages(
-      (data ?? []).map((message) => ({
-        id: String(message.id),
-        role: message.role === "user" ? "user" : "assistant",
-        content: message.content,
-        createdAt: message.created_at,
-      })),
-    );
-    setLoading(false);
-  }, [session.user.id]);
+    },
+    [session.user.id],
+  );
 
   useEffect(() => {
     loadHistory();
