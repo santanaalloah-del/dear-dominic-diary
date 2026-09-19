@@ -1,7 +1,6 @@
 # Roadmap
-- [x] Require the existing account before showing the main Diário app.
-- [x] Load Alloah’s profile and Dominic conversation history from existing data.
-- [x] Replace the mocked Chat screen with the real authenticated conversation.
-- [x] Add optimistic sending, typing, friendly retry, and respectful auto-scroll.
-- [x] Preserve `/test` and all unrelated scrapbook screens.
-- [x] Verify mobile and desktop chat behavior.
+- [ ] Recompose Chat as an intimate scrapbook diary page.
+- [ ] Preserve authenticated history, send, retry, and respectful scrolling behavior.
+- [ ] Apply the provided Diário icon to browser and home-screen metadata when available.
+- [ ] Keep `/test`, backend resources, and unrelated Diário screens unchanged.
+- [ ] Verify the redesigned Chat at iPhone and desktop sizes.
