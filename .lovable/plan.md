@@ -1,20 +1,21 @@
-# Dominic mobile visual prototype
+# Diário final private chat
 
-## Build
-- Replace the blank page with a mobile-first visual prototype containing eight navigable screens: Home, Chat, Room, Diary, Letters, Gallery, More, and a Night example.
-- Keep all content local and mocked. Add no authentication, storage, APIs, AI, or backend logic.
-- Use a fixed mobile app frame on wide screens and a full-width experience on phones, with subtle Home / Chat / Room / More navigation.
+## Experience
+- Keep the existing scrapbook screens and `/test` route, but require the existing email/password account before showing the main app.
+- Replace the mocked Chat screen with the real Dominic conversation while preserving the discreet Diário identity and existing bottom navigation.
+- Use the existing user profile for Alloah’s display name; add no signup, social login, guest access, public surfaces, or database changes.
 
-## Visual direction
-- Create an intimate vintage-editorial scrapbook system using warm cream, dusty pink, antique rose, cherry, burgundy, and dark brown semantic tokens.
-- Pair an editorial serif with readable interface type and limited handwritten accents.
-- Use paper grain, tape, imperfect photos, envelopes, stamps, notebook lines, tickets, doodles, and asymmetrical whitespace without turning sections into generic rounded cards.
-- Keep Chat especially clear and usable; create one cohesive night screen with deep wine surfaces and lamp-like accents.
+## Chat
+- Load the authenticated user’s existing Dominic conversation and messages from Supabase in chronological order, mapping `user` to Alloah and `assistant` to Dominic.
+- Build the transcript and composer from AI Elements primitives, customized with the current cream, dusty pink, antique rose, burgundy, and warm-brown paper aesthetic.
+- Keep the header compact, messages readable, timestamps understated, and the composer fixed above mobile safe areas with attachment and microphone placeholders.
 
-## Assets and interaction
-- Generate cohesive analog photographs for Dominic, his room, candid moments, and message/gallery imagery.
-- Add lightweight prototype navigation and screen transitions only; no data persistence.
-- Verify the composition at a mobile viewport and confirm all eight screens are reachable and readable.
+## Behavior
+- Optimistically append sent messages, show Dominic’s typing state, and invoke the existing authenticated `clever-service` function with `{ message }`.
+- Append `data.reply`, refresh stored history after responses, prevent duplicate sends, and auto-scroll only when the user is already near the newest message.
+- Keep technical failures out of the transcript; show “couldn’t reach him. try again.” beside a small retry action.
 
-## Page metadata
-- Add app-specific title, description, Open Graph, and social metadata to the home page.
+## Technical details
+- Use the existing browser Supabase client and current session; do not alter schemas, policies, functions, secrets, authentication settings, or backend logic.
+- Preserve the existing `/test` route unchanged and keep unrelated prototype screens untouched.
+- Add route-specific social metadata, then verify sign-in gating, history rendering, sending, retry behavior, scrolling, and mobile/desktop layouts.
