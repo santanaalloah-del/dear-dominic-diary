@@ -9,6 +9,10 @@ export const Route = createFileRoute("/test")({
       { title: "Diário — backend test" },
       { name: "description", content: "Private backend test interface." },
       { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Diário — backend test" },
+      { property: "og:description", content: "Private backend test interface." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: TestPage,
@@ -31,7 +35,11 @@ function TestPage() {
   }, []);
 
   if (!ready) {
-    return <main className="test-page"><p>loading…</p></main>;
+    return (
+      <main className="test-page">
+        <p>loading…</p>
+      </main>
+    );
   }
   return session ? <TestScreen /> : <LoginForm />;
 }
@@ -58,13 +66,27 @@ function LoginForm() {
         <p className="test-note">Private area. Sign in to continue.</p>
         <label>
           Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
         </label>
         <label>
           Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
         </label>
-        <button type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
+        <button type="submit" disabled={busy}>
+          {busy ? "Signing in…" : "Sign in"}
+        </button>
         {error && <p className="test-error">{error}</p>}
       </form>
     </main>
@@ -107,11 +129,20 @@ function TestScreen() {
         <h1>Backend test</h1>
         <label>
           Message
-          <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Say something…" />
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Say something…"
+          />
         </label>
         <div className="test-actions">
-          <button type="button" onClick={sendTest} disabled={busy}>{busy ? "Sending…" : "Send test"}</button>
-          <button type="button" className="test-logout" onClick={logout}>Log out</button>
+          <button type="button" onClick={sendTest} disabled={busy}>
+            {busy ? "Sending…" : "Send test"}
+          </button>
+          <button type="button" className="test-logout" onClick={logout}>
+            Log out
+          </button>
         </div>
         <div className="test-response">
           {error && <p className="test-error">{error}</p>}
