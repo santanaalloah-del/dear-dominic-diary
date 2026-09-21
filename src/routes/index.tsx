@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";import {
   ArrowLeft,
   BookOpen,
   Box as BoxIcon,
@@ -26,6 +31,12 @@ import { Button } from "@/components/ui/button";
 import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
+import {
+  getDiaryPages,
+  getLocalDateKey,
+  saveDiaryPage,
+  type DiarioItem,
+} from "@/lib/diario-world";
 import room from "@/assets/dominic-room.jpg";
 import livingRoom from "@/assets/living-room.jpeg";
 import bedroom from "@/assets/bedroom.png";
@@ -727,7 +738,129 @@ function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
 }
 
 function DiaryScreen() {
-  const [owner, setOwner] = useState<"alloah" | "dominic">("alloah");
+  const { session } = usePrivateDiario();
+
+  const [owner, setOwner] =
+    useState<"alloah" | "dominic">("alloah");
+
+  const [pages, setPages] =
+    useState<DiarioItem[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [editing, setEditing] =
+    useState(false);
+
+  const [draft, setDraft] =
+    useState("");
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const todayKey = getLocalDateKey();
+
+  const todayPage =
+    pages.find(
+      (page) =>
+        page.data?.local_date === todayKey
+    ) ?? null;
+
+  const pastPages =
+    pages.filter(
+      (page) =>
+        page.data?.local_date !== todayKey
+    );
+
+  useEffect(() => {
+    let active = true;
+
+    setLoading(true);
+    setError(null);
+    setEditing(false);
+    setDraft("");
+
+    getDiaryPages(
+      session.user.id,
+      owner
+    )
+      .then((loadedPages) => {
+        if (!active) return;
+
+        setPages(loadedPages);
+        setLoading(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load diary pages:",
+          loadError
+        );
+
+        setError(
+          "The diary could not be opened right now."
+        );
+
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [owner, session.user.id]);
+
+  const startWriting = () => {
+    setDraft(todayPage?.body ?? "");
+    setEditing(true);
+    setError(null);
+  };
+
+  const savePage = async () => {
+    if (!draft.trim()) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const savedPage =
+        await saveDiaryPage({
+          id: todayPage?.id,
+          userId: session.user.id,
+          owner: "alloah",
+          body: draft,
+          localDate: todayKey,
+          eventAt:
+            todayPage?.event_at ??
+            new Date().toISOString(),
+        });
+
+      setPages((currentPages) => [
+        savedPage,
+        ...currentPages.filter(
+          (page) =>
+            page.id !== savedPage.id
+        ),
+      ]);
+
+      setDraft(savedPage.body ?? "");
+      setEditing(false);
+    } catch (saveError) {
+      console.error(
+        "Could not save diary page:",
+        saveError
+      );
+
+      setError(
+        "Your page could not be saved. Try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <section className="diary-screen diary-live">
@@ -748,9 +881,17 @@ function DiaryScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={owner === "alloah"}
-          className={owner === "alloah" ? "active" : ""}
-          onClick={() => setOwner("alloah")}
+          aria-selected={
+            owner === "alloah"
+          }
+          className={
+            owner === "alloah"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setOwner("alloah")
+          }
         >
           Alloah
         </button>
@@ -758,9 +899,17 @@ function DiaryScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={owner === "dominic"}
-          className={owner === "dominic" ? "active" : ""}
-          onClick={() => setOwner("dominic")}
+          aria-selected={
+            owner === "dominic"
+          }
+          className={
+            owner === "dominic"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setOwner("dominic")
+          }
         >
           Dominic
         </button>
@@ -770,6 +919,7 @@ function DiaryScreen() {
         <header className="diary-today-header">
           <div>
             <span>today</span>
+
             <strong>
               {owner === "alloah"
                 ? "Your page"
@@ -784,33 +934,108 @@ function DiaryScreen() {
           </small>
         </header>
 
-        <div className="diary-empty-page">
-          <div
-            className="diary-page-mark"
-            aria-hidden="true"
-          >
-            ✦
+        {loading ? (
+          <div className="diary-empty-page">
+            <p>
+              Opening today's page…
+            </p>
           </div>
+        ) : editing &&
+          owner === "alloah" ? (
+          <div className="diary-empty-page diary-editor">
+            <textarea
+              value={draft}
+              onChange={(event) =>
+                setDraft(
+                  event.target.value
+                )
+              }
+              placeholder="Write what happened today…"
+              rows={12}
+              autoFocus
+            />
 
-          <h2>
-            Nothing written here yet.
-          </h2>
+            <div className="diary-editor-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(false);
+                  setDraft(
+                    todayPage?.body ?? ""
+                  );
+                }}
+                disabled={saving}
+              >
+                Cancel
+              </button>
 
-          <p>
-            {owner === "alloah"
-              ? "When you write about a real day, this page can later connect to its photos, music, places, letters and memories."
-              : "His pages belong to him. They only appear here when something is actually written or shared in the world."}
-          </p>
+              <button
+                type="button"
+                className="diary-write-button"
+                onClick={savePage}
+                disabled={
+                  saving ||
+                  !draft.trim()
+                }
+              >
+                {saving
+                  ? "Saving…"
+                  : "Save today's page"}
+              </button>
+            </div>
+          </div>
+        ) : todayPage ? (
+          <div className="diary-empty-page diary-written-page">
+            <p className="diary-page-body">
+              {todayPage.body}
+            </p>
 
-          {owner === "alloah" && (
-            <button
-              type="button"
-              className="diary-write-button"
+            {owner === "alloah" && (
+              <button
+                type="button"
+                className="diary-write-button"
+                onClick={startWriting}
+              >
+                Edit today's page
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="diary-empty-page">
+            <div
+              className="diary-page-mark"
+              aria-hidden="true"
             >
-              Write today's page
-            </button>
-          )}
-        </div>
+              ✦
+            </div>
+
+            <h2>
+              Nothing written here yet.
+            </h2>
+
+            <p>
+              {owner === "alloah"
+                ? "When you write about a real day, this page can later connect to its photos, music, places, letters and memories."
+                : "His pages belong to him. They only appear here when something is actually written or shared in the world."}
+            </p>
+
+            {owner === "alloah" && (
+              <button
+                type="button"
+                className="diary-write-button"
+                onClick={startWriting}
+              >
+                Write today's page
+              </button>
+            )}
+          </div>
+        )}
+
+        {error && (
+          <p role="alert">
+            {error}
+          </p>
+        )}
 
         <footer className="diary-page-footer">
           <span>
@@ -831,11 +1056,45 @@ function DiaryScreen() {
           <strong>Past pages</strong>
         </header>
 
-        <div className="diary-archive-empty">
-          <p>
-            Days will appear here after they are lived and written.
-          </p>
-        </div>
+        {pastPages.length === 0 ? (
+          <div className="diary-archive-empty">
+            <p>
+              Days will appear here after they are lived and written.
+            </p>
+          </div>
+        ) : (
+          <div className="diary-archive-list">
+            {pastPages.map((page) => (
+              <article
+                key={page.id}
+                className="diary-archive-item"
+              >
+                <small>
+                  {page.event_at
+                    ? new Intl.DateTimeFormat(
+                        "en",
+                        {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                          timeZone:
+                            "America/Sao_Paulo",
+                        }
+                      ).format(
+                        new Date(
+                          page.event_at
+                        )
+                      )
+                    : "Past page"}
+                </small>
+
+                <p>
+                  {page.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </section>
   );
