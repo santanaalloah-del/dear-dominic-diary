@@ -144,14 +144,7 @@ function DiarioApp() {
 {screen === "calendar" && <CalendarScreen />}
 {screen === "timeline" && <TimelineScreen />}
 {screen === "music" && <MusicScreen />}
-          {screen === "dates" && (
-            <FeaturePreviewScreen
-              eyebrow="Real places · real moments"
-              title="Dates"
-              note="Plan it, get ready, live it, keep what mattered. Places, photos, tickets, outfits and memories stay connected."
-              icon={<MapPin />}
-            />
-          )}
+{screen === "dates" && <DatesScreen />}
           {screen === "keepsakes" && (
             <FeaturePreviewScreen
               eyebrow="Small things · big meanings"
@@ -1058,6 +1051,329 @@ function GalleryScreen() {
             them.
           </p>
         </div>
+      </section>
+    </section>
+  );
+}
+function DatesScreen() {
+  const [dateView, setDateView] = useState<
+    "all" | "planned" | "lived"
+  >("all");
+
+  const dates: Array<{
+    id: string;
+    title: string;
+    place: string;
+    date: string;
+    status: "planned" | "lived";
+    note?: string;
+    outfitId?: string;
+    memoryId?: string;
+    photoIds?: string[];
+    keepsakeIds?: string[];
+    songIds?: string[];
+  }> = [];
+
+  const visibleDates =
+    dateView === "all"
+      ? dates
+      : dates.filter(
+          (date) =>
+            date.status === dateView
+        );
+
+  const plannedDates =
+    dates.filter(
+      (date) =>
+        date.status === "planned"
+    );
+
+  const livedDates =
+    dates.filter(
+      (date) =>
+        date.status === "lived"
+    );
+
+  return (
+    <section className="dates-screen dates-live">
+      <ScreenIntro
+        eyebrow="Plan it · live it · keep it"
+        title="Dates"
+      >
+        <p className="intro-copy">
+          a place becomes part of your story only
+          after you actually plan or live something there.
+        </p>
+      </ScreenIntro>
+
+      <div
+        className="dates-tabs"
+        role="tablist"
+        aria-label="Date status"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            dateView === "all"
+          }
+          className={
+            dateView === "all"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setDateView("all")
+          }
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            dateView === "planned"
+          }
+          className={
+            dateView === "planned"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setDateView("planned")
+          }
+        >
+          Planned
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            dateView === "lived"
+          }
+          className={
+            dateView === "lived"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setDateView("lived")
+          }
+        >
+          Lived
+        </button>
+      </div>
+
+      <section className="dates-summary">
+        <div>
+          <span>
+            planned
+          </span>
+
+          <strong>
+            {plannedDates.length}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            lived
+          </span>
+
+          <strong>
+            {livedDates.length}
+          </strong>
+        </div>
+      </section>
+
+      {visibleDates.length === 0 ? (
+        <section className="dates-empty">
+          <div
+            className="dates-empty-icon"
+            aria-hidden="true"
+          >
+            <MapPin
+              size={27}
+              strokeWidth={1.3}
+            />
+          </div>
+
+          <small>
+            nowhere yet
+          </small>
+
+          <h2>
+            No dates here yet.
+          </h2>
+
+          <p>
+            Real places can exist in the world
+            without becoming part of your history.
+            A date appears here only after you plan
+            it or actually live it.
+          </p>
+
+          <button
+            type="button"
+            className="dates-plan-button"
+          >
+            <span aria-hidden="true">
+              ＋
+            </span>
+
+            Plan a date
+          </button>
+        </section>
+      ) : (
+        <div className="dates-list">
+          {visibleDates.map(
+            (date) => (
+              <article
+                key={date.id}
+                className={`date-card date-${date.status}`}
+              >
+                <header>
+                  <div>
+                    <span>
+                      {date.status}
+                    </span>
+
+                    <strong>
+                      {date.title}
+                    </strong>
+                  </div>
+
+                  <ChevronRight
+                    size={17}
+                  />
+                </header>
+
+                <div className="date-place">
+                  <MapPin
+                    size={16}
+                  />
+
+                  <span>
+                    {date.place}
+                  </span>
+                </div>
+
+                <time>
+                  {new Intl.DateTimeFormat(
+                    "en-US",
+                    {
+                      weekday: "short",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    }
+                  ).format(
+                    new Date(date.date)
+                  )}
+                </time>
+
+                {date.note && (
+                  <p>
+                    {date.note}
+                  </p>
+                )}
+              </article>
+            )
+          )}
+        </div>
+      )}
+
+      <section className="date-life-cycle">
+        <header>
+          <span>
+            how a date lives
+          </span>
+
+          <strong>
+            One moment, connected everywhere
+          </strong>
+        </header>
+
+        <div>
+          <article>
+            <CalendarIcon
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Plan
+              </strong>
+
+              <small>
+                place, day and idea
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <Shirt
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Get ready
+              </strong>
+
+              <small>
+                outfit and preparation
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <MapPin
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Live
+              </strong>
+
+              <small>
+                what actually happened
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <ImageIcon
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Keep
+              </strong>
+
+              <small>
+                photos, songs and objects
+              </small>
+            </span>
+          </article>
+        </div>
+      </section>
+
+      <section className="dates-rule">
+        <p>
+          A lived date can later point to Gallery
+          photos, a Wardrobe look, Music, Keepsakes,
+          Calendar, Timeline and Memories without
+          creating duplicate copies.
+        </p>
       </section>
     </section>
   );
