@@ -1100,3 +1100,154 @@
 .home-house .house-space-strip{
   padding-bottom:18px;
 }
+/* =========================================
+   OFFICIAL APARTMENT FLOOR PLAN
+   ========================================= */
+
+.official-floor-plan{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  background:var(--paper-deep);
+}
+
+.official-floor-plan>img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  filter:
+    saturate(.86)
+    contrast(.96)
+    brightness(.98);
+}
+
+/* keep the floor plan readable under the room label */
+
+.space-map .house-room-label{
+  left:18px;
+  bottom:16px;
+  padding:8px 11px 7px;
+  background:
+    color-mix(in oklab,var(--wine) 66%,transparent);
+  backdrop-filter:blur(6px);
+  text-shadow:none;
+}
+
+.space-map .house-room-label strong,
+.space-map .house-room-label small{
+  color:var(--cream);
+}
+
+/* invisible room hotspots */
+
+.plan-hotspot{
+  position:absolute;
+  z-index:5;
+  margin:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/*
+  These follow the approved visual floor plan.
+  They can later be fine-tuned by a few percent
+  without changing the apartment architecture.
+*/
+
+.plan-hotspot-living{
+  left:9%;
+  top:18%;
+  width:39%;
+  height:36%;
+}
+
+.plan-hotspot-bedroom{
+  right:9%;
+  top:16%;
+  width:37%;
+  height:35%;
+}
+
+.plan-hotspot-kitchen{
+  left:9%;
+  bottom:11%;
+  width:35%;
+  height:29%;
+}
+
+.plan-hotspot-bathroom{
+  right:9%;
+  bottom:12%;
+  width:31%;
+  height:26%;
+}
+
+.plan-hotspot-hall{
+  left:43%;
+  top:44%;
+  width:18%;
+  height:45%;
+}
+
+/* subtle feedback only when touched */
+
+.plan-hotspot:active{
+  background:
+    color-mix(in oklab,var(--cream) 8%,transparent);
+}
+
+/* remove the old CSS-generated map if any styles still exist */
+
+.space-map .floor-plan-map,
+.space-map .floor-plan-placeholder{
+  display:none !important;
+}
+
+/* Floor Plan thumbnail */
+
+.room-thumb-map{
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.04),
+      rgba(41,22,15,.09)
+    ),
+    url("/src/assets/apartment-floor-plan.png") !important;
+  background-size:cover !important;
+  background-position:center !important;
+  filter:saturate(.7) sepia(.08);
+}
+
+/* apartment image stays the focus */
+
+.space-map{
+  background:var(--paper-deep);
+}
+
+.space-map .house-arrow{
+  background:
+    color-mix(in oklab,var(--wine) 58%,transparent);
+}
+
+/* slight old-photo material finish */
+
+.official-floor-plan:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,246,232,.05),
+      transparent 35%,
+      rgba(64,34,20,.08)
+    );
+  mix-blend-mode:multiply;
+}
