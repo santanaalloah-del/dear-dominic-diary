@@ -147,14 +147,7 @@ function DiarioApp() {
 {screen === "dates" && <DatesScreen />}
 {screen === "keepsakes" && <KeepsakesScreen />}
 {screen === "wardrobe" && <WardrobeScreen />}
-          {screen === "settings" && (
-            <FeaturePreviewScreen
-              eyebrow="Everything in your hands"
-              title="Settings"
-              note="Appearance, Home, Morning / Night, music, voice, privacy, data and the rules of your private universe."
-              icon={<Settings />}
-            />
-          )}
+{screen === "settings" && <SettingsScreen />}
         </div>
 
         {!detail && <BottomNav active={screen} onOpen={setScreen} />}
@@ -3553,6 +3546,456 @@ function MorningNightScreen({
           contextual views of the same real
           day and the same apartment.
         </p>
+      </section>
+    </section>
+  );
+}
+function SettingsScreen() {
+  const { preferredName, signOut } =
+    usePrivateDiario();
+
+  const [appearance, setAppearance] =
+    useState<
+      "system" | "light" | "dark"
+    >("system");
+
+  const [timeAware, setTimeAware] =
+    useState(true);
+
+  const [privacyCoverEnabled, setPrivacyCoverEnabled] =
+    useState(true);
+
+  const [musicIntegration, setMusicIntegration] =
+    useState(false);
+
+  const [voiceEnabled, setVoiceEnabled] =
+    useState(false);
+
+  return (
+    <section className="settings-screen settings-live">
+      <ScreenIntro
+        eyebrow={`Private space · ${preferredName}`}
+        title="Settings"
+      >
+        <p className="intro-copy">
+          the rules, appearance and connections
+          that shape this private world.
+        </p>
+      </ScreenIntro>
+
+      <section className="settings-group">
+        <header>
+          <span>
+            appearance
+          </span>
+
+          <strong>
+            How Diário looks
+          </strong>
+        </header>
+
+        <div
+          className="settings-segment"
+          role="radiogroup"
+          aria-label="Appearance"
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={
+              appearance === "system"
+            }
+            className={
+              appearance === "system"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setAppearance("system")
+            }
+          >
+            System
+          </button>
+
+          <button
+            type="button"
+            role="radio"
+            aria-checked={
+              appearance === "light"
+            }
+            className={
+              appearance === "light"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setAppearance("light")
+            }
+          >
+            Light
+          </button>
+
+          <button
+            type="button"
+            role="radio"
+            aria-checked={
+              appearance === "dark"
+            }
+            className={
+              appearance === "dark"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setAppearance("dark")
+            }
+          >
+            Dark
+          </button>
+        </div>
+
+        <p className="settings-note">
+          The final visual pass will make
+          every screen follow this choice.
+        </p>
+      </section>
+
+      <section className="settings-group">
+        <header>
+          <span>
+            world
+          </span>
+
+          <strong>
+            Home & time
+          </strong>
+        </header>
+
+        <button
+          type="button"
+          className="settings-row"
+          onClick={() =>
+            setTimeAware(
+              (value) => !value
+            )
+          }
+          aria-pressed={
+            timeAware
+          }
+        >
+          <div>
+            <Clock
+              size={19}
+              strokeWidth={1.4}
+            />
+
+            <span>
+              <strong>
+                Time-aware apartment
+              </strong>
+
+              <small>
+                light and atmosphere follow
+                the real time
+              </small>
+            </span>
+          </div>
+
+          <i
+            className={
+              timeAware
+                ? "settings-toggle on"
+                : "settings-toggle"
+            }
+            aria-hidden="true"
+          />
+        </button>
+
+        <div className="settings-static-row">
+          <div>
+            <Home
+              size={19}
+              strokeWidth={1.4}
+            />
+
+            <span>
+              <strong>
+                Apartment architecture
+              </strong>
+
+              <small>
+                walls, doors, windows and
+                circulation stay fixed
+              </small>
+            </span>
+          </div>
+
+          <small>
+            locked
+          </small>
+        </div>
+      </section>
+
+      <section className="settings-group">
+        <header>
+          <span>
+            privacy
+          </span>
+
+          <strong>
+            Keep it private
+          </strong>
+        </header>
+
+        <button
+          type="button"
+          className="settings-row"
+          onClick={() =>
+            setPrivacyCoverEnabled(
+              (value) => !value
+            )
+          }
+          aria-pressed={
+            privacyCoverEnabled
+          }
+        >
+          <div>
+            <Heart
+              size={19}
+              strokeWidth={1.4}
+            />
+
+            <span>
+              <strong>
+                Hide app preview
+              </strong>
+
+              <small>
+                cover private content when
+                Diário goes into the background
+              </small>
+            </span>
+          </div>
+
+          <i
+            className={
+              privacyCoverEnabled
+                ? "settings-toggle on"
+                : "settings-toggle"
+            }
+            aria-hidden="true"
+          />
+        </button>
+
+        <div className="settings-static-row">
+          <div>
+            <Settings
+              size={19}
+              strokeWidth={1.4}
+            />
+
+            <span>
+              <strong>
+                Account session
+              </strong>
+
+              <small>
+                Supabase keeps the signed-in
+                session on this device
+              </small>
+            </span>
+          </div>
+
+          <small>
+            private
+          </small>
+        </div>
+      </section>
+
+      <section className="settings-group">
+        <header>
+          <span>
+            connections
+          </span>
+
+          <strong>
+            Music & voice
+          </strong>
+        </header>
+
+        <button
+          type="button"
+          className="settings-row"
+          onClick={() =>
+            setMusicIntegration(
+              (value) => !value
+            )
+          }
+          aria-pressed={
+            musicIntegration
+          }
+        >
+          <div>
+            <Music2
+              size={19}
+              strokeWidth={1.4}
+            />
+
+            <span>
+              <strong>
+                Music connection
+              </strong>
+
+              <small>
+                listening history and
+                now playing
+              </small>
+            </span>
+          </div>
+
+          <i
+            className={
+              musicIntegration
+                ? "settings-toggle on"
+                : "settings-toggle"
+            }
+            aria-hidden="true"
+          />
+        </button>
+
+        <button
+          type="button"
+          className="settings-row"
+          onClick={() =>
+            setVoiceEnabled(
+              (value) => !value
+            )
+          }
+          aria-pressed={
+            voiceEnabled
+          }
+        >
+          <div>
+            <Send
+              size={19}
+              strokeWidth={1.4}
+            />
+
+            <span>
+              <strong>
+                Voice features
+              </strong>
+
+              <small>
+                audio belongs to the same
+                private world
+              </small>
+            </span>
+          </div>
+
+          <i
+            className={
+              voiceEnabled
+                ? "settings-toggle on"
+                : "settings-toggle"
+            }
+            aria-hidden="true"
+          />
+        </button>
+
+        <p className="settings-note">
+          These connection switches are the
+          interface foundation only. We will wire
+          the real providers after the core app
+          structure is complete.
+        </p>
+      </section>
+
+      <section className="settings-group">
+        <header>
+          <span>
+            data
+          </span>
+
+          <strong>
+            Your world
+          </strong>
+        </header>
+
+        <div className="settings-static-row">
+          <div>
+            <ImageIcon
+              size={19}
+              strokeWidth={1.4}
+            />
+
+            <span>
+              <strong>
+                Media
+              </strong>
+
+              <small>
+                Gallery remains the source
+                of truth for photos
+              </small>
+            </span>
+          </div>
+
+          <small>
+            Gallery
+          </small>
+        </div>
+
+        <div className="settings-static-row">
+          <div>
+            <Heart
+              size={19}
+              strokeWidth={1.4}
+            />
+
+            <span>
+              <strong>
+                Relationship history
+              </strong>
+
+              <small>
+                only lived events become canon
+              </small>
+            </span>
+          </div>
+
+          <small>
+            protected
+          </small>
+        </div>
+      </section>
+
+      <section className="settings-account">
+        <header>
+          <span>
+            account
+          </span>
+
+          <strong>
+            Leave Diário
+          </strong>
+        </header>
+
+        <p>
+          Signing out removes the active session
+          from this device. It does not erase the
+          world or its saved data.
+        </p>
+
+        <Button
+          variant="ghost"
+          onClick={signOut}
+        >
+          <LogOut
+            size={17}
+          />
+          Sign out
+        </Button>
       </section>
     </section>
   );
