@@ -926,3 +926,81 @@ function BottomNav({ active, onOpen }: { active: Screen; onOpen: (screen: Screen
   left: 76%;
   top: 55%;
 }
+/* ─────────────────────────────────────────
+   APARTMENT · ROOM NAVIGATION
+   ───────────────────────────────────────── */
+
+.room-navigation {
+  position: relative;
+  z-index: 4;
+
+  display: flex;
+  align-items: center;
+  gap: 0;
+
+  margin: 13px 24px 5px;
+  padding: 0 0 8px;
+
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--brown) 16%, transparent);
+}
+
+.room-navigation::-webkit-scrollbar {
+  display: none;
+}
+
+.room-navigation button {
+  position: relative;
+  flex: 0 0 auto;
+
+  border: 0;
+  background: none;
+
+  padding: 7px 12px;
+
+  color: color-mix(in oklab, var(--brown) 66%, transparent);
+
+  font: 12px/1 var(--font-display);
+  letter-spacing: 0.02em;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.room-navigation button + button::before {
+  content: "·";
+
+  position: absolute;
+  left: -2px;
+
+  color: color-mix(in oklab, var(--brown) 32%, transparent);
+}
+
+.room-navigation button.active {
+  color: var(--wine-deep);
+}
+
+.room-navigation button.active::after {
+  content: "";
+
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+
+  width: 24px;
+  height: 2px;
+
+  background: var(--cherry);
+
+  transform: translateX(-50%) rotate(-2deg);
+}
+
+.room-navigation button:active {
+  transform: translateY(1px);
+}
