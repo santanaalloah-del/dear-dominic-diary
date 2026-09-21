@@ -749,43 +749,119 @@ function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
 }
 
 function DiaryScreen() {
+  const [owner, setOwner] = useState<"alloah" | "dominic">("alloah");
+
   return (
-    <section className="diary-screen">
-      <ScreenIntro eyebrow="Words from today · memories for later" title="Diary">
-        <p className="intro-copy">your pages and his, private until someone chooses to share.</p>
+    <section className="diary-screen diary-live">
+      <ScreenIntro
+        eyebrow="Private pages · written when they happen"
+        title="Diary"
+      >
+        <p className="intro-copy">
+          real days only. nothing becomes part of our history before it is lived.
+        </p>
       </ScreenIntro>
-      <div className="diary-owner-tabs" aria-label="Diary owner">
-        <button className="active">Alloah</button>
-        <button>Dominic</button>
+
+      <div
+        className="diary-owner-tabs"
+        role="tablist"
+        aria-label="Diary owner"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={owner === "alloah"}
+          className={owner === "alloah" ? "active" : ""}
+          onClick={() => setOwner("alloah")}
+        >
+          Alloah
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={owner === "dominic"}
+          className={owner === "dominic" ? "active" : ""}
+          onClick={() => setOwner("dominic")}
+        >
+          Dominic
+        </button>
       </div>
-      <div className="notebook-page">
-        <span className="page-date">18 · 09 · 26</span>
-        <h1>Friday, near sunset</h1>
-        <p>
-          I woke up with that song still in my head. The one from the kitchen, when neither of us
-          knew the words but sang anyway.
-        </p>
-        <figure>
-          <span className="tape" />
-          <img src={cafe} alt="Two hands and coffee cups" width={1024} height={1024} loading="lazy" />
-          <figcaption>the corner table, again</figcaption>
-        </figure>
-        <p>
-          Walked past our café today. Your chair was empty and for a second it felt like the whole
-          room was saving it for you.
-        </p>
-        <div className="diary-song">
-          <Music2 size={14} />
-          <span>This Must Be the Place — side A</span>
+
+      <article className="diary-today-card">
+        <header className="diary-today-header">
+          <div>
+            <span>today</span>
+            <strong>
+              {owner === "alloah"
+                ? "Your page"
+                : "Dominic's page"}
+            </strong>
+          </div>
+
+          <small>
+            {owner === "alloah"
+              ? "private"
+              : "his space"}
+          </small>
+        </header>
+
+        <div className="diary-empty-page">
+          <div
+            className="diary-page-mark"
+            aria-hidden="true"
+          >
+            ✦
+          </div>
+
+          <h2>
+            Nothing written here yet.
+          </h2>
+
+          <p>
+            {owner === "alloah"
+              ? "When you write about a real day, this page can later connect to its photos, music, places, letters and memories."
+              : "His pages belong to him. They only appear here when something is actually written or shared in the world."}
+          </p>
+
+          {owner === "alloah" && (
+            <button
+              type="button"
+              className="diary-write-button"
+            >
+              Write today's page
+            </button>
+          )}
         </div>
-        <span className="flower-detail">❦</span>
-        <span className="doodle">you were here ☆</span>
-        <footer>47</footer>
-      </div>
+
+        <footer className="diary-page-footer">
+          <span>
+            {owner === "alloah"
+              ? "Alloah's diary"
+              : "Dominic's diary"}
+          </span>
+
+          <span>
+            no invented history
+          </span>
+        </footer>
+      </article>
+
+      <section className="diary-archive-preview">
+        <header>
+          <span>archive</span>
+          <strong>Past pages</strong>
+        </header>
+
+        <div className="diary-archive-empty">
+          <p>
+            Days will appear here after they are lived and written.
+          </p>
+        </div>
+      </section>
     </section>
   );
 }
-
 function LettersScreen() {
   return (
     <section className="letters-screen">
