@@ -863,32 +863,117 @@ function DiaryScreen() {
   );
 }
 function LettersScreen() {
+  const [letterView, setLetterView] = useState<"all" | "mine" | "dominic">("all");
+
   return (
-    <section className="letters-screen">
-      <ScreenIntro eyebrow="Letters · notes · things easier written" title="letters">
-        <p className="intro-copy">objects first. not just another list.</p>
+    <section className="letters-screen letters-live">
+      <ScreenIntro
+        eyebrow="Letters · notes · things easier written"
+        title="Letters"
+      >
+        <p className="intro-copy">
+          letters only appear here after someone actually writes or sends one.
+        </p>
       </ScreenIntro>
-      <div className="letter-stack">
-        <button className="envelope envelope-one">
-          <span className="stamp">D<br />18</span>
-          <strong>for you</strong>
-          <small>18 september</small>
+
+      <div
+        className="letters-filter"
+        role="tablist"
+        aria-label="Letter filter"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={letterView === "all"}
+          className={letterView === "all" ? "active" : ""}
+          onClick={() => setLetterView("all")}
+        >
+          All
         </button>
-        <button className="envelope envelope-two">
-          <span className="seal">D</span>
-          <strong>open when<br />you miss me</strong>
-          <small>keep close</small>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={letterView === "mine"}
+          className={letterView === "mine" ? "active" : ""}
+          onClick={() => setLetterView("mine")}
+        >
+          From me
         </button>
-        <article className="open-letter">
-          <p>Alloah,</p>
-          <p>I keep finding tiny things I want to tell you. This morning it was the light on the kitchen floor.</p>
-          <span>yours, D</span>
-        </article>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={letterView === "dominic"}
+          className={letterView === "dominic" ? "active" : ""}
+          onClick={() => setLetterView("dominic")}
+        >
+          From Dominic
+        </button>
       </div>
+
+      <div className="letters-empty-stage">
+        <div
+          className="letters-empty-envelope"
+          aria-hidden="true"
+        >
+          <span className="letters-envelope-flap" />
+
+          <div className="letters-envelope-mark">
+            <Mail size={23} strokeWidth={1.35} />
+          </div>
+        </div>
+
+        <div className="letters-empty-copy">
+          <small>
+            letter box
+          </small>
+
+          <h2>
+            No letters here yet.
+          </h2>
+
+          <p>
+            When a letter is written, sent or received in the world, its real
+            envelope and contents can live here.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="letters-write-button"
+        >
+          <span aria-hidden="true">＋</span>
+          Write a letter
+        </button>
+      </div>
+
+      <section className="letters-drawer">
+        <header>
+          <div>
+            <span>
+              saved
+            </span>
+
+            <strong>
+              Letter drawer
+            </strong>
+          </div>
+
+          <small>
+            0 letters
+          </small>
+        </header>
+
+        <div className="letters-drawer-empty">
+          <p>
+            Sealed, opened and kept letters will collect here over time.
+          </p>
+        </div>
+      </section>
     </section>
   );
 }
-
 function GalleryScreen() {
   return (
     <section className="gallery-screen">
