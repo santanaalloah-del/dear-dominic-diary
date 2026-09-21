@@ -248,3 +248,12 @@ The interface should visually accumulate life.
 - visual density can increase with history without becoming cluttered
 
 The design rule is: **time leaves marks.**
+
+## Phase 2 — Romantic Vintage Home Foundation
+- Home is no longer a flat/minimal dashboard. It uses a large rounded “bubble”/capsule framed like a scrapbook object.
+- Materials: cream paper, burgundy, dusty rose, lace motifs, tape, stitched/dashed borders, handwritten notes, aged-gold feeling through warm shadows and muted accents.
+- The global time-of-day theme still controls the whole app and now also visibly changes the Home bubble and apartment imagery.
+- The apartment is explicitly a whole home, not a single bedroom. Current room navigation: Living Room, Bedroom, Kitchen, Bathroom, Entrance/Hall.
+- Apartment includes an interactive floor-plan concept, room list, per-room object hotspots, references, add/move object actions, and Room Proposal with Try Again / Keep / Discard.
+- Canon rule remains: generated visual proposals are previews until the user chooses Keep.
+- Chat backend/integration remains untouched; visual chat work continues separately according to the WhatsApp-like personalized messenger plan.
