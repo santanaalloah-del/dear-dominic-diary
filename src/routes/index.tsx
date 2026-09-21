@@ -211,63 +211,133 @@ function ScreenIntro({
 }
 
 function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Screen) => void }) {
+  const spaces = [
+    { id: "living", label: "Living Room" },
+    { id: "bedroom", label: "Bedroom" },
+    { id: "kitchen", label: "Kitchen" },
+    { id: "bathroom", label: "Bathroom" },
+    { id: "hall", label: "Hall" },
+    { id: "map", label: "Floor Plan" },
+  ];
+
+  const [activeSpace, setActiveSpace] = useState(0);
+  const currentSpace = spaces[activeSpace];
+
+  const previousSpace = () => {
+    setActiveSpace((current) =>
+      current === 0 ? spaces.length - 1 : current - 1
+    );
+  };
+
+  const nextSpace = () => {
+    setActiveSpace((current) =>
+      current === spaces.length - 1 ? 0 : current + 1
+    );
+  };
+
   return (
-    <section className="home-screen home-live">
-      <div className="home-hero">
-        <img src={room} alt="Our apartment in New York City" width={1280} height={960} />
-        <div className="home-hero-shade" />
-        <header className="home-brand">
-          <span>DIÁRIO</span>
-          <small>NYC · RIO TIME</small>
-        </header>
-        <div className="home-time-copy">
-          <p className="home-script">Home</p>
-          <h1>{time.greeting}</h1>
-          <span>{time.dateLabel} · {time.timeLabel}</span>
-          <p>{time.homeLine}</p>
+    <section className="home-screen home-live home-house">
+      <header className="house-header">
+        <div>
+          <span className="house-kicker">our home</span>
+          <strong>{currentSpace.label}</strong>
         </div>
-        <button className="home-hotspot hotspot-window" aria-label="Window view">
-          <span />
-          <small>window</small>
+
+        <div className="house-time">
+          <span>{time.timeLabel}</span>
+          <small>{time.dateLabel}</small>
+        </div>
+      </header>
+
+      <div className={`house-stage space-${currentSpace.id}`}>
+        <img
+          src={room}
+          alt={`${currentSpace.label} in our apartment`}
+          width={1280}
+          height={960}
+        />
+
+        <div className="house-stage-shade" />
+
+        {currentSpace.id !== "map" && (
+          <>
+            <button
+              className="house-object house-object-one"
+              aria-label={`Interact with ${currentSpace.label}`}
+              onClick={() => onOpen("room")}
+            >
+              <span />
+            </button>
+
+            <button
+              className="house-object house-object-two"
+              aria-label={`Open details for ${currentSpace.label}`}
+              onClick={() => onOpen("room")}
+            >
+              <span />
+            </button>
+          </>
+        )}
+
+        {currentSpace.id === "map" && (
+          <div className="floor-plan-placeholder">
+            <span>Floor Plan</span>
+            <small>the full apartment will live here</small>
+          </div>
+        )}
+
+        <div className="house-room-label">
+          <strong>{currentSpace.label}</strong>
+          <small>
+            {activeSpace + 1} / {spaces.length}
+          </small>
+        </div>
+
+        <button
+          className="house-arrow house-arrow-left"
+          onClick={previousSpace}
+          aria-label="Previous room"
+        >
+          ‹
         </button>
-        <button className="home-hotspot hotspot-bed" onClick={() => onOpen("room")} aria-label="Bedroom">
-          <span />
-          <small>bedroom</small>
+
+        <button
+          className="house-arrow house-arrow-right"
+          onClick={nextSpace}
+          aria-label="Next room"
+        >
+          ›
         </button>
-        <button className="home-hotspot hotspot-desk" onClick={() => onOpen("room")} aria-label="Room details">
-          <span />
-          <small>our things</small>
-        </button>
-        <div className="home-note home-mark" aria-hidden="true">   <span>✿</span>   <i>◌</i> </div>
       </div>
 
-    <div className="home-dock-copy home-atmosphere">
-  <div>
-    <strong>{time.timeLabel}</strong>
-    <small>{time.dateLabel}</small>
-  </div>
+      <div className="house-space-strip" aria-label="Apartment rooms">
+        {spaces.map((space, index) => (
+          <button
+            key={space.id}
+            className={index === activeSpace ? "active" : ""}
+            onClick={() => setActiveSpace(index)}
+          >
+            <span />
+            <small>{space.label}</small>
+          </button>
+        ))}
+      </div>
 
-  <span className={`home-orb orb-${time.mood}`} aria-hidden="true" />
-</div>
+      <div className="home-day-passage">
+        <div className="day-passage-art" aria-hidden="true">
+          <span>☼</span>
+          <i>✦</i>
+          <b>☾</b>
+        </div>
 
-     
-
-     <div className="home-today-card home-day-passage">
-  <div className="day-passage-art" aria-hidden="true">
-    <span>☼</span>
-    <i>✦</i>
-    <b>☾</b>
-  </div>
-
-  <button onClick={() => onOpen("night")}>
-    Morning / Night
-    <ChevronRight size={14} />
-  </button>
-</div>
+        <button onClick={() => onOpen("night")}>
+          Morning / Night
+          <ChevronRight size={14} />
+        </button>
+      </div>
     </section>
   );
 }
-
 function RoomScreen({ time }: { time: TimeMoodState }) {
   const objects = ["window", "bed", "nightstand", "photo wall", "record corner"];
   return (
