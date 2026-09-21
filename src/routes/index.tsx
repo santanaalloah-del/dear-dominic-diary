@@ -511,9 +511,40 @@ function RoomScreen({
   };
 
   const room =
-    rooms[roomId as keyof typeof rooms] ?? rooms.living;
+  rooms[roomId as keyof typeof rooms] ?? rooms.living;
 
-  return (
+const roomObjects =
+  roomId === "living"
+    ? [
+        {
+          id: "sofa",
+          label: "Sofa",
+          type: "furniture",
+        },
+        {
+          id: "coffee-table",
+          label: "Coffee Table",
+          type: "furniture",
+        },
+        {
+          id: "record-corner",
+          label: "Records",
+          type: "music",
+        },
+        {
+          id: "window",
+          label: "Window",
+          type: "environment",
+        },
+        {
+          id: "monstera",
+          label: "Monstera",
+          type: "plant",
+        },
+      ]
+    : [];
+
+return (
     <section className="room-screen apartment-screen">
       <ScreenIntro
         eyebrow={`${time.dateLabel} · ${time.timeLabel}`}
