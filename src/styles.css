@@ -2401,3 +2401,218 @@
 .bottom-nav button:not(.active) svg {
   opacity: .72;
 }
+/* ─────────────────────────────────────────
+   iOS ROUNDING · FINAL HOME OVERRIDE
+   ───────────────────────────────────────── */
+
+/* main apartment image */
+
+.home-house .house-stage {
+  margin:
+    0
+    12px;
+
+  border-radius:
+    22px;
+
+  overflow:
+    hidden;
+
+  box-shadow:
+    0
+    10px
+    30px
+    rgb(48 25 22 / 11%);
+}
+
+
+/* arrows sit inside the rounded photograph */
+
+.home-house .house-arrow {
+  width:
+    34px;
+
+  height:
+    44px;
+
+  border-radius:
+    15px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--wine-deep) 30%,
+      transparent
+    );
+
+  backdrop-filter:
+    blur(8px);
+}
+
+.home-house .house-arrow-left {
+  left:
+    8px;
+}
+
+.home-house .house-arrow-right {
+  right:
+    8px;
+}
+
+
+/* floor plan little control */
+
+.floor-plan-trigger > span {
+  border-radius:
+    9px;
+}
+
+
+/* floor plan opens like an iOS sheet */
+
+.floor-plan-sheet {
+  border-radius:
+    26px;
+
+  overflow:
+    hidden;
+
+  box-shadow:
+    0
+    24px
+    65px
+    rgb(28 11 13 / 34%);
+}
+
+.floor-plan-close {
+  width:
+    30px;
+
+  height:
+    30px;
+
+  border-radius:
+    50%;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--brown) 8%,
+      transparent
+    );
+}
+
+.floor-plan-modal-map.official-floor-plan {
+  border-radius:
+    18px;
+}
+
+
+/* ─────────────────────────────────────────
+   iOS FLOATING TAB BAR
+   ───────────────────────────────────────── */
+
+.bottom-nav {
+  left:
+    10px;
+
+  right:
+    10px;
+
+  bottom:
+    max(
+      8px,
+      env(safe-area-inset-bottom)
+    );
+
+  height:
+    64px;
+
+  padding:
+    4px
+    8px;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 12%,
+      transparent
+    );
+
+  border-radius:
+    24px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper) 86%,
+      transparent
+    );
+
+  backdrop-filter:
+    blur(20px)
+    saturate(1.15);
+
+  -webkit-backdrop-filter:
+    blur(20px)
+    saturate(1.15);
+
+  box-shadow:
+    0
+    8px
+    28px
+    rgb(44 23 21 / 12%),
+    inset
+    0
+    1px
+    0
+    rgb(255 255 255 / 38%);
+}
+
+
+/* individual tab touch areas */
+
+.bottom-nav button {
+  border-radius:
+    18px;
+
+  padding:
+    7px
+    3px
+    6px;
+}
+
+.bottom-nav button.active {
+  background:
+    color-mix(
+      in oklab,
+      var(--blush) 52%,
+      transparent
+    );
+}
+
+
+/* remove the old little line/dot indicator */
+
+.bottom-nav button.active::before,
+.bottom-nav button.active::after {
+  display:
+    none;
+}
+
+
+/* active icon */
+
+.bottom-nav button.active svg {
+  transform:
+    translateY(-1px);
+}
+
+
+/* content keeps breathing room above floating bar */
+
+.screen-scroll {
+  padding-bottom:
+    92px;
+}
