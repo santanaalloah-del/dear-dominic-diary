@@ -235,9 +235,11 @@ function ScreenIntro({
 function HomeScreen({
   time,
   onOpen,
+  onOpenRoom,
 }: {
   time: TimeMoodState;
   onOpen: (screen: Screen) => void;
+  onOpenRoom: (roomId: string) => void;
 }) {
   const spaces = [
     {
@@ -367,21 +369,21 @@ function HomeScreen({
 
     <div className="house-stage-shade" />
 
-    <button
-      className="house-object house-object-one"
-      aria-label={`Open ${currentSpace.label}`}
-      onClick={() => onOpen("room")}
-    >
-      <span />
-    </button>
+<button
+  className="house-object house-object-one"
+  aria-label={`Open ${currentSpace.label}`}
+  onClick={() => onOpenRoom(currentSpace.id)}
+>
+  <span />
+</button>
 
-    <button
-      className="house-object house-object-two"
-      aria-label={`Open details for ${currentSpace.label}`}
-      onClick={() => onOpen("room")}
-    >
-      <span />
-    </button>
+<button
+  className="house-object house-object-two"
+  aria-label={`Open details for ${currentSpace.label}`}
+  onClick={() => onOpenRoom(currentSpace.id)}
+>
+  <span />
+</button>
   </>
 )}
 
