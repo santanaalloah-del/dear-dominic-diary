@@ -28,6 +28,7 @@ import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import dominic from "@/assets/dominic-candid.jpg";
 import room from "@/assets/dominic-room.jpg";
+import livingRoom from "@/assets/living-room.png";
 import floorPlan from "@/assets/apartment-floor-plan.png";
 import cafe from "@/assets/cafe-hands.jpg";
 import street from "@/assets/rain-street.jpg";
@@ -325,34 +326,34 @@ function HomeScreen({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {currentSpace.id !== "map" && (
-          <>
-            <img
-              src={room}
-              alt={`${currentSpace.label} in our apartment`}
-              width={1280}
-              height={960}
-            />
+{currentSpace.id !== "map" && (
+  <>
+    <img
+      src={currentSpace.id === "living" ? livingRoom : room}
+      alt={`${currentSpace.label} in our apartment`}
+      width={1280}
+      height={960}
+    />
 
-            <div className="house-stage-shade" />
+    <div className="house-stage-shade" />
 
-            <button
-              className="house-object house-object-one"
-              aria-label={`Open ${currentSpace.label}`}
-              onClick={() => onOpen("room")}
-            >
-              <span />
-            </button>
+    <button
+      className="house-object house-object-one"
+      aria-label={`Open ${currentSpace.label}`}
+      onClick={() => onOpen("room")}
+    >
+      <span />
+    </button>
 
-            <button
-              className="house-object house-object-two"
-              aria-label={`Open details for ${currentSpace.label}`}
-              onClick={() => onOpen("room")}
-            >
-              <span />
-            </button>
-          </>
-        )}
+    <button
+      className="house-object house-object-two"
+      aria-label={`Open details for ${currentSpace.label}`}
+      onClick={() => onOpen("room")}
+    >
+      <span />
+    </button>
+  </>
+)}
 
         {currentSpace.id === "map" && (
           <div className="official-floor-plan">
