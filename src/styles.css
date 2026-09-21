@@ -4542,3 +4542,510 @@
 
   font: italic 12px/1.4 var(--font-display);
 }
+/* ─────────────────────────────────────────
+   GALLERY · iOS CAMERA ROLL
+   real photos only
+   ───────────────────────────────────────── */
+
+.gallery-screen.gallery-live {
+  min-height: 100%;
+  padding: 0 0 30px;
+}
+
+
+/* heading */
+
+.gallery-live .screen-intro {
+  padding:
+    29px
+    20px
+    13px;
+}
+
+.gallery-live .screen-intro h1 {
+  color: var(--wine-deep);
+
+  font:
+    400
+    50px/.88
+    var(--font-display);
+}
+
+.gallery-live .intro-copy {
+  max-width: 292px;
+
+  margin-top: 11px;
+
+  color: var(--brown-soft);
+
+  font:
+    italic
+    13px/1.35
+    var(--font-display);
+}
+
+
+/* ─────────────────────────────────────────
+   VIEW SWITCH
+   ───────────────────────────────────────── */
+
+.gallery-live .gallery-live-tabs {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 4px;
+
+  margin:
+    8px
+    14px
+    17px;
+
+  padding: 4px;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 10%,
+      transparent
+    );
+
+  border-radius: 18px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper-deep) 48%,
+      transparent
+    );
+}
+
+.gallery-live .gallery-live-tabs button {
+  min-width: 0;
+  min-height: 37px;
+
+  padding:
+    7px
+    5px;
+
+  border: 0;
+  border-radius: 14px;
+
+  background: transparent;
+
+  color:
+    color-mix(
+      in oklab,
+      var(--brown) 60%,
+      transparent
+    );
+
+  font:
+    11px/1
+    var(--font-display);
+
+  cursor: pointer;
+}
+
+.gallery-live .gallery-live-tabs button.active {
+  color:
+    var(--wine-deep);
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper) 95%,
+      transparent
+    );
+
+  box-shadow:
+    0
+    2px
+    8px
+    rgb(45 24 20 / 8%),
+    inset
+    0
+    1px
+    0
+    rgb(255 255 255 / 42%);
+}
+
+
+/* ─────────────────────────────────────────
+   EMPTY CAMERA ROLL
+   ───────────────────────────────────────── */
+
+.gallery-empty-stage {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  margin:
+    0
+    14px;
+
+  padding:
+    48px
+    26px
+    29px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 9%,
+      transparent
+    );
+
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in oklab,
+        var(--paper) 96%,
+        white
+      ),
+      color-mix(
+        in oklab,
+        var(--cream) 91%,
+        var(--paper)
+      )
+    );
+
+  box-shadow:
+    0
+    14px
+    36px
+    rgb(48 25 22 / 9%);
+}
+
+
+/* faint photo-grid texture */
+
+.gallery-empty-stage::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: .24;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 49.7%,
+      color-mix(
+        in oklab,
+        var(--brown) 4%,
+        transparent
+      )
+      50%,
+      transparent 50.3%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 49.7%,
+      color-mix(
+        in oklab,
+        var(--brown) 4%,
+        transparent
+      )
+      50%,
+      transparent 50.3%
+    );
+
+  background-size:
+    76px
+    76px;
+}
+
+
+/* photo icon */
+
+.gallery-empty-icon {
+  position: relative;
+  z-index: 2;
+
+  display: grid;
+  place-items: center;
+
+  width: 64px;
+  height: 64px;
+
+  margin-bottom: 25px;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--rose) 25%,
+      transparent
+    );
+
+  border-radius: 20px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--blush) 43%,
+      var(--paper)
+    );
+
+  color: var(--wine);
+
+  box-shadow:
+    0
+    6px
+    17px
+    rgb(50 24 25 / 7%);
+}
+
+
+/* copy */
+
+.gallery-empty-copy {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.gallery-empty-copy > small {
+  color: var(--cherry);
+
+  font:
+    8px/1
+    var(--font-body);
+
+  letter-spacing: .14em;
+
+  text-transform: uppercase;
+}
+
+.gallery-empty-copy h2 {
+  max-width: 285px;
+
+  margin:
+    8px
+    0
+    0;
+
+  color: var(--wine-deep);
+
+  font:
+    400
+    31px/.96
+    var(--font-display);
+}
+
+.gallery-empty-copy p {
+  max-width: 292px;
+
+  margin:
+    13px
+    0
+    0;
+
+  color: var(--brown-soft);
+
+  font:
+    13px/1.45
+    var(--font-display);
+}
+
+
+/* add photos */
+
+.gallery-add-button {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  min-height: 42px;
+
+  margin-top: 24px;
+
+  padding:
+    10px
+    17px;
+
+  border: 0;
+  border-radius: 14px;
+
+  background: var(--wine);
+
+  color: var(--cream);
+
+  font:
+    12px/1
+    var(--font-display);
+
+  box-shadow:
+    0
+    5px
+    14px
+    rgb(49 20 25 / 14%);
+
+  cursor: pointer;
+}
+
+.gallery-add-button > span {
+  font-size: 15px;
+}
+
+.gallery-add-button:active {
+  transform:
+    translateY(1px);
+}
+
+
+/* ─────────────────────────────────────────
+   PHOTO LIBRARY
+   ───────────────────────────────────────── */
+
+.gallery-library {
+  margin:
+    17px
+    14px
+    25px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 9%,
+      transparent
+    );
+
+  border-radius: 22px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper) 80%,
+      transparent
+    );
+
+  box-shadow:
+    0
+    7px
+    22px
+    rgb(48 25 22 / 5%);
+}
+
+.gallery-library > header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 15px;
+
+  padding:
+    15px
+    17px
+    13px;
+
+  border-bottom:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 8%,
+      transparent
+    );
+}
+
+.gallery-library > header > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.gallery-library > header span {
+  color: var(--cherry);
+
+  font:
+    8px/1
+    var(--font-body);
+
+  letter-spacing: .13em;
+
+  text-transform: uppercase;
+}
+
+.gallery-library > header strong {
+  color: var(--wine-deep);
+
+  font:
+    17px/1
+    var(--font-display);
+
+  font-weight: 500;
+}
+
+.gallery-library > header > small {
+  padding:
+    6px
+    8px;
+
+  border-radius: 10px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--blush) 36%,
+      transparent
+    );
+
+  color: var(--brown-soft);
+
+  font:
+    8px/1
+    var(--font-body);
+}
+
+.gallery-library-empty {
+  position: relative;
+
+  padding:
+    22px
+    18px
+    23px;
+}
+
+.gallery-library-empty p {
+  max-width: 290px;
+
+  margin: 0;
+
+  color: var(--brown-soft);
+
+  font:
+    italic
+    12px/1.4
+    var(--font-display);
+}
