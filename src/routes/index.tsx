@@ -478,6 +478,9 @@ function RoomScreen({
   onOpen: (screen: Screen) => void;
   onOpenRoom: (roomId: string) => void;
 }) {
+  const [selectedObject, setSelectedObject] = useState<string | null>(null);
+
+  const rooms = {
   const rooms = {
     living: {
       label: "Living Room",
