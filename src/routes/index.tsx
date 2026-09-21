@@ -387,46 +387,46 @@ function HomeScreen({
   </>
 )}
 
-        {currentSpace.id === "map" && (
-          <div className="official-floor-plan">
-            <img
-              src={floorPlan}
-              alt="Official floor plan of our apartment"
-              width={1536}
-              height={1024}
-            />
+{currentSpace.id === "map" && (
+  <div className="official-floor-plan">
+    <img
+      src={floorPlan}
+      alt="Official floor plan of our apartment"
+      width={1536}
+      height={1024}
+    />
 
-            <button
-              className="plan-hotspot plan-hotspot-living"
-              onClick={() => openSpace("living")}
-              aria-label="Open Living Room"
-            />
+    <button
+      className="plan-hotspot plan-hotspot-living"
+      onClick={() => onOpenRoom("living")}
+      aria-label="Enter Living Room"
+    />
 
-            <button
-              className="plan-hotspot plan-hotspot-bedroom"
-              onClick={() => openSpace("bedroom")}
-              aria-label="Open Bedroom"
-            />
+    <button
+      className="plan-hotspot plan-hotspot-bedroom"
+      onClick={() => onOpenRoom("bedroom")}
+      aria-label="Enter Bedroom"
+    />
 
-            <button
-              className="plan-hotspot plan-hotspot-kitchen"
-              onClick={() => openSpace("kitchen")}
-              aria-label="Open Kitchen"
-            />
+    <button
+      className="plan-hotspot plan-hotspot-kitchen"
+      onClick={() => onOpenRoom("kitchen")}
+      aria-label="Enter Kitchen"
+    />
 
-            <button
-              className="plan-hotspot plan-hotspot-bathroom"
-              onClick={() => openSpace("bathroom")}
-              aria-label="Open Bathroom"
-            />
+    <button
+      className="plan-hotspot plan-hotspot-bathroom"
+      onClick={() => onOpenRoom("bathroom")}
+      aria-label="Enter Bathroom"
+    />
 
-            <button
-              className="plan-hotspot plan-hotspot-hall"
-              onClick={() => openSpace("hall")}
-              aria-label="Open Hall"
-            />
-          </div>
-        )}
+    <button
+      className="plan-hotspot plan-hotspot-hall"
+      onClick={() => onOpenRoom("hall")}
+      aria-label="Enter Hall"
+    />
+  </div>
+)}
 
         <div className="house-room-label">
           <strong>{currentSpace.label}</strong>
