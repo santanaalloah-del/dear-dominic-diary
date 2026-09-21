@@ -475,36 +475,98 @@ function HomeScreen({
     </section>
   );
 }
-function RoomScreen({ time }: { time: TimeMoodState }) {
-  const objects = ["window", "bed", "nightstand", "photo wall", "record corner"];
+function RoomScreen({
+  time,
+  roomId,
+}: {
+  time: TimeMoodState;
+  roomId: string;
+}) {
+  const rooms = {
+    living: {
+      label: "Living Room",
+      caption: "the heart of the apartment",
+      image: livingRoom,
+    },
+    bedroom: {
+      label: "Bedroom",
+      caption: "quiet, warm, ours",
+      image: bedroom,
+    },
+    kitchen: {
+      label: "Kitchen",
+      caption: "wood, white tile, everyday life",
+      image: kitchen,
+    },
+    bathroom: {
+      label: "Bathroom",
+      caption: "small, old, simple",
+      image: bathroom,
+    },
+    hall: {
+      label: "Hall",
+      caption: "the way in and out",
+      image: hall,
+    },
+  };
+
+  const room =
+    rooms[roomId as keyof typeof rooms] ?? rooms.living;
+
   return (
     <section className="room-screen apartment-screen">
-      <ScreenIntro eyebrow={`${time.dateLabel} · ${time.timeLabel}`} title="the apartment">
-        <p className="intro-copy">a home in progress. the same rooms, changed by what happens here.</p>
+      <ScreenIntro
+        eyebrow={`${time.dateLabel} · ${time.timeLabel}`}
+        title={room.label}
+      >
+        <p className="intro-copy">{room.caption}</p>
       </ScreenIntro>
-      <figure className="room-view apartment-view">
-        <img src={room} alt="Our shared apartment" width={1280} height={960} />
-        {objects.map((label, index) => (
-          <button key={label} className={`object-pin room-pin-${index + 1}`} aria-label={label}>
-            <span />
-            <small>{label}</small>
-          </button>
-        ))}
+
+      <figure className={`room-view apartment-view room-view-${roomId}`}>
+        <img
+          src={room.image}
+          alt={`${room.label} in our apartment`}
+          width={1280}
+          height={960}
+        />
       </figure>
+
       <div className="room-caption">
-        <span>references · furniture · photos · keepsakes</span>
-        <p>Add, move, store or replace things over time. A generated proposal only becomes part of the apartment after you keep it.</p>
+        <span>our apartment · new york</span>
+        <p>
+          This room keeps its architecture. Furniture, objects and memories
+          can change around it over time.
+        </p>
       </div>
+
       <div className="room-tool-grid">
-        <button><span>＋</span><strong>Add something</strong><small>furniture, decor, photos</small></button>
-        <button><span>↔</span><strong>Move object</strong><small>change where it lives</small></button>
-        <button><span>▧</span><strong>References</strong><small>save inspiration</small></button>
-        <button><span>✦</span><strong>Room proposal</strong><small>try again · keep · discard</small></button>
+        <button>
+          <span>＋</span>
+          <strong>Add something</strong>
+          <small>furniture, decor, objects</small>
+        </button>
+
+        <button>
+          <span>↔</span>
+          <strong>Move something</strong>
+          <small>change where an object lives</small>
+        </button>
+
+        <button>
+          <span>▧</span>
+          <strong>References</strong>
+          <small>save ideas for this room</small>
+        </button>
+
+        <button>
+          <span>✦</span>
+          <strong>Try a change</strong>
+          <small>preview · keep · discard</small>
+        </button>
       </div>
     </section>
   );
 }
-
 function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
   const { preferredName, signOut } = usePrivateDiario();
   const entries: { name: string; note: string; target: Screen; icon: ReactNode }[] = [
