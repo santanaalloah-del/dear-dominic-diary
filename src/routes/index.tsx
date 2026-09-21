@@ -4000,32 +4000,7 @@ function SettingsScreen() {
     </section>
   );
 }
-function FeaturePreviewScreen({
-  eyebrow,
-  title,
-  note,
-  icon,
-}: {
-  eyebrow: string;
-  title: string;
-  note: string;
-  icon: ReactNode;
-}) {
-  return (
-    <section className="feature-preview-screen">
-      <div className="feature-preview-icon">{icon}</div>
-      <ScreenIntro eyebrow={eyebrow} title={title}>
-        <p className="intro-copy">{note}</p>
-      </ScreenIntro>
-      <div className="feature-preview-paper">
-        <span className="tape" />
-        <p>this room of the Diário is part of the final plan.</p>
-        <small>the visual foundation is ready for its full interactive build.</small>
-        <b>♡</b>
-      </div>
-    </section>
-  );
-}
+
 
 function BottomNav({ active, onOpen }: { active: Screen; onOpen: (screen: Screen) => void }) {
   return (
