@@ -250,23 +250,7 @@ function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Sc
   <span className={`home-orb orb-${time.mood}`} aria-hidden="true" />
 </div>
 
-      <div className="home-actions">
-        <button onClick={() => onOpen("chat")}>
-          <Send size={17} />
-          <span><strong>Continue Chat</strong><small>go find Dominic</small></span>
-          <ChevronRight size={16} />
-        </button>
-        <button onClick={() => onOpen("room")}>
-          <LampDesk size={17} />
-          <span><strong>Our Home</strong><small>rooms, objects & references</small></span>
-          <ChevronRight size={16} />
-        </button>
-        <button onClick={() => onOpen("music")}>
-          <Music2 size={17} />
-          <span><strong>Now Playing</strong><small>our soundtrack</small></span>
-          <ChevronRight size={16} />
-        </button>
-      </div>
+     
 
      <div className="home-today-card home-day-passage">
   <div className="day-passage-art" aria-hidden="true">
