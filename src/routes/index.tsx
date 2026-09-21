@@ -580,6 +580,48 @@ return (
   </button>
 ))}
 </figure>
+{selectedObject && (
+  <div className="room-object-sheet">
+    <div className="room-object-sheet-header">
+      <div>
+        <small>in this room</small>
+
+        <strong>
+          {roomObjects.find((object) => object.id === selectedObject)?.label}
+        </strong>
+      </div>
+
+      <button
+        className="room-object-close"
+        onClick={() => setSelectedObject(null)}
+        aria-label="Close object"
+      >
+        ×
+      </button>
+    </div>
+
+    <p>
+      {roomObjects.find((object) => object.id === selectedObject)?.type}
+    </p>
+
+    <div className="room-object-actions">
+      <button>
+        <span>↔</span>
+        Move
+      </button>
+
+      <button>
+        <span>✦</span>
+        Change
+      </button>
+
+      <button>
+        <span>□</span>
+        Store
+      </button>
+    </div>
+  </div>
+)}
 
 <nav className="room-navigation" aria-label="Move through the apartment">
   {[
