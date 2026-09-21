@@ -145,14 +145,7 @@ function DiarioApp() {
 {screen === "timeline" && <TimelineScreen />}
 {screen === "music" && <MusicScreen />}
 {screen === "dates" && <DatesScreen />}
-          {screen === "keepsakes" && (
-            <FeaturePreviewScreen
-              eyebrow="Small things · big meanings"
-              title="Keepsakes"
-              note="Tickets, flowers, polaroids, gifts and little objects can move through the apartment and keep their history."
-              icon={<BoxIcon />}
-            />
-          )}
+{screen === "keepsakes" && <KeepsakesScreen />}
           {screen === "wardrobe" && (
             <FeaturePreviewScreen
               eyebrow="Looks for our days"
@@ -1051,6 +1044,362 @@ function GalleryScreen() {
             them.
           </p>
         </div>
+      </section>
+    </section>
+  );
+}
+function KeepsakesScreen() {
+  const [keepsakeView, setKeepsakeView] = useState<
+    "all" | "home" | "stored"
+  >("all");
+
+  const keepsakes: Array<{
+    id: string;
+    name: string;
+    kind:
+      | "ticket"
+      | "flower"
+      | "photo"
+      | "gift"
+      | "note"
+      | "object";
+    status: "home" | "stored";
+    room?: string;
+    acquiredAt: string;
+    origin?: string;
+    note?: string;
+    memoryId?: string;
+    dateId?: string;
+    photoId?: string;
+  }> = [];
+
+  const visibleKeepsakes =
+    keepsakeView === "all"
+      ? keepsakes
+      : keepsakes.filter(
+          (item) =>
+            item.status === keepsakeView
+        );
+
+  const homeKeepsakes =
+    keepsakes.filter(
+      (item) =>
+        item.status === "home"
+    );
+
+  const storedKeepsakes =
+    keepsakes.filter(
+      (item) =>
+        item.status === "stored"
+    );
+
+  return (
+    <section className="keepsakes-screen keepsakes-live">
+      <ScreenIntro
+        eyebrow="Objects that stayed"
+        title="Keepsakes"
+      >
+        <p className="intro-copy">
+          little physical things can keep their
+          place, origin and history without becoming
+          separate copies of the memory they belong to.
+        </p>
+      </ScreenIntro>
+
+      <div
+        className="keepsakes-tabs"
+        role="tablist"
+        aria-label="Keepsake location"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            keepsakeView === "all"
+          }
+          className={
+            keepsakeView === "all"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setKeepsakeView("all")
+          }
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            keepsakeView === "home"
+          }
+          className={
+            keepsakeView === "home"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setKeepsakeView("home")
+          }
+        >
+          At home
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            keepsakeView === "stored"
+          }
+          className={
+            keepsakeView === "stored"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setKeepsakeView("stored")
+          }
+        >
+          Stored
+        </button>
+      </div>
+
+      <section className="keepsakes-summary">
+        <div>
+          <span>
+            at home
+          </span>
+
+          <strong>
+            {homeKeepsakes.length}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            stored
+          </span>
+
+          <strong>
+            {storedKeepsakes.length}
+          </strong>
+        </div>
+      </section>
+
+      {visibleKeepsakes.length === 0 ? (
+        <section className="keepsakes-empty">
+          <div
+            className="keepsakes-empty-icon"
+            aria-hidden="true"
+          >
+            <BoxIcon
+              size={27}
+              strokeWidth={1.3}
+            />
+          </div>
+
+          <small>
+            empty drawer
+          </small>
+
+          <h2>
+            Nothing kept yet.
+          </h2>
+
+          <p>
+            Tickets, flowers, notes,
+            photos, gifts and small objects
+            only appear here after they
+            actually enter your world.
+          </p>
+
+          <div className="keepsakes-examples">
+            <span>
+              ticket
+            </span>
+
+            <span>
+              flower
+            </span>
+
+            <span>
+              photo
+            </span>
+
+            <span>
+              gift
+            </span>
+
+            <span>
+              note
+            </span>
+
+            <span>
+              object
+            </span>
+          </div>
+        </section>
+      ) : (
+        <div className="keepsakes-list">
+          {visibleKeepsakes.map(
+            (item) => (
+              <article
+                key={item.id}
+                className={`keepsake-card keepsake-${item.kind}`}
+              >
+                <header>
+                  <div>
+                    <span>
+                      {item.kind}
+                    </span>
+
+                    <strong>
+                      {item.name}
+                    </strong>
+                  </div>
+
+                  <ChevronRight
+                    size={17}
+                  />
+                </header>
+
+                <div className="keepsake-location">
+                  <Home
+                    size={15}
+                    strokeWidth={1.4}
+                  />
+
+                  <span>
+                    {item.status === "home"
+                      ? item.room ||
+                        "Somewhere at home"
+                      : "Stored away"}
+                  </span>
+                </div>
+
+                <time>
+                  {new Intl.DateTimeFormat(
+                    "en-US",
+                    {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    }
+                  ).format(
+                    new Date(
+                      item.acquiredAt
+                    )
+                  )}
+                </time>
+
+                {item.origin && (
+                  <p>
+                    {item.origin}
+                  </p>
+                )}
+
+                {item.note && (
+                  <small>
+                    {item.note}
+                  </small>
+                )}
+              </article>
+            )
+          )}
+        </div>
+      )}
+
+      <section className="keepsake-life">
+        <header>
+          <span>
+            one real object
+          </span>
+
+          <strong>
+            It can move without losing its history
+          </strong>
+        </header>
+
+        <div>
+          <article>
+            <MapPin
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Origin
+              </strong>
+
+              <small>
+                where it came from
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <Home
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Place
+              </strong>
+
+              <small>
+                where it is now
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <Heart
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Meaning
+              </strong>
+
+              <small>
+                memory or date attached
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <BoxIcon
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Storage
+              </strong>
+
+              <small>
+                kept even when not displayed
+              </small>
+            </span>
+          </article>
+        </div>
+      </section>
+
+      <section className="keepsakes-rule">
+        <p>
+          A keepsake is one object with one history.
+          Moving it from the bedroom to a drawer,
+          attaching it to a Date or showing it in a
+          Memory never creates another copy.
+        </p>
       </section>
     </section>
   );
