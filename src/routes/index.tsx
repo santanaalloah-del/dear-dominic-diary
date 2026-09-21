@@ -95,9 +95,14 @@ function Index() {
 
 function DiarioApp() {
   const [screen, setScreen] = useState<Screen>("home");
+  const [activeRoom, setActiveRoom] = useState("living");
   const time = useTimeMood();
   const detail = !primaryScreens.includes(screen);
 
+  const openRoom = (roomId: string) => {
+    setActiveRoom(roomId);
+    setScreen("room");
+  };
   return (
     <main className={`prototype-stage time-${time.mood}`} data-time-theme={time.mood}>
       <div className="phone-shell" data-time-theme={time.mood}>
@@ -118,11 +123,22 @@ function DiarioApp() {
         )}
 
         <div className={`screen-scroll screen-${screen}`} key={screen}>
-          {screen === "home" && <HomeScreen time={time} onOpen={setScreen} />}
+{screen === "home" && (
+  <HomeScreen
+    time={time}
+    onOpen={setScreen}
+    onOpenRoom={openRoom}
+  />
+)}
           {screen === "chat" && <DiarioChat />}
           {screen === "diary" && <DiaryScreen />}
           {screen === "more" && <MoreScreen onOpen={setScreen} />}
-          {screen === "room" && <RoomScreen time={time} />}
+{screen === "room" && (
+  <RoomScreen
+    time={time}
+    roomId={activeRoom}
+  />
+)}
           {screen === "letters" && <LettersScreen />}
           {screen === "gallery" && <GalleryScreen />}
           {screen === "night" && <NightScreen />}
