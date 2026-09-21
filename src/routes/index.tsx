@@ -142,14 +142,7 @@ function DiarioApp() {
           {screen === "night" && <NightScreen />}
 {screen === "memories" && <MemoriesScreen />}
 {screen === "calendar" && <CalendarScreen />}
-          {screen === "timeline" && (
-            <FeaturePreviewScreen
-              eyebrow="The bigger picture"
-              title="Timeline"
-              note="The continuous story of ordinary days, milestones, rooms, clothes, songs and everything in between."
-              icon={<Clock />}
-            />
-          )}
+{screen === "timeline" && <TimelineScreen />}
           {screen === "music" && (
             <FeaturePreviewScreen
               eyebrow="Our soundtrack · Spotify connected"
@@ -1072,6 +1065,274 @@ function GalleryScreen() {
             them.
           </p>
         </div>
+      </section>
+    </section>
+  );
+}
+function TimelineScreen() {
+  const [timelineView, setTimelineView] = useState<
+    "all" | "lived" | "planned"
+  >("all");
+
+  const timelineEntries: Array<{
+    id: string;
+    date: string;
+    title: string;
+    description: string;
+    status: "lived" | "planned";
+    kind:
+      | "memory"
+      | "date"
+      | "letter"
+      | "photo"
+      | "music"
+      | "home"
+      | "wardrobe"
+      | "diary";
+  }> = [];
+
+  const visibleEntries =
+    timelineView === "all"
+      ? timelineEntries
+      : timelineEntries.filter(
+          (entry) =>
+            entry.status === timelineView
+        );
+
+  const sortedEntries = [
+    ...visibleEntries,
+  ].sort(
+    (first, second) =>
+      new Date(first.date).getTime() -
+      new Date(second.date).getTime()
+  );
+
+  const todayLabel =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }
+    ).format(new Date());
+
+  return (
+    <section className="timeline-screen timeline-live">
+      <ScreenIntro
+        eyebrow="The continuous story"
+        title="Timeline"
+      >
+        <p className="intro-copy">
+          everything that changes the world
+          can appear here in chronological order.
+        </p>
+      </ScreenIntro>
+
+      <div
+        className="timeline-filter"
+        role="tablist"
+        aria-label="Timeline view"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            timelineView === "all"
+          }
+          className={
+            timelineView === "all"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setTimelineView("all")
+          }
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            timelineView === "lived"
+          }
+          className={
+            timelineView === "lived"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setTimelineView("lived")
+          }
+        >
+          Lived
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            timelineView === "planned"
+          }
+          className={
+            timelineView === "planned"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setTimelineView("planned")
+          }
+        >
+          Planned
+        </button>
+      </div>
+
+      {sortedEntries.length === 0 ? (
+        <section className="timeline-empty">
+          <div
+            className="timeline-empty-icon"
+            aria-hidden="true"
+          >
+            <Clock
+              size={27}
+              strokeWidth={1.3}
+            />
+          </div>
+
+          <small>
+            {todayLabel}
+          </small>
+
+          <h2>
+            The timeline begins now.
+          </h2>
+
+          <p>
+            There is no invented history before
+            this point. As real days, plans and
+            changes happen, they can join the
+            timeline automatically.
+          </p>
+
+          <div className="timeline-source-list">
+            <div>
+              <Heart
+                size={17}
+                strokeWidth={1.4}
+              />
+              <span>
+                Memories
+              </span>
+            </div>
+
+            <div>
+              <MapPin
+                size={17}
+                strokeWidth={1.4}
+              />
+              <span>
+                Dates
+              </span>
+            </div>
+
+            <div>
+              <Music2
+                size={17}
+                strokeWidth={1.4}
+              />
+              <span>
+                Music
+              </span>
+            </div>
+
+            <div>
+              <Home
+                size={17}
+                strokeWidth={1.4}
+              />
+              <span>
+                Home changes
+              </span>
+            </div>
+
+            <div>
+              <Shirt
+                size={17}
+                strokeWidth={1.4}
+              />
+              <span>
+                Wardrobe
+              </span>
+            </div>
+
+            <div>
+              <BookOpen
+                size={17}
+                strokeWidth={1.4}
+              />
+              <span>
+                Diary
+              </span>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <div
+          className="timeline-stream"
+          aria-label="Life timeline"
+        >
+          {sortedEntries.map(
+            (entry) => (
+              <article
+                key={entry.id}
+                className={`timeline-entry timeline-entry-${entry.kind}`}
+              >
+                <span
+                  className="timeline-entry-dot"
+                  aria-hidden="true"
+                />
+
+                <time>
+                  {new Intl.DateTimeFormat(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    }
+                  ).format(
+                    new Date(entry.date)
+                  )}
+                </time>
+
+                <div>
+                  <small>
+                    {entry.status}
+                  </small>
+
+                  <strong>
+                    {entry.title}
+                  </strong>
+
+                  <p>
+                    {entry.description}
+                  </p>
+                </div>
+              </article>
+            )
+          )}
+        </div>
+      )}
+
+      <section className="timeline-explainer">
+        <p>
+          Memories tells the story of a moment.
+          Calendar tells when it happened.
+          Timeline shows how everything continues
+          from one moment into the next.
+        </p>
       </section>
     </section>
   );
