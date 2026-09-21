@@ -336,7 +336,9 @@ function HomeScreen({
       ? livingRoom
       : currentSpace.id === "bedroom"
         ? bedroom
-        : room
+        : currentSpace.id === "kitchen"
+          ? kitchen
+          : room
   }
   alt={`${currentSpace.label} in our apartment`}
   width={1280}
