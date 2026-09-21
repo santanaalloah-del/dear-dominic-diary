@@ -3468,3 +3468,681 @@
       transparent
     );
 }
+/* ─────────────────────────────────────────
+   DIARY · PRIVATE NOTEBOOK
+   intimate paper + iOS structure
+   ───────────────────────────────────────── */
+
+.diary-screen.diary-live {
+  padding:
+    0
+    0
+    30px;
+
+  min-height:
+    100%;
+}
+
+
+/* heading */
+
+.diary-live .screen-intro {
+  padding:
+    29px
+    20px
+    13px;
+}
+
+.diary-live .screen-intro h1 {
+  color:
+    var(--wine-deep);
+
+  font:
+    400
+    50px/.88
+    var(--font-display);
+}
+
+.diary-live .intro-copy {
+  max-width:
+    290px;
+
+  margin-top:
+    11px;
+
+  color:
+    var(--brown-soft);
+
+  font:
+    italic
+    13px/1.35
+    var(--font-display);
+}
+
+
+/* ─────────────────────────────────────────
+   OWNER SWITCH
+   ───────────────────────────────────────── */
+
+.diary-live .diary-owner-tabs {
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap:
+    4px;
+
+  margin:
+    8px
+    14px
+    14px;
+
+  padding:
+    4px;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 10%,
+      transparent
+    );
+
+  border-radius:
+    18px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper-deep) 48%,
+      transparent
+    );
+}
+
+.diary-live .diary-owner-tabs button {
+  min-height:
+    37px;
+
+  padding:
+    7px
+    12px;
+
+  border:
+    0;
+
+  border-radius:
+    14px;
+
+  background:
+    transparent;
+
+  color:
+    color-mix(
+      in oklab,
+      var(--brown) 60%,
+      transparent
+    );
+
+  font:
+    12px/1
+    var(--font-display);
+
+  cursor:
+    pointer;
+
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.diary-live .diary-owner-tabs button.active {
+  color:
+    var(--wine-deep);
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper) 94%,
+      transparent
+    );
+
+  box-shadow:
+    0
+    2px
+    8px
+    rgb(45 24 20 / 8%),
+    inset
+    0
+    1px
+    0
+    rgb(255 255 255 / 42%);
+}
+
+
+/* ─────────────────────────────────────────
+   TODAY'S PAGE
+   ───────────────────────────────────────── */
+
+.diary-today-card {
+  position:
+    relative;
+
+  margin:
+    0
+    14px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 9%,
+      transparent
+    );
+
+  border-radius:
+    26px;
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in oklab,
+        var(--paper) 97%,
+        white
+      ),
+      color-mix(
+        in oklab,
+        var(--paper) 91%,
+        var(--cream)
+      )
+    );
+
+  box-shadow:
+    0
+    14px
+    36px
+    rgb(48 25 22 / 9%);
+}
+
+
+/* tiny notebook line */
+
+.diary-today-card::before {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  top:
+    0;
+
+  bottom:
+    0;
+
+  left:
+    31px;
+
+  width:
+    1px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--rose) 24%,
+      transparent
+    );
+
+  pointer-events:
+    none;
+}
+
+
+/* paper texture / writing lines */
+
+.diary-today-card::after {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  pointer-events:
+    none;
+
+  opacity:
+    .38;
+
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent
+      0
+      31px,
+      color-mix(
+        in oklab,
+        var(--brown) 5%,
+        transparent
+      )
+      31px
+      32px
+    );
+}
+
+
+/* page header */
+
+.diary-today-header {
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  justify-content:
+    space-between;
+
+  gap:
+    16px;
+
+  padding:
+    19px
+    18px
+    15px
+    47px;
+
+  border-bottom:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 8%,
+      transparent
+    );
+}
+
+.diary-today-header > div {
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    3px;
+}
+
+.diary-today-header span {
+  color:
+    var(--cherry);
+
+  font:
+    8px/1
+    var(--font-body);
+
+  letter-spacing:
+    .13em;
+
+  text-transform:
+    uppercase;
+}
+
+.diary-today-header strong {
+  color:
+    var(--wine-deep);
+
+  font:
+    21px/1
+    var(--font-display);
+
+  font-weight:
+    500;
+}
+
+.diary-today-header > small {
+  padding:
+    6px
+    9px;
+
+  border-radius:
+    10px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--blush) 42%,
+      transparent
+    );
+
+  color:
+    var(--brown-soft);
+
+  font:
+    8px/1
+    var(--font-body);
+}
+
+
+/* ─────────────────────────────────────────
+   EMPTY PAGE
+   ───────────────────────────────────────── */
+
+.diary-empty-page {
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    flex-start;
+
+  min-height:
+    335px;
+
+  padding:
+    46px
+    28px
+    35px
+    48px;
+}
+
+.diary-page-mark {
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  width:
+    34px;
+
+  height:
+    34px;
+
+  margin-bottom:
+    22px;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--rose) 26%,
+      transparent
+    );
+
+  border-radius:
+    11px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--blush) 36%,
+      transparent
+    );
+
+  color:
+    var(--cherry);
+
+  font:
+    15px/1
+    var(--font-display);
+}
+
+.diary-empty-page h2 {
+  max-width:
+    250px;
+
+  margin:
+    0;
+
+  color:
+    var(--wine-deep);
+
+  font:
+    400
+    30px/.96
+    var(--font-display);
+}
+
+.diary-empty-page p {
+  max-width:
+    275px;
+
+  margin:
+    13px
+    0
+    0;
+
+  color:
+    var(--brown-soft);
+
+  font:
+    13px/1.45
+    var(--font-display);
+}
+
+
+/* primary write action */
+
+.diary-write-button {
+  min-height:
+    42px;
+
+  margin-top:
+    24px;
+
+  padding:
+    10px
+    16px;
+
+  border:
+    0;
+
+  border-radius:
+    14px;
+
+  background:
+    var(--wine);
+
+  color:
+    var(--cream);
+
+  font:
+    12px/1
+    var(--font-display);
+
+  box-shadow:
+    0
+    5px
+    14px
+    rgb(49 20 25 / 14%);
+
+  cursor:
+    pointer;
+}
+
+.diary-write-button:active {
+  transform:
+    translateY(1px);
+}
+
+
+/* bottom of page */
+
+.diary-page-footer {
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  display:
+    flex;
+
+  justify-content:
+    space-between;
+
+  gap:
+    15px;
+
+  padding:
+    13px
+    18px
+    14px
+    47px;
+
+  border-top:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 8%,
+      transparent
+    );
+
+  color:
+    var(--brown-soft);
+
+  font:
+    8px/1
+    var(--font-body);
+
+  letter-spacing:
+    .03em;
+}
+
+.diary-page-footer span:last-child {
+  opacity:
+    .58;
+}
+
+
+/* ─────────────────────────────────────────
+   ARCHIVE
+   ───────────────────────────────────────── */
+
+.diary-archive-preview {
+  margin:
+    17px
+    14px
+    25px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 9%,
+      transparent
+    );
+
+  border-radius:
+    22px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper) 78%,
+      transparent
+    );
+}
+
+.diary-archive-preview > header {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    16px;
+
+  padding:
+    15px
+    17px
+    12px;
+
+  border-bottom:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 8%,
+      transparent
+    );
+}
+
+.diary-archive-preview > header span {
+  color:
+    var(--cherry);
+
+  font:
+    8px/1
+    var(--font-body);
+
+  letter-spacing:
+    .12em;
+
+  text-transform:
+    uppercase;
+}
+
+.diary-archive-preview > header strong {
+  color:
+    var(--wine-deep);
+
+  font:
+    16px/1
+    var(--font-display);
+
+  font-weight:
+    500;
+}
+
+.diary-archive-empty {
+  padding:
+    21px
+    18px
+    22px;
+}
+
+.diary-archive-empty p {
+  max-width:
+    260px;
+
+  margin:
+    0;
+
+  color:
+    var(--brown-soft);
+
+  font:
+    italic
+    12px/1.4
+    var(--font-display);
+}
