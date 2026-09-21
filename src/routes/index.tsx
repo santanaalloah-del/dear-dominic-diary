@@ -554,17 +554,22 @@ return (
     height={960}
   />
 
-  {roomObjects.map((object) => (
-    <button
-      key={object.id}
-      className={`room-hotspot room-hotspot-${object.id}`}
-      aria-label={object.label}
-      data-object-type={object.type}
-    >
-      <span />
-      <small>{object.label}</small>
-    </button>
-  ))}
+{roomObjects.map((object) => (
+  <button
+    key={object.id}
+    className={`room-hotspot room-hotspot-${object.id}`}
+    aria-label={object.label}
+    data-object-type={object.type}
+    onClick={() => {
+      if (object.id === "record-corner") {
+        onOpen("music");
+      }
+    }}
+  >
+    <span />
+    <small>{object.label}</small>
+  </button>
+))}
 </figure>
 
       <div className="room-caption">
