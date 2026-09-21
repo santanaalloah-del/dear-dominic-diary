@@ -692,3 +692,411 @@
   color: var(--cherry);
   stroke-width: 1.4;
 }
+/* =========================================
+   HOME — FIXED APARTMENT PLAN
+   ========================================= */
+
+.house-heading{
+  display:flex;
+  flex-direction:column;
+}
+
+.house-heading>small{
+  margin-top:6px;
+  color:var(--muted-foreground);
+  font:italic 12px/1.2 var(--font-display);
+}
+
+/* floor plan */
+
+.space-map{
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab,var(--paper) 96%,white),
+      color-mix(in oklab,var(--paper-deep) 58%,var(--cream))
+    );
+}
+
+.space-map>img,
+.space-map .house-stage-shade{
+  display:none;
+}
+
+.floor-plan-map{
+  position:absolute;
+  inset:26px 34px 52px;
+  display:grid;
+  grid-template-columns:1.12fr .30fr 1fr;
+  grid-template-rows:1.05fr .28fr .92fr;
+  gap:5px;
+  padding:8px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab,var(--paper) 94%,white),
+      var(--paper)
+    );
+  border:7px solid #f2eee5;
+  box-shadow:
+    0 14px 30px rgba(53,34,25,.18),
+    inset 0 0 0 1px rgba(83,54,39,.12);
+  transform:rotate(-.45deg);
+}
+
+.floor-plan-map:before{
+  content:"";
+  position:absolute;
+  inset:8px;
+  pointer-events:none;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(93,56,36,.06) 0 1px,
+      transparent 1px 19px
+    );
+  opacity:.42;
+}
+
+/* every room */
+
+.floor-room{
+  position:relative;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  border:2px solid #f7f2e8;
+  background:#eee8de;
+  color:#3f2b25;
+  cursor:pointer;
+  box-shadow:
+    inset 0 0 0 1px rgba(74,47,34,.16);
+}
+
+.floor-room span{
+  position:relative;
+  z-index:3;
+  font:600 9px/1 var(--font-body);
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.82);
+}
+
+.floor-room small{
+  position:relative;
+  z-index:3;
+  display:block;
+  margin-top:4px;
+  font:7px var(--font-body);
+  color:#70574a;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+}
+
+/* fixed dark parquet visual */
+
+.floor-living,
+.floor-bedroom,
+.floor-hall{
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(79,49,31,.10) 0 1px,
+      transparent 1px 16px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(79,49,31,.10) 0 1px,
+      transparent 1px 16px
+    ),
+    linear-gradient(
+      135deg,
+      #c09a70,
+      #9a704d
+    );
+}
+
+.floor-living{
+  grid-column:1;
+  grid-row:1 / 3;
+}
+
+.floor-bedroom{
+  grid-column:3;
+  grid-row:1 / 3;
+}
+
+.floor-hall{
+  grid-column:2;
+  grid-row:1 / 4;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(63,39,27,.13) 0 1px,
+      transparent 1px 12px
+    ),
+    linear-gradient(
+      180deg,
+      #b68b63,
+      #8d674a
+    );
+}
+
+/* kitchen — wood cabinets + white square tiles */
+
+.floor-kitchen{
+  grid-column:1;
+  grid-row:3;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(113,72,42,.26) 0 32%,
+      transparent 32%
+    ),
+    linear-gradient(
+      rgba(165,148,124,.25) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(165,148,124,.25) 1px,
+      transparent 1px
+    ),
+    #f5f2ea;
+  background-size:
+    auto,
+    15px 15px,
+    15px 15px,
+    auto;
+}
+
+.floor-kitchen:before{
+  content:"";
+  position:absolute;
+  left:7px;
+  top:7px;
+  bottom:7px;
+  width:24%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(70,41,23,.28) 0 1px,
+      transparent 1px 18px
+    ),
+    linear-gradient(
+      180deg,
+      #775033,
+      #4d321f
+    );
+  box-shadow:
+    inset -2px 0 rgba(255,255,255,.1);
+}
+
+/* bathroom */
+
+.floor-bathroom{
+  grid-column:3;
+  grid-row:3;
+  background:
+    linear-gradient(
+      rgba(160,160,150,.18) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(160,160,150,.18) 1px,
+      transparent 1px
+    ),
+    #f5f3ed;
+  background-size:14px 14px;
+}
+
+/* old-apartment details */
+
+.floor-living:after,
+.floor-bedroom:after{
+  content:"";
+  position:absolute;
+  top:-2px;
+  left:20%;
+  width:58%;
+  height:7px;
+  border-top:4px solid #d8d2c7;
+  border-inline:1px solid rgba(84,61,49,.35);
+  background:#e6e2d9;
+}
+
+.floor-kitchen:after{
+  content:"";
+  position:absolute;
+  right:8px;
+  bottom:8px;
+  width:30%;
+  height:32%;
+  border:2px solid rgba(87,66,52,.3);
+  background:
+    radial-gradient(
+      circle at 28% 50%,
+      transparent 0 4px,
+      rgba(70,60,53,.35) 5px 6px,
+      transparent 7px
+    ),
+    #d7d4cb;
+}
+
+.floor-bathroom:after{
+  content:"";
+  position:absolute;
+  right:9px;
+  top:9px;
+  width:35%;
+  height:42%;
+  border:2px solid rgba(92,79,69,.28);
+  border-radius:50% 50% 8px 8px;
+  background:#faf8f3;
+}
+
+/* entrance marker */
+
+.floor-hall:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-2px;
+  width:48%;
+  height:13px;
+  transform:translateX(-50%);
+  border-top:4px solid #ede8de;
+  border-inline:2px solid rgba(67,45,32,.35);
+}
+
+/* selected-room strip */
+
+.room-thumb{
+  position:relative;
+  overflow:hidden;
+}
+
+.room-thumb-living,
+.room-thumb-bedroom,
+.room-thumb-hall{
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(64,40,27,.09) 0 1px,
+      transparent 1px 10px
+    ),
+    linear-gradient(
+      135deg,
+      #ccb08d,
+      #8f6748
+    ) !important;
+}
+
+.room-thumb-kitchen{
+  background:
+    linear-gradient(
+      rgba(145,136,122,.17) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(145,136,122,.17) 1px,
+      transparent 1px
+    ),
+    #f3efe6 !important;
+  background-size:9px 9px !important;
+}
+
+.room-thumb-bathroom{
+  background:
+    linear-gradient(
+      rgba(145,145,140,.14) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(145,145,140,.14) 1px,
+      transparent 1px
+    ),
+    #eeece7 !important;
+  background-size:8px 8px !important;
+}
+
+.room-thumb-map{
+  background:
+    linear-gradient(
+      90deg,
+      transparent 31%,
+      rgba(96,68,51,.22) 31% 34%,
+      transparent 34% 67%,
+      rgba(96,68,51,.22) 67% 70%,
+      transparent 70%
+    ),
+    linear-gradient(
+      transparent 48%,
+      rgba(96,68,51,.22) 48% 52%,
+      transparent 52%
+    ),
+    #f3eee4 !important;
+}
+
+/* vintage room treatment while final room images are pending */
+
+.space-living>img{
+  object-position:center 53%;
+  filter:
+    saturate(.68)
+    sepia(.10)
+    contrast(.94)
+    brightness(.94);
+}
+
+.space-bedroom>img{
+  object-position:center 42%;
+  filter:
+    saturate(.63)
+    sepia(.13)
+    contrast(.92)
+    brightness(.91);
+}
+
+.space-kitchen>img{
+  object-position:27% center;
+  filter:
+    saturate(.57)
+    sepia(.12)
+    brightness(.97);
+}
+
+.space-bathroom>img{
+  object-position:72% center;
+  filter:
+    saturate(.45)
+    brightness(1.04)
+    contrast(.88);
+}
+
+.space-hall>img{
+  object-position:center 36%;
+  filter:
+    saturate(.55)
+    sepia(.18)
+    contrast(.93)
+    brightness(.86);
+}
+
+/* cleaner Home: the house is the interface */
+
+.home-house{
+  padding-bottom:12px;
+}
+
+.home-house .house-stage{
+  touch-action:pan-y;
+}
+
+.home-house .house-space-strip{
+  padding-bottom:18px;
+}
