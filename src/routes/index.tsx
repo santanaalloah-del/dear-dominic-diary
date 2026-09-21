@@ -141,14 +141,7 @@ function DiarioApp() {
           {screen === "gallery" && <GalleryScreen />}
           {screen === "night" && <NightScreen />}
 {screen === "memories" && <MemoriesScreen />}
-          {screen === "calendar" && (
-            <FeaturePreviewScreen
-              eyebrow="Different days, the same us"
-              title="Calendar"
-              note="Days hold the things that actually happened: photos, letters, memories, dates, notes and future plans."
-              icon={<CalendarIcon />}
-            />
-          )}
+{screen === "calendar" && <CalendarScreen />}
           {screen === "timeline" && (
             <FeaturePreviewScreen
               eyebrow="The bigger picture"
@@ -1083,6 +1076,361 @@ function GalleryScreen() {
     </section>
   );
 }
+function CalendarScreen() {
+  const today = new Date();
+
+  const [viewDate, setViewDate] = useState(
+    () =>
+      new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      )
+  );
+
+  const [selectedDate, setSelectedDate] =
+    useState(
+      () =>
+        new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        )
+    );
+
+  const calendarItems: Array<{
+    id: string;
+    date: string;
+    type:
+      | "memory"
+      | "date"
+      | "letter"
+      | "photo"
+      | "note"
+      | "plan";
+    title: string;
+  }> = [];
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+
+  const firstWeekday = new Date(
+    year,
+    month,
+    1
+  ).getDay();
+
+  const daysInMonth = new Date(
+    year,
+    month + 1,
+    0
+  ).getDate();
+
+  const monthCells = Array.from(
+    { length: 42 },
+    (_, index) => {
+      const day =
+        index - firstWeekday + 1;
+
+      if (
+        day < 1 ||
+        day > daysInMonth
+      ) {
+        return null;
+      }
+
+      return new Date(
+        year,
+        month,
+        day
+      );
+    }
+  );
+
+  const weekdayLabels = [
+    "S",
+    "M",
+    "T",
+    "W",
+    "T",
+    "F",
+    "S",
+  ];
+
+  const dateKey = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+    const d = String(
+      date.getDate()
+    ).padStart(2, "0");
+
+    return `${y}-${m}-${d}`;
+  };
+
+  const selectedKey =
+    dateKey(selectedDate);
+
+  const selectedItems =
+    calendarItems.filter(
+      (item) =>
+        item.date === selectedKey
+    );
+
+  const isSameDay = (
+    first: Date,
+    second: Date
+  ) =>
+    first.getFullYear() ===
+      second.getFullYear() &&
+    first.getMonth() ===
+      second.getMonth() &&
+    first.getDate() ===
+      second.getDate();
+
+  const changeMonth = (
+    offset: number
+  ) => {
+    const nextMonth = new Date(
+      year,
+      month + offset,
+      1
+    );
+
+    setViewDate(nextMonth);
+    setSelectedDate(nextMonth);
+  };
+
+  const monthLabel =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        month: "long",
+        year: "numeric",
+      }
+    ).format(viewDate);
+
+  const selectedLabel =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      }
+    ).format(selectedDate);
+
+  return (
+    <section className="calendar-screen calendar-live">
+      <ScreenIntro
+        eyebrow="What happened · what is planned"
+        title="Calendar"
+      >
+        <p className="intro-copy">
+          every real day can hold its
+          photos, letters, memories,
+          dates and plans.
+        </p>
+      </ScreenIntro>
+
+      <section className="calendar-month">
+        <header className="calendar-month-header">
+          <button
+            type="button"
+            onClick={() =>
+              changeMonth(-1)
+            }
+            aria-label="Previous month"
+          >
+            ‹
+          </button>
+
+          <strong>
+            {monthLabel}
+          </strong>
+
+          <button
+            type="button"
+            onClick={() =>
+              changeMonth(1)
+            }
+            aria-label="Next month"
+          >
+            ›
+          </button>
+        </header>
+
+        <div
+          className="calendar-weekdays"
+          aria-hidden="true"
+        >
+          {weekdayLabels.map(
+            (label, index) => (
+              <span
+                key={`${label}-${index}`}
+              >
+                {label}
+              </span>
+            )
+          )}
+        </div>
+
+        <div className="calendar-grid">
+          {monthCells.map(
+            (date, index) => {
+              if (!date) {
+                return (
+                  <span
+                    key={`empty-${index}`}
+                    className="calendar-day-empty"
+                    aria-hidden="true"
+                  />
+                );
+              }
+
+              const key =
+                dateKey(date);
+
+              const hasItems =
+                calendarItems.some(
+                  (item) =>
+                    item.date === key
+                );
+
+              const selected =
+                isSameDay(
+                  date,
+                  selectedDate
+                );
+
+              const current =
+                isSameDay(
+                  date,
+                  today
+                );
+
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className={[
+                    "calendar-day",
+                    selected
+                      ? "selected"
+                      : "",
+                    current
+                      ? "today"
+                      : "",
+                    hasItems
+                      ? "has-items"
+                      : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  onClick={() =>
+                    setSelectedDate(date)
+                  }
+                  aria-label={
+                    new Intl.DateTimeFormat(
+                      "en-US",
+                      {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      }
+                    ).format(date)
+                  }
+                  aria-pressed={
+                    selected
+                  }
+                >
+                  <span>
+                    {date.getDate()}
+                  </span>
+
+                  {hasItems && (
+                    <i
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              );
+            }
+          )}
+        </div>
+      </section>
+
+      <section className="calendar-day-detail">
+        <header>
+          <span>
+            selected day
+          </span>
+
+          <strong>
+            {selectedLabel}
+          </strong>
+        </header>
+
+        {selectedItems.length === 0 ? (
+          <div className="calendar-day-empty-state">
+            <CalendarIcon
+              size={22}
+              strokeWidth={1.35}
+            />
+
+            <p>
+              Nothing is attached to
+              this day yet.
+            </p>
+
+            <small>
+              Real plans and lived
+              moments will appear here
+              without duplicating their
+              original objects.
+            </small>
+          </div>
+        ) : (
+          <div className="calendar-day-items">
+            {selectedItems.map(
+              (item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`calendar-item calendar-item-${item.type}`}
+                >
+                  <span>
+                    {item.type}
+                  </span>
+
+                  <strong>
+                    {item.title}
+                  </strong>
+
+                  <ChevronRight
+                    size={16}
+                  />
+                </button>
+              )
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="calendar-legend">
+        <p>
+          Past days show what really
+          happened. Future days can hold
+          plans. The same object can also
+          appear in Memories or Timeline
+          without being copied.
+        </p>
+      </section>
+    </section>
+  );
+}
+
 function MemoriesScreen() {
   const [memoryFilter, setMemoryFilter] = useState<
     "all" | "photos" | "letters" | "music" | "dates"
