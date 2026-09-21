@@ -31,6 +31,7 @@ import room from "@/assets/dominic-room.jpg";
 import livingRoom from "@/assets/living-room.png";
 import bedroom from "@/assets/bedroom.png";
 import kitchen from "@/assets/kitchen.png";
+import bathroom from "@/assets/bathroom.png";
 import floorPlan from "@/assets/apartment-floor-plan.png";
 import cafe from "@/assets/cafe-hands.jpg";
 import street from "@/assets/rain-street.jpg";
