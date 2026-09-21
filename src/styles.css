@@ -232,3 +232,365 @@
 
 @keyframes voice-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in oklab,var(--cherry) 0%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in oklab,var(--cherry) 18%,transparent)}}
 @media (min-width:700px){.messenger-chat{height:774px}.home-live{min-height:774px}}
+/* =========================================
+   HOME — APARTMENT CAROUSEL
+   ========================================= */
+
+.home-house{
+  min-height:100%;
+  padding-bottom:30px;
+  background:var(--background);
+}
+
+.house-header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  padding:24px 23px 16px;
+}
+
+.house-header>div:first-child{
+  display:flex;
+  flex-direction:column;
+}
+
+.house-kicker{
+  margin-bottom:4px;
+  color:var(--cherry);
+  font:8px var(--font-body);
+  letter-spacing:.17em;
+  text-transform:uppercase;
+}
+
+.house-header strong{
+  color:var(--wine);
+  font:400 34px/.9 var(--font-display);
+}
+
+.house-time{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  text-align:right;
+}
+
+.house-time span{
+  color:var(--wine);
+  font:22px/1 var(--font-display);
+}
+
+.house-time small{
+  margin-top:5px;
+  color:var(--muted-foreground);
+  font:7px var(--font-body);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+/* main room image */
+
+.house-stage{
+  position:relative;
+  height:430px;
+  margin:0 14px;
+  overflow:hidden;
+  background:var(--paper-deep);
+  box-shadow:var(--paper-shadow);
+}
+
+.house-stage>img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  filter:saturate(.78) contrast(.95);
+  transition:
+    filter .7s ease,
+    transform .7s ease;
+}
+
+.house-stage-shade{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25,8,10,.04) 20%,
+      rgba(25,8,10,.02) 47%,
+      rgba(25,8,10,.56) 100%
+    );
+}
+
+/* room title over image */
+
+.house-room-label{
+  position:absolute;
+  z-index:4;
+  left:20px;
+  bottom:18px;
+  display:flex;
+  flex-direction:column;
+  color:#fff7ef;
+  text-shadow:0 2px 12px rgba(24,5,7,.45);
+}
+
+.house-room-label strong{
+  font:400 31px/.92 var(--font-display);
+}
+
+.house-room-label small{
+  margin-top:5px;
+  font:7px var(--font-body);
+  letter-spacing:.14em;
+  opacity:.76;
+}
+
+/* previous / next */
+
+.house-arrow{
+  position:absolute;
+  z-index:6;
+  top:50%;
+  width:35px;
+  height:49px;
+  padding:0;
+  border:0;
+  background:color-mix(in oklab,var(--wine) 52%,transparent);
+  color:#fff8f0;
+  font:32px/1 var(--font-display);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transform:translateY(-50%);
+  backdrop-filter:blur(5px);
+}
+
+.house-arrow-left{
+  left:0;
+}
+
+.house-arrow-right{
+  right:0;
+}
+
+/* objects inside rooms */
+
+.house-object{
+  position:absolute;
+  z-index:5;
+  padding:8px;
+  border:0;
+  background:none;
+  cursor:pointer;
+}
+
+.house-object span{
+  display:block;
+  width:18px;
+  height:18px;
+  position:relative;
+  border:1px solid rgba(255,255,255,.88);
+  border-radius:50%;
+  background:rgba(76,16,25,.2);
+  box-shadow:
+    0 0 0 5px rgba(255,255,255,.12),
+    0 0 18px rgba(255,239,216,.27);
+}
+
+.house-object span:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  width:4px;
+  height:4px;
+  margin:auto;
+  border-radius:50%;
+  background:white;
+}
+
+.house-object-one{
+  left:30%;
+  top:43%;
+}
+
+.house-object-two{
+  right:22%;
+  top:61%;
+}
+
+/* room selector */
+
+.house-space-strip{
+  display:flex;
+  gap:9px;
+  padding:15px 14px 8px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  scroll-snap-type:x proximity;
+}
+
+.house-space-strip::-webkit-scrollbar{
+  display:none;
+}
+
+.house-space-strip button{
+  flex:0 0 78px;
+  min-width:78px;
+  padding:0;
+  border:0;
+  background:none;
+  color:var(--muted-foreground);
+  text-align:left;
+  cursor:pointer;
+  scroll-snap-align:start;
+}
+
+.house-space-strip button>span{
+  display:block;
+  width:100%;
+  height:51px;
+  margin-bottom:6px;
+  border:1px solid var(--divider);
+  background:
+    linear-gradient(
+      145deg,
+      var(--paper),
+      color-mix(in oklab,var(--paper-deep) 55%,var(--cream))
+    );
+  box-shadow:var(--paper-shadow-soft);
+  opacity:.57;
+  transition:
+    opacity .25s ease,
+    transform .25s ease,
+    border-color .25s ease;
+}
+
+.house-space-strip button small{
+  display:block;
+  overflow:hidden;
+  color:inherit;
+  font:8px var(--font-body);
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.house-space-strip button.active{
+  color:var(--wine);
+}
+
+.house-space-strip button.active>span{
+  border-color:color-mix(in oklab,var(--cherry) 48%,var(--divider));
+  opacity:1;
+  transform:translateY(-2px) rotate(-.5deg);
+}
+
+/* floor plan placeholder */
+
+.floor-plan-placeholder{
+  position:absolute;
+  z-index:4;
+  inset:34px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border:1px solid color-mix(in oklab,var(--wine) 33%,transparent);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 32px,
+      color-mix(in oklab,var(--wine) 9%,transparent) 33px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 32px,
+      color-mix(in oklab,var(--wine) 9%,transparent) 33px
+    ),
+    color-mix(in oklab,var(--paper) 92%,transparent);
+  color:var(--wine);
+  backdrop-filter:blur(8px);
+}
+
+.floor-plan-placeholder span{
+  font:32px/1 var(--font-display);
+}
+
+.floor-plan-placeholder small{
+  margin-top:8px;
+  color:var(--muted-foreground);
+  font:7px var(--font-body);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+/* morning / night strip */
+
+.home-house .home-day-passage{
+  position:relative;
+  margin:16px 24px 5px;
+  padding:13px 17px;
+  min-height:auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border:1px solid var(--divider);
+  background:var(--paper);
+  box-shadow:var(--paper-shadow-soft);
+  transform:rotate(-.25deg);
+}
+
+.home-house .day-passage-art{
+  height:auto;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+.home-house .day-passage-art span{
+  color:var(--gold);
+  font:23px var(--font-display);
+}
+
+.home-house .day-passage-art i{
+  color:var(--rose);
+  font-style:normal;
+  font-size:9px;
+}
+
+.home-house .day-passage-art b{
+  color:var(--wine);
+  font:400 21px var(--font-display);
+}
+
+.home-house .home-day-passage>button{
+  margin:0;
+  padding:0;
+  border:0;
+  background:none;
+  color:var(--cherry);
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font:11px var(--font-display);
+  cursor:pointer;
+}
+
+/* time-aware room lighting */
+
+.phone-shell[data-time-theme="golden"] .house-stage>img{
+  filter:saturate(.86) sepia(.08) brightness(.95);
+}
+
+.phone-shell[data-time-theme="night"] .house-stage>img{
+  filter:saturate(.7) brightness(.56) contrast(1.05);
+}
+
+.phone-shell[data-time-theme="late"] .house-stage>img{
+  filter:saturate(.62) brightness(.43) contrast(1.08);
+}
+
+.phone-shell[data-time-theme="early"] .house-stage>img{
+  filter:saturate(.68) brightness(.72);
+}
