@@ -28,7 +28,7 @@ import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import dominic from "@/assets/dominic-candid.jpg";
 import room from "@/assets/dominic-room.jpg";
-import livingRoom from "@/assets/living-room.png";
+import livingRoom from "@/assets/living-room.jpeg";
 import bedroom from "@/assets/bedroom.png";
 import kitchen from "@/assets/kitchen.png";
 import bathroom from "@/assets/bathroom.png";
