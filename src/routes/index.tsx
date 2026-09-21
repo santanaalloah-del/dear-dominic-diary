@@ -481,7 +481,6 @@ function RoomScreen({
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
 
   const rooms = {
-  const rooms = {
     living: {
       label: "Living Room",
       caption: "the heart of the apartment",
