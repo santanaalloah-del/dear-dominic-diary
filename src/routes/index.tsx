@@ -329,12 +329,18 @@ function HomeScreen({
       >
 {currentSpace.id !== "map" && (
   <>
-    <img
-      src={currentSpace.id === "living" ? livingRoom : room}
-      alt={`${currentSpace.label} in our apartment`}
-      width={1280}
-      height={960}
-    />
+<img
+  src={
+    currentSpace.id === "living"
+      ? livingRoom
+      : currentSpace.id === "bedroom"
+        ? bedroom
+        : room
+  }
+  alt={`${currentSpace.label} in our apartment`}
+  width={1280}
+  height={960}
+/>
 
     <div className="house-stage-shade" />
 
