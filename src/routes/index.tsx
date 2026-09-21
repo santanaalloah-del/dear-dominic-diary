@@ -139,7 +139,7 @@ function DiarioApp() {
 )}
           {screen === "letters" && <LettersScreen />}
           {screen === "gallery" && <GalleryScreen />}
-          {screen === "night" && <NightScreen />}
+{screen === "night" && <MorningNightScreen time={time} />}
 {screen === "memories" && <MemoriesScreen />}
 {screen === "calendar" && <CalendarScreen />}
 {screen === "timeline" && <TimelineScreen />}
@@ -3261,27 +3261,302 @@ function MemoriesScreen() {
     </section>
   );
 }
-function NightScreen() {
+function MorningNightScreen({
+  time,
+}: {
+  time: TimeMoodState;
+}) {
+  const defaultView:
+    | "morning"
+    | "night" =
+    time.mood === "early" ||
+    time.mood === "morning"
+      ? "morning"
+      : "night";
+
+  const [dayView, setDayView] =
+    useState<
+      "morning" | "night"
+    >(defaultView);
+
+  const morningMoments: Array<{
+    id: string;
+    title: string;
+    note?: string;
+  }> = [];
+
+  const nightMoments: Array<{
+    id: string;
+    title: string;
+    note?: string;
+  }> = [];
+
+  const activeMoments =
+    dayView === "morning"
+      ? morningMoments
+      : nightMoments;
+
+  const isCurrentPhase =
+    dayView === defaultView;
+
   return (
-    <section className="night-screen">
-      <header><span>Diário</span><small>Morning / Night</small></header>
-      <div className="moon">☾</div>
-      <h1>still awake?</h1>
-      <p className="night-copy">the same apartment gets quieter as your real night arrives.</p>
-      <div className="night-photo">
-        <img src={room} alt="The apartment at night" width={1280} height={960} loading="lazy" />
-        <span className="lamp-glow" />
+    <section className="day-cycle-screen">
+      <ScreenIntro
+        eyebrow={`${time.dateLabel} · ${time.timeLabel}`}
+        title="Morning / Night"
+      >
+        <p className="intro-copy">
+          the same apartment changes with
+          the real time around you.
+        </p>
+      </ScreenIntro>
+
+      <div
+        className="day-cycle-tabs"
+        role="tablist"
+        aria-label="Time of day"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            dayView === "morning"
+          }
+          className={
+            dayView === "morning"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setDayView("morning")
+          }
+        >
+          Morning
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            dayView === "night"
+          }
+          className={
+            dayView === "night"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setDayView("night")
+          }
+        >
+          Night
+        </button>
       </div>
-      <div className="night-record">
-        <Disc3 />
-        <div><small>for the late hours</small><strong>our night rotation</strong><span>Spotify connected later</span></div>
-        <Play size={16} fill="currentColor" />
-      </div>
-      <blockquote>“same place.<br />different light.”<span>— Diário</span></blockquote>
+
+      <section
+        className={`day-cycle-current day-cycle-${dayView}`}
+      >
+        <div className="day-cycle-image">
+          <img
+            src={
+              dayView === "morning"
+                ? bedroom
+                : room
+            }
+            alt={
+              dayView === "morning"
+                ? "The apartment bedroom in the morning"
+                : "The apartment at night"
+            }
+          />
+        </div>
+
+        <div className="day-cycle-copy">
+          <small>
+            {isCurrentPhase
+              ? "right now"
+              : "other side of the day"}
+          </small>
+
+          <h2>
+            {dayView === "morning"
+              ? "A new day starts here."
+              : "The apartment gets quieter."}
+          </h2>
+
+          <p>
+            {dayView === "morning"
+              ? "Morning can hold whatever actually belongs to the start of this day — plans, music, notes and little routines."
+              : "Night can collect the things that really belong to the end of this day — music, reflections, messages and what happened."}
+          </p>
+        </div>
+      </section>
+
+      <section className="day-cycle-context">
+        <header>
+          <span>
+            real time
+          </span>
+
+          <strong>
+            {time.greeting}
+          </strong>
+        </header>
+
+        <p>
+          {time.homeLine}
+        </p>
+
+        <small>
+          mood: {time.mood}
+        </small>
+      </section>
+
+      <section className="day-cycle-moments">
+        <header>
+          <div>
+            <span>
+              {dayView}
+            </span>
+
+            <strong>
+              Today's moments
+            </strong>
+          </div>
+
+          <small>
+            {activeMoments.length}
+          </small>
+        </header>
+
+        {activeMoments.length === 0 ? (
+          <div className="day-cycle-empty">
+            {dayView === "morning" ? (
+              <LampDesk
+                size={23}
+                strokeWidth={1.3}
+              />
+            ) : (
+              <Disc3
+                size={23}
+                strokeWidth={1.3}
+              />
+            )}
+
+            <p>
+              Nothing recorded here yet.
+            </p>
+
+            <small>
+              This section fills only from
+              things that actually happen
+              during this part of the day.
+            </small>
+          </div>
+        ) : (
+          <div className="day-cycle-moment-list">
+            {activeMoments.map(
+              (moment) => (
+                <article
+                  key={moment.id}
+                >
+                  <strong>
+                    {moment.title}
+                  </strong>
+
+                  {moment.note && (
+                    <p>
+                      {moment.note}
+                    </p>
+                  )}
+                </article>
+              )
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="day-cycle-links">
+        <article>
+          <Music2
+            size={18}
+            strokeWidth={1.35}
+          />
+
+          <span>
+            <strong>
+              Music
+            </strong>
+
+            <small>
+              what was really playing
+            </small>
+          </span>
+        </article>
+
+        <article>
+          <BookOpen
+            size={18}
+            strokeWidth={1.35}
+          />
+
+          <span>
+            <strong>
+              Diary
+            </strong>
+
+            <small>
+              writing from this day
+            </small>
+          </span>
+        </article>
+
+        <article>
+          <CalendarIcon
+            size={18}
+            strokeWidth={1.35}
+          />
+
+          <span>
+            <strong>
+              Calendar
+            </strong>
+
+            <small>
+              today's plans and events
+            </small>
+          </span>
+        </article>
+
+        <article>
+          <Heart
+            size={18}
+            strokeWidth={1.35}
+          />
+
+          <span>
+            <strong>
+              Memories
+            </strong>
+
+            <small>
+              only if something stays
+            </small>
+          </span>
+        </article>
+      </section>
+
+      <section className="day-cycle-rule">
+        <p>
+          Morning and Night do not create
+          events on their own. They are
+          contextual views of the same real
+          day and the same apartment.
+        </p>
+      </section>
     </section>
   );
 }
-
 function FeaturePreviewScreen({
   eyebrow,
   title,
