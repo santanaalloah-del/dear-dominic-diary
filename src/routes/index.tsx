@@ -93,15 +93,37 @@ function Index() {
 function DiarioApp() {
   const [screen, setScreen] = useState<Screen>("home");
   const [activeRoom, setActiveRoom] = useState("living");
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
   const time = useTimeMood();
   const detail = !primaryScreens.includes(screen);
 
+  const openScreen = (nextScreen: Screen) => {
+    if (scrollRef.current) {
+      scrollPositions.current[screen] = scrollRef.current.scrollTop;
+    }
+
+    setScreen(nextScreen);
+  };
+
   const openRoom = (roomId: string) => {
     setActiveRoom(roomId);
-    setScreen("room");
+    openScreen("room");
   };
+
+  useLayoutEffect(() => {
+    const scrollElement = scrollRef.current;
+
+    if (!scrollElement) return;
+
+    scrollElement.scrollTop = scrollPositions.current[screen] ?? 0;
+  }, [screen]);
+
   return (
-    <main className={`prototype-stage time-${time.mood}`} data-time-theme={time.mood}>
+    <main
+      className={`prototype-stage time-${time.mood}`}
+      data-time-theme={time.mood}
+    >
       <div className="phone-shell" data-time-theme={time.mood}>
         <div className="statusbar" aria-hidden="true">
           <span>{time.timeLabel}</span>
@@ -112,50 +134,65 @@ function DiarioApp() {
         {detail && (
           <button
             className="back-button"
-            onClick={() => setScreen(screen === "room" ? "home" : "more")}
+            onClick={() => openScreen(screen === "room" ? "home" : "more")}
             aria-label="Go back"
           >
             <ArrowLeft size={20} />
           </button>
         )}
 
-        <div className={`screen-scroll screen-${screen}`} key={screen}>
-{screen === "home" && (
-  <HomeScreen
-    time={time}
-    onOpenRoom={openRoom}
-  />
-)}
+        <div
+          ref={scrollRef}
+          className={`screen-scroll screen-${screen}`}
+          key={screen}
+        >
+          {screen === "home" && (
+            <HomeScreen
+              time={time}
+              onOpenRoom={openRoom}
+            />
+          )}
+
           {screen === "chat" && <DiarioChat />}
+
           {screen === "diary" && <DiaryScreen />}
-          {screen === "more" && <MoreScreen onOpen={setScreen} />}
-{screen === "room" && (
-  <RoomScreen
-    time={time}
-    roomId={activeRoom}
-    onOpen={setScreen}
-    onOpenRoom={openRoom}
-  />
-)}
+
+          {screen === "more" && (
+            <MoreScreen onOpen={openScreen} />
+          )}
+
+          {screen === "room" && (
+            <RoomScreen
+              time={time}
+              roomId={activeRoom}
+              onOpen={openScreen}
+              onOpenRoom={openRoom}
+            />
+          )}
+
           {screen === "letters" && <LettersScreen />}
           {screen === "gallery" && <GalleryScreen />}
-{screen === "night" && <MorningNightScreen time={time} />}
-{screen === "memories" && <MemoriesScreen />}
-{screen === "calendar" && <CalendarScreen />}
-{screen === "timeline" && <TimelineScreen />}
-{screen === "music" && <MusicScreen />}
-{screen === "dates" && <DatesScreen />}
-{screen === "keepsakes" && <KeepsakesScreen />}
-{screen === "wardrobe" && <WardrobeScreen />}
-{screen === "settings" && <SettingsScreen />}
+          {screen === "night" && <MorningNightScreen time={time} />}
+          {screen === "memories" && <MemoriesScreen />}
+          {screen === "calendar" && <CalendarScreen />}
+          {screen === "timeline" && <TimelineScreen />}
+          {screen === "music" && <MusicScreen />}
+          {screen === "dates" && <DatesScreen />}
+          {screen === "keepsakes" && <KeepsakesScreen />}
+          {screen === "wardrobe" && <WardrobeScreen />}
+          {screen === "settings" && <SettingsScreen />}
         </div>
 
-        {!detail && <BottomNav active={screen} onOpen={setScreen} />}
+        {!detail && (
+          <BottomNav
+            active={screen}
+            onOpen={openScreen}
+          />
+        )}
       </div>
     </main>
   );
 }
-
 function ScreenIntro({
   eyebrow,
   title,
