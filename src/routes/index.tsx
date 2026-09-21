@@ -553,14 +553,26 @@ return (
         <p className="intro-copy">{room.caption}</p>
       </ScreenIntro>
 
-      <figure className={`room-view apartment-view room-view-${roomId}`}>
-        <img
-          src={room.image}
-          alt={`${room.label} in our apartment`}
-          width={1280}
-          height={960}
-        />
-      </figure>
+<figure className={`room-view apartment-view room-view-${roomId}`}>
+  <img
+    src={room.image}
+    alt={`${room.label} in our apartment`}
+    width={1280}
+    height={960}
+  />
+
+  {roomObjects.map((object) => (
+    <button
+      key={object.id}
+      className={`room-hotspot room-hotspot-${object.id}`}
+      aria-label={object.label}
+      data-object-type={object.type}
+    >
+      <span />
+      <small>{object.label}</small>
+    </button>
+  ))}
+</figure>
 
       <div className="room-caption">
         <span>our apartment · new york</span>
