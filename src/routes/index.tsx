@@ -355,42 +355,43 @@ function HomeScreen({
         )}
 
         {currentSpace.id === "map" && (
-          <div className="floor-plan-map">
+          <div className="official-floor-plan">
+            <img
+              src={floorPlan}
+              alt="Official floor plan of our apartment"
+              width={1536}
+              height={1024}
+            />
+
             <button
-              className="floor-room floor-living"
+              className="plan-hotspot plan-hotspot-living"
               onClick={() => openSpace("living")}
-            >
-              <span>Living Room</span>
-            </button>
+              aria-label="Open Living Room"
+            />
 
             <button
-              className="floor-room floor-bedroom"
+              className="plan-hotspot plan-hotspot-bedroom"
               onClick={() => openSpace("bedroom")}
-            >
-              <span>Bedroom</span>
-            </button>
+              aria-label="Open Bedroom"
+            />
 
             <button
-              className="floor-room floor-kitchen"
+              className="plan-hotspot plan-hotspot-kitchen"
               onClick={() => openSpace("kitchen")}
-            >
-              <span>Kitchen</span>
-            </button>
+              aria-label="Open Kitchen"
+            />
 
             <button
-              className="floor-room floor-bathroom"
+              className="plan-hotspot plan-hotspot-bathroom"
               onClick={() => openSpace("bathroom")}
-            >
-              <span>Bathroom</span>
-            </button>
+              aria-label="Open Bathroom"
+            />
 
             <button
-              className="floor-room floor-hall"
+              className="plan-hotspot plan-hotspot-hall"
               onClick={() => openSpace("hall")}
-            >
-              <span>Hall</span>
-              <small>entry</small>
-            </button>
+              aria-label="Open Hall"
+            />
           </div>
         )}
 
@@ -426,9 +427,7 @@ function HomeScreen({
         {spaces.map((space, index) => (
           <button
             key={space.id}
-            className={
-              index === activeSpace ? "active" : ""
-            }
+            className={index === activeSpace ? "active" : ""}
             onClick={() => setActiveSpace(index)}
           >
             <span
