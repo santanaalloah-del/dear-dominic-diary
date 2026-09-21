@@ -29,6 +29,7 @@ import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import dominic from "@/assets/dominic-candid.jpg";
 import room from "@/assets/dominic-room.jpg";
 import livingRoom from "@/assets/living-room.png";
+import bedroom from "@/assets/bedroom.png";
 import floorPlan from "@/assets/apartment-floor-plan.png";
 import cafe from "@/assets/cafe-hands.jpg";
 import street from "@/assets/rain-street.jpg";
