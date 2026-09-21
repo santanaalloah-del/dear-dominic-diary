@@ -1052,3 +1052,115 @@ function BottomNav({ active, onOpen }: { active: Screen; onOpen: (screen: Screen
 .room-navigation button:active {
   transform: translateY(1px);
 }
+/* ─────────────────────────────────────────
+   APARTMENT · SELECTED OBJECT
+   ───────────────────────────────────────── */
+
+.room-object-sheet {
+  position: relative;
+  z-index: 6;
+
+  margin: -8px 24px 16px;
+  padding: 16px 17px 15px;
+
+  background: var(--paper);
+
+  border-top: 1px solid
+    color-mix(in oklab, var(--brown) 12%, transparent);
+
+  box-shadow: var(--shadow-paper);
+}
+
+.room-object-sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.room-object-sheet-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.room-object-sheet-header small {
+  color: var(--brown-soft);
+
+  font: 10px/1.2 var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.room-object-sheet-header strong {
+  color: var(--wine-deep);
+
+  font: 20px/1.1 var(--font-display);
+  font-weight: 500;
+}
+
+.room-object-close {
+  display: grid;
+  place-items: center;
+
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: var(--brown);
+
+  font-size: 22px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.room-object-sheet > p {
+  margin: 9px 0 13px;
+
+  color: var(--brown-soft);
+
+  font: 11px/1.3 var(--font-display);
+  text-transform: lowercase;
+}
+
+.room-object-actions {
+  display: flex;
+  align-items: center;
+
+  border-top: 1px solid
+    color-mix(in oklab, var(--brown) 11%, transparent);
+}
+
+.room-object-actions button {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  padding: 11px 5px 2px;
+
+  border: 0;
+  background: transparent;
+
+  color: var(--wine);
+
+  font: 11px/1 var(--font-display);
+
+  cursor: pointer;
+}
+
+.room-object-actions button + button {
+  border-left: 1px solid
+    color-mix(in oklab, var(--brown) 10%, transparent);
+}
+
+.room-object-actions span {
+  color: var(--cherry);
+  font-size: 13px;
+}
