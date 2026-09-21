@@ -46,6 +46,7 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
   const [preferredName, setPreferredName] = useState("Alloah");
   const [ready, setReady] = useState(false);
   const [unlocked, setUnlocked] = useState(true);
+  const [privacyCover, setPrivacyCover] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -98,18 +99,37 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
   }, [session]);
 
   useEffect(() => {
-    const lockWhenHidden = () => {
+    let revealTimer: number | undefined;
+
+    const handleVisibility = () => {
       if (document.visibilityState === "hidden") {
+        setPrivacyCover(true);
         setUnlocked(false);
+        return;
+      }
+
+      if (document.visibilityState === "visible") {
+        revealTimer = window.setTimeout(() => {
+          setPrivacyCover(false);
+        }, 250);
       }
     };
 
-    document.addEventListener("visibilitychange", lockWhenHidden);
-    window.addEventListener("pagehide", lockWhenHidden);
+    const handlePageHide = () => {
+      setPrivacyCover(true);
+      setUnlocked(false);
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pagehide", handlePageHide);
 
     return () => {
-      document.removeEventListener("visibilitychange", lockWhenHidden);
-      window.removeEventListener("pagehide", lockWhenHidden);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pagehide", handlePageHide);
+
+      if (revealTimer) {
+        window.clearTimeout(revealTimer);
+      }
     };
   }, []);
 
@@ -125,10 +145,10 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
     return <PrivateLogin />;
   }
 
-  /*
-   * Com uma sessão salva, o app abre direto.
-   * A senha só é pedida depois que o app foi para segundo plano.
-   */
+  if (privacyCover) {
+    return <PrivacyCover />;
+  }
+
   if (!unlocked) {
     return <AppPasswordGate onUnlock={() => setUnlocked(true)} />;
   }
@@ -140,6 +160,8 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
         preferredName,
         signOut: async () => {
           setUnlocked(false);
+          setPrivacyCover(true);
+
           await supabase.auth.signOut();
         },
       }}
@@ -149,10 +171,22 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
   );
 }
 
+function PrivacyCover() {
+  return (
+    <main className="privacy-cover" aria-hidden="true">
+      <div className="privacy-cover-mark">
+        <span>Diário</span>
+        <i>✦</i>
+      </div>
+    </main>
+  );
+}
+
 function AppPasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [hasPassword, setHasPassword] = useState(
     () => Boolean(localStorage.getItem(APP_LOCK_KEY))
   );
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -176,10 +210,13 @@ function AppPasswordGate({ onUnlock }: { onUnlock: () => void }) {
 
     try {
       const hashed = await hashPassword(password);
+
       localStorage.setItem(APP_LOCK_KEY, hashed);
+
       setHasPassword(true);
       setPassword("");
       setConfirmPassword("");
+
       onUnlock();
     } catch {
       setError("Não foi possível criar a senha agora.");
@@ -219,8 +256,13 @@ function AppPasswordGate({ onUnlock }: { onUnlock: () => void }) {
           aria-labelledby="create-private-password"
         >
           <LockKeyhole aria-hidden="true" />
+
           <p className="private-kicker">private diary</p>
-          <h1 id="create-private-password">Create your password</h1>
+
+          <h1 id="create-private-password">
+            Create your password
+          </h1>
+
           <p className="private-note">
             This password stays on this device and locks Diário whenever you leave it.
           </p>
@@ -228,32 +270,44 @@ function AppPasswordGate({ onUnlock }: { onUnlock: () => void }) {
           <form onSubmit={createPassword}>
             <label>
               Password
+
               <input
                 type="password"
                 autoComplete="new-password"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(event) =>
+                  setPassword(event.target.value)
+                }
                 required
               />
             </label>
 
             <label>
               Confirm password
+
               <input
                 type="password"
                 autoComplete="new-password"
                 value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
                 required
               />
             </label>
 
-            <Button type="submit" disabled={busy}>
+            <Button
+              type="submit"
+              disabled={busy}
+            >
               {busy ? "Saving…" : "Save password"}
             </Button>
 
             {error && (
-              <p className="private-error" role="alert">
+              <p
+                className="private-error"
+                role="alert"
+              >
                 {error}
               </p>
             )}
@@ -270,29 +324,47 @@ function AppPasswordGate({ onUnlock }: { onUnlock: () => void }) {
         aria-labelledby="unlock-diario"
       >
         <LockKeyhole aria-hidden="true" />
-        <p className="private-kicker">private</p>
-        <h1 id="unlock-diario">Diário</h1>
-        <p className="private-note">enter your password to come back in.</p>
+
+        <p className="private-kicker">
+          private
+        </p>
+
+        <h1 id="unlock-diario">
+          Diário
+        </h1>
+
+        <p className="private-note">
+          enter your password to come back in.
+        </p>
 
         <form onSubmit={unlock}>
           <label>
             Password
+
             <input
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
               autoFocus
               required
             />
           </label>
 
-          <Button type="submit" disabled={busy}>
+          <Button
+            type="submit"
+            disabled={busy}
+          >
             {busy ? "Opening…" : "Come in"}
           </Button>
 
           {error && (
-            <p className="private-error" role="alert">
+            <p
+              className="private-error"
+              role="alert"
+            >
               {error}
             </p>
           )}
@@ -310,6 +382,7 @@ function PrivateLogin() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     setBusy(true);
     setError(null);
 
@@ -320,7 +393,9 @@ function PrivateLogin() {
       });
 
     if (signInError) {
-      setError("That didn’t open the door. Check your details and try again.");
+      setError(
+        "That didn’t open the door. Check your details and try again."
+      );
     }
 
     setBusy(false);
@@ -328,10 +403,20 @@ function PrivateLogin() {
 
   return (
     <main className="private-entry">
-      <section className="private-login" aria-labelledby="private-login-title">
+      <section
+        className="private-login"
+        aria-labelledby="private-login-title"
+      >
         <BookHeart aria-hidden="true" />
-        <p className="private-kicker">first setup</p>
-        <h1 id="private-login-title">Diário</h1>
+
+        <p className="private-kicker">
+          first setup
+        </p>
+
+        <h1 id="private-login-title">
+          Diário
+        </h1>
+
         <p className="private-note">
           Sign in once on this device. After that, Diário uses only your private app password.
         </p>
@@ -339,32 +424,44 @@ function PrivateLogin() {
         <form onSubmit={onSubmit}>
           <label>
             Email
+
             <input
               type="email"
               autoComplete="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
               required
             />
           </label>
 
           <label>
             Password
+
             <input
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
               required
             />
           </label>
 
-          <Button type="submit" disabled={busy}>
+          <Button
+            type="submit"
+            disabled={busy}
+          >
             {busy ? "Opening…" : "Continue"}
           </Button>
 
           {error && (
-            <p className="private-error" role="alert">
+            <p
+              className="private-error"
+              role="alert"
+            >
               {error}
             </p>
           )}
