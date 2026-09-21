@@ -210,17 +210,49 @@ function ScreenIntro({
   );
 }
 
-function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Screen) => void }) {
+function HomeScreen({
+  time,
+  onOpen,
+}: {
+  time: TimeMoodState;
+  onOpen: (screen: Screen) => void;
+}) {
   const spaces = [
-    { id: "living", label: "Living Room" },
-    { id: "bedroom", label: "Bedroom" },
-    { id: "kitchen", label: "Kitchen" },
-    { id: "bathroom", label: "Bathroom" },
-    { id: "hall", label: "Hall" },
-    { id: "map", label: "Floor Plan" },
+    {
+      id: "living",
+      label: "Living Room",
+      caption: "the heart of the apartment",
+    },
+    {
+      id: "bedroom",
+      label: "Bedroom",
+      caption: "quiet, warm, ours",
+    },
+    {
+      id: "kitchen",
+      label: "Kitchen",
+      caption: "wood, white tile, everyday life",
+    },
+    {
+      id: "bathroom",
+      label: "Bathroom",
+      caption: "small, old, simple",
+    },
+    {
+      id: "hall",
+      label: "Hall",
+      caption: "the way in and out",
+    },
+    {
+      id: "map",
+      label: "Floor Plan",
+      caption: "the apartment itself",
+    },
   ];
 
   const [activeSpace, setActiveSpace] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
   const currentSpace = spaces[activeSpace];
 
   const previousSpace = () => {
@@ -235,12 +267,50 @@ function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Sc
     );
   };
 
+  const openSpace = (id: string) => {
+    const index = spaces.findIndex((space) => space.id === id);
+
+    if (index !== -1) {
+      setActiveSpace(index);
+    }
+  };
+
+  const handleTouchStart = (
+    event: React.TouchEvent<HTMLDivElement>
+  ) => {
+    setTouchStartX(event.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (
+    event: React.TouchEvent<HTMLDivElement>
+  ) => {
+    if (touchStartX === null) return;
+
+    const endX = event.changedTouches[0].clientX;
+    const distance = touchStartX - endX;
+
+    if (Math.abs(distance) > 45) {
+      if (distance > 0) {
+        nextSpace();
+      } else {
+        previousSpace();
+      }
+    }
+
+    setTouchStartX(null);
+  };
+
   return (
     <section className="home-screen home-live home-house">
       <header className="house-header">
-        <div>
-          <span className="house-kicker">our home</span>
+        <div className="house-heading">
+          <span className="house-kicker">
+            our apartment · new york
+          </span>
+
           <strong>{currentSpace.label}</strong>
+
+          <small>{currentSpace.caption}</small>
         </div>
 
         <div className="house-time">
@@ -249,21 +319,25 @@ function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Sc
         </div>
       </header>
 
-      <div className={`house-stage space-${currentSpace.id}`}>
-        <img
-          src={room}
-          alt={`${currentSpace.label} in our apartment`}
-          width={1280}
-          height={960}
-        />
-
-        <div className="house-stage-shade" />
-
+      <div
+        className={`house-stage space-${currentSpace.id}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {currentSpace.id !== "map" && (
           <>
+            <img
+              src={room}
+              alt={`${currentSpace.label} in our apartment`}
+              width={1280}
+              height={960}
+            />
+
+            <div className="house-stage-shade" />
+
             <button
               className="house-object house-object-one"
-              aria-label={`Interact with ${currentSpace.label}`}
+              aria-label={`Open ${currentSpace.label}`}
               onClick={() => onOpen("room")}
             >
               <span />
@@ -280,14 +354,48 @@ function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Sc
         )}
 
         {currentSpace.id === "map" && (
-          <div className="floor-plan-placeholder">
-            <span>Floor Plan</span>
-            <small>the full apartment will live here</small>
+          <div className="floor-plan-map">
+            <button
+              className="floor-room floor-living"
+              onClick={() => openSpace("living")}
+            >
+              <span>Living Room</span>
+            </button>
+
+            <button
+              className="floor-room floor-bedroom"
+              onClick={() => openSpace("bedroom")}
+            >
+              <span>Bedroom</span>
+            </button>
+
+            <button
+              className="floor-room floor-kitchen"
+              onClick={() => openSpace("kitchen")}
+            >
+              <span>Kitchen</span>
+            </button>
+
+            <button
+              className="floor-room floor-bathroom"
+              onClick={() => openSpace("bathroom")}
+            >
+              <span>Bathroom</span>
+            </button>
+
+            <button
+              className="floor-room floor-hall"
+              onClick={() => openSpace("hall")}
+            >
+              <span>Hall</span>
+              <small>entry</small>
+            </button>
           </div>
         )}
 
         <div className="house-room-label">
           <strong>{currentSpace.label}</strong>
+
           <small>
             {activeSpace + 1} / {spaces.length}
           </small>
@@ -310,31 +418,27 @@ function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Sc
         </button>
       </div>
 
-      <div className="house-space-strip" aria-label="Apartment rooms">
+      <nav
+        className="house-space-strip"
+        aria-label="Apartment rooms"
+      >
         {spaces.map((space, index) => (
           <button
             key={space.id}
-            className={index === activeSpace ? "active" : ""}
+            className={
+              index === activeSpace ? "active" : ""
+            }
             onClick={() => setActiveSpace(index)}
           >
-            <span />
+            <span
+              className={`room-thumb room-thumb-${space.id}`}
+              aria-hidden="true"
+            />
+
             <small>{space.label}</small>
           </button>
         ))}
-      </div>
-
-      <div className="home-day-passage">
-        <div className="day-passage-art" aria-hidden="true">
-          <span>☼</span>
-          <i>✦</i>
-          <b>☾</b>
-        </div>
-
-        <button onClick={() => onOpen("night")}>
-          Morning / Night
-          <ChevronRight size={14} />
-        </button>
-      </div>
+      </nav>
     </section>
   );
 }
