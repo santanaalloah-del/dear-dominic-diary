@@ -126,7 +126,6 @@ function DiarioApp() {
 {screen === "home" && (
   <HomeScreen
     time={time}
-    onOpen={setScreen}
     onOpenRoom={openRoom}
   />
 )}
@@ -234,11 +233,9 @@ function ScreenIntro({
 
 function HomeScreen({
   time,
-  onOpen,
   onOpenRoom,
 }: {
   time: TimeMoodState;
-  onOpen: (screen: Screen) => void;
   onOpenRoom: (roomId: string) => void;
 }) {
   const spaces = [
@@ -291,13 +288,6 @@ function HomeScreen({
     );
   };
 
-  const openSpace = (id: string) => {
-    const index = spaces.findIndex((space) => space.id === id);
-
-    if (index !== -1) {
-      setActiveSpace(index);
-    }
-  };
 
   const handleTouchStart = (
     event: React.TouchEvent<HTMLDivElement>
