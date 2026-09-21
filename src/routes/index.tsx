@@ -140,14 +140,7 @@ function DiarioApp() {
           {screen === "letters" && <LettersScreen />}
           {screen === "gallery" && <GalleryScreen />}
           {screen === "night" && <NightScreen />}
-          {screen === "memories" && (
-            <FeaturePreviewScreen
-              eyebrow="Moments that stay"
-              title="Memories"
-              note="A living scrapbook timeline where photos, chat, music, letters, places and dates meet without being duplicated."
-              icon={<Heart />}
-            />
-          )}
+{screen === "memories" && <MemoriesScreen />}
           {screen === "calendar" && (
             <FeaturePreviewScreen
               eyebrow="Different days, the same us"
@@ -1090,7 +1083,194 @@ function GalleryScreen() {
     </section>
   );
 }
+function MemoriesScreen() {
+  const [memoryFilter, setMemoryFilter] = useState<
+    "all" | "photos" | "letters" | "music" | "dates"
+  >("all");
 
+  const filters = [
+    { id: "all", label: "All" },
+    { id: "photos", label: "Photos" },
+    { id: "letters", label: "Letters" },
+    { id: "music", label: "Music" },
+    { id: "dates", label: "Dates" },
+  ] as const;
+
+  const memories: Array<{
+    id: string;
+    date: string;
+    title: string;
+    note: string;
+    kind: "photos" | "letters" | "music" | "dates";
+  }> = [];
+
+  const visibleMemories =
+    memoryFilter === "all"
+      ? memories
+      : memories.filter(
+          (memory) => memory.kind === memoryFilter
+        );
+
+  return (
+    <section className="memories-screen memories-live">
+      <ScreenIntro
+        eyebrow="Moments that actually happened"
+        title="Memories"
+      >
+        <p className="intro-copy">
+          one timeline connecting the real pieces of your life together.
+        </p>
+      </ScreenIntro>
+
+      <div
+        className="memories-filter"
+        role="tablist"
+        aria-label="Memory type"
+      >
+        {filters.map((filter) => (
+          <button
+            key={filter.id}
+            type="button"
+            role="tab"
+            aria-selected={memoryFilter === filter.id}
+            className={
+              memoryFilter === filter.id
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setMemoryFilter(filter.id)
+            }
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
+      {visibleMemories.length === 0 ? (
+        <section className="memories-empty">
+          <div
+            className="memories-empty-mark"
+            aria-hidden="true"
+          >
+            <Heart
+              size={27}
+              strokeWidth={1.3}
+            />
+          </div>
+
+          <small>
+            beginning
+          </small>
+
+          <h2>
+            Your story starts here.
+          </h2>
+
+          <p>
+            Nothing has been turned into a memory yet.
+            Real photos, conversations, songs,
+            letters and dates can connect here after
+            they actually happen.
+          </p>
+
+          <div className="memory-source-list">
+            <div>
+              <ImageIcon
+                size={18}
+                strokeWidth={1.4}
+              />
+
+              <span>
+                <strong>Gallery</strong>
+                <small>real photos</small>
+              </span>
+            </div>
+
+            <div>
+              <Mail
+                size={18}
+                strokeWidth={1.4}
+              />
+
+              <span>
+                <strong>Letters</strong>
+                <small>written and received</small>
+              </span>
+            </div>
+
+            <div>
+              <Music2
+                size={18}
+                strokeWidth={1.4}
+              />
+
+              <span>
+                <strong>Music</strong>
+                <small>songs tied to moments</small>
+              </span>
+            </div>
+
+            <div>
+              <MapPin
+                size={18}
+                strokeWidth={1.4}
+              />
+
+              <span>
+                <strong>Dates</strong>
+                <small>places you actually went</small>
+              </span>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <div
+          className="memories-timeline"
+          aria-label="Memory timeline"
+        >
+          {visibleMemories.map(
+            (memory) => (
+              <article
+                key={memory.id}
+                className={`memory-entry memory-${memory.kind}`}
+              >
+                <span className="memory-timeline-dot" />
+
+                <time>
+                  {memory.date}
+                </time>
+
+                <div>
+                  <strong>
+                    {memory.title}
+                  </strong>
+
+                  <p>
+                    {memory.note}
+                  </p>
+                </div>
+              </article>
+            )
+          )}
+        </div>
+      )}
+
+      <section className="memories-rule">
+        <CalendarIcon
+          size={17}
+          strokeWidth={1.35}
+        />
+
+        <p>
+          Gallery keeps the media. Memories connects it
+          to what happened. Calendar keeps the date.
+          Timeline keeps the continuity.
+        </p>
+      </section>
+    </section>
+  );
+}
 function NightScreen() {
   return (
     <section className="night-screen">
