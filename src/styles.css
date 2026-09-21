@@ -1542,3 +1542,285 @@
   color: var(--cherry);
   font-size: 13px;
 }
+/* ─────────────────────────────────────────
+   HOME · FLOOR PLAN CONTROL
+   ───────────────────────────────────────── */
+
+.floor-plan-trigger {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  width: fit-content;
+  margin: 11px auto 5px;
+  padding: 5px 9px;
+
+  border: 0;
+  background: transparent;
+
+  color: var(--brown-soft);
+
+  cursor: pointer;
+}
+
+.floor-plan-trigger::before,
+.floor-plan-trigger::after {
+  content: "";
+
+  width: 34px;
+  height: 1px;
+
+  background:
+    color-mix(in oklab, var(--brown) 18%, transparent);
+}
+
+.floor-plan-trigger > span {
+  display: grid;
+  place-items: center;
+
+  width: 25px;
+  height: 25px;
+
+  border: 1px solid
+    color-mix(in oklab, var(--brown) 23%, transparent);
+
+  background:
+    color-mix(in oklab, var(--paper) 82%, transparent);
+
+  color: var(--wine);
+
+  font: 14px/1 var(--font-display);
+
+  box-shadow:
+    1px 2px 5px rgb(45 25 20 / 6%);
+
+  transform: rotate(-1deg);
+}
+
+.floor-plan-trigger > small {
+  color: var(--brown-soft);
+
+  font: 10px/1 var(--font-display);
+  letter-spacing: 0.06em;
+
+  text-transform: lowercase;
+}
+
+.floor-plan-trigger:active > span {
+  transform:
+    translateY(1px)
+    rotate(-1deg);
+}
+
+
+/* ─────────────────────────────────────────
+   HOME · FLOOR PLAN OVERLAY
+   ───────────────────────────────────────── */
+
+.floor-plan-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+
+  display: grid;
+  place-items: center;
+
+  padding:
+    max(22px, env(safe-area-inset-top))
+    18px
+    max(90px, env(safe-area-inset-bottom));
+
+  background:
+    color-mix(in oklab, var(--wine-deep) 64%, transparent);
+
+  backdrop-filter:
+    blur(8px)
+    saturate(.8);
+
+  animation:
+    floor-plan-overlay-in
+    180ms ease-out;
+}
+
+@keyframes floor-plan-overlay-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.floor-plan-sheet {
+  position: relative;
+
+  width: min(100%, 430px);
+
+  padding:
+    19px
+    16px
+    17px;
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 96%, white),
+      var(--paper-deep)
+    );
+
+  box-shadow:
+    0 24px 60px rgb(28 11 13 / 32%),
+    2px 4px 12px rgb(45 25 20 / 10%);
+
+  transform: rotate(-.25deg);
+}
+
+.floor-plan-sheet::before {
+  content: "";
+
+  position: absolute;
+  top: -6px;
+  left: 50%;
+
+  width: 54px;
+  height: 13px;
+
+  transform:
+    translateX(-50%)
+    rotate(1.5deg);
+
+  background:
+    color-mix(
+      in oklab,
+      var(--butter) 57%,
+      transparent
+    );
+}
+
+.floor-plan-heading {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  padding:
+    0
+    35px
+    13px
+    3px;
+}
+
+.floor-plan-heading small {
+  color: var(--brown-soft);
+
+  font: 9px/1.1 var(--font-display);
+  letter-spacing: .11em;
+
+  text-transform: uppercase;
+}
+
+.floor-plan-heading strong {
+  color: var(--wine-deep);
+
+  font:
+    25px/1
+    var(--font-display);
+
+  font-weight: 500;
+}
+
+.floor-plan-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+
+  display: grid;
+  place-items: center;
+
+  width: 30px;
+  height: 30px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: var(--brown);
+
+  font:
+    25px/1
+    var(--font-display);
+
+  cursor: pointer;
+}
+
+
+/* override the old in-carousel floor plan rules */
+
+.floor-plan-modal-map.official-floor-plan {
+  position: relative;
+  inset: auto;
+
+  width: 100%;
+  aspect-ratio: 3 / 2;
+
+  overflow: hidden;
+
+  background: var(--paper-deep);
+
+  border:
+    1px solid
+    color-mix(in oklab, var(--brown) 14%, transparent);
+
+  box-shadow:
+    inset 0 0 0 4px
+    color-mix(in oklab, var(--paper) 42%, transparent);
+}
+
+.floor-plan-modal-map.official-floor-plan > img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  filter:
+    saturate(.76)
+    sepia(.08)
+    contrast(.95)
+    brightness(.99);
+}
+
+.floor-plan-modal-map.official-floor-plan::after {
+  z-index: 2;
+}
+
+
+/* invisible room areas remain clickable */
+
+.floor-plan-modal-map .plan-hotspot {
+  z-index: 5;
+}
+
+.floor-plan-modal-map .plan-hotspot:focus-visible {
+  outline:
+    2px solid
+    color-mix(in oklab, var(--cherry) 65%, transparent);
+
+  outline-offset: -3px;
+}
+
+
+/* the old map thumbnail is no longer part of the room strip */
+
+.room-thumb-map {
+  display: none !important;
+}
