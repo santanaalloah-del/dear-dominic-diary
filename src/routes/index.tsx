@@ -146,14 +146,7 @@ function DiarioApp() {
 {screen === "music" && <MusicScreen />}
 {screen === "dates" && <DatesScreen />}
 {screen === "keepsakes" && <KeepsakesScreen />}
-          {screen === "wardrobe" && (
-            <FeaturePreviewScreen
-              eyebrow="Looks for our days"
-              title="Wardrobe"
-              note="Your clothes, Dominic's clothes, references and generated looks only become part of the world after you keep them."
-              icon={<Shirt />}
-            />
-          )}
+{screen === "wardrobe" && <WardrobeScreen />}
           {screen === "settings" && (
             <FeaturePreviewScreen
               eyebrow="Everything in your hands"
@@ -1044,6 +1037,369 @@ function GalleryScreen() {
             them.
           </p>
         </div>
+      </section>
+    </section>
+  );
+}
+function WardrobeScreen() {
+  const [wardrobeOwner, setWardrobeOwner] = useState<
+    "mine" | "dominic"
+  >("mine");
+
+  const [wardrobeView, setWardrobeView] = useState<
+    "closet" | "looks"
+  >("closet");
+
+  const wardrobeItems: Array<{
+    id: string;
+    owner: "mine" | "dominic";
+    name: string;
+    category:
+      | "top"
+      | "bottom"
+      | "dress"
+      | "outerwear"
+      | "shoes"
+      | "accessory";
+    imageUrl?: string;
+    acquiredAt?: string;
+    note?: string;
+  }> = [];
+
+  const savedLooks: Array<{
+    id: string;
+    owner: "mine" | "dominic";
+    name: string;
+    itemIds: string[];
+    imageUrl?: string;
+    keptAt: string;
+    dateId?: string;
+    note?: string;
+  }> = [];
+
+  const visibleItems =
+    wardrobeItems.filter(
+      (item) =>
+        item.owner === wardrobeOwner
+    );
+
+  const visibleLooks =
+    savedLooks.filter(
+      (look) =>
+        look.owner === wardrobeOwner
+    );
+
+  return (
+    <section className="wardrobe-screen wardrobe-live">
+      <ScreenIntro
+        eyebrow="Clothes · looks · getting ready"
+        title="Wardrobe"
+      >
+        <p className="intro-copy">
+          clothes belong to the person who owns them.
+          Looks only become part of the world after
+          they are actually kept.
+        </p>
+      </ScreenIntro>
+
+      <div
+        className="wardrobe-owner-tabs"
+        role="tablist"
+        aria-label="Wardrobe owner"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            wardrobeOwner === "mine"
+          }
+          className={
+            wardrobeOwner === "mine"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setWardrobeOwner("mine")
+          }
+        >
+          Mine
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            wardrobeOwner === "dominic"
+          }
+          className={
+            wardrobeOwner === "dominic"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setWardrobeOwner("dominic")
+          }
+        >
+          Dominic
+        </button>
+      </div>
+
+      <div
+        className="wardrobe-view-tabs"
+        role="tablist"
+        aria-label="Wardrobe view"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            wardrobeView === "closet"
+          }
+          className={
+            wardrobeView === "closet"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setWardrobeView("closet")
+          }
+        >
+          Closet
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            wardrobeView === "looks"
+          }
+          className={
+            wardrobeView === "looks"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setWardrobeView("looks")
+          }
+        >
+          Looks
+        </button>
+      </div>
+
+      {wardrobeView === "closet" && (
+        <section className="wardrobe-closet">
+          <header>
+            <div>
+              <span>
+                closet
+              </span>
+
+              <strong>
+                {wardrobeOwner === "mine"
+                  ? "My clothes"
+                  : "Dominic's clothes"}
+              </strong>
+            </div>
+
+            <small>
+              {visibleItems.length} items
+            </small>
+          </header>
+
+          {visibleItems.length === 0 ? (
+            <div className="wardrobe-empty">
+              <div
+                className="wardrobe-empty-icon"
+                aria-hidden="true"
+              >
+                <Shirt
+                  size={27}
+                  strokeWidth={1.3}
+                />
+              </div>
+
+              <small>
+                empty wardrobe
+              </small>
+
+              <h2>
+                No clothes added yet.
+              </h2>
+
+              <p>
+                Real clothes can be added here
+                over time. References do not
+                automatically become owned items.
+              </p>
+
+              <button
+                type="button"
+                className="wardrobe-add-button"
+              >
+                <span aria-hidden="true">
+                  ＋
+                </span>
+
+                Add clothing
+              </button>
+            </div>
+          ) : (
+            <div className="wardrobe-item-grid">
+              {visibleItems.map(
+                (item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="wardrobe-item"
+                  >
+                    <div
+                      className="wardrobe-item-image"
+                      aria-hidden={
+                        !item.imageUrl
+                      }
+                    >
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt=""
+                        />
+                      ) : (
+                        <Shirt
+                          size={23}
+                          strokeWidth={1.25}
+                        />
+                      )}
+                    </div>
+
+                    <span>
+                      <strong>
+                        {item.name}
+                      </strong>
+
+                      <small>
+                        {item.category}
+                      </small>
+                    </span>
+                  </button>
+                )
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {wardrobeView === "looks" && (
+        <section className="wardrobe-looks">
+          <header>
+            <div>
+              <span>
+                saved looks
+              </span>
+
+              <strong>
+                {wardrobeOwner === "mine"
+                  ? "My looks"
+                  : "Dominic's looks"}
+              </strong>
+            </div>
+
+            <small>
+              {visibleLooks.length} looks
+            </small>
+          </header>
+
+          {visibleLooks.length === 0 ? (
+            <div className="wardrobe-look-empty">
+              <ImageIcon
+                size={24}
+                strokeWidth={1.3}
+              />
+
+              <p>
+                No looks kept yet.
+              </p>
+
+              <small>
+                A generated or assembled look
+                only becomes part of the world
+                after you choose to keep it.
+              </small>
+            </div>
+          ) : (
+            <div className="wardrobe-look-list">
+              {visibleLooks.map(
+                (look) => (
+                  <button
+                    key={look.id}
+                    type="button"
+                    className="wardrobe-look"
+                  >
+                    <div>
+                      <span>
+                        saved look
+                      </span>
+
+                      <strong>
+                        {look.name}
+                      </strong>
+
+                      {look.note && (
+                        <small>
+                          {look.note}
+                        </small>
+                      )}
+                    </div>
+
+                    <ChevronRight
+                      size={17}
+                    />
+                  </button>
+                )
+              )}
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="wardrobe-create-look"
+          >
+            <span aria-hidden="true">
+              ＋
+            </span>
+
+            Create a look
+          </button>
+        </section>
+      )}
+
+      <section className="wardrobe-date-link">
+        <CalendarIcon
+          size={19}
+          strokeWidth={1.35}
+        />
+
+        <div>
+          <strong>
+            Getting ready for a Date
+          </strong>
+
+          <p>
+            A saved look can be attached
+            to a planned Date and later
+            remain connected to the real
+            day that happened.
+          </p>
+        </div>
+      </section>
+
+      <section className="wardrobe-rule">
+        <p>
+          Clothes are owned items. Looks are
+          combinations or references. Keeping a
+          look never creates duplicate clothing,
+          and nothing becomes relationship history
+          until it is actually used in the world.
+        </p>
       </section>
     </section>
   );
