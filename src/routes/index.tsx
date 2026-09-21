@@ -137,6 +137,7 @@ function DiarioApp() {
     time={time}
     roomId={activeRoom}
     onOpen={setScreen}
+    onOpenRoom={openRoom}
   />
 )}
           {screen === "letters" && <LettersScreen />}
@@ -470,10 +471,12 @@ function RoomScreen({
   time,
   roomId,
   onOpen,
+  onOpenRoom,
 }: {
   time: TimeMoodState;
   roomId: string;
   onOpen: (screen: Screen) => void;
+  onOpenRoom: (roomId: string) => void;
 }) {
   const rooms = {
     living: {
