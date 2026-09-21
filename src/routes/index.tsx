@@ -569,7 +569,10 @@ return (
     onClick={() => {
       if (object.id === "record-corner") {
         onOpen("music");
+        return;
       }
+
+      setSelectedObject(object.id);
     }}
   >
     <span />
