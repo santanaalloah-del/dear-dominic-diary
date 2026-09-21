@@ -238,7 +238,7 @@ function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Sc
           <span />
           <small>our things</small>
         </button>
-        <blockquote className="home-note">same home.<br />different light.<br /><b>always you.</b> ♡</blockquote>
+        <div className="home-note home-mark" aria-hidden="true">   <span>✿</span>   <i>◌</i> </div>
       </div>
 
       <div className="home-dock-copy">
