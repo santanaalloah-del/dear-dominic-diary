@@ -241,14 +241,14 @@ function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Sc
         <div className="home-note home-mark" aria-hidden="true">   <span>✿</span>   <i>◌</i> </div>
       </div>
 
-      <div className="home-dock-copy">
-        <div>
-          <span className="eyebrow">Right now</span>
-          <strong>{time.mood === "late" ? "the apartment is quiet" : "our place is awake"}</strong>
-          <small>New York City · following your Rio clock</small>
-        </div>
-        <span className={`home-orb orb-${time.mood}`} aria-hidden="true" />
-      </div>
+    <div className="home-dock-copy home-atmosphere">
+  <div>
+    <strong>{time.timeLabel}</strong>
+    <small>{time.dateLabel}</small>
+  </div>
+
+  <span className={`home-orb orb-${time.mood}`} aria-hidden="true" />
+</div>
 
       <div className="home-actions">
         <button onClick={() => onOpen("chat")}>
