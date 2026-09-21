@@ -807,3 +807,102 @@ function BottomNav({ active, onOpen }: { active: Screen; onOpen: (screen: Screen
     </nav>
   );
 }
+/* ─────────────────────────────────────────
+   LIVING ROOM · INTERACTIVE OBJECTS
+   ───────────────────────────────────────── */
+
+.room-view {
+  position: relative;
+  overflow: hidden;
+}
+
+.room-view > img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.room-hotspot {
+  position: absolute;
+  z-index: 5;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: var(--wine-deep);
+  cursor: pointer;
+
+  transform: translate(-50%, -50%);
+}
+
+.room-hotspot > span {
+  width: 13px;
+  height: 13px;
+
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+
+  background: var(--cherry);
+
+  box-shadow:
+    0 2px 8px rgb(45 20 18 / 24%),
+    0 0 0 3px rgb(255 250 242 / 24%);
+}
+
+.room-hotspot > small {
+  padding: 4px 7px;
+
+  background: color-mix(in oklab, var(--paper) 90%, transparent);
+
+  box-shadow: var(--shadow-paper);
+
+  font: 11px/1 var(--font-display);
+  white-space: nowrap;
+
+  opacity: 0;
+
+  transform: translateX(-4px);
+
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.room-hotspot:hover > small,
+.room-hotspot:focus-visible > small {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Living Room — positions over the approved room image */
+
+.room-view-living .room-hotspot-sofa {
+  left: 49%;
+  top: 57%;
+}
+
+.room-view-living .room-hotspot-coffee-table {
+  left: 50%;
+  top: 76%;
+}
+
+.room-view-living .room-hotspot-record-corner {
+  left: 15%;
+  top: 62%;
+}
+
+.room-view-living .room-hotspot-window {
+  left: 83%;
+  top: 34%;
+}
+
+.room-view-living .room-hotspot-monstera {
+  left: 76%;
+  top: 55%;
+}
