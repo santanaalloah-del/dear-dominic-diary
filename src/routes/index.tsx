@@ -26,7 +26,6 @@ import { Button } from "@/components/ui/button";
 import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
-import dominic from "@/assets/dominic-candid.jpg";
 import room from "@/assets/dominic-room.jpg";
 import livingRoom from "@/assets/living-room.jpeg";
 import bedroom from "@/assets/bedroom.png";
@@ -34,8 +33,6 @@ import kitchen from "@/assets/kitchen.png";
 import bathroom from "@/assets/bathroom.png";
 import hall from "@/assets/hall.png";
 import floorPlan from "@/assets/apartment-floor-plan.png";
-import cafe from "@/assets/cafe-hands.jpg";
-import street from "@/assets/rain-street.jpg";
 
 type Screen =
   | "home"
@@ -975,29 +972,121 @@ function LettersScreen() {
   );
 }
 function GalleryScreen() {
+  const [galleryView, setGalleryView] = useState<
+    "photos" | "albums" | "favorites"
+  >("photos");
+
   return (
-    <section className="gallery-screen">
-      <ScreenIntro eyebrow="Camera roll · albums · favorites" title="Gallery">
-        <p className="intro-copy">camera, photo library and in-world photos all meet here.</p>
+    <section className="gallery-screen gallery-live">
+      <ScreenIntro
+        eyebrow="Camera roll · albums · favorites"
+        title="Gallery"
+      >
+        <p className="intro-copy">
+          only photos that are actually taken, added or kept become part of
+          this world.
+        </p>
       </ScreenIntro>
-      <div className="gallery-tabs"><button className="active">Photos</button><button>Albums</button><button>Favorites</button></div>
-      <div className="photo-archive">
-        <figure className="archive-a">
-          <img src={cafe} alt="Hands over coffee" width={1024} height={1024} loading="lazy" />
-          <figcaption>our table · 06 sept</figcaption>
-        </figure>
-        <figure className="archive-b">
-          <img src={street} alt="Street after rain" width={768} height={1024} loading="lazy" />
-          <figcaption>after the rain</figcaption>
-        </figure>
-        <div className="film-strip">
-          {[1, 2, 3].map((n) => (
-            <img key={n} src={dominic} alt="Dominic contact sheet" width={1024} height={1280} loading="lazy" />
-          ))}
-          <span>36A</span>
-        </div>
-        <p className="gallery-note">generated photos: <b>try again · keep · discard</b><br />only kept photos become part of the world.</p>
+
+      <div
+        className="gallery-tabs gallery-live-tabs"
+        role="tablist"
+        aria-label="Gallery view"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={galleryView === "photos"}
+          className={galleryView === "photos" ? "active" : ""}
+          onClick={() => setGalleryView("photos")}
+        >
+          Photos
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={galleryView === "albums"}
+          className={galleryView === "albums" ? "active" : ""}
+          onClick={() => setGalleryView("albums")}
+        >
+          Albums
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={galleryView === "favorites"}
+          className={galleryView === "favorites" ? "active" : ""}
+          onClick={() => setGalleryView("favorites")}
+        >
+          Favorites
+        </button>
       </div>
+
+      <section className="gallery-empty-stage">
+        <div
+          className="gallery-empty-icon"
+          aria-hidden="true"
+        >
+          <ImageIcon size={28} strokeWidth={1.25} />
+        </div>
+
+        <div className="gallery-empty-copy">
+          <small>
+            {galleryView === "photos"
+              ? "camera roll"
+              : galleryView === "albums"
+                ? "albums"
+                : "favorites"}
+          </small>
+
+          <h2>
+            {galleryView === "photos"
+              ? "No photos here yet."
+              : galleryView === "albums"
+                ? "No albums yet."
+                : "Nothing favorited yet."}
+          </h2>
+
+          <p>
+            {galleryView === "photos"
+              ? "Photos will appear here after they are taken, added from your library or kept from something that happened in the world."
+              : galleryView === "albums"
+                ? "Albums will organize real photos without creating duplicate copies of them."
+                : "Photos you choose to favorite will collect here."}
+          </p>
+        </div>
+
+        {galleryView === "photos" && (
+          <button
+            type="button"
+            className="gallery-add-button"
+          >
+            <span aria-hidden="true">＋</span>
+            Add photos
+          </button>
+        )}
+      </section>
+
+      <section className="gallery-library">
+        <header>
+          <div>
+            <span>library</span>
+            <strong>Your photos</strong>
+          </div>
+
+          <small>0 photos</small>
+        </header>
+
+        <div className="gallery-library-empty">
+          <p>
+            When the camera roll starts growing, this becomes the visual
+            archive. Memories will reference these photos instead of copying
+            them.
+          </p>
+        </div>
+      </section>
     </section>
   );
 }
