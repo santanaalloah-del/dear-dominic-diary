@@ -4,8 +4,11 @@ import {
   useContext,
   useEffect,
   useState,
+  type FormEvent,
   type ReactNode,
 } from "react";
+import { BookHeart, LockKeyhole } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 type PrivateDiarioContextValue = {
@@ -17,26 +20,32 @@ type PrivateDiarioContextValue = {
 const PrivateDiarioContext =
   createContext<PrivateDiarioContextValue | null>(null);
 
+const APP_LOCK_KEY = "diario_app_lock_v1";
+
 export function usePrivateDiario() {
   const context = useContext(PrivateDiarioContext);
 
   if (!context) {
-    throw new Error(
-      "usePrivateDiario must be used inside PrivateDiario"
-    );
+    throw new Error("usePrivateDiario must be used inside PrivateDiario");
   }
 
   return context;
 }
 
-export function PrivateDiario({
-  children,
-}: {
-  children: ReactNode;
-}) {
+async function hashPassword(password: string) {
+  const data = new TextEncoder().encode(password);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export function PrivateDiario({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [preferredName, setPreferredName] = useState("Alloah");
   const [ready, setReady] = useState(false);
+  const [unlocked, setUnlocked] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -54,6 +63,10 @@ export function PrivateDiario({
 
         setSession(nextSession);
         setReady(true);
+
+        if (!nextSession) {
+          setUnlocked(false);
+        }
       }
     );
 
@@ -84,6 +97,22 @@ export function PrivateDiario({
     };
   }, [session]);
 
+  useEffect(() => {
+    const lockWhenHidden = () => {
+      if (document.visibilityState === "hidden") {
+        setUnlocked(false);
+      }
+    };
+
+    document.addEventListener("visibilitychange", lockWhenHidden);
+    window.addEventListener("pagehide", lockWhenHidden);
+
+    return () => {
+      document.removeEventListener("visibilitychange", lockWhenHidden);
+      window.removeEventListener("pagehide", lockWhenHidden);
+    };
+  }, []);
+
   if (!ready) {
     return (
       <main className="private-entry private-entry-loading">
@@ -93,19 +122,15 @@ export function PrivateDiario({
   }
 
   if (!session) {
-    return (
-      <main className="private-entry private-entry-locked">
-        <div className="private-lock-mark" aria-hidden="true">
-          ✦
-        </div>
+    return <PrivateLogin />;
+  }
 
-        <span className="brand-mark">Diário</span>
-
-        <p className="private-lock-copy">
-          private access is being prepared
-        </p>
-      </main>
-    );
+  /*
+   * Com uma sessão salva, o app abre direto.
+   * A senha só é pedida depois que o app foi para segundo plano.
+   */
+  if (!unlocked) {
+    return <AppPasswordGate onUnlock={() => setUnlocked(true)} />;
   }
 
   return (
@@ -114,11 +139,237 @@ export function PrivateDiario({
         session,
         preferredName,
         signOut: async () => {
+          setUnlocked(false);
           await supabase.auth.signOut();
         },
       }}
     >
       {children}
     </PrivateDiarioContext.Provider>
+  );
+}
+
+function AppPasswordGate({ onUnlock }: { onUnlock: () => void }) {
+  const [hasPassword, setHasPassword] = useState(
+    () => Boolean(localStorage.getItem(APP_LOCK_KEY))
+  );
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function createPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+
+    if (password.length < 4) {
+      setError("Use pelo menos 4 caracteres.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("As senhas não são iguais.");
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      const hashed = await hashPassword(password);
+      localStorage.setItem(APP_LOCK_KEY, hashed);
+      setHasPassword(true);
+      setPassword("");
+      setConfirmPassword("");
+      onUnlock();
+    } catch {
+      setError("Não foi possível criar a senha agora.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function unlock(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setBusy(true);
+
+    try {
+      const savedHash = localStorage.getItem(APP_LOCK_KEY);
+      const typedHash = await hashPassword(password);
+
+      if (!savedHash || savedHash !== typedHash) {
+        setError("Senha incorreta.");
+        return;
+      }
+
+      setPassword("");
+      onUnlock();
+    } catch {
+      setError("Não foi possível desbloquear agora.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!hasPassword) {
+    return (
+      <main className="private-entry">
+        <section
+          className="private-login private-lock-screen"
+          aria-labelledby="create-private-password"
+        >
+          <LockKeyhole aria-hidden="true" />
+          <p className="private-kicker">private diary</p>
+          <h1 id="create-private-password">Create your password</h1>
+          <p className="private-note">
+            This password stays on this device and locks Diário whenever you leave it.
+          </p>
+
+          <form onSubmit={createPassword}>
+            <label>
+              Password
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </label>
+
+            <label>
+              Confirm password
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+              />
+            </label>
+
+            <Button type="submit" disabled={busy}>
+              {busy ? "Saving…" : "Save password"}
+            </Button>
+
+            {error && (
+              <p className="private-error" role="alert">
+                {error}
+              </p>
+            )}
+          </form>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="private-entry private-entry-locked">
+      <section
+        className="private-login private-lock-screen"
+        aria-labelledby="unlock-diario"
+      >
+        <LockKeyhole aria-hidden="true" />
+        <p className="private-kicker">private</p>
+        <h1 id="unlock-diario">Diário</h1>
+        <p className="private-note">enter your password to come back in.</p>
+
+        <form onSubmit={unlock}>
+          <label>
+            Password
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoFocus
+              required
+            />
+          </label>
+
+          <Button type="submit" disabled={busy}>
+            {busy ? "Opening…" : "Come in"}
+          </Button>
+
+          {error && (
+            <p className="private-error" role="alert">
+              {error}
+            </p>
+          )}
+        </form>
+      </section>
+    </main>
+  );
+}
+
+function PrivateLogin() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+
+    const { error: signInError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+    if (signInError) {
+      setError("That didn’t open the door. Check your details and try again.");
+    }
+
+    setBusy(false);
+  }
+
+  return (
+    <main className="private-entry">
+      <section className="private-login" aria-labelledby="private-login-title">
+        <BookHeart aria-hidden="true" />
+        <p className="private-kicker">first setup</p>
+        <h1 id="private-login-title">Diário</h1>
+        <p className="private-note">
+          Sign in once on this device. After that, Diário uses only your private app password.
+        </p>
+
+        <form onSubmit={onSubmit}>
+          <label>
+            Email
+            <input
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </label>
+
+          <label>
+            Password
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+          </label>
+
+          <Button type="submit" disabled={busy}>
+            {busy ? "Opening…" : "Continue"}
+          </Button>
+
+          {error && (
+            <p className="private-error" role="alert">
+              {error}
+            </p>
+          )}
+        </form>
+      </section>
+    </main>
   );
 }
