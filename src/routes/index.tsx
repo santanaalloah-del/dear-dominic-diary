@@ -268,11 +268,18 @@ function HomeScreen({ time, onOpen }: { time: TimeMoodState; onOpen: (screen: Sc
         </button>
       </div>
 
-      <div className="home-today-card">
-        <span className="eyebrow">Today</span>
-        <p>The app changes with your day. Morning stays soft; night gets deeper, warmer and quieter.</p>
-        <button onClick={() => onOpen("night")}>Morning / Night <ChevronRight size={14} /></button>
-      </div>
+     <div className="home-today-card home-day-passage">
+  <div className="day-passage-art" aria-hidden="true">
+    <span>☼</span>
+    <i>✦</i>
+    <b>☾</b>
+  </div>
+
+  <button onClick={() => onOpen("night")}>
+    Morning / Night
+    <ChevronRight size={14} />
+  </button>
+</div>
     </section>
   );
 }
