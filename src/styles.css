@@ -4146,115 +4146,399 @@
     12px/1.4
     var(--font-display);
 }
-function LettersScreen() {
-  const [letterView, setLetterView] = useState<"all" | "mine" | "dominic">("all");
+/* ─────────────────────────────────────────
+   LETTERS · PHYSICAL MAIL + iOS STRUCTURE
+   ───────────────────────────────────────── */
 
-  return (
-    <section className="letters-screen letters-live">
-      <ScreenIntro
-        eyebrow="Letters · notes · things easier written"
-        title="Letters"
-      >
-        <p className="intro-copy">
-          letters only appear here after someone actually writes or sends one.
-        </p>
-      </ScreenIntro>
+.letters-screen.letters-live {
+  min-height: 100%;
+  padding: 0 0 30px;
+}
 
-      <div
-        className="letters-filter"
-        role="tablist"
-        aria-label="Letter filter"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={letterView === "all"}
-          className={letterView === "all" ? "active" : ""}
-          onClick={() => setLetterView("all")}
-        >
-          All
-        </button>
+.letters-live .screen-intro {
+  padding: 29px 20px 13px;
+}
 
-        <button
-          type="button"
-          role="tab"
-          aria-selected={letterView === "mine"}
-          className={letterView === "mine" ? "active" : ""}
-          onClick={() => setLetterView("mine")}
-        >
-          From me
-        </button>
+.letters-live .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 50px/.88 var(--font-display);
+}
 
-        <button
-          type="button"
-          role="tab"
-          aria-selected={letterView === "dominic"}
-          className={letterView === "dominic" ? "active" : ""}
-          onClick={() => setLetterView("dominic")}
-        >
-          From Dominic
-        </button>
-      </div>
+.letters-live .intro-copy {
+  max-width: 292px;
+  margin-top: 11px;
+  color: var(--brown-soft);
+  font: italic 13px/1.35 var(--font-display);
+}
 
-      <div className="letters-empty-stage">
-        <div
-          className="letters-empty-envelope"
-          aria-hidden="true"
-        >
-          <span className="letters-envelope-flap" />
 
-          <div className="letters-envelope-mark">
-            <Mail size={23} strokeWidth={1.35} />
-          </div>
-        </div>
+/* filter */
 
-        <div className="letters-empty-copy">
-          <small>
-            letter box
-          </small>
+.letters-filter {
+  display: grid;
+  grid-template-columns: .72fr 1fr 1.25fr;
+  gap: 4px;
+  margin: 8px 14px 17px;
+  padding: 4px;
 
-          <h2>
-            No letters here yet.
-          </h2>
+  border: 1px solid
+    color-mix(in oklab, var(--brown) 10%, transparent);
 
-          <p>
-            When a letter is written, sent or received in the world, its real
-            envelope and contents can live here.
-          </p>
-        </div>
+  border-radius: 18px;
 
-        <button
-          type="button"
-          className="letters-write-button"
-        >
-          <span aria-hidden="true">＋</span>
-          Write a letter
-        </button>
-      </div>
+  background:
+    color-mix(in oklab, var(--paper-deep) 48%, transparent);
+}
 
-      <section className="letters-drawer">
-        <header>
-          <div>
-            <span>
-              saved
-            </span>
+.letters-filter button {
+  min-width: 0;
+  min-height: 37px;
+  padding: 7px;
 
-            <strong>
-              Letter drawer
-            </strong>
-          </div>
+  overflow: hidden;
 
-          <small>
-            0 letters
-          </small>
-        </header>
+  border: 0;
+  border-radius: 14px;
 
-        <div className="letters-drawer-empty">
-          <p>
-            Sealed, opened and kept letters will collect here over time.
-          </p>
-        </div>
-      </section>
-    </section>
-  );
+  background: transparent;
+
+  color:
+    color-mix(in oklab, var(--brown) 60%, transparent);
+
+  font: 11px/1 var(--font-display);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+.letters-filter button.active {
+  color: var(--wine-deep);
+
+  background:
+    color-mix(in oklab, var(--paper) 95%, transparent);
+
+  box-shadow:
+    0 2px 8px rgb(45 24 20 / 8%),
+    inset 0 1px 0 rgb(255 255 255 / 42%);
+}
+
+
+/* empty letter box */
+
+.letters-empty-stage {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  margin: 0 14px;
+  padding: 37px 25px 27px;
+
+  overflow: hidden;
+
+  border: 1px solid
+    color-mix(in oklab, var(--brown) 9%, transparent);
+
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 96%, white),
+      color-mix(in oklab, var(--cream) 90%, var(--paper))
+    );
+
+  box-shadow:
+    0 14px 36px rgb(48 25 22 / 9%);
+}
+
+.letters-empty-stage::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: .16;
+
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 9px,
+      color-mix(in oklab, var(--brown) 4%, transparent) 10px
+    );
+}
+
+
+/* physical envelope */
+
+.letters-empty-envelope {
+  position: relative;
+  z-index: 2;
+
+  width: 236px;
+  height: 145px;
+
+  margin: 4px auto 31px;
+
+  overflow: hidden;
+
+  border: 1px solid
+    color-mix(in oklab, var(--brown) 14%, transparent);
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--paper) 96%, white),
+      var(--paper-deep)
+    );
+
+  box-shadow:
+    0 12px 24px rgb(53 29 24 / 10%);
+
+  transform: rotate(-1.2deg);
+}
+
+.letters-empty-envelope::before,
+.letters-empty-envelope::after {
+  content: "";
+
+  position: absolute;
+  bottom: -67px;
+
+  width: 176px;
+  height: 150px;
+
+  border: 1px solid
+    color-mix(in oklab, var(--brown) 10%, transparent);
+
+  background:
+    color-mix(in oklab, var(--paper) 93%, var(--paper-deep));
+
+  transform: rotate(43deg);
+}
+
+.letters-empty-envelope::before {
+  left: -87px;
+}
+
+.letters-empty-envelope::after {
+  right: -87px;
+  transform: rotate(-43deg);
+}
+
+.letters-envelope-flap {
+  position: absolute;
+  z-index: 3;
+
+  top: -73px;
+  left: 50%;
+
+  width: 176px;
+  height: 176px;
+
+  border: 1px solid
+    color-mix(in oklab, var(--brown) 12%, transparent);
+
+  background:
+    color-mix(in oklab, var(--paper) 97%, var(--cream));
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+}
+
+.letters-envelope-mark {
+  position: absolute;
+  z-index: 5;
+
+  left: 50%;
+  bottom: 20px;
+
+  display: grid;
+  place-items: center;
+
+  width: 43px;
+  height: 43px;
+
+  border: 1px solid
+    color-mix(in oklab, var(--cherry) 24%, transparent);
+
+  border-radius: 50%;
+
+  background:
+    color-mix(in oklab, var(--blush) 58%, var(--paper));
+
+  color: var(--wine);
+
+  box-shadow:
+    0 3px 9px rgb(50 24 25 / 8%);
+
+  transform: translateX(-50%);
+}
+
+
+/* empty copy */
+
+.letters-empty-copy {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.letters-empty-copy > small {
+  color: var(--cherry);
+  font: 8px/1 var(--font-body);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.letters-empty-copy h2 {
+  max-width: 270px;
+  margin: 8px 0 0;
+
+  color: var(--wine-deep);
+
+  font: 400 31px/.96 var(--font-display);
+}
+
+.letters-empty-copy p {
+  max-width: 285px;
+  margin: 13px 0 0;
+
+  color: var(--brown-soft);
+
+  font: 13px/1.45 var(--font-display);
+}
+
+
+/* primary action */
+
+.letters-write-button {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  min-height: 42px;
+
+  margin-top: 24px;
+  padding: 10px 17px;
+
+  border: 0;
+  border-radius: 14px;
+
+  background: var(--wine);
+  color: var(--cream);
+
+  font: 12px/1 var(--font-display);
+
+  box-shadow:
+    0 5px 14px rgb(49 20 25 / 14%);
+
+  cursor: pointer;
+}
+
+.letters-write-button > span {
+  font-size: 15px;
+}
+
+.letters-write-button:active {
+  transform: translateY(1px);
+}
+
+
+/* letter drawer */
+
+.letters-drawer {
+  margin: 17px 14px 25px;
+
+  overflow: hidden;
+
+  border: 1px solid
+    color-mix(in oklab, var(--brown) 9%, transparent);
+
+  border-radius: 22px;
+
+  background:
+    color-mix(in oklab, var(--paper) 80%, transparent);
+
+  box-shadow:
+    0 7px 22px rgb(48 25 22 / 5%);
+}
+
+.letters-drawer > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 15px 17px 13px;
+
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--brown) 8%, transparent);
+}
+
+.letters-drawer > header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.letters-drawer > header span {
+  color: var(--cherry);
+
+  font: 8px/1 var(--font-body);
+
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.letters-drawer > header strong {
+  color: var(--wine-deep);
+
+  font: 17px/1 var(--font-display);
+  font-weight: 500;
+}
+
+.letters-drawer > header > small {
+  padding: 6px 8px;
+
+  border-radius: 10px;
+
+  background:
+    color-mix(in oklab, var(--blush) 36%, transparent);
+
+  color: var(--brown-soft);
+
+  font: 8px/1 var(--font-body);
+}
+
+.letters-drawer-empty {
+  padding: 21px 18px 22px;
+}
+
+.letters-drawer-empty p {
+  max-width: 280px;
+  margin: 0;
+
+  color: var(--brown-soft);
+
+  font: italic 12px/1.4 var(--font-display);
 }
