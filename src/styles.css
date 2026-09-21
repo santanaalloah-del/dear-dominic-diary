@@ -12,7 +12,53 @@
   --font-display: "Cormorant Garamond", Georgia, serif; --font-body: "Libre Franklin", Arial, sans-serif; --font-hand: "Caveat", cursive;
 }
 
-:root { --background: oklch(0.956 0.018 76); --foreground: oklch(0.26 0.035 45); --card: oklch(0.98 0.012 78); --primary: oklch(0.39 0.11 22); --cream: oklch(0.97 0.018 78); --paper: oklch(0.935 0.027 77); --paper-deep: oklch(0.88 0.041 68); --blush: oklch(0.89 0.045 17); --rose: oklch(0.70 0.085 20); --cherry: oklch(0.53 0.16 24); --wine: oklch(0.30 0.095 17); --brown: oklch(0.26 0.035 45); --olive: oklch(0.55 0.055 102); --butter: oklch(0.87 0.08 86); --muted-foreground: oklch(0.48 0.035 45); --border: oklch(0.72 0.04 53 / 45%); }
+:root {
+  /* physical palette */
+  --cream: oklch(0.972 0.018 78);
+  --paper: oklch(0.944 0.024 76);
+  --paper-deep: oklch(0.884 0.038 68);
+  --blush: oklch(0.892 0.046 17);
+  --rose: oklch(0.704 0.082 20);
+  --cherry: oklch(0.515 0.145 23);
+  --wine: oklch(0.295 0.088 18);
+  --wine-deep: oklch(0.225 0.068 18);
+  --brown: oklch(0.29 0.034 46);
+  --brown-soft: oklch(0.43 0.034 48);
+  --gold: oklch(0.70 0.075 76);
+  --olive: oklch(0.55 0.055 102);
+  --butter: oklch(0.875 0.072 86);
+
+  /* semantic system */
+  --background: var(--cream);
+  --foreground: var(--brown);
+  --card: var(--paper);
+  --primary: var(--wine);
+
+  --surface: var(--cream);
+  --surface-raised: var(--paper);
+  --surface-deep: var(--paper-deep);
+
+  --text: var(--brown);
+  --text-soft: var(--brown-soft);
+  --text-on-dark: var(--cream);
+
+  --ink: var(--wine);
+  --interactive: var(--cherry);
+  --accent-soft: var(--rose);
+
+  --muted-foreground: var(--brown-soft);
+  --border: oklch(0.68 0.035 52 / 36%);
+  --divider: oklch(0.57 0.035 48 / 24%);
+
+  /* material */
+  --paper-shadow: 0 10px 30px oklch(0.23 0.025 35 / 11%);
+  --paper-shadow-soft: 0 5px 18px oklch(0.23 0.025 35 / 8%);
+  --grain-opacity: 0.11;
+
+  /* shape */
+  --radius-soft: 10px;
+  --radius-small: 5px;
+}
 
 * { box-sizing: border-box; } body { margin: 0; background: var(--wine); color: var(--foreground); font-family: var(--font-body); } button { font: inherit; color: inherit; }
 .prototype-stage { min-height: 100dvh; display: flex; justify-content: center; background: var(--wine); }
