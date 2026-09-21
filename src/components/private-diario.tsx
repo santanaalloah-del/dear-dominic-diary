@@ -4,11 +4,8 @@ import {
   useContext,
   useEffect,
   useState,
-  type FormEvent,
   type ReactNode,
 } from "react";
-import { BookHeart } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 type PrivateDiarioContextValue = {
@@ -17,31 +14,49 @@ type PrivateDiarioContextValue = {
   signOut: () => Promise<void>;
 };
 
-const PrivateDiarioContext = createContext<PrivateDiarioContextValue | null>(null);
+const PrivateDiarioContext =
+  createContext<PrivateDiarioContextValue | null>(null);
 
 export function usePrivateDiario() {
   const context = useContext(PrivateDiarioContext);
-  if (!context) throw new Error("usePrivateDiario must be used inside PrivateDiario");
+
+  if (!context) {
+    throw new Error(
+      "usePrivateDiario must be used inside PrivateDiario"
+    );
+  }
+
   return context;
 }
 
-export function PrivateDiario({ children }: { children: ReactNode }) {
+export function PrivateDiario({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const [session, setSession] = useState<Session | null>(null);
   const [preferredName, setPreferredName] = useState("Alloah");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let active = true;
+
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
+
       setSession(data.session);
       setReady(true);
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      if (!active) return;
-      setSession(nextSession);
-      setReady(true);
-    });
+
+    const { data } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        if (!active) return;
+
+        setSession(nextSession);
+        setReady(true);
+      }
+    );
+
     return () => {
       active = false;
       data.subscription.unsubscribe();
@@ -50,15 +65,20 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!session) return;
+
     let active = true;
+
     supabase
       .from("user_profile")
       .select("preferred_name")
       .eq("user_id", session.user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (active && data?.preferred_name) setPreferredName(data.preferred_name);
+        if (active && data?.preferred_name) {
+          setPreferredName(data.preferred_name);
+        }
       });
+
     return () => {
       active = false;
     };
@@ -72,7 +92,21 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!session) return <PrivateLogin />;
+  if (!session) {
+    return (
+      <main className="private-entry private-entry-locked">
+        <div className="private-lock-mark" aria-hidden="true">
+          ✦
+        </div>
+
+        <span className="brand-mark">Diário</span>
+
+        <p className="private-lock-copy">
+          private access is being prepared
+        </p>
+      </main>
+    );
+  }
 
   return (
     <PrivateDiarioContext.Provider
@@ -86,62 +120,5 @@ export function PrivateDiario({ children }: { children: ReactNode }) {
     >
       {children}
     </PrivateDiarioContext.Provider>
-  );
-}
-
-function PrivateLogin() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError(null);
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInError) setError("That didn’t open the door. Check your details and try again.");
-    setBusy(false);
-  }
-
-  return (
-    <main className="private-entry">
-      <section className="private-login" aria-labelledby="private-login-title">
-        <BookHeart aria-hidden="true" />
-        <p className="private-kicker">a private place</p>
-        <h1 id="private-login-title">Diário</h1>
-        <p className="private-note">come back to our little somewhere.</p>
-        <form onSubmit={onSubmit}>
-          <label>
-            Email
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </label>
-          <Button type="submit" disabled={busy}>
-            {busy ? "Opening…" : "Come in"}
-          </Button>
-          {error && (
-            <p className="private-error" role="alert">
-              {error}
-            </p>
-          )}
-        </form>
-      </section>
-    </main>
   );
 }
