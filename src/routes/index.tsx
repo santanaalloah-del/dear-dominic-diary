@@ -575,7 +575,26 @@ return (
 ))}
 </figure>
 
-      <div className="room-caption">
+<nav className="room-navigation" aria-label="Move through the apartment">
+  {[
+    { id: "living", label: "Living" },
+    { id: "bedroom", label: "Bedroom" },
+    { id: "kitchen", label: "Kitchen" },
+    { id: "bathroom", label: "Bathroom" },
+    { id: "hall", label: "Hall" },
+  ].map((item) => (
+    <button
+      key={item.id}
+      className={roomId === item.id ? "active" : ""}
+      onClick={() => onOpenRoom(item.id)}
+      aria-current={roomId === item.id ? "page" : undefined}
+    >
+      {item.label}
+    </button>
+  ))}
+</nav>
+
+<div className="room-caption">
         <span>our apartment · new york</span>
         <p>
           This room keeps its architecture. Furniture, objects and memories
