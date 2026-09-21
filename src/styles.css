@@ -2249,3 +2249,155 @@
     auto
     4px;
 }
+/* ─────────────────────────────────────────
+   DIÁRIO · BOTTOM NAV
+   quieter, flatter, more like part of the object
+   ───────────────────────────────────────── */
+
+.bottom-nav {
+  position: absolute;
+  z-index: 30;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 68px;
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  padding:
+    4px
+    12px
+    max(8px, env(safe-area-inset-bottom));
+
+  border-top:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 12%,
+      transparent
+    );
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper) 91%,
+      transparent
+    );
+
+  backdrop-filter:
+    blur(13px)
+    saturate(.85);
+
+  box-shadow:
+    0
+    -8px
+    24px
+    rgb(53 29 25 / 5%);
+}
+
+.bottom-nav button {
+  position: relative;
+
+  appearance: none;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  min-width: 0;
+
+  padding:
+    7px
+    2px
+    5px;
+
+  border: 0;
+  background: transparent;
+
+  color:
+    color-mix(
+      in oklab,
+      var(--brown) 54%,
+      transparent
+    );
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.bottom-nav button svg {
+  width: 18px;
+  height: 18px;
+
+  stroke-width: 1.35;
+}
+
+.bottom-nav button span {
+  font:
+    8px/1
+    var(--font-display);
+
+  letter-spacing: .025em;
+}
+
+.bottom-nav button.active {
+  color:
+    var(--wine-deep);
+}
+
+.bottom-nav button.active::before {
+  content: "";
+
+  position: absolute;
+
+  top: 2px;
+  left: 50%;
+
+  width: 24px;
+  height: 1px;
+
+  background:
+    var(--cherry);
+
+  transform:
+    translateX(-50%)
+    rotate(-2deg);
+}
+
+.bottom-nav button.active::after {
+  content: "";
+
+  position: absolute;
+
+  top: 5px;
+  left: 50%;
+
+  width: 3px;
+  height: 3px;
+
+  border-radius: 50%;
+
+  background:
+    var(--cherry);
+
+  transform:
+    translateX(-50%);
+}
+
+.bottom-nav button:active {
+  transform:
+    translateY(1px);
+}
+
+.bottom-nav button:not(.active) svg {
+  opacity: .72;
+}
