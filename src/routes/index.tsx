@@ -4626,7 +4626,82 @@ function MemoriesScreen() {
         ))}
       </div>
 
-      {creatingMemory ? (
+      {selectedMemory ? (
+        <section className="memories-empty">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedMemory(null);
+              setMemoryItemIds([]);
+              setEditingMemoryItems(false);
+            }}
+          >
+            ← Back to memories
+          </button>
+
+          <small>
+            memory
+          </small>
+
+          <h2>
+            {selectedMemory.title ??
+              "Untitled memory"}
+          </h2>
+
+          {selectedMemory.event_at && (
+            <time>
+              {new Intl.DateTimeFormat(
+                "en-US",
+                {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                }
+              ).format(
+                new Date(
+                  selectedMemory.event_at
+                )
+              )}
+            </time>
+          )}
+
+          {selectedMemory.body && (
+            <p>
+              {selectedMemory.body}
+            </p>
+          )}
+
+          {loadingMemoryItems ? (
+            <p>
+              Opening memory…
+            </p>
+          ) : (
+            <>
+              <p>
+                {memoryItemIds.length === 0
+                  ? "Nothing is connected to this memory yet."
+                  : `${memoryItemIds.length} connected ${
+                      memoryItemIds.length === 1
+                        ? "item"
+                        : "items"
+                    }`}
+              </p>
+
+              <button
+                type="button"
+                className="gallery-add-button"
+                onClick={() =>
+                  setEditingMemoryItems(
+                    true
+                  )
+                }
+              >
+                ＋ Add photos or letters
+              </button>
+            </>
+          )}
+        </section>
+      ) : creatingMemory ? (
         <section className="memories-empty">
           <small>
             new memory
