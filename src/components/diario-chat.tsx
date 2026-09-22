@@ -40,7 +40,15 @@ import { usePrivateDiario } from "@/components/private-diario";
 import { useTimeMood } from "@/lib/time-mood";
 import dominic from "@/assets/dominic-candid.jpg";
 
-type MessageKind = "text" | "voice";
+type MessageKind = "text" | "voice" | "photo";
+
+type ChatMedia = {
+  id: string;
+  type: "photo" | "voice";
+  url: string;
+  transcript?: string;
+  createdAt: string;
+};
 
 type ChatMessage = {
   id: string;
@@ -48,6 +56,7 @@ type ChatMessage = {
   content: string;
   createdAt: string;
   kind?: MessageKind;
+  mediaUrl?: string;
 };
 
 type ChatTheme = "diary" | "cherry" | "old-letter" | "soft-rose" | "midnight";
@@ -167,7 +176,24 @@ export function DiarioChat() {
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [openTranscript, setOpenTranscript] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+const photoInputRef =
+    useRef<HTMLInputElement | null>(null);
 
+  const cameraInputRef =
+    useRef<HTMLInputElement | null>(null);
+
+  const mediaRecorderRef =
+    useRef<MediaRecorder | null>(null);
+
+  const audioChunksRef =
+    useRef<Blob[]>([]);
+
+  const audioTranscriptRef =
+    useRef("");
+
+  const [uploadingMedia, setUploadingMedia] =
+    useState(false);
+  
   useEffect(() => {
     setPreferences(readPreferences());
   }, []);
@@ -178,48 +204,321 @@ export function DiarioChat() {
     }
   }, [preferences]);
 
-  const loadHistory = useCallback(
-    async (showLoading = true) => {
-      if (showLoading) setLoading(true);
-      const { data: conversations } = await supabase
-        .from("conversations")
-        .select("id,title,updated_at")
+  async function uploadChatMedia({
+    file,
+    type,
+    transcript,
+  }: {
+    file: File;
+    type: "photo" | "voice";
+    transcript?: string;
+  }) {
+    const extension =
+      file.name.split(".").pop() ||
+      (type === "photo" ? "jpg" : "webm");
+
+    const storagePath =
+      `${session.user.id}/chat/${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } =
+      await supabase.storage
+        .from("diario-media")
+        .upload(storagePath, file, {
+          upsert: false,
+          contentType: file.type,
+        });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const now =
+      new Date().toISOString();
+
+    const { error: itemError } =
+      await supabase
+        .from("diario_items")
+        .insert({
+          user_id: session.user.id,
+          kind: "chat_media",
+          owner: "alloah",
+          status: "active",
+          title:
+            type === "photo"
+              ? "Chat photo"
+              : "Voice message",
+          body:
+            transcript || null,
+          event_at: now,
+          planned_for: null,
+          data: {
+            media_type: type,
+            storage_bucket: "diario-media",
+            storage_path: storagePath,
+            transcript:
+              transcript || null,
+          },
+        });
+
+    if (itemError) {
+      await supabase.storage
+        .from("diario-media")
+        .remove([storagePath]);
+
+      throw itemError;
+    }
+
+    return {
+      storagePath,
+      createdAt: now,
+    };
+  }
+
+  async function loadChatMedia(): Promise<ChatMedia[]> {
+    const { data, error } =
+      await supabase
+        .from("diario_items")
+        .select("*")
         .eq("user_id", session.user.id)
-        .order("updated_at", { ascending: false });
+        .eq("kind", "chat_media")
+        .eq("status", "active")
+        .order("event_at", {
+          ascending: true,
+        });
+
+    if (error) {
+      throw error;
+    }
+
+    const media =
+      await Promise.all(
+        (data ?? []).map(
+          async (item): Promise<ChatMedia | null> => {
+            const storagePath =
+              item.data?.storage_path;
+
+            const mediaType =
+              item.data?.media_type;
+
+            if (
+              typeof storagePath !== "string" ||
+              (mediaType !== "photo" &&
+                mediaType !== "voice")
+            ) {
+              return null;
+            }
+
+            const {
+              data: signedData,
+              error: signedError,
+            } = await supabase.storage
+              .from("diario-media")
+              .createSignedUrl(
+                storagePath,
+                60 * 60
+              );
+
+            if (signedError) {
+              return null;
+            }
+
+            return {
+              id: item.id,
+              type: mediaType,
+              url: signedData.signedUrl,
+              transcript:
+                typeof item.data?.transcript ===
+                "string"
+                  ? item.data.transcript
+                  : undefined,
+              createdAt:
+                item.event_at ??
+                item.created_at,
+            };
+          }
+        )
+      );
+
+    return media.filter(
+      (
+        item
+      ): item is ChatMedia =>
+        item !== null
+    );
+  }
+  
+ const loadHistory = useCallback(
+    async (showLoading = true) => {
+      if (showLoading) {
+        setLoading(true);
+      }
+
+      const { data: conversations } =
+        await supabase
+          .from("conversations")
+          .select(
+            "id,title,updated_at"
+          )
+          .eq(
+            "user_id",
+            session.user.id
+          )
+          .order("updated_at", {
+            ascending: false,
+          });
 
       const conversation =
-        conversations?.find((item) => item.title?.toLowerCase().includes("dominic")) ??
+        conversations?.find((item) =>
+          item.title
+            ?.toLowerCase()
+            .includes("dominic")
+        ) ??
         conversations?.[0];
 
+      const chatMedia =
+        await loadChatMedia();
+
       if (!conversation) {
-        setMessages([]);
+        const photos =
+          chatMedia
+            .filter(
+              (media) =>
+                media.type === "photo"
+            )
+            .map(
+              (media): ChatMessage => ({
+                id: media.id,
+                role: "user",
+                content: "",
+                createdAt:
+                  media.createdAt,
+                kind: "photo",
+                mediaUrl: media.url,
+              })
+            );
+
+        setMessages(photos);
         setLoading(false);
         return;
       }
 
-      const { data } = await supabase
-        .from("messages")
-        .select("id,role,content,created_at")
-        .eq("user_id", session.user.id)
-        .eq("conversation_id", conversation.id)
-        .in("role", ["user", "assistant"])
-        .order("created_at", { ascending: true });
+      const { data } =
+        await supabase
+          .from("messages")
+          .select(
+            "id,role,content,created_at"
+          )
+          .eq(
+            "user_id",
+            session.user.id
+          )
+          .eq(
+            "conversation_id",
+            conversation.id
+          )
+          .in("role", [
+            "user",
+            "assistant",
+          ])
+          .order("created_at", {
+            ascending: true,
+          });
 
-      setMessages(
-        (data ?? []).map((message) => ({
-          id: String(message.id),
-          role: message.role === "user" ? "user" : "assistant",
-          content: message.content,
-          createdAt: message.created_at,
-          kind:
-            message.role === "user" && wasVoiceMessage(message.content, message.created_at)
-              ? "voice"
-              : "text",
-        })),
+      const normalMessages =
+        (data ?? []).map(
+          (message): ChatMessage => {
+            const matchingVoice =
+              chatMedia.find(
+                (media) => {
+                  if (
+                    media.type !==
+                    "voice"
+                  ) {
+                    return false;
+                  }
+
+                  if (
+                    media.transcript?.trim() !==
+                    message.content.trim()
+                  ) {
+                    return false;
+                  }
+
+                  const difference =
+                    Math.abs(
+                      new Date(
+                        media.createdAt
+                      ).getTime() -
+                        new Date(
+                          message.created_at
+                        ).getTime()
+                    );
+
+                  return (
+                    difference <
+                    5 * 60_000
+                  );
+                }
+              );
+
+            return {
+              id: String(
+                message.id
+              ),
+              role:
+                message.role ===
+                "user"
+                  ? "user"
+                  : "assistant",
+              content:
+                message.content,
+              createdAt:
+                message.created_at,
+              kind:
+                matchingVoice
+                  ? "voice"
+                  : "text",
+              mediaUrl:
+                matchingVoice?.url,
+            };
+          }
+        );
+
+      const photos =
+        chatMedia
+          .filter(
+            (media) =>
+              media.type === "photo"
+          )
+          .map(
+            (media): ChatMessage => ({
+              id: media.id,
+              role: "user",
+              content: "",
+              createdAt:
+                media.createdAt,
+              kind: "photo",
+              mediaUrl: media.url,
+            })
+          );
+
+      const combined = [
+        ...normalMessages,
+        ...photos,
+      ].sort(
+        (a, b) =>
+          new Date(
+            a.createdAt
+          ).getTime() -
+          new Date(
+            b.createdAt
+          ).getTime()
       );
+
+      setMessages(combined);
       setLoading(false);
     },
-    [session.user.id],
+    [session.user.id]
   );
 
   useEffect(() => {
@@ -275,58 +574,262 @@ export function DiarioChat() {
   function handleSubmit(message: PromptInputMessage) {
     return sendMessage(message.text);
   }
-
-  function startVoiceCapture() {
-    if (voiceStatus === "listening") {
-      recognitionRef.current?.stop();
+async function sendPhoto(
+    file: File
+  ) {
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
       return;
     }
 
-    const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-    if (!Recognition) {
-      setVoiceNotice("Voice transcription is not available in this browser yet.");
-      return;
-    }
+    try {
+      setUploadingMedia(true);
 
-    const recognition = new Recognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = navigator.language || "pt-BR";
-    recognitionRef.current = recognition;
-    let transcript = "";
-
-    recognition.onresult = (event) => {
-      transcript = Array.from(event.results)
-        .map((result) => result[0]?.transcript ?? "")
-        .join(" ")
-        .trim();
-      if (transcript) setVoiceNotice(`“${transcript}”`);
-    };
-
-    recognition.onerror = () => {
-      setVoiceStatus("idle");
-      setVoiceNotice("I couldn't hear that clearly. Tap the mic and try again.");
-      recognitionRef.current = null;
-    };
-
-    recognition.onend = () => {
-      recognitionRef.current = null;
-      if (!transcript) {
-        setVoiceStatus("idle");
-        return;
-      }
-      setVoiceStatus("processing");
-      void sendMessage(transcript, "voice").finally(() => {
-        setVoiceStatus("idle");
-        window.setTimeout(() => setVoiceNotice(null), 1600);
+      await uploadChatMedia({
+        file,
+        type: "photo",
       });
-    };
 
-    setVoiceNotice("listening…");
-    setVoiceStatus("listening");
-    recognition.start();
+      await loadHistory(false);
+
+      await sendMessage(
+        "I sent you a photo."
+      );
+    } finally {
+      setUploadingMedia(false);
+    }
   }
 
+  function handlePhotoInput(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) return;
+
+    void sendPhoto(file);
+
+    event.target.value = "";
+  }
+  
+async function startVoiceCapture() {
+    if (
+      voiceStatus ===
+      "listening"
+    ) {
+      recognitionRef.current?.stop();
+      mediaRecorderRef.current?.stop();
+      return;
+    }
+
+    try {
+      const stream =
+        await navigator.mediaDevices.getUserMedia(
+          {
+            audio: true,
+          }
+        );
+
+      const recorder =
+        new MediaRecorder(stream);
+
+      mediaRecorderRef.current =
+        recorder;
+
+      audioChunksRef.current =
+        [];
+
+      audioTranscriptRef.current =
+        "";
+
+      recorder.ondataavailable = (
+        event
+      ) => {
+        if (
+          event.data.size >
+          0
+        ) {
+          audioChunksRef.current.push(
+            event.data
+          );
+        }
+      };
+
+      recorder.onstop =
+        async () => {
+          stream
+            .getTracks()
+            .forEach((track) =>
+              track.stop()
+            );
+
+          const blob =
+            new Blob(
+              audioChunksRef.current,
+              {
+                type:
+                  recorder.mimeType ||
+                  "audio/webm",
+              }
+            );
+
+          const transcript =
+            audioTranscriptRef.current.trim();
+
+          if (!blob.size) {
+            setVoiceStatus("idle");
+            return;
+          }
+
+          try {
+            setVoiceStatus(
+              "processing"
+            );
+
+            const file =
+              new File(
+                [blob],
+                `voice-${Date.now()}.webm`,
+                {
+                  type:
+                    blob.type ||
+                    "audio/webm",
+                }
+              );
+
+            await uploadChatMedia({
+              file,
+              type: "voice",
+              transcript,
+            });
+
+            if (transcript) {
+              rememberVoice(
+                transcript,
+                new Date().toISOString()
+              );
+
+              await sendMessage(
+                transcript,
+                "voice"
+              );
+            } else {
+              await loadHistory(
+                false
+              );
+
+              setVoiceNotice(
+                "Voice saved, but I couldn't transcribe it."
+              );
+            }
+          } finally {
+            setVoiceStatus(
+              "idle"
+            );
+
+            mediaRecorderRef.current =
+              null;
+
+            window.setTimeout(
+              () =>
+                setVoiceNotice(
+                  null
+                ),
+              1600
+            );
+          }
+        };
+
+      const Recognition =
+        window.SpeechRecognition ??
+        window.webkitSpeechRecognition;
+
+      if (Recognition) {
+        const recognition =
+          new Recognition();
+
+        recognition.continuous =
+          true;
+
+        recognition.interimResults =
+          true;
+
+        recognition.lang =
+          navigator.language ||
+          "pt-BR";
+
+        recognitionRef.current =
+          recognition;
+
+        recognition.onresult = (
+          event
+        ) => {
+          const transcript =
+            Array.from(
+              event.results
+            )
+              .map(
+                (result) =>
+                  result[0]
+                    ?.transcript ??
+                  ""
+              )
+              .join(" ")
+              .trim();
+
+          audioTranscriptRef.current =
+            transcript;
+
+          if (transcript) {
+            setVoiceNotice(
+              `“${transcript}”`
+            );
+          }
+        };
+
+        recognition.onerror =
+          () => {
+            setVoiceNotice(
+              "Recording audio…"
+            );
+          };
+
+        recognition.onend =
+          () => {
+            recognitionRef.current =
+              null;
+          };
+
+        recognition.start();
+      } else {
+        setVoiceNotice(
+          "Recording audio…"
+        );
+      }
+
+      recorder.start();
+
+      setVoiceStatus(
+        "listening"
+      );
+
+      if (!Recognition) {
+        setVoiceNotice(
+          "Recording audio…"
+        );
+      }
+    } catch {
+      setVoiceStatus("idle");
+
+      setVoiceNotice(
+        "Microphone permission is needed."
+      );
+    }
+  }
   const statusCopy = useMemo(() => {
     if (time.mood === "late") return "still here";
     if (time.mood === "night") return "with you tonight";
@@ -396,23 +899,56 @@ export function DiarioChat() {
                 {message.role === "assistant" && preferences.showDominicAvatar && (
                   <img className="message-avatar" src={dominic} alt="" aria-hidden="true" />
                 )}
-                {message.kind === "voice" ? (
-                  <button
-                    className="voice-note-bubble"
-                    type="button"
-                    onClick={() => setOpenTranscript((current) => (current === message.id ? null : message.id))}
-                    aria-label="Show voice note transcript"
-                  >
-                    <span className="voice-play">▶</span>
-                    <span className="voice-wave" aria-hidden="true">▂▅▃▆▂▇▅▃▆▂▅▇▃▂▆▅▃</span>
-                    <span className="voice-length">{voiceDuration(message.content)}</span>
-                    {openTranscript === message.id && <em>{message.content}</em>}
-                  </button>
-                ) : (
-                  <MessageContent className="diario-message-content messenger-bubble">
-                    <MessageResponse>{message.content}</MessageResponse>
-                  </MessageContent>
-                )}
+{message.kind === "photo" &&
+message.mediaUrl ? (
+  <div className="chat-photo-message">
+    <img
+      src={message.mediaUrl}
+      alt="Photo sent in chat"
+    />
+  </div>
+) : message.kind === "voice" ? (
+  <div className="voice-note-real">
+    {message.mediaUrl && (
+      <audio
+        controls
+        preload="metadata"
+        src={message.mediaUrl}
+      />
+    )}
+
+    {message.content && (
+      <button
+        type="button"
+        className="voice-transcript-toggle"
+        onClick={() =>
+          setOpenTranscript(
+            (current) =>
+              current ===
+              message.id
+                ? null
+                : message.id
+          )
+        }
+      >
+        Transcript
+      </button>
+    )}
+
+    {openTranscript ===
+      message.id && (
+      <em>
+        {message.content}
+      </em>
+    )}
+  </div>
+) : (
+  <MessageContent className="diario-message-content messenger-bubble">
+    <MessageResponse>
+      {message.content}
+    </MessageResponse>
+  </MessageContent>
+)}
                 {preferences.showTimestamps && (
                   <time>{formatTime(message.createdAt)}{message.role === "user" ? "  ✓✓" : ""}</time>
                 )}
@@ -452,11 +988,28 @@ export function DiarioChat() {
                     <Plus />
                   </Button>
                 </SheetTrigger>
-                <ChatActionsSheet />
+<ChatActionsSheet
+  onPhotos={() =>
+    photoInputRef.current?.click()
+  }
+  onCamera={() =>
+    cameraInputRef.current?.click()
+  }
+/>
               </Sheet>
-              <Button type="button" size="icon" variant="ghost" aria-label="Choose a photo" title="Photos">
-                <Image />
-              </Button>
+<Button
+  type="button"
+  size="icon"
+  variant="ghost"
+  aria-label="Choose a photo"
+  title="Photos"
+  disabled={uploadingMedia}
+  onClick={() =>
+    photoInputRef.current?.click()
+  }
+>
+  <Image />
+</Button>
               <Button type="button" size="icon" variant="ghost" aria-label="Stickers" title="Stickers">
                 <Smile />
               </Button>
@@ -481,6 +1034,22 @@ export function DiarioChat() {
           </PromptInputFooter>
         </PromptInput>
       </div>
+      <input
+  ref={photoInputRef}
+  type="file"
+  accept="image/*"
+  hidden
+  onChange={handlePhotoInput}
+/>
+
+<input
+  ref={cameraInputRef}
+  type="file"
+  accept="image/*"
+  capture="environment"
+  hidden
+  onChange={handlePhotoInput}
+/>
     </section>
   );
 }
@@ -537,30 +1106,99 @@ function ChatAppearanceSheet({
   );
 }
 
-function ChatActionsSheet() {
+function ChatActionsSheet({
+  onPhotos,
+  onCamera,
+}: {
+  onPhotos: () => void;
+  onCamera: () => void;
+}) {
   const actions = [
-    { label: "Photos", note: "from your library", icon: <Image /> },
-    { label: "Camera", note: "real moments", icon: <Camera /> },
-    { label: "Stickers", note: "react or send", icon: <Smile /> },
-    { label: "Music", note: "share from Spotify", icon: <Music2 /> },
-    { label: "Letter", note: "I wrote you something", icon: <Mail /> },
-    { label: "Date", note: "make a plan together", icon: <Heart /> },
-    { label: "Ask Dominic for a Photo", note: "generated → keep or discard", icon: <Camera /> },
-    { label: "Search", note: "messages, media & links", icon: <Search /> },
+    {
+      label: "Photos",
+      note: "from your library",
+      icon: <Image />,
+      action: onPhotos,
+    },
+    {
+      label: "Camera",
+      note: "real moments",
+      icon: <Camera />,
+      action: onCamera,
+    },
+    {
+      label: "Stickers",
+      note: "react or send",
+      icon: <Smile />,
+    },
+    {
+      label: "Music",
+      note: "share a song",
+      icon: <Music2 />,
+    },
+    {
+      label: "Letter",
+      note: "I wrote you something",
+      icon: <Mail />,
+    },
+    {
+      label: "Date",
+      note: "make a plan together",
+      icon: <Heart />,
+    },
+    {
+      label: "Ask Dominic for a Photo",
+      note: "generated → keep or discard",
+      icon: <Camera />,
+    },
+    {
+      label: "Search",
+      note: "messages, media & links",
+      icon: <Search />,
+    },
   ];
 
   return (
-    <SheetContent side="bottom" className="chat-actions-sheet">
-      <SheetHeader><SheetTitle>Send something</SheetTitle></SheetHeader>
-      <p className="settings-script">different ways to be close.</p>
+    <SheetContent
+      side="bottom"
+      className="chat-actions-sheet"
+    >
+      <SheetHeader>
+        <SheetTitle>
+          Send something
+        </SheetTitle>
+      </SheetHeader>
+
+      <p className="settings-script">
+        different ways to be close.
+      </p>
+
       <div className="chat-actions-grid">
-        {actions.map((action) => (
-          <button key={action.label} type="button">
-            <span>{action.icon}</span>
-            <div><strong>{action.label}</strong><small>{action.note}</small></div>
-            <ChevronRight />
-          </button>
-        ))}
+        {actions.map(
+          (action) => (
+            <button
+              key={action.label}
+              type="button"
+              onClick={action.action}
+            >
+              <span>
+                {action.icon}
+              </span>
+
+              <div>
+                <strong>
+                  {action.label}
+                </strong>
+
+                <small>
+                  {action.note}
+                </small>
+              </div>
+
+              <ChevronRight />
+            </button>
+          )
+        )}
       </div>
     </SheetContent>
   );
