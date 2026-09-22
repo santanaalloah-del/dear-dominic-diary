@@ -2648,15 +2648,14 @@ const [selectedPhoto, setSelectedPhoto] =
             <div className="gallery-photo-grid">
               {visiblePhotos.map(
                 (photo) => (
-                 <figure
+                <figure
   key={photo.item.id}
   className="gallery-photo-item"
   onClick={() =>
     setSelectedPhoto(photo)
   }
 >
-                  >
-                    <div className="gallery-photo-media">
+  <div className="gallery-photo-media">
                       <img
                         src={
                           photo.url
