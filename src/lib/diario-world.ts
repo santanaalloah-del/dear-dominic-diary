@@ -1403,6 +1403,8 @@ type CreateHomeObjectInput = {
   title: string;
   room: string;
   objectType: string;
+  x: number;
+  y: number;
   note?: string;
 };
 
@@ -1427,6 +1429,194 @@ export async function getHomeObjects(
   }
 
   return (data ?? []) as DiarioItem[];
+}
+
+export async function createHomeObject({
+  userId,
+  title,
+  room,
+  objectType,
+  x,
+  y,
+  note,
+}: CreateHomeObjectInput): Promise<DiarioItem> {
+  const cleanTitle =
+    title.trim();
+
+  const cleanRoom =
+    room.trim();
+
+  const cleanType =
+    objectType.trim();
+
+  if (!cleanTitle) {
+    throw new Error(
+      "A home object needs a name."
+    );
+  }
+
+  if (!cleanRoom) {
+    throw new Error(
+      "A home object needs a room."
+    );
+  }
+
+  const safeX =
+    Math.min(
+      100,
+      Math.max(0, x)
+    );
+
+  const safeY =
+    Math.min(
+      100,
+      Math.max(0, y)
+    );
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "home_object",
+      owner: "shared",
+      status: "active",
+      title: cleanTitle,
+      body:
+        note?.trim() || null,
+      event_at:
+        new Date().toISOString(),
+      planned_for: null,
+      data: {
+        room: cleanRoom,
+        objectType:
+          cleanType || "object",
+        location: "displayed",
+        x: safeX,
+        y: safeY,
+      },
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
+export async function updateHomeObjectPlacement({
+  userId,
+  objectId,
+  room,
+  x,
+  y,
+}: {
+  userId: string;
+  objectId: string;
+  room: string;
+  x: number;
+  y: number;
+}): Promise<DiarioItem> {
+  const {
+    data: current,
+    error: currentError,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .eq("kind", "home_object")
+    .single();
+
+  if (currentError) {
+    throw currentError;
+  }
+
+  const safeX =
+    Math.min(
+      100,
+      Math.max(0, x)
+    );
+
+  const safeY =
+    Math.min(
+      100,
+      Math.max(0, y)
+    );
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...current.data,
+        room,
+        x: safeX,
+        y: safeY,
+        location: "displayed",
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
+export async function storeHomeObject({
+  userId,
+  objectId,
+}: {
+  userId: string;
+  objectId: string;
+}): Promise<DiarioItem> {
+  const {
+    data: current,
+    error: currentError,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .eq("kind", "home_object")
+    .single();
+
+  if (currentError) {
+    throw currentError;
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...current.data,
+        location: "stored",
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
 }
 
 export async function createHomeObject({
