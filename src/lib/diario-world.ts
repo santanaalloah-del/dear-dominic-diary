@@ -1286,3 +1286,101 @@ export async function createPlace({
 
   return data as DiarioItem;
 }
+export type DiarioSettings = {
+  user_id: string;
+  appearance:
+    | "system"
+    | "light"
+    | "dark";
+  time_aware: boolean;
+  privacy_cover: boolean;
+  music_enabled: boolean;
+  voice_enabled: boolean;
+  data: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function getDiarioSettings(
+  userId: string
+): Promise<DiarioSettings> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_settings")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (data) {
+    return data as DiarioSettings;
+  }
+
+  const {
+    data: created,
+    error: createError,
+  } = await diarioSupabase
+    .from("diario_settings")
+    .insert({
+      user_id: userId,
+    })
+    .select("*")
+    .single();
+
+  if (createError) {
+    throw createError;
+  }
+
+  return created as DiarioSettings;
+}
+
+export async function saveDiarioSettings({
+  userId,
+  appearance,
+  timeAware,
+  privacyCover,
+  musicEnabled,
+  voiceEnabled,
+}: {
+  userId: string;
+  appearance:
+    | "system"
+    | "light"
+    | "dark";
+  timeAware: boolean;
+  privacyCover: boolean;
+  musicEnabled: boolean;
+  voiceEnabled: boolean;
+}): Promise<DiarioSettings> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_settings")
+    .upsert(
+      {
+        user_id: userId,
+        appearance,
+        time_aware: timeAware,
+        privacy_cover: privacyCover,
+        music_enabled: musicEnabled,
+        voice_enabled: voiceEnabled,
+      },
+      {
+        onConflict: "user_id",
+      }
+    )
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioSettings;
+}
