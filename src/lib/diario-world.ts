@@ -1398,3 +1398,94 @@ export async function saveDiarioSettings({
 
   return data as DiarioSettings;
 }
+type CreateHomeObjectInput = {
+  userId: string;
+  title: string;
+  room: string;
+  objectType: string;
+  note?: string;
+};
+
+export async function getHomeObjects(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "home_object")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: true,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createHomeObject({
+  userId,
+  title,
+  room,
+  objectType,
+  note,
+}: CreateHomeObjectInput): Promise<DiarioItem> {
+  const cleanTitle =
+    title.trim();
+
+  const cleanRoom =
+    room.trim();
+
+  const cleanType =
+    objectType.trim();
+
+  if (!cleanTitle) {
+    throw new Error(
+      "A home object needs a name."
+    );
+  }
+
+  if (!cleanRoom) {
+    throw new Error(
+      "A home object needs a room."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "home_object",
+      owner: "shared",
+      status: "active",
+      title: cleanTitle,
+      body:
+        note?.trim() || null,
+      event_at:
+        new Date().toISOString(),
+      planned_for: null,
+      data: {
+        room: cleanRoom,
+        objectType:
+          cleanType || "object",
+        location: "displayed",
+      },
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
