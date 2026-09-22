@@ -72,11 +72,11 @@ import {
   type GalleryPhoto,
 } from "@/lib/diario-world";
 import room from "@/assets/dominic-room.jpg";
-import livingRoom from "@/assets/living-room.jpeg";
-import bedroom from "@/assets/bedroom.png";
-import kitchen from "@/assets/kitchen.png";
-import bathroom from "@/assets/bathroom.png";
-import hall from "@/assets/hall.png";
+import livingRoomEmpty from "@/assets/living-room-empty.jpeg";
+import bedroomEmpty from "@/assets/bedroom-empty.jpeg";
+import kitchenEmpty from "@/assets/kitchen-empty.jpeg";
+import bathroomEmpty from "@/assets/bathroom-empty.jpeg";
+import hallEmpty from "@/assets/hall-empty.jpeg";
 import floorPlan from "@/assets/apartment-floor-plan.png";
 
 type Screen =
@@ -450,28 +450,33 @@ function RoomScreen({
   const rooms = {
     living: {
       label: "Living Room",
+      image: livingRoomEmpty,
       caption:
-        "architecture first · furniture comes later",
+        "our living room · empty for now",
     },
     bedroom: {
       label: "Bedroom",
+      image: bedroomEmpty,
       caption:
-        "architecture first · furniture comes later",
+        "our bedroom · empty for now",
     },
     kitchen: {
       label: "Kitchen",
+      image: kitchenEmpty,
       caption:
-        "architecture first · furniture comes later",
+        "our kitchen · empty for now",
     },
     bathroom: {
       label: "Bathroom",
+      image: bathroomEmpty,
       caption:
-        "architecture first · furniture comes later",
+        "our bathroom · empty for now",
     },
     hall: {
       label: "Hall",
+      image: hallEmpty,
       caption:
-        "architecture first · furniture comes later",
+        "our hallway · empty for now",
     },
   };
 
@@ -491,33 +496,12 @@ function RoomScreen({
         </p>
       </ScreenIntro>
 
-      <section className="room-architecture-base">
-        <div className="room-architecture-heading">
-          <small>
-            official architecture
-          </small>
-
-          <strong>
-            {room.label}
-          </strong>
-        </div>
-
-        <div className="official-floor-plan room-floor-plan">
-          <img
-            src={floorPlan}
-            alt="Official apartment floor plan"
-            width={1536}
-            height={1024}
-          />
-        </div>
-
-        <p>
-          This floor plan is the fixed
-          architectural source of truth.
-          Walls, doors, windows and room
-          circulation cannot change unless
-          the official plan itself changes.
-        </p>
+      <section className="room-view-stage">
+        <img
+          className="room-view-image"
+          src={room.image}
+          alt={`Empty ${room.label}`}
+        />
       </section>
 
       <section className="room-empty-state">
@@ -530,10 +514,10 @@ function RoomScreen({
         </h2>
 
         <p>
-          No furniture or decoration exists
-          here yet. Everything movable will
-          only appear after you explicitly
-          add or keep it.
+          Furniture, decor, photos and
+          keepsakes will appear here only
+          after you deliberately add or keep
+          them.
         </p>
       </section>
 
@@ -593,9 +577,9 @@ function RoomScreen({
         <p>
           Architecture stays fixed.
           Furniture, decor, keepsakes and
-          photos will be independent objects
+          photos remain independent objects
           that can be added, moved, stored
-          and restored later.
+          and restored.
         </p>
       </section>
     </section>
