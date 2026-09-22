@@ -227,7 +227,9 @@ function DiarioApp() {
           {screen === "gallery" && <GalleryScreen />}
           {screen === "night" && <MorningNightScreen time={time} />}
           {screen === "memories" && <MemoriesScreen />}
-          {screen === "calendar" && <CalendarScreen />}
+        {screen === "calendar" && (
+  <CalendarScreen onOpen={openScreen} />
+)}
           {screen === "timeline" && <TimelineScreen />}
           {screen === "music" && <MusicScreen />}
           {screen === "dates" && <DatesScreen />}
@@ -6165,7 +6167,11 @@ function TimelineScreen() {
     </section>
   );
 }
-function CalendarScreen() {
+function CalendarScreen({
+  onOpen,
+}: {
+  onOpen: (screen: Screen) => void;
+}) {
   const today = new Date();
 
   const [viewDate, setViewDate] = useState(
@@ -6384,7 +6390,38 @@ function CalendarScreen() {
         day: "numeric",
       }
     ).format(selectedDate);
+const openCalendarItem = (
+  item: DiarioItem
+) => {
+  switch (item.kind) {
+    case "story_memory":
+      onOpen("memories");
+      break;
 
+    case "photo":
+      onOpen("gallery");
+      break;
+
+    case "letter":
+      onOpen("letters");
+      break;
+
+    case "song":
+      onOpen("music");
+      break;
+
+    case "date":
+      onOpen("dates");
+      break;
+
+    case "diary":
+      onOpen("diary");
+      break;
+
+    default:
+      break;
+  }
+};
   return (
     <section className="calendar-screen calendar-live">
       <ScreenIntro
@@ -6557,18 +6594,31 @@ function CalendarScreen() {
           </div>
         ) : (
           <div className="calendar-day-items">
-                       {selectedItems.map(
-                (item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`calendar-item calendar-item-${item.kind}`}
-                  >
-                    <span>
-                      {item.kind === "story_memory"
-                        ? "memory"
-                        : item.kind}
-                    </span>
+                    {selectedItems.map(
+  (item) => (
+    <button
+      key={item.id}
+      type="button"
+      className={`calendar-item calendar-item-${item.kind}`}
+      onClick={() =>
+        openCalendarItem(item)
+      }
+    >
+               <span>
+  {item.kind === "story_memory"
+    ? "memory"
+    : item.kind === "photo"
+      ? "photo"
+      : item.kind === "letter"
+        ? "letter"
+        : item.kind === "song"
+          ? "music"
+          : item.kind === "date"
+            ? "date"
+            : item.kind === "diary"
+              ? "diary"
+              : item.kind}
+</span>
 
                     <strong>
                       {item.title ??
