@@ -801,3 +801,86 @@ export async function getTimelineItems(
     );
   });
 }
+type CreateDateInput = {
+  userId: string;
+  title: string;
+  place: string;
+  plannedFor: string;
+  note?: string;
+};
+
+export async function getDates(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "date")
+    .eq("status", "active")
+    .order("planned_for", {
+      ascending: true,
+      nullsFirst: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createDate({
+  userId,
+  title,
+  place,
+  plannedFor,
+  note,
+}: CreateDateInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+  const cleanPlace = place.trim();
+  const cleanNote =
+    note?.trim() || null;
+
+  if (!cleanTitle) {
+    throw new Error(
+      "A date needs a title."
+    );
+  }
+
+  if (!cleanPlace) {
+    throw new Error(
+      "A date needs a place."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "date",
+      owner: "shared",
+      status: "active",
+      title: cleanTitle,
+      body: cleanNote,
+      event_at: null,
+      planned_for: plannedFor,
+      data: {
+        place: cleanPlace,
+      },
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
