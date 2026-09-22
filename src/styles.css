@@ -6189,3 +6189,15 @@ html[data-diario-appearance="dark"] .settings-static-row {
 .memory-source-list button{
   text-align:left;
 }
+.timeline-entry{
+  width:100%;
+  border:0;
+  font:inherit;
+  color:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+
+.timeline-entry:active{
+  transform:scale(.995);
+}
