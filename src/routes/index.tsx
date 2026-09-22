@@ -32,7 +32,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
-import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
+import {
+  connectSpotify,
+  disconnectSpotify,
+  finishSpotifyConnection,
+  isSpotifyConnected,
+} from "@/lib/spotify";
 import {
   addItemToMemory,
   addPhotoToGalleryAlbum,
@@ -7987,6 +7992,25 @@ function SettingsScreen() {
   ] = useState(false);
 
   const [
+  spotifyConnected,
+  setSpotifyConnected,
+] = useState(
+  isSpotifyConnected()
+);
+
+const [
+  spotifyConnecting,
+  setSpotifyConnecting,
+] = useState(false);
+
+const [
+  spotifyError,
+  setSpotifyError,
+] = useState<string | null>(
+  null
+);
+  
+  const [
     voiceEnabled,
     setVoiceEnabled,
   ] = useState(false);
@@ -8067,6 +8091,46 @@ function SettingsScreen() {
     };
    }, [session.user.id]);
 
+  return () => {
+  active = false;
+};
+}, [session.user.id]);
+
+useEffect(() => {
+  let active = true;
+
+  finishSpotifyConnection()
+    .then((connected) => {
+      if (!active) return;
+
+      if (connected) {
+        setSpotifyConnected(true);
+        setMusicIntegration(true);
+        setSpotifyError(null);
+      }
+    })
+    .catch((error) => {
+      if (!active) return;
+
+      console.error(
+        "Could not finish Spotify connection:",
+        error
+      );
+
+      setSpotifyError(
+        "Spotify could not be connected."
+      );
+    });
+
+  return () => {
+    active = false;
+  };
+}, []);
+
+useEffect(() => {
+  document.documentElement.dataset.diarioAppearance =
+    appearance;
+  
   useEffect(() => {
     document.documentElement.dataset.diarioAppearance =
       appearance;
