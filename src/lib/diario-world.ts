@@ -1203,3 +1203,86 @@ export async function createSong({
 
   return data as DiarioItem;
 }
+type CreatePlaceInput = {
+  userId: string;
+  title: string;
+  neighborhood?: string;
+  placeType?: string;
+  placeStatus: "saved" | "visited";
+  note?: string;
+};
+
+export async function getPlaces(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "place")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createPlace({
+  userId,
+  title,
+  neighborhood,
+  placeType,
+  placeStatus,
+  note,
+}: CreatePlaceInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+
+  if (!cleanTitle) {
+    throw new Error(
+      "A place needs a name."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "place",
+      owner: "shared",
+      status: "active",
+      title: cleanTitle,
+      body:
+        note?.trim() || null,
+      event_at:
+        placeStatus === "visited"
+          ? new Date().toISOString()
+          : null,
+      planned_for: null,
+      data: {
+        neighborhood:
+          neighborhood?.trim() || null,
+        placeType:
+          placeType?.trim() || "place",
+        placeStatus,
+      },
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
