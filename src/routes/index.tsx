@@ -72,13 +72,12 @@ saveDiaryPage,
   type GalleryPhoto,
 } from "@/lib/diario-world";
 import room from "@/assets/dominic-room.jpg";
-import livingRoomEmpty from "@/assets/living-room-empty.jpeg";
-import bedroomEmpty from "@/assets/bedroom-empty.jpeg";
-import kitchenEmpty from "@/assets/kitchen-empty.jpeg";
-import bathroomEmpty from "@/assets/bathroom-empty.jpeg";
-import hallEmpty from "@/assets/hall-empty.jpeg";
+import livingRoomEmpty from "@/assets/living-room.jpeg";
+import bedroomEmpty from "@/assets/bedroom.png";
+import kitchenEmpty from "@/assets/kitchen.png";
+import bathroomEmpty from "@/assets/bathroom.png";
+import hallEmpty from "@/assets/hall.png";
 import floorPlan from "@/assets/apartment-floor-plan.png";
-
 type Screen =
   | "home"
   | "chat"
