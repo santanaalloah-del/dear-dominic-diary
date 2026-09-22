@@ -5901,3 +5901,41 @@ html[data-diario-appearance="dark"] .settings-static-row {
   max-height:180px;
   object-fit:contain;
 }
+.chat-photo-message{
+  max-width:72%;
+  margin-left:auto;
+}
+
+.chat-photo-message img{
+  display:block;
+  width:100%;
+  max-height:360px;
+  object-fit:cover;
+  border-radius:18px;
+}
+
+.voice-note-real{
+  display:grid;
+  gap:6px;
+  max-width:280px;
+}
+
+.voice-note-real audio{
+  width:100%;
+}
+
+.voice-transcript-toggle{
+  border:0;
+  background:none;
+  padding:0;
+  font-size:11px;
+  text-align:left;
+  opacity:.65;
+}
+
+.voice-note-real em{
+  font-size:12px;
+  line-height:1.4;
+  font-style:normal;
+  opacity:.75;
+}
