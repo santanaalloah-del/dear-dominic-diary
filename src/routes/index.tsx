@@ -39,6 +39,7 @@ import {
   createGalleryAlbum,
   createLetter,
   createMemory,
+  getCalendarItems,
   getDiaryPages,
   getGalleryAlbumPhotoIds,
   getGalleryAlbums,
