@@ -577,3 +577,76 @@ export async function removePhotoFromGalleryAlbum({
     throw error;
   }
 }
+type CreateMemoryInput = {
+  userId: string;
+  title: string;
+  body?: string;
+  eventAt?: string;
+};
+
+export async function getMemories(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "story_memory")
+    .eq("status", "active")
+    .order("event_at", {
+      ascending: false,
+      nullsFirst: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createMemory({
+  userId,
+  title,
+  body,
+  eventAt,
+}: CreateMemoryInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+  const cleanBody =
+    body?.trim() || null;
+
+  if (!cleanTitle) {
+    throw new Error(
+      "A memory needs a title."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "story_memory",
+      owner: "shared",
+      status: "active",
+      title: cleanTitle,
+      body: cleanBody,
+      event_at:
+        eventAt ??
+        new Date().toISOString(),
+      data: {},
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
