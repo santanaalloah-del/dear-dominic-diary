@@ -1965,9 +1965,13 @@ function GalleryScreen() {
             <>
               <div className="gallery-album-list">
                 {albums.map((album) => (
-                  <article
+                  <button
                     key={album.id}
+                    type="button"
                     className="gallery-album-item"
+                    onClick={() =>
+                      openAlbum(album)
+                    }
                   >
                     <small>
                       album
@@ -1976,7 +1980,7 @@ function GalleryScreen() {
                     <strong>
                       {album.title}
                     </strong>
-                  </article>
+                  </button>
                 ))}
               </div>
 
