@@ -228,7 +228,41 @@ function safeFileName(fileName: string) {
     .replace(/-+/g, "-")
     .toLowerCase();
 }
+export async function uploadHomeObjectImage({
+  userId,
+  file,
+}: {
+  userId: string;
+  file: File;
+}): Promise<string> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error(
+      "Furniture needs an image file."
+    );
+  }
 
+  const fileName = safeFileName(
+    file.name || "furniture.jpg"
+  );
+
+  const storagePath =
+    `${userId}/home/${crypto.randomUUID()}-${fileName}`;
+
+  const { error } =
+    await diarioSupabase.storage
+      .from("diario-media")
+      .upload(storagePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+
+  if (error) {
+    throw error;
+  }
+
+  return storagePath;
+}
 export async function uploadGalleryPhoto({
   userId,
   file,
@@ -1406,7 +1440,7 @@ type CreateHomeObjectInput = {
   x: number;
   y: number;
   note?: string;
-  imageUrl?: string;
+  imagePath?: string;
   scale?: number;
   orientation?: "front" | "left" | "right";
 };
@@ -1431,7 +1465,50 @@ export async function getHomeObjects(
     throw error;
   }
 
-  return (data ?? []) as DiarioItem[];
+  const items =
+    (data ?? []) as DiarioItem[];
+
+  return Promise.all(
+    items.map(async (item) => {
+      const imagePath =
+        item.data?.imagePath;
+
+      if (
+        typeof imagePath !== "string" ||
+        !imagePath
+      ) {
+        return item;
+      }
+
+      const {
+        data: signedData,
+        error: signedError,
+      } = await diarioSupabase.storage
+        .from("diario-media")
+        .createSignedUrl(
+          imagePath,
+          60 * 60
+        );
+
+      if (signedError) {
+        console.error(
+          "Could not load furniture image:",
+          signedError
+        );
+
+        return item;
+      }
+
+      return {
+        ...item,
+        data: {
+          ...item.data,
+          imageUrl:
+            signedData.signedUrl,
+        },
+      };
+    })
+  );
 }
 
 export async function createHomeObject({
@@ -1442,7 +1519,7 @@ export async function createHomeObject({
   x,
   y,
   note,
-  imageUrl,
+  imagePath,
   scale = 1,
   orientation = "front",
 }: CreateHomeObjectInput): Promise<DiarioItem> {
@@ -1500,8 +1577,8 @@ export async function createHomeObject({
         location: "displayed",
         x: safeX,
         y: safeY,
-        imageUrl:
-          imageUrl?.trim() || null,
+        imagePath:
+  imagePath?.trim() || null,
         scale: safeScale,
         orientation,
       },
