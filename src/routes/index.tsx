@@ -5864,15 +5864,19 @@ function CalendarScreen() {
     return `${y}-${m}-${d}`;
   };
 
-  const itemDateKey = (
+    const itemDateKey = (
     item: DiarioItem
   ) => {
-    if (!item.event_at) {
+    const dateValue =
+      item.event_at ??
+      item.planned_for;
+
+    if (!dateValue) {
       return null;
     }
 
     return dateKey(
-      new Date(item.event_at)
+      new Date(dateValue)
     );
   };
 
