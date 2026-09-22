@@ -6144,3 +6144,48 @@ html[data-diario-appearance="dark"] .settings-static-row {
 .gallery-modal-favorite.active{
   color:var(--cherry);
 }
+.memory-connected-items{
+  display:grid;
+  gap:10px;
+  margin:16px 0;
+}
+
+.memory-connected-item{
+  padding:14px;
+  border-radius:14px;
+  background:var(--paper);
+  box-shadow:1px 3px 10px rgba(50,25,20,.07);
+}
+
+.memory-connected-item small,
+.memory-connected-item strong,
+.memory-connected-item time{
+  display:block;
+}
+
+.memory-connected-item small{
+  margin-bottom:4px;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  opacity:.55;
+}
+
+.memory-connected-item strong{
+  font-family:var(--font-display);
+}
+
+.memory-connected-item p{
+  margin:7px 0;
+  line-height:1.45;
+}
+
+.memory-connected-item time{
+  margin-top:8px;
+  font-size:10px;
+  opacity:.5;
+}
+
+.memory-source-list button{
+  text-align:left;
+}
