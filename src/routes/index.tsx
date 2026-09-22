@@ -36,10 +36,12 @@ import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import {
   addItemToMemory,
   addPhotoToGalleryAlbum,
+  createDate,
   createGalleryAlbum,
   createLetter,
   createMemory,
   getCalendarItems,
+  getDates,
   getDiaryPages,
   getGalleryAlbumPhotoIds,
   getGalleryAlbums,
@@ -3132,60 +3134,166 @@ function KeepsakesScreen() {
   );
 }
 function DatesScreen() {
-  const [dateView, setDateView] = useState<
-    "all" | "planned" | "lived"
-  >("all");
+  const { session } = usePrivateDiario();
 
-  const dates: Array<{
-    id: string;
-    title: string;
-    place: string;
-    date: string;
-    status: "planned" | "lived";
-    note?: string;
-    outfitId?: string;
-    memoryId?: string;
-    photoIds?: string[];
-    keepsakeIds?: string[];
-    songIds?: string[];
-  }> = [];
+  const [dateView, setDateView] =
+    useState<
+      "all" | "planned" | "lived"
+    >("all");
 
-  const visibleDates =
-    dateView === "all"
-      ? dates
-      : dates.filter(
-          (date) =>
-            date.status === dateView
+  const [dates, setDates] =
+    useState<DiarioItem[]>([]);
+
+  const [loadingDates, setLoadingDates] =
+    useState(true);
+
+  const [dateError, setDateError] =
+    useState<string | null>(null);
+
+  const [planningDate, setPlanningDate] =
+    useState(false);
+
+  const [dateTitle, setDateTitle] =
+    useState("");
+
+  const [datePlace, setDatePlace] =
+    useState("");
+
+  const [dateDay, setDateDay] =
+    useState("");
+
+  const [dateNote, setDateNote] =
+    useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    setLoadingDates(true);
+    setDateError(null);
+
+    getDates(session.user.id)
+      .then((loadedDates) => {
+        if (!active) return;
+
+        setDates(loadedDates);
+        setLoadingDates(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Dates:",
+          loadError
         );
 
-  const plannedDates =
-    dates.filter(
-      (date) =>
-        date.status === "planned"
-    );
+        setDateError(
+          "Dates could not be opened right now."
+        );
 
-  const livedDates =
-    dates.filter(
-      (date) =>
-        date.status === "lived"
-    );
+        setLoadingDates(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const visibleDates =
+    dates.filter((date) => {
+      const isLived =
+        Boolean(date.event_at);
+
+      if (dateView === "planned") {
+        return !isLived;
+      }
+
+      if (dateView === "lived") {
+        return isLived;
+      }
+
+      return true;
+    });
+
+  const saveDate = async () => {
+    if (
+      !dateTitle.trim() ||
+      !datePlace.trim() ||
+      !dateDay
+    ) {
+      return;
+    }
+
+    setDateError(null);
+
+    try {
+      const savedDate =
+        await createDate({
+          userId: session.user.id,
+          title: dateTitle,
+          place: datePlace,
+          plannedFor:
+            `${dateDay}T19:00:00-03:00`,
+          note: dateNote,
+        });
+
+      setDates((currentDates) =>
+        [...currentDates, savedDate].sort(
+          (first, second) => {
+            const firstDate =
+              first.planned_for ??
+              first.event_at ??
+              first.created_at;
+
+            const secondDate =
+              second.planned_for ??
+              second.event_at ??
+              second.created_at;
+
+            return (
+              new Date(
+                firstDate
+              ).getTime() -
+              new Date(
+                secondDate
+              ).getTime()
+            );
+          }
+        )
+      );
+
+      setDateTitle("");
+      setDatePlace("");
+      setDateDay("");
+      setDateNote("");
+      setPlanningDate(false);
+    } catch (saveError) {
+      console.error(
+        "Could not create Date:",
+        saveError
+      );
+
+      setDateError(
+        "The date could not be planned."
+      );
+    }
+  };
 
   return (
     <section className="dates-screen dates-live">
       <ScreenIntro
-        eyebrow="Plan it · live it · keep it"
+        eyebrow="Plans · places · days together"
         title="Dates"
       >
         <p className="intro-copy">
-          a place becomes part of your story only
-          after you actually plan or live something there.
+          a date begins as a plan and can
+          later become a real lived moment.
         </p>
       </ScreenIntro>
 
       <div
         className="dates-tabs"
         role="tablist"
-        aria-label="Date status"
+        aria-label="Dates view"
       >
         <button
           type="button"
@@ -3242,123 +3350,237 @@ function DatesScreen() {
         </button>
       </div>
 
-      <section className="dates-summary">
-        <div>
-          <span>
-            planned
-          </span>
-
-          <strong>
-            {plannedDates.length}
-          </strong>
-        </div>
-
-        <div>
-          <span>
-            lived
-          </span>
-
-          <strong>
-            {livedDates.length}
-          </strong>
-        </div>
-      </section>
-
-      {visibleDates.length === 0 ? (
+      {planningDate ? (
         <section className="dates-empty">
-          <div
-            className="dates-empty-icon"
-            aria-hidden="true"
-          >
-            <MapPin
-              size={27}
-              strokeWidth={1.3}
-            />
-          </div>
-
           <small>
-            nowhere yet
+            new date
           </small>
 
           <h2>
-            No dates here yet.
+            Plan a date
+          </h2>
+
+          <input
+            type="text"
+            value={dateTitle}
+            onChange={(event) =>
+              setDateTitle(
+                event.target.value
+              )
+            }
+            placeholder="What are we doing?"
+            autoFocus
+          />
+
+          <input
+            type="text"
+            value={datePlace}
+            onChange={(event) =>
+              setDatePlace(
+                event.target.value
+              )
+            }
+            placeholder="Place"
+          />
+
+          <input
+            type="date"
+            value={dateDay}
+            onChange={(event) =>
+              setDateDay(
+                event.target.value
+              )
+            }
+          />
+
+          <textarea
+            value={dateNote}
+            onChange={(event) =>
+              setDateNote(
+                event.target.value
+              )
+            }
+            placeholder="A note, idea or little plan…"
+            rows={4}
+          />
+
+          <div className="diary-editor-actions">
+            <button
+              type="button"
+              onClick={() => {
+                setPlanningDate(false);
+                setDateTitle("");
+                setDatePlace("");
+                setDateDay("");
+                setDateNote("");
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="gallery-add-button"
+              onClick={saveDate}
+              disabled={
+                !dateTitle.trim() ||
+                !datePlace.trim() ||
+                !dateDay
+              }
+            >
+              Save date
+            </button>
+          </div>
+        </section>
+      ) : loadingDates ? (
+        <section className="dates-empty">
+          <p>
+            Opening dates…
+          </p>
+        </section>
+      ) : visibleDates.length === 0 ? (
+        <section className="dates-empty">
+          <CalendarIcon
+            size={27}
+            strokeWidth={1.3}
+          />
+
+          <small>
+            {dateView === "lived"
+              ? "lived dates"
+              : "plans"}
+          </small>
+
+          <h2>
+            {dateView === "lived"
+              ? "No lived dates yet."
+              : "Nothing planned yet."}
           </h2>
 
           <p>
-            Real places can exist in the world
-            without becoming part of your history.
-            A date appears here only after you plan
-            it or actually live it.
+            Plans only become shared history
+            after they actually happen.
           </p>
+
+          {dateView !== "lived" && (
+            <button
+              type="button"
+              className="gallery-add-button"
+              onClick={() =>
+                setPlanningDate(true)
+              }
+            >
+              ＋ Plan a date
+            </button>
+          )}
+        </section>
+      ) : (
+        <>
+          <div className="dates-list">
+            {visibleDates.map(
+              (date) => {
+                const isLived =
+                  Boolean(
+                    date.event_at
+                  );
+
+                const dateTime =
+                  date.event_at ??
+                  date.planned_for ??
+                  date.created_at;
+
+                const place =
+                  typeof date.data
+                    ?.place ===
+                  "string"
+                    ? date.data.place
+                    : "Place not set";
+
+                return (
+                  <article
+                    key={date.id}
+                    className={`date-card ${
+                      isLived
+                        ? "date-lived"
+                        : "date-planned"
+                    }`}
+                  >
+                    <header>
+                      <div>
+                        <span>
+                          {isLived
+                            ? "lived"
+                            : "planned"}
+                        </span>
+
+                        <strong>
+                          {date.title ??
+                            "Untitled date"}
+                        </strong>
+                      </div>
+
+                      <ChevronRight
+                        size={17}
+                      />
+                    </header>
+
+                    <div className="date-place">
+                      <MapPin
+                        size={16}
+                      />
+
+                      <span>
+                        {place}
+                      </span>
+                    </div>
+
+                    <time>
+                      {new Intl.DateTimeFormat(
+                        "en-US",
+                        {
+                          weekday:
+                            "short",
+                          month:
+                            "long",
+                          day:
+                            "numeric",
+                          year:
+                            "numeric",
+                        }
+                      ).format(
+                        new Date(
+                          dateTime
+                        )
+                      )}
+                    </time>
+
+                    {date.body && (
+                      <p>
+                        {date.body}
+                      </p>
+                    )}
+                  </article>
+                );
+              }
+            )}
+          </div>
 
           <button
             type="button"
-            className="dates-plan-button"
+            className="gallery-add-button"
+            onClick={() =>
+              setPlanningDate(true)
+            }
           >
-            <span aria-hidden="true">
-              ＋
-            </span>
-
-            Plan a date
+            ＋ Plan another date
           </button>
-        </section>
-      ) : (
-        <div className="dates-list">
-          {visibleDates.map(
-            (date) => (
-              <article
-                key={date.id}
-                className={`date-card date-${date.status}`}
-              >
-                <header>
-                  <div>
-                    <span>
-                      {date.status}
-                    </span>
+        </>
+      )}
 
-                    <strong>
-                      {date.title}
-                    </strong>
-                  </div>
-
-                  <ChevronRight
-                    size={17}
-                  />
-                </header>
-
-                <div className="date-place">
-                  <MapPin
-                    size={16}
-                  />
-
-                  <span>
-                    {date.place}
-                  </span>
-                </div>
-
-                <time>
-                  {new Intl.DateTimeFormat(
-                    "en-US",
-                    {
-                      weekday: "short",
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    }
-                  ).format(
-                    new Date(date.date)
-                  )}
-                </time>
-
-                {date.note && (
-                  <p>
-                    {date.note}
-                  </p>
-                )}
-              </article>
-            )
-          )}
-        </div>
+      {dateError && (
+        <p role="alert">
+          {dateError}
+        </p>
       )}
 
       <section className="date-life-cycle">
@@ -3441,15 +3663,6 @@ function DatesScreen() {
             </span>
           </article>
         </div>
-      </section>
-
-      <section className="dates-rule">
-        <p>
-          A lived date can later point to Gallery
-          photos, a Wardrobe look, Music, Keepsakes,
-          Calendar, Timeline and Memories without
-          creating duplicate copies.
-        </p>
       </section>
     </section>
   );
