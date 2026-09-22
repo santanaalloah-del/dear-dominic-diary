@@ -8561,49 +8561,59 @@ const handleSpotifyDisconnect =
               />
             </button>
 
-            <button
-              type="button"
-              className="settings-row"
-              onClick={() => {
-                setVoiceEnabled(
-                  (value) =>
-                    !value
-                );
-                setSettingsSaved(
-                  false
-                );
-              }}
-              aria-pressed={
-                voiceEnabled
-              }
-            >
-              <div>
-                <Send
-                  size={19}
-                  strokeWidth={1.4}
-                />
+     <button
+  type="button"
+  className="settings-row"
+  onClick={() => {
+    if (spotifyConnected) {
+      handleSpotifyDisconnect();
+    } else {
+      void handleSpotifyConnect();
+    }
+  }}
+  aria-pressed={
+    spotifyConnected
+  }
+  disabled={
+    spotifyConnecting
+  }
+>
+  <div>
+    <Music2
+      size={19}
+      strokeWidth={1.4}
+    />
 
-                <span>
-                  <strong>
-                    Voice features
-                  </strong>
+    <span>
+      <strong>
+        Spotify
+      </strong>
 
-                  <small>
-                    saved preference for
-                    future audio features
-                  </small>
-                </span>
-              </div>
+      <small>
+        {spotifyConnecting
+          ? "connecting…"
+          : spotifyConnected
+            ? "connected to Spotify"
+            : "connect your Spotify account"}
+      </small>
+    </span>
+  </div>
 
-              <i
-                className={
-                  voiceEnabled
-                    ? "settings-toggle on"
-                    : "settings-toggle"
-                }
-                aria-hidden="true"
-              />
-            </button>
+  <i
+    className={
+      spotifyConnected
+        ? "settings-toggle on"
+        : "settings-toggle"
+    }
+    aria-hidden="true"
+  />
+</button>
+
+{spotifyError && (
+  <p role="alert">
+    {spotifyError}
+  </p>
+)}
           </section>
 
           <section className="settings-group">
