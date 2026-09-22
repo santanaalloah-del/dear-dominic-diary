@@ -6773,30 +6773,146 @@ function MorningNightScreen({
 }: {
   time: TimeMoodState;
 }) {
+  const { session } = usePrivateDiario();
+
+  const currentHour =
+    new Date().getHours();
+
   const defaultView:
     | "morning"
     | "night" =
-    time.mood === "early" ||
-    time.mood === "morning"
+    currentHour >= 6 &&
+    currentHour < 18
       ? "morning"
       : "night";
 
-  const [dayView, setDayView] =
-    useState<
-      "morning" | "night"
-    >(defaultView);
+  const [
+    dayView,
+    setDayView,
+  ] = useState<
+    "morning" | "night"
+  >(defaultView);
 
-  const morningMoments: Array<{
-    id: string;
-    title: string;
-    note?: string;
-  }> = [];
+  const [
+    dayItems,
+    setDayItems,
+  ] = useState<DiarioItem[]>([]);
 
-  const nightMoments: Array<{
-    id: string;
-    title: string;
-    note?: string;
-  }> = [];
+  const [
+    loadingDay,
+    setLoadingDay,
+  ] = useState(true);
+
+  const [
+    dayError,
+    setDayError,
+  ] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    setLoadingDay(true);
+    setDayError(null);
+
+    getTimelineItems(
+      session.user.id
+    )
+      .then((items) => {
+        if (!active) return;
+
+        const today =
+          getLocalDateKey();
+
+        const todaysItems =
+          items.filter(
+            (item) => {
+              const dateValue =
+                item.event_at ??
+                item.planned_for;
+
+              if (!dateValue) {
+                return false;
+              }
+
+              return (
+                getLocalDateKey(
+                  new Date(
+                    dateValue
+                  )
+                ) === today
+              );
+            }
+          );
+
+        setDayItems(
+          todaysItems
+        );
+
+        setLoadingDay(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Morning / Night:",
+          loadError
+        );
+
+        setDayError(
+          "Today's moments could not be opened."
+        );
+
+        setLoadingDay(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const itemHour = (
+    item: DiarioItem
+  ) => {
+    const dateValue =
+      item.event_at ??
+      item.planned_for;
+
+    if (!dateValue) {
+      return 12;
+    }
+
+    return new Date(
+      dateValue
+    ).getHours();
+  };
+
+  const morningMoments =
+    dayItems.filter(
+      (item) => {
+        const hour =
+          itemHour(item);
+
+        return (
+          hour >= 5 &&
+          hour < 18
+        );
+      }
+    );
+
+  const nightMoments =
+    dayItems.filter(
+      (item) => {
+        const hour =
+          itemHour(item);
+
+        return (
+          hour >= 18 ||
+          hour < 5
+        );
+      }
+    );
 
   const activeMoments =
     dayView === "morning"
@@ -6805,6 +6921,53 @@ function MorningNightScreen({
 
   const isCurrentPhase =
     dayView === defaultView;
+
+  const momentLabel = (
+    item: DiarioItem
+  ) => {
+    if (
+      item.kind ===
+      "story_memory"
+    ) {
+      return "Memory";
+    }
+
+    if (
+      item.kind ===
+      "home_change"
+    ) {
+      return "Home";
+    }
+
+    return (
+      item.kind
+        .charAt(0)
+        .toUpperCase() +
+      item.kind.slice(1)
+    );
+  };
+
+  const momentTime = (
+    item: DiarioItem
+  ) => {
+    const dateValue =
+      item.event_at ??
+      item.planned_for;
+
+    if (!dateValue) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat(
+      "en-US",
+      {
+        hour: "numeric",
+        minute: "2-digit",
+      }
+    ).format(
+      new Date(dateValue)
+    );
+  };
 
   return (
     <section className="day-cycle-screen">
@@ -6835,7 +6998,9 @@ function MorningNightScreen({
               : ""
           }
           onClick={() =>
-            setDayView("morning")
+            setDayView(
+              "morning"
+            )
           }
         >
           Morning
@@ -6853,7 +7018,9 @@ function MorningNightScreen({
               : ""
           }
           onClick={() =>
-            setDayView("night")
+            setDayView(
+              "night"
+            )
           }
         >
           Night
@@ -6866,12 +7033,14 @@ function MorningNightScreen({
         <div className="day-cycle-image">
           <img
             src={
-              dayView === "morning"
+              dayView ===
+              "morning"
                 ? bedroom
                 : room
             }
             alt={
-              dayView === "morning"
+              dayView ===
+              "morning"
                 ? "The apartment bedroom in the morning"
                 : "The apartment at night"
             }
@@ -6886,15 +7055,17 @@ function MorningNightScreen({
           </small>
 
           <h2>
-            {dayView === "morning"
+            {dayView ===
+            "morning"
               ? "A new day starts here."
               : "The apartment gets quieter."}
           </h2>
 
           <p>
-            {dayView === "morning"
-              ? "Morning can hold whatever actually belongs to the start of this day — plans, music, notes and little routines."
-              : "Night can collect the things that really belong to the end of this day — music, reflections, messages and what happened."}
+            {dayView ===
+            "morning"
+              ? "What actually belongs to the first part of today appears here."
+              : "What actually belongs to the later part of today appears here."}
           </p>
         </div>
       </section>
@@ -6936,9 +7107,17 @@ function MorningNightScreen({
           </small>
         </header>
 
-        {activeMoments.length === 0 ? (
+        {loadingDay ? (
           <div className="day-cycle-empty">
-            {dayView === "morning" ? (
+            <p>
+              Opening today…
+            </p>
+          </div>
+        ) : activeMoments.length ===
+          0 ? (
+          <div className="day-cycle-empty">
+            {dayView ===
+            "morning" ? (
               <LampDesk
                 size={23}
                 strokeWidth={1.3}
@@ -6955,9 +7134,9 @@ function MorningNightScreen({
             </p>
 
             <small>
-              This section fills only from
-              things that actually happen
-              during this part of the day.
+              This fills from things
+              that actually happen during
+              this part of the day.
             </small>
           </div>
         ) : (
@@ -6965,23 +7144,60 @@ function MorningNightScreen({
             {activeMoments.map(
               (moment) => (
                 <article
-                  key={moment.id}
+                  key={
+                    moment.id
+                  }
                 >
+                  <header>
+                    <span>
+                      {momentLabel(
+                        moment
+                      )}
+                    </span>
+
+                    {momentTime(
+                      moment
+                    ) && (
+                      <time>
+                        {momentTime(
+                          moment
+                        )}
+                      </time>
+                    )}
+                  </header>
+
                   <strong>
-                    {moment.title}
+                    {moment.title ??
+                      (moment.kind ===
+                      "diary"
+                        ? "Diary entry"
+                        : "Untitled")}
                   </strong>
 
-                  {moment.note && (
+                  {moment.body && (
                     <p>
-                      {moment.note}
+                      {moment.body}
                     </p>
                   )}
+
+                  {!moment.event_at &&
+                    moment.planned_for && (
+                      <small>
+                        planned
+                      </small>
+                    )}
                 </article>
               )
             )}
           </div>
         )}
       </section>
+
+      {dayError && (
+        <p role="alert">
+          {dayError}
+        </p>
+      )}
 
       <section className="day-cycle-links">
         <article>
@@ -6996,7 +7212,7 @@ function MorningNightScreen({
             </strong>
 
             <small>
-              what was really playing
+              what was really kept today
             </small>
           </span>
         </article>
@@ -7055,10 +7271,10 @@ function MorningNightScreen({
 
       <section className="day-cycle-rule">
         <p>
-          Morning and Night do not create
-          events on their own. They are
-          contextual views of the same real
-          day and the same apartment.
+          Morning and Night never create
+          history by themselves. They only
+          show real objects already belonging
+          to this day.
         </p>
       </section>
     </section>
