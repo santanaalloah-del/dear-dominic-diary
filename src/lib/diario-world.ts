@@ -142,3 +142,71 @@ export function getLocalDateKey(
     day: "2-digit",
   }).format(date);
 }
+type CreateLetterInput = {
+  userId: string;
+  owner: "alloah" | "dominic";
+  title: string;
+  body: string;
+};
+
+export async function getLetters(
+  userId: string
+): Promise<DiarioItem[]> {
+  const { data, error } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "letter")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createLetter({
+  userId,
+  owner,
+  title,
+  body,
+}: CreateLetterInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+  const cleanBody = body.trim();
+
+  if (!cleanBody) {
+    throw new Error(
+      "A letter cannot be empty."
+    );
+  }
+
+  const { data, error } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "letter",
+      owner,
+      status: "active",
+      title:
+        cleanTitle || "Untitled letter",
+      body: cleanBody,
+      event_at:
+        new Date().toISOString(),
+      data: {
+        state: "written",
+        opened: true,
+      },
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
