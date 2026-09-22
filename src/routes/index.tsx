@@ -75,6 +75,7 @@ storeHomeObject,
   type DiarioItem,
   type GalleryPhoto,
 restoreHomeObject,
+  uploadHomeObjectImage,
 } from "@/lib/diario-world";
 import room from "@/assets/dominic-room.jpg";
 import livingRoomEmpty from "@/assets/living-room-empty.jpeg";
@@ -459,7 +460,14 @@ function RoomScreen({
   const [showThings, setShowThings] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newImageUrl, setNewImageUrl] = useState("");
+const [newImageFile, setNewImageFile] =
+  useState<File | null>(null);
+
+const [newImagePreview, setNewImagePreview] =
+  useState("");
+
+const [addingFurniture, setAddingFurniture] =
+  useState(false);
 
   const rooms = {
     living: {
@@ -512,9 +520,32 @@ function RoomScreen({
   const storedObjects = homeObjects.filter(
     (item) => item.data?.location === "stored"
   );
+  
+const [newImageFile, setNewImageFile] =
+  useState<File | null>(null);
 
-  const addFurniture = async () => {
-    if (!session?.user?.id || !newName.trim()) return;
+const [newImagePreview, setNewImagePreview] =
+  useState("");
+
+const [addingFurniture, setAddingFurniture] =
+  useState(false);
+const addFurniture = async () => {
+  if (
+    !session?.user?.id ||
+    !newName.trim() ||
+    !newImageFile
+  ) {
+    return;
+  }
+
+  try {
+    setAddingFurniture(true);
+
+    const imagePath =
+      await uploadHomeObjectImage({
+        userId: session.user.id,
+        file: newImageFile,
+      });
 
     await createHomeObject({
       userId: session.user.id,
@@ -524,16 +555,26 @@ function RoomScreen({
       x: 50,
       y: 68,
       scale: 1,
-      imageUrl: newImageUrl.trim() || undefined,
+      imagePath,
     });
 
+    if (newImagePreview) {
+      URL.revokeObjectURL(
+        newImagePreview
+      );
+    }
+
     setNewName("");
-    setNewImageUrl("");
+    setNewImageFile(null);
+    setNewImagePreview("");
     setShowAdd(false);
     setArranging(true);
 
     await loadObjects();
-  };
+  } finally {
+    setAddingFurniture(false);
+  }
+};
 
   const updateObject = async (
     item: DiarioItem,
@@ -618,33 +659,54 @@ function RoomScreen({
         </button>
       </div>
 
-      {showAdd && (
-        <section className="home-add-panel">
-          <input
-            value={newName}
-            onChange={(event) => setNewName(event.target.value)}
-            placeholder="Furniture name"
-          />
+{showAdd && (
+  <section className="home-add-panel">
+    <input
+      value={newName}
+      onChange={(event) =>
+        setNewName(event.target.value)
+      }
+      placeholder="Furniture name"
+    />
 
-<input
+    <label className="furniture-photo-picker">
+      <span>
+        {newImageFile
+          ? "Change photo"
+          : "Choose from Photos"}
+      </span>
 
-  type="file"
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleFurnitureImage}
+      />
+    </label>
 
-  accept="image/*"
+    {newImagePreview && (
+      <div className="furniture-image-preview">
+        <img
+          src={newImagePreview}
+          alt="Furniture preview"
+        />
+      </div>
+    )}
 
-  onChange={handleFurnitureImage}
-
-/
-
-          <button
-            type="button"
-            disabled={!newName.trim()}
-            onClick={addFurniture}
-          >
-            Add to {room.label}
-          </button>
-        </section>
-      )}
+    <button
+      type="button"
+      disabled={
+        !newName.trim() ||
+        !newImageFile ||
+        addingFurniture
+      }
+      onClick={addFurniture}
+    >
+      {addingFurniture
+        ? "Adding..."
+        : `Add to ${room.label}`}
+    </button>
+  </section>
+)}
 
       {showThings && (
         <section className="our-things-panel">
