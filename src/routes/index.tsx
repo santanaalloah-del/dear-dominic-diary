@@ -36,13 +36,15 @@ import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import {
   addItemToMemory,
   addPhotoToGalleryAlbum,
-  createDate,
+   createDate,
   createGalleryAlbum,
+  createKeepsake,
   createLetter,
   createMemory,
   getCalendarItems,
   getDates,
   getDiaryPages,
+  getKeepsakes,
   getGalleryAlbumPhotoIds,
   getGalleryAlbums,
   getGalleryPhotos,
@@ -2778,49 +2780,164 @@ function WardrobeScreen() {
   );
 }
 function KeepsakesScreen() {
-  const [keepsakeView, setKeepsakeView] = useState<
-    "all" | "home" | "stored"
-  >("all");
+  const { session } = usePrivateDiario();
 
-  const keepsakes: Array<{
-    id: string;
-    name: string;
-    kind:
-      | "ticket"
-      | "flower"
-      | "photo"
-      | "gift"
-      | "note"
-      | "object";
-    status: "home" | "stored";
-    room?: string;
-    acquiredAt: string;
-    origin?: string;
-    note?: string;
-    memoryId?: string;
-    dateId?: string;
-    photoId?: string;
-  }> = [];
+  const [keepsakeView, setKeepsakeView] =
+    useState<
+      "all" | "home" | "stored"
+    >("all");
+
+  const [keepsakes, setKeepsakes] =
+    useState<DiarioItem[]>([]);
+
+  const [loadingKeepsakes, setLoadingKeepsakes] =
+    useState(true);
+
+  const [keepsakeError, setKeepsakeError] =
+    useState<string | null>(null);
+
+  const [addingKeepsake, setAddingKeepsake] =
+    useState(false);
+
+  const [keepsakeTitle, setKeepsakeTitle] =
+    useState("");
+
+  const [keepsakeType, setKeepsakeType] =
+    useState("object");
+
+  const [keepsakeLocation, setKeepsakeLocation] =
+    useState<"home" | "stored">("home");
+
+  const [keepsakeRoom, setKeepsakeRoom] =
+    useState("");
+
+  const [keepsakeOrigin, setKeepsakeOrigin] =
+    useState("");
+
+  const [keepsakeNote, setKeepsakeNote] =
+    useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    setLoadingKeepsakes(true);
+    setKeepsakeError(null);
+
+    getKeepsakes(
+      session.user.id
+    )
+      .then((loadedKeepsakes) => {
+        if (!active) return;
+
+        setKeepsakes(
+          loadedKeepsakes
+        );
+
+        setLoadingKeepsakes(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Keepsakes:",
+          loadError
+        );
+
+        setKeepsakeError(
+          "Keepsakes could not be opened."
+        );
+
+        setLoadingKeepsakes(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const locationOf = (
+    item: DiarioItem
+  ): "home" | "stored" => {
+    return item.data?.location ===
+      "stored"
+      ? "stored"
+      : "home";
+  };
 
   const visibleKeepsakes =
     keepsakeView === "all"
       ? keepsakes
       : keepsakes.filter(
           (item) =>
-            item.status === keepsakeView
+            locationOf(item) ===
+            keepsakeView
         );
 
   const homeKeepsakes =
     keepsakes.filter(
       (item) =>
-        item.status === "home"
+        locationOf(item) ===
+        "home"
     );
 
   const storedKeepsakes =
     keepsakes.filter(
       (item) =>
-        item.status === "stored"
+        locationOf(item) ===
+        "stored"
     );
+
+  const saveKeepsake = async () => {
+    if (!keepsakeTitle.trim()) {
+      return;
+    }
+
+    setKeepsakeError(null);
+
+    try {
+      const savedKeepsake =
+        await createKeepsake({
+          userId: session.user.id,
+          title: keepsakeTitle,
+          keepsakeType,
+          location:
+            keepsakeLocation,
+          room:
+            keepsakeLocation ===
+            "home"
+              ? keepsakeRoom
+              : undefined,
+          origin:
+            keepsakeOrigin,
+          note:
+            keepsakeNote,
+        });
+
+      setKeepsakes(
+        (currentKeepsakes) => [
+          savedKeepsake,
+          ...currentKeepsakes,
+        ]
+      );
+
+      setKeepsakeTitle("");
+      setKeepsakeType("object");
+      setKeepsakeLocation("home");
+      setKeepsakeRoom("");
+      setKeepsakeOrigin("");
+      setKeepsakeNote("");
+      setAddingKeepsake(false);
+    } catch (saveError) {
+      console.error(
+        "Could not create Keepsake:",
+        saveError
+      );
+
+      setKeepsakeError(
+        "The keepsake could not be saved."
+      );
+    }
+  };
 
   return (
     <section className="keepsakes-screen keepsakes-live">
@@ -2883,12 +3000,15 @@ function KeepsakesScreen() {
             keepsakeView === "stored"
           }
           className={
-            keepsakeView === "stored"
+            keepsakeView ===
+            "stored"
               ? "active"
               : ""
           }
           onClick={() =>
-            setKeepsakeView("stored")
+            setKeepsakeView(
+              "stored"
+            )
           }
         >
           Stored
@@ -2917,7 +3037,154 @@ function KeepsakesScreen() {
         </div>
       </section>
 
-      {visibleKeepsakes.length === 0 ? (
+      {addingKeepsake ? (
+        <section className="keepsakes-empty">
+          <small>
+            new keepsake
+          </small>
+
+          <h2>
+            Keep an object
+          </h2>
+
+          <input
+            type="text"
+            value={keepsakeTitle}
+            onChange={(event) =>
+              setKeepsakeTitle(
+                event.target.value
+              )
+            }
+            placeholder="Name"
+            autoFocus
+          />
+
+          <select
+            value={keepsakeType}
+            onChange={(event) =>
+              setKeepsakeType(
+                event.target.value
+              )
+            }
+          >
+            <option value="object">
+              Object
+            </option>
+            <option value="ticket">
+              Ticket
+            </option>
+            <option value="flower">
+              Flower
+            </option>
+            <option value="photo">
+              Photo
+            </option>
+            <option value="gift">
+              Gift
+            </option>
+            <option value="note">
+              Note
+            </option>
+          </select>
+
+          <select
+            value={keepsakeLocation}
+            onChange={(event) =>
+              setKeepsakeLocation(
+                event.target.value as
+                  | "home"
+                  | "stored"
+              )
+            }
+          >
+            <option value="home">
+              At home
+            </option>
+            <option value="stored">
+              Stored away
+            </option>
+          </select>
+
+          {keepsakeLocation ===
+            "home" && (
+            <input
+              type="text"
+              value={keepsakeRoom}
+              onChange={(event) =>
+                setKeepsakeRoom(
+                  event.target.value
+                )
+              }
+              placeholder="Room"
+            />
+          )}
+
+          <input
+            type="text"
+            value={keepsakeOrigin}
+            onChange={(event) =>
+              setKeepsakeOrigin(
+                event.target.value
+              )
+            }
+            placeholder="Where did it come from?"
+          />
+
+          <textarea
+            value={keepsakeNote}
+            onChange={(event) =>
+              setKeepsakeNote(
+                event.target.value
+              )
+            }
+            placeholder="Why keep it?"
+            rows={4}
+          />
+
+          <div className="diary-editor-actions">
+            <button
+              type="button"
+              onClick={() => {
+                setAddingKeepsake(
+                  false
+                );
+                setKeepsakeTitle("");
+                setKeepsakeType(
+                  "object"
+                );
+                setKeepsakeLocation(
+                  "home"
+                );
+                setKeepsakeRoom("");
+                setKeepsakeOrigin("");
+                setKeepsakeNote("");
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="gallery-add-button"
+              disabled={
+                !keepsakeTitle.trim()
+              }
+              onClick={
+                saveKeepsake
+              }
+            >
+              Keep object
+            </button>
+          </div>
+        </section>
+      ) : loadingKeepsakes ? (
+        <section className="keepsakes-empty">
+          <p>
+            Opening the drawer…
+          </p>
+        </section>
+      ) : visibleKeepsakes.length ===
+        0 ? (
         <section className="keepsakes-empty">
           <div
             className="keepsakes-empty-icon"
@@ -2939,105 +3206,147 @@ function KeepsakesScreen() {
 
           <p>
             Tickets, flowers, notes,
-            photos, gifts and small objects
-            only appear here after they
-            actually enter your world.
+            photos, gifts and small
+            objects only appear here
+            after they actually enter
+            your world.
           </p>
 
-          <div className="keepsakes-examples">
-            <span>
-              ticket
-            </span>
-
-            <span>
-              flower
-            </span>
-
-            <span>
-              photo
-            </span>
-
-            <span>
-              gift
-            </span>
-
-            <span>
-              note
-            </span>
-
-            <span>
-              object
-            </span>
-          </div>
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setAddingKeepsake(
+                true
+              )
+            }
+          >
+            ＋ Add keepsake
+          </button>
         </section>
       ) : (
-        <div className="keepsakes-list">
-          {visibleKeepsakes.map(
-            (item) => (
-              <article
-                key={item.id}
-                className={`keepsake-card keepsake-${item.kind}`}
-              >
-                <header>
-                  <div>
-                    <span>
-                      {item.kind}
-                    </span>
+        <>
+          <div className="keepsakes-list">
+            {visibleKeepsakes.map(
+              (item) => {
+                const location =
+                  locationOf(item);
 
-                    <strong>
-                      {item.name}
-                    </strong>
-                  </div>
+                const kind =
+                  typeof item.data
+                    ?.keepsakeType ===
+                  "string"
+                    ? item.data
+                        .keepsakeType
+                    : "object";
 
-                  <ChevronRight
-                    size={17}
-                  />
-                </header>
+                const room =
+                  typeof item.data
+                    ?.room === "string"
+                    ? item.data.room
+                    : null;
 
-                <div className="keepsake-location">
-                  <Home
-                    size={15}
-                    strokeWidth={1.4}
-                  />
+                const origin =
+                  typeof item.data
+                    ?.origin ===
+                  "string"
+                    ? item.data.origin
+                    : null;
 
-                  <span>
-                    {item.status === "home"
-                      ? item.room ||
-                        "Somewhere at home"
-                      : "Stored away"}
-                  </span>
-                </div>
+                return (
+                  <article
+                    key={item.id}
+                    className={`keepsake-card keepsake-${kind}`}
+                  >
+                    <header>
+                      <div>
+                        <span>
+                          {kind}
+                        </span>
 
-                <time>
-                  {new Intl.DateTimeFormat(
-                    "en-US",
-                    {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    }
-                  ).format(
-                    new Date(
-                      item.acquiredAt
-                    )
-                  )}
-                </time>
+                        <strong>
+                          {item.title ??
+                            "Untitled keepsake"}
+                        </strong>
+                      </div>
 
-                {item.origin && (
-                  <p>
-                    {item.origin}
-                  </p>
-                )}
+                      <ChevronRight
+                        size={17}
+                      />
+                    </header>
 
-                {item.note && (
-                  <small>
-                    {item.note}
-                  </small>
-                )}
-              </article>
-            )
-          )}
-        </div>
+                    <div className="keepsake-location">
+                      <Home
+                        size={15}
+                        strokeWidth={
+                          1.4
+                        }
+                      />
+
+                      <span>
+                        {location ===
+                        "home"
+                          ? room ||
+                            "Somewhere at home"
+                          : "Stored away"}
+                      </span>
+                    </div>
+
+                    {item.event_at && (
+                      <time>
+                        {new Intl.DateTimeFormat(
+                          "en-US",
+                          {
+                            month:
+                              "long",
+                            day:
+                              "numeric",
+                            year:
+                              "numeric",
+                          }
+                        ).format(
+                          new Date(
+                            item.event_at
+                          )
+                        )}
+                      </time>
+                    )}
+
+                    {origin && (
+                      <p>
+                        {origin}
+                      </p>
+                    )}
+
+                    {item.body && (
+                      <small>
+                        {item.body}
+                      </small>
+                    )}
+                  </article>
+                );
+              }
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setAddingKeepsake(
+                true
+              )
+            }
+          >
+            ＋ Add another keepsake
+          </button>
+        </>
+      )}
+
+      {keepsakeError && (
+        <p role="alert">
+          {keepsakeError}
+        </p>
       )}
 
       <section className="keepsake-life">
@@ -3062,7 +3371,6 @@ function KeepsakesScreen() {
               <strong>
                 Origin
               </strong>
-
               <small>
                 where it came from
               </small>
@@ -3079,7 +3387,6 @@ function KeepsakesScreen() {
               <strong>
                 Place
               </strong>
-
               <small>
                 where it is now
               </small>
@@ -3096,7 +3403,6 @@ function KeepsakesScreen() {
               <strong>
                 Meaning
               </strong>
-
               <small>
                 memory or date attached
               </small>
@@ -3113,7 +3419,6 @@ function KeepsakesScreen() {
               <strong>
                 Storage
               </strong>
-
               <small>
                 kept even when not displayed
               </small>
