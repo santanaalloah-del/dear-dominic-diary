@@ -449,33 +449,28 @@ function RoomScreen({
   const rooms = {
     living: {
       label: "Living Room",
-      image: livingRoomEmpty,
       caption:
-        "our living room · empty for now",
+        "architecture first · furniture comes later",
     },
     bedroom: {
       label: "Bedroom",
-      image: bedroomEmpty,
       caption:
-        "our bedroom · empty for now",
+        "architecture first · furniture comes later",
     },
     kitchen: {
       label: "Kitchen",
-      image: kitchenEmpty,
       caption:
-        "our kitchen · empty for now",
+        "architecture first · furniture comes later",
     },
     bathroom: {
       label: "Bathroom",
-      image: bathroomEmpty,
       caption:
-        "our bathroom · empty for now",
+        "architecture first · furniture comes later",
     },
     hall: {
       label: "Hall",
-      image: hallEmpty,
       caption:
-        "our hallway · empty for now",
+        "architecture first · furniture comes later",
     },
   };
 
@@ -495,12 +490,33 @@ function RoomScreen({
         </p>
       </ScreenIntro>
 
-      <section className="room-view-stage">
-        <img
-          className="room-view-image"
-          src={room.image}
-          alt={`Empty ${room.label}`}
-        />
+      <section className="room-architecture-base">
+        <div className="room-architecture-heading">
+          <small>
+            official architecture
+          </small>
+
+          <strong>
+            {room.label}
+          </strong>
+        </div>
+
+        <div className="official-floor-plan room-floor-plan">
+          <img
+            src={floorPlan}
+            alt="Official apartment floor plan"
+            width={1536}
+            height={1024}
+          />
+        </div>
+
+        <p>
+          This floor plan is the fixed
+          architectural source of truth.
+          Walls, doors, windows and room
+          circulation cannot change unless
+          the official plan itself changes.
+        </p>
       </section>
 
       <section className="room-empty-state">
@@ -513,10 +529,10 @@ function RoomScreen({
         </h2>
 
         <p>
-          Furniture, decor, photos and
-          keepsakes will appear here only
-          after you deliberately add or keep
-          them.
+          No furniture or decoration exists
+          here yet. Everything movable will
+          only appear after you explicitly
+          add or keep it.
         </p>
       </section>
 
