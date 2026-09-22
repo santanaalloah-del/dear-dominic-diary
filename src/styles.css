@@ -6068,3 +6068,79 @@ html[data-diario-appearance="dark"] .settings-static-row {
 .letters-saved-item.is-opened{
   opacity:1;
 }
+.gallery-photo-item{
+  cursor:pointer;
+}
+
+.gallery-photo-modal{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(25,15,15,.72);
+}
+
+.gallery-photo-modal-card{
+  position:relative;
+  width:min(92vw,520px);
+  max-height:88vh;
+  overflow:auto;
+  border-radius:18px;
+  background:var(--paper);
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+
+.gallery-photo-modal-card img{
+  display:block;
+  width:100%;
+  max-height:68vh;
+  object-fit:contain;
+  background:#111;
+}
+
+.gallery-photo-modal-close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  z-index:2;
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.9);
+  font-size:22px;
+  cursor:pointer;
+}
+
+.gallery-photo-modal-info{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+  padding:14px 16px 16px;
+}
+
+.gallery-photo-modal-info strong,
+.gallery-photo-modal-info small{
+  display:block;
+}
+
+.gallery-photo-modal-info small{
+  margin-top:3px;
+  opacity:.55;
+}
+
+.gallery-modal-favorite{
+  border:0;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:none;
+  cursor:pointer;
+}
+
+.gallery-modal-favorite.active{
+  color:var(--cherry);
+}
