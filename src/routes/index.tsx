@@ -42,11 +42,13 @@ import {
   createKeepsake,
   createLetter,
   createLook,
-  createMemory,
+   createMemory,
+  createPlace,
   createSong,
   getCalendarItems,
   getDates,
   getDiaryPages,
+  getPlaces,
   getSongs,
   getKeepsakes,
   getLooks,
@@ -88,6 +90,7 @@ type Screen =
   | "timeline"
   | "music"
   | "dates"
+  | "places"
   | "keepsakes"
   | "wardrobe"
   | "night"
@@ -219,6 +222,7 @@ function DiarioApp() {
           {screen === "timeline" && <TimelineScreen />}
           {screen === "music" && <MusicScreen />}
           {screen === "dates" && <DatesScreen />}
+          {screen === "places" && <PlacesScreen />}
           {screen === "keepsakes" && <KeepsakesScreen />}
           {screen === "wardrobe" && <WardrobeScreen />}
           {screen === "settings" && <SettingsScreen />}
@@ -732,7 +736,8 @@ function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
     { name: "Calendar", note: "days, plans & what happened", target: "calendar", icon: <CalendarIcon /> },
     { name: "Timeline", note: "our story in order", target: "timeline", icon: <Clock /> },
     { name: "Music", note: "Mine · Dominic · Ours", target: "music", icon: <Music2 /> },
-    { name: "Dates", note: "places, plans & memories", target: "dates", icon: <MapPin /> },
+    { name: "Dates", note: "places, plans & memories", target: "dates", icon: <CalendarIcon /> },
+    { name: "Places", note: "saved places & places we've been", target: "places", icon: <MapPin /> },
     { name: "Keepsakes", note: "little things with a history", target: "keepsakes", icon: <BoxIcon /> },
     { name: "Wardrobe", note: "looks for our days", target: "wardrobe", icon: <Shirt /> },
     { name: "Morning / Night", note: "the day changes with you", target: "night", icon: <Disc3 /> },
@@ -3181,6 +3186,568 @@ function WardrobeScreen() {
           combinations or references. Keeping a
           look never creates duplicate clothing.
         </p>
+      </section>
+    </section>
+  );
+}
+function PlacesScreen() {
+  const { session } = usePrivateDiario();
+
+  const [placeView, setPlaceView] =
+    useState<
+      "all" | "saved" | "visited"
+    >("all");
+
+  const [places, setPlaces] =
+    useState<DiarioItem[]>([]);
+
+  const [loadingPlaces, setLoadingPlaces] =
+    useState(true);
+
+  const [placeError, setPlaceError] =
+    useState<string | null>(null);
+
+  const [addingPlace, setAddingPlace] =
+    useState(false);
+
+  const [placeName, setPlaceName] =
+    useState("");
+
+  const [placeNeighborhood, setPlaceNeighborhood] =
+    useState("");
+
+  const [placeType, setPlaceType] =
+    useState("place");
+
+  const [placeStatus, setPlaceStatus] =
+    useState<
+      "saved" | "visited"
+    >("saved");
+
+  const [placeNote, setPlaceNote] =
+    useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    setLoadingPlaces(true);
+    setPlaceError(null);
+
+    getPlaces(
+      session.user.id
+    )
+      .then((loadedPlaces) => {
+        if (!active) return;
+
+        setPlaces(
+          loadedPlaces
+        );
+
+        setLoadingPlaces(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Places:",
+          loadError
+        );
+
+        setPlaceError(
+          "Places could not be opened."
+        );
+
+        setLoadingPlaces(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const statusOf = (
+    place: DiarioItem
+  ): "saved" | "visited" => {
+    return place.data?.placeStatus ===
+      "visited"
+      ? "visited"
+      : "saved";
+  };
+
+  const visiblePlaces =
+    placeView === "all"
+      ? places
+      : places.filter(
+          (place) =>
+            statusOf(place) ===
+            placeView
+        );
+
+  const savePlace = async () => {
+    if (!placeName.trim()) {
+      return;
+    }
+
+    setPlaceError(null);
+
+    try {
+      const savedPlace =
+        await createPlace({
+          userId: session.user.id,
+          title: placeName,
+          neighborhood:
+            placeNeighborhood,
+          placeType,
+          placeStatus,
+          note:
+            placeNote,
+        });
+
+      setPlaces(
+        (currentPlaces) => [
+          savedPlace,
+          ...currentPlaces,
+        ]
+      );
+
+      setPlaceName("");
+      setPlaceNeighborhood("");
+      setPlaceType("place");
+      setPlaceStatus("saved");
+      setPlaceNote("");
+      setAddingPlace(false);
+    } catch (saveError) {
+      console.error(
+        "Could not save place:",
+        saveError
+      );
+
+      setPlaceError(
+        "The place could not be saved."
+      );
+    }
+  };
+
+  return (
+    <section className="places-screen places-live">
+      <ScreenIntro
+        eyebrow="Saved · visited · part of the city"
+        title="Places"
+      >
+        <p className="intro-copy">
+          saving a place does not mean
+          we have been there. Visited places
+          become part of the lived world.
+        </p>
+      </ScreenIntro>
+
+      <div
+        className="dates-tabs"
+        role="tablist"
+        aria-label="Places view"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            placeView === "all"
+          }
+          className={
+            placeView === "all"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setPlaceView("all")
+          }
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            placeView === "saved"
+          }
+          className={
+            placeView === "saved"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setPlaceView("saved")
+          }
+        >
+          Saved
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
+            placeView === "visited"
+          }
+          className={
+            placeView === "visited"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setPlaceView("visited")
+          }
+        >
+          Visited
+        </button>
+      </div>
+
+      {addingPlace ? (
+        <section className="dates-empty">
+          <small>
+            new place
+          </small>
+
+          <h2>
+            Add a place
+          </h2>
+
+          <input
+            type="text"
+            value={placeName}
+            onChange={(event) =>
+              setPlaceName(
+                event.target.value
+              )
+            }
+            placeholder="Place name"
+            autoFocus
+          />
+
+          <input
+            type="text"
+            value={placeNeighborhood}
+            onChange={(event) =>
+              setPlaceNeighborhood(
+                event.target.value
+              )
+            }
+            placeholder="Neighborhood"
+          />
+
+          <select
+            value={placeType}
+            onChange={(event) =>
+              setPlaceType(
+                event.target.value
+              )
+            }
+          >
+            <option value="place">
+              Place
+            </option>
+
+            <option value="restaurant">
+              Restaurant
+            </option>
+
+            <option value="cafe">
+              Café
+            </option>
+
+            <option value="bar">
+              Bar
+            </option>
+
+            <option value="park">
+              Park
+            </option>
+
+            <option value="museum">
+              Museum
+            </option>
+
+            <option value="store">
+              Store
+            </option>
+
+            <option value="venue">
+              Venue
+            </option>
+
+            <option value="other">
+              Other
+            </option>
+          </select>
+
+          <select
+            value={placeStatus}
+            onChange={(event) =>
+              setPlaceStatus(
+                event.target.value as
+                  | "saved"
+                  | "visited"
+              )
+            }
+          >
+            <option value="saved">
+              Saved for later
+            </option>
+
+            <option value="visited">
+              Already visited
+            </option>
+          </select>
+
+          <textarea
+            value={placeNote}
+            onChange={(event) =>
+              setPlaceNote(
+                event.target.value
+              )
+            }
+            placeholder="A note about this place…"
+            rows={4}
+          />
+
+          <div className="diary-editor-actions">
+            <button
+              type="button"
+              onClick={() => {
+                setAddingPlace(false);
+                setPlaceName("");
+                setPlaceNeighborhood("");
+                setPlaceType("place");
+                setPlaceStatus("saved");
+                setPlaceNote("");
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="gallery-add-button"
+              disabled={
+                !placeName.trim()
+              }
+              onClick={
+                savePlace
+              }
+            >
+              Save place
+            </button>
+          </div>
+        </section>
+      ) : loadingPlaces ? (
+        <section className="dates-empty">
+          <p>
+            Opening places…
+          </p>
+        </section>
+      ) : visiblePlaces.length ===
+        0 ? (
+        <section className="dates-empty">
+          <MapPin
+            size={27}
+            strokeWidth={1.3}
+          />
+
+          <small>
+            {placeView === "visited"
+              ? "visited places"
+              : "saved places"}
+          </small>
+
+          <h2>
+            No places here yet.
+          </h2>
+
+          <p>
+            Save somewhere for later,
+            or record a place that has
+            actually been visited.
+          </p>
+
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setAddingPlace(true)
+            }
+          >
+            ＋ Add place
+          </button>
+        </section>
+      ) : (
+        <>
+          <div className="dates-list">
+            {visiblePlaces.map(
+              (place) => {
+                const status =
+                  statusOf(place);
+
+                const neighborhood =
+                  typeof place.data
+                    ?.neighborhood ===
+                  "string"
+                    ? place.data
+                        .neighborhood
+                    : null;
+
+                const type =
+                  typeof place.data
+                    ?.placeType ===
+                  "string"
+                    ? place.data
+                        .placeType
+                    : "place";
+
+                return (
+                  <article
+                    key={place.id}
+                    className="date-card"
+                  >
+                    <header>
+                      <div>
+                        <span>
+                          {status}
+                        </span>
+
+                        <strong>
+                          {place.title ??
+                            "Untitled place"}
+                        </strong>
+                      </div>
+
+                      <MapPin
+                        size={17}
+                      />
+                    </header>
+
+                    <div className="date-place">
+                      <span>
+                        {type}
+                        {neighborhood
+                          ? ` · ${neighborhood}`
+                          : ""}
+                      </span>
+                    </div>
+
+                    {place.body && (
+                      <p>
+                        {place.body}
+                      </p>
+                    )}
+
+                    {status ===
+                      "visited" &&
+                      place.event_at && (
+                        <time>
+                          Visited{" "}
+                          {new Intl.DateTimeFormat(
+                            "en-US",
+                            {
+                              month:
+                                "long",
+                              day:
+                                "numeric",
+                              year:
+                                "numeric",
+                            }
+                          ).format(
+                            new Date(
+                              place.event_at
+                            )
+                          )}
+                        </time>
+                      )}
+                  </article>
+                );
+              }
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setAddingPlace(true)
+            }
+          >
+            ＋ Add another place
+          </button>
+        </>
+      )}
+
+      {placeError && (
+        <p role="alert">
+          {placeError}
+        </p>
+      )}
+
+      <section className="date-life-cycle">
+        <header>
+          <span>
+            place history
+          </span>
+
+          <strong>
+            Saved is not the same as lived
+          </strong>
+        </header>
+
+        <div>
+          <article>
+            <MapPin
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Save
+              </strong>
+
+              <small>
+                somewhere for later
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <CalendarIcon
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Plan
+              </strong>
+
+              <small>
+                connect it to a Date later
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <Heart
+              size={18}
+              strokeWidth={1.35}
+            />
+
+            <span>
+              <strong>
+                Visit
+              </strong>
+
+              <small>
+                becomes lived history
+              </small>
+            </span>
+          </article>
+        </div>
       </section>
     </section>
   );
