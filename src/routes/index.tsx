@@ -34,8 +34,12 @@ import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import {
+  addPhotoToGalleryAlbum,
+  createGalleryAlbum,
   createLetter,
   getDiaryPages,
+  getGalleryAlbumPhotoIds,
+  getGalleryAlbums,
   getGalleryPhotos,
   getLetters,
   getLocalDateKey,
@@ -1512,6 +1516,15 @@ function GalleryScreen() {
   const [photos, setPhotos] =
     useState<GalleryPhoto[]>([]);
 
+    const [albums, setAlbums] =
+    useState<DiarioItem[]>([]);
+
+  const [creatingAlbum, setCreatingAlbum] =
+    useState(false);
+
+  const [albumTitle, setAlbumTitle] =
+    useState("");
+  
   const [loading, setLoading] =
     useState(true);
 
@@ -1596,6 +1609,68 @@ function GalleryScreen() {
     };
   }, [session.user.id]);
 
+    useEffect(() => {
+    let active = true;
+
+    getGalleryAlbums(
+      session.user.id
+    )
+      .then((loadedAlbums) => {
+        if (!active) return;
+
+        setAlbums(loadedAlbums);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load albums:",
+          loadError
+        );
+
+        setError(
+          "The albums could not be opened right now."
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const saveAlbum = async () => {
+    if (!albumTitle.trim()) {
+      return;
+    }
+
+    setError(null);
+
+    try {
+      const savedAlbum =
+        await createGalleryAlbum({
+          userId: session.user.id,
+          title: albumTitle,
+        });
+
+      setAlbums((currentAlbums) => [
+        savedAlbum,
+        ...currentAlbums,
+      ]);
+
+      setAlbumTitle("");
+      setCreatingAlbum(false);
+    } catch (albumError) {
+      console.error(
+        "Could not create album:",
+        albumError
+      );
+
+      setError(
+        "The album could not be created. Try again."
+      );
+    }
+  };
+  
   const favoritePhotos =
     photos.filter(
       (photo) =>
@@ -1747,20 +1822,135 @@ function GalleryScreen() {
       />
 
       {galleryView === "albums" ? (
-        <section className="gallery-empty-stage">
-          <div className="gallery-empty-copy">
+        <section className="gallery-library">
+          <header>
+            <div>
+              <span>
+                albums
+              </span>
+
+              <strong>
+                Your albums
+              </strong>
+            </div>
+
             <small>
-              albums
+              {albums.length}{" "}
+              {albums.length === 1
+                ? "album"
+                : "albums"}
             </small>
+          </header>
 
-            <h2>
-              No albums yet.
-            </h2>
+          {creatingAlbum ? (
+            <div className="gallery-empty-stage">
+              <div className="gallery-empty-copy">
+                <small>
+                  new album
+                </small>
 
-            <p>
-              Albums will organize real photos without creating duplicate copies of them.
-            </p>
-          </div>
+                <h2>
+                  Name this album
+                </h2>
+              </div>
+
+              <input
+                type="text"
+                value={albumTitle}
+                onChange={(event) =>
+                  setAlbumTitle(
+                    event.target.value
+                  )
+                }
+                placeholder="Album name"
+                autoFocus
+              />
+
+              <div className="diary-editor-actions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreatingAlbum(false);
+                    setAlbumTitle("");
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="gallery-add-button"
+                  onClick={saveAlbum}
+                  disabled={
+                    !albumTitle.trim()
+                  }
+                >
+                  Create album
+                </button>
+              </div>
+            </div>
+          ) : albums.length === 0 ? (
+            <div className="gallery-empty-stage">
+              <div className="gallery-empty-copy">
+                <small>
+                  albums
+                </small>
+
+                <h2>
+                  No albums yet.
+                </h2>
+
+                <p>
+                  Albums organize real photos without duplicating them.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="gallery-add-button"
+                onClick={() =>
+                  setCreatingAlbum(true)
+                }
+              >
+                <span aria-hidden="true">
+                  ＋
+                </span>
+                Create album
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="gallery-album-list">
+                {albums.map((album) => (
+                  <article
+                    key={album.id}
+                    className="gallery-album-item"
+                  >
+                    <small>
+                      album
+                    </small>
+
+                    <strong>
+                      {album.title}
+                    </strong>
+                  </article>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="gallery-add-button"
+                onClick={() =>
+                  setCreatingAlbum(true)
+                }
+              >
+                <span aria-hidden="true">
+                  ＋
+                </span>
+                Create another album
+              </button>
+            </>
+          )}
         </section>
       ) : loading ? (
         <section className="gallery-empty-stage">
