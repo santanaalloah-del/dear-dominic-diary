@@ -4476,8 +4476,51 @@ function MemoriesScreen() {
   const [loadingMemoryItems, setLoadingMemoryItems] =
     useState(false);
 
-  const [editingMemoryItems, setEditingMemoryItems] =
+   const [editingMemoryItems, setEditingMemoryItems] =
     useState(false);
+
+  const [memoryChoices, setMemoryChoices] =
+    useState<DiarioItem[]>([]);
+
+  const startEditingMemoryItems = async () => {
+    if (!selectedMemory) {
+      return;
+    }
+
+    setMemoryError(null);
+
+    try {
+      const [
+        loadedPhotos,
+        loadedLetters,
+      ] = await Promise.all([
+        getGalleryPhotos(
+          session.user.id
+        ),
+        getLetters(
+          session.user.id
+        ),
+      ]);
+
+      setMemoryChoices([
+        ...loadedPhotos.map(
+          (photo) => photo.item
+        ),
+        ...loadedLetters,
+      ]);
+
+      setEditingMemoryItems(true);
+    } catch (loadError) {
+      console.error(
+        "Could not load Memory items:",
+        loadError
+      );
+
+      setMemoryError(
+        "Photos and letters could not be opened."
+      );
+    }
+  };
 
   useEffect(() => {
     let active = true;
