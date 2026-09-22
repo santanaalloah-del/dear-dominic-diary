@@ -884,3 +884,88 @@ export async function createDate({
 
   return data as DiarioItem;
 }
+type CreateKeepsakeInput = {
+  userId: string;
+  title: string;
+  keepsakeType: string;
+  location: "home" | "stored";
+  room?: string;
+  origin?: string;
+  note?: string;
+};
+
+export async function getKeepsakes(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "keepsake")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createKeepsake({
+  userId,
+  title,
+  keepsakeType,
+  location,
+  room,
+  origin,
+  note,
+}: CreateKeepsakeInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+
+  if (!cleanTitle) {
+    throw new Error(
+      "A keepsake needs a name."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "keepsake",
+      owner: "shared",
+      status: "active",
+      title: cleanTitle,
+      body:
+        note?.trim() || null,
+      event_at:
+        new Date().toISOString(),
+      data: {
+        keepsakeType:
+          keepsakeType.trim() ||
+          "object",
+        location,
+        room:
+          room?.trim() || null,
+        origin:
+          origin?.trim() || null,
+      },
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
