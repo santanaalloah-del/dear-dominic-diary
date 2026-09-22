@@ -210,3 +210,190 @@ export async function createLetter({
 
   return data as DiarioItem;
 }
+type UploadGalleryPhotoInput = {
+  userId: string;
+  file: File;
+};
+
+export type GalleryPhoto = {
+  item: DiarioItem;
+  url: string;
+};
+
+function safeFileName(fileName: string) {
+  return fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+}
+
+export async function uploadGalleryPhoto({
+  userId,
+  file,
+}: UploadGalleryPhotoInput): Promise<GalleryPhoto> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error(
+      "Only image files can be added to the Gallery right now."
+    );
+  }
+
+  const fileName = safeFileName(
+    file.name || "photo.jpg"
+  );
+
+  const storagePath =
+    `${userId}/${crypto.randomUUID()}-${fileName}`;
+
+  const {
+    error: uploadError,
+  } = await diarioSupabase.storage
+    .from("diario-media")
+    .upload(
+      storagePath,
+      file,
+      {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      }
+    );
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const {
+    data: item,
+    error: itemError,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "photo",
+      owner: "alloah",
+      status: "active",
+      title: file.name || "Photo",
+      body: null,
+      event_at:
+        new Date().toISOString(),
+      data: {
+        storage_bucket:
+          "diario-media",
+        storage_path:
+          storagePath,
+        file_name:
+          file.name,
+        mime_type:
+          file.type,
+        size:
+          file.size,
+        favorite:
+          false,
+      },
+    })
+    .select("*")
+    .single();
+
+  if (itemError) {
+    await diarioSupabase.storage
+      .from("diario-media")
+      .remove([storagePath]);
+
+    throw itemError;
+  }
+
+  const {
+    data: signedData,
+    error: signedError,
+  } = await diarioSupabase.storage
+    .from("diario-media")
+    .createSignedUrl(
+      storagePath,
+      60 * 60
+    );
+
+  if (signedError) {
+    throw signedError;
+  }
+
+  return {
+    item: item as DiarioItem,
+    url: signedData.signedUrl,
+  };
+}
+
+export async function getGalleryPhotos(
+  userId: string
+): Promise<GalleryPhoto[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "photo")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const items =
+    (data ?? []) as DiarioItem[];
+
+  const photos =
+    await Promise.all(
+      items.map(
+        async (
+          item
+        ): Promise<GalleryPhoto | null> => {
+          const storagePath =
+            item.data?.storage_path;
+
+          if (
+            typeof storagePath !== "string"
+          ) {
+            return null;
+          }
+
+          const {
+            data: signedData,
+            error: signedError,
+          } = await diarioSupabase.storage
+            .from("diario-media")
+            .createSignedUrl(
+              storagePath,
+              60 * 60
+            );
+
+          if (signedError) {
+            console.error(
+              "Could not create Gallery photo URL:",
+              signedError
+            );
+
+            return null;
+          }
+
+          return {
+            item,
+            url:
+              signedData.signedUrl,
+          };
+        }
+      )
+    );
+
+  return photos.filter(
+    (
+      photo
+    ): photo is GalleryPhoto =>
+      photo !== null
+  );
+}
