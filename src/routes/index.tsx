@@ -68,10 +68,6 @@ saveDiaryPage,
   saveDiarioSettings,
   setGalleryPhotoFavorite,
   uploadGalleryPhoto,
-  getHomeObjects,
-  createHomeObject,
-  updateHomeObjectPlacement,
-  storeHomeObject,
   type DiarioItem,
   type GalleryPhoto,
 } from "@/lib/diario-world";
@@ -451,14 +447,6 @@ function RoomScreen({
   onOpen: (screen: Screen) => void;
   onOpenRoom: (roomId: string) => void;
 }) {
-  const { session } = usePrivateDiario();
-
-  const [homeObjects, setHomeObjects] =
-    useState<DiarioItem[]>([]);
-
-  const [loadingObjects, setLoadingObjects] =
-    useState(true);
-
   const rooms = {
     living: {
       label: "Living Room",
@@ -497,101 +485,6 @@ function RoomScreen({
       roomId as keyof typeof rooms
     ] ?? rooms.living;
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadObjects() {
-      setLoadingObjects(true);
-
-      try {
-        const items =
-          await getHomeObjects(
-            session.user.id
-          );
-
-        if (!cancelled) {
-          setHomeObjects(items);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingObjects(false);
-        }
-      }
-    }
-
-    loadObjects();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [session.user.id]);
-
-  const visibleObjects =
-    homeObjects.filter((item) => {
-      return (
-        item.data.room === roomId &&
-        item.data.location === "displayed"
-      );
-    });
-
-  const addTestSofa = async () => {
-    const created =
-      await createHomeObject({
-        userId: session.user.id,
-        title: "Vintage sofa",
-        room: "living",
-        objectType: "sofa",
-        x: 50,
-        y: 70,
-      });
-
-    setHomeObjects((current) => [
-      ...current,
-      created,
-    ]);
-  };
-
-  const moveObject = async (
-    item: DiarioItem,
-    x: number,
-    y: number
-  ) => {
-    const updated =
-      await updateHomeObjectPlacement({
-        userId: session.user.id,
-        objectId: item.id,
-        room: roomId,
-        x,
-        y,
-      });
-
-    setHomeObjects((current) =>
-      current.map((object) =>
-        object.id === updated.id
-          ? updated
-          : object
-      )
-    );
-  };
-
-  const storeObject = async (
-    item: DiarioItem
-  ) => {
-    const updated =
-      await storeHomeObject({
-        userId: session.user.id,
-        objectId: item.id,
-      });
-
-    setHomeObjects((current) =>
-      current.map((object) =>
-        object.id === updated.id
-          ? updated
-          : object
-      )
-    );
-  };
-
   return (
     <section className="room-screen apartment-screen">
       <ScreenIntro
@@ -609,105 +502,7 @@ function RoomScreen({
           src={room.image}
           alt={`Empty ${room.label}`}
         />
-
-        {visibleObjects.map((item) => {
-          const x =
-            Number(item.data.x) || 50;
-
-          const y =
-            Number(item.data.y) || 70;
-
-          return (
-            <div
-              key={item.id}
-              className="home-object-test"
-              style={{
-                left: `${x}%`,
-                top: `${y}%`,
-              }}
-            >
-              <strong>
-                {item.title}
-              </strong>
-
-              <div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    moveObject(
-                      item,
-                      x - 5,
-                      y
-                    )
-                  }
-                >
-                  ←
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    moveObject(
-                      item,
-                      x + 5,
-                      y
-                    )
-                  }
-                >
-                  →
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    moveObject(
-                      item,
-                      x,
-                      y - 5
-                    )
-                  }
-                >
-                  ↑
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    moveObject(
-                      item,
-                      x,
-                      y + 5
-                    )
-                  }
-                >
-                  ↓
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    storeObject(item)
-                  }
-                >
-                  Store
-                </button>
-              </div>
-            </div>
-          );
-        })}
       </section>
-
-      {roomId === "living" &&
-        visibleObjects.length === 0 &&
-        !loadingObjects && (
-          <button
-            type="button"
-            className="add-test-sofa"
-            onClick={addTestSofa}
-          >
-            + Add test sofa
-          </button>
-        )}
 
       <section className="room-empty-state">
         <small>
@@ -715,9 +510,7 @@ function RoomScreen({
         </small>
 
         <h2>
-          {visibleObjects.length === 0
-            ? "This room is still empty."
-            : "This room is beginning to live."}
+          This room is still empty.
         </h2>
 
         <p>
