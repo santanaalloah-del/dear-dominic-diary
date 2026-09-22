@@ -33,7 +33,6 @@ import { Button } from "@/components/ui/button";
 import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import {
-import {
   connectSpotify,
   disconnectSpotify,
   finishSpotifyConnection,
@@ -5477,6 +5476,18 @@ const searchSpotify = async () => {
     setSearchingSpotify(false);
   }
 };
+
+  const chooseSpotifyTrack = (
+  track: SpotifyTrack
+) => {
+  setSongTitle(track.name);
+  setSongArtist(
+    track.artists.join(", ")
+  );
+  setSongAlbum(track.album);
+  setSpotifyResults([]);
+  setSpotifyQuery(track.name);
+};
   
   useEffect(() => {
     let active = true;
@@ -5563,11 +5574,13 @@ const searchSpotify = async () => {
         ]
       );
 
-      setSongTitle("");
-      setSongArtist("");
-      setSongAlbum("");
-      setSongNote("");
-      setAddingSong(false);
+     setSongTitle("");
+setSongArtist("");
+setSongAlbum("");
+setSongNote("");
+setSpotifyQuery("");
+setSpotifyResults([]);
+setAddingSong(false);
     } catch (saveError) {
       console.error(
         "Could not save song:",
@@ -5664,6 +5677,71 @@ const searchSpotify = async () => {
             Add a song
           </h2>
 
+          <div className="music-spotify-search">
+  <input
+    type="text"
+    value={spotifyQuery}
+    onChange={(event) =>
+      setSpotifyQuery(
+        event.target.value
+      )
+    }
+    placeholder="Search Spotify"
+  />
+
+  <button
+    type="button"
+    onClick={() =>
+      void searchSpotify()
+    }
+    disabled={
+      searchingSpotify ||
+      !spotifyQuery.trim()
+    }
+  >
+    {searchingSpotify
+      ? "Searching…"
+      : "Search"}
+  </button>
+</div>
+
+{spotifyResults.length > 0 && (
+  <div className="music-spotify-results">
+    {spotifyResults.map(
+      (track) => (
+        <button
+          key={track.id}
+          type="button"
+          onClick={() =>
+            chooseSpotifyTrack(
+              track
+            )
+          }
+        >
+          {track.coverUrl && (
+            <img
+              src={track.coverUrl}
+              alt=""
+            />
+          )}
+
+          <span>
+            <strong>
+              {track.name}
+            </strong>
+
+            <small>
+              {track.artists.join(
+                ", "
+              )}
+            </small>
+          </span>
+        </button>
+      )
+    )}
+  </div>
+)}
+          
           <input
             type="text"
             value={songTitle}
@@ -5718,6 +5796,8 @@ const searchSpotify = async () => {
                 setSongArtist("");
                 setSongAlbum("");
                 setSongNote("");
+                setSpotifyQuery("");
+setSpotifyResults([]);
               }}
             >
               Cancel
