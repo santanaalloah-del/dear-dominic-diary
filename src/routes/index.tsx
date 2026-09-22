@@ -33,10 +33,13 @@ import { Button } from "@/components/ui/button";
 import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import {
+import {
   connectSpotify,
   disconnectSpotify,
   finishSpotifyConnection,
   isSpotifyConnected,
+  searchSpotifyTracks,
+  type SpotifyTrack,
 } from "@/lib/spotify";
 import {
   useTimeMood,
