@@ -733,3 +733,33 @@ export async function getMemoryItemIds({
     }) => link.target_item_id
   );
 }
+export async function getCalendarItems({
+  userId,
+  start,
+  end,
+}: {
+  userId: string;
+  start: string;
+  end: string;
+}): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .gte("event_at", start)
+    .lt("event_at", end)
+    .order("event_at", {
+      ascending: true,
+      nullsFirst: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
