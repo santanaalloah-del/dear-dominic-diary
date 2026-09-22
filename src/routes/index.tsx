@@ -36,10 +36,13 @@ import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import {
   createLetter,
   getDiaryPages,
+  getGalleryPhotos,
   getLetters,
   getLocalDateKey,
   saveDiaryPage,
+  uploadGalleryPhoto,
   type DiarioItem,
+  type GalleryPhoto,
 } from "@/lib/diario-world";
 import room from "@/assets/dominic-room.jpg";
 import livingRoom from "@/assets/living-room.jpeg";
@@ -1498,9 +1501,128 @@ function LettersScreen() {
   );
 }
 function GalleryScreen() {
-  const [galleryView, setGalleryView] = useState<
-    "photos" | "albums" | "favorites"
-  >("photos");
+  const { session } = usePrivateDiario();
+
+  const [galleryView, setGalleryView] =
+    useState<
+      "photos" | "albums" | "favorites"
+    >("photos");
+
+  const [photos, setPhotos] =
+    useState<GalleryPhoto[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [uploading, setUploading] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const fileInputRef =
+    useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    setLoading(true);
+    setError(null);
+
+    getGalleryPhotos(
+      session.user.id
+    )
+      .then((loadedPhotos) => {
+        if (!active) return;
+
+        setPhotos(loadedPhotos);
+        setLoading(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Gallery:",
+          loadError
+        );
+
+        setError(
+          "The Gallery could not be opened right now."
+        );
+
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const favoritePhotos =
+    photos.filter(
+      (photo) =>
+        photo.item.data?.favorite === true
+    );
+
+  const visiblePhotos =
+    galleryView === "favorites"
+      ? favoritePhotos
+      : photos;
+
+  const handleFiles =
+    async (
+      event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      const files =
+        Array.from(
+          event.target.files ?? []
+        );
+
+      if (files.length === 0) {
+        return;
+      }
+
+      setUploading(true);
+      setError(null);
+
+      try {
+        const uploadedPhotos =
+          await Promise.all(
+            files.map((file) =>
+              uploadGalleryPhoto({
+                userId:
+                  session.user.id,
+                file,
+              })
+            )
+          );
+
+        setPhotos(
+          (currentPhotos) => [
+            ...uploadedPhotos,
+            ...currentPhotos,
+          ]
+        );
+      } catch (uploadError) {
+        console.error(
+          "Could not upload Gallery photo:",
+          uploadError
+        );
+
+        setError(
+          "One of the photos could not be added. Try again."
+        );
+      } finally {
+        setUploading(false);
+
+        if (
+          fileInputRef.current
+        ) {
+          fileInputRef.current.value =
+            "";
+        }
+      }
+    };
 
   return (
     <section className="gallery-screen gallery-live">
@@ -1522,9 +1644,17 @@ function GalleryScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={galleryView === "photos"}
-          className={galleryView === "photos" ? "active" : ""}
-          onClick={() => setGalleryView("photos")}
+          aria-selected={
+            galleryView === "photos"
+          }
+          className={
+            galleryView === "photos"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setGalleryView("photos")
+          }
         >
           Photos
         </button>
@@ -1532,9 +1662,17 @@ function GalleryScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={galleryView === "albums"}
-          className={galleryView === "albums" ? "active" : ""}
-          onClick={() => setGalleryView("albums")}
+          aria-selected={
+            galleryView === "albums"
+          }
+          className={
+            galleryView === "albums"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setGalleryView("albums")
+          }
         >
           Albums
         </button>
@@ -1542,77 +1680,220 @@ function GalleryScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={galleryView === "favorites"}
-          className={galleryView === "favorites" ? "active" : ""}
-          onClick={() => setGalleryView("favorites")}
+          aria-selected={
+            galleryView === "favorites"
+          }
+          className={
+            galleryView ===
+            "favorites"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setGalleryView(
+              "favorites"
+            )
+          }
         >
           Favorites
         </button>
       </div>
 
-      <section className="gallery-empty-stage">
-        <div
-          className="gallery-empty-icon"
-          aria-hidden="true"
-        >
-          <ImageIcon size={28} strokeWidth={1.25} />
-        </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={handleFiles}
+      />
 
-        <div className="gallery-empty-copy">
-          <small>
-            {galleryView === "photos"
-              ? "camera roll"
-              : galleryView === "albums"
-                ? "albums"
-                : "favorites"}
-          </small>
+      {galleryView === "albums" ? (
+        <section className="gallery-empty-stage">
+          <div className="gallery-empty-copy">
+            <small>
+              albums
+            </small>
 
-          <h2>
-            {galleryView === "photos"
-              ? "No photos here yet."
-              : galleryView === "albums"
-                ? "No albums yet."
-                : "Nothing favorited yet."}
-          </h2>
+            <h2>
+              No albums yet.
+            </h2>
 
+            <p>
+              Albums will organize real photos without creating duplicate copies of them.
+            </p>
+          </div>
+        </section>
+      ) : loading ? (
+        <section className="gallery-empty-stage">
           <p>
-            {galleryView === "photos"
-              ? "Photos will appear here after they are taken, added from your library or kept from something that happened in the world."
-              : galleryView === "albums"
-                ? "Albums will organize real photos without creating duplicate copies of them."
-                : "Photos you choose to favorite will collect here."}
+            Opening the camera roll…
           </p>
-        </div>
-
-        {galleryView === "photos" && (
-          <button
-            type="button"
-            className="gallery-add-button"
+        </section>
+      ) : visiblePhotos.length ===
+        0 ? (
+        <section className="gallery-empty-stage">
+          <div
+            className="gallery-empty-icon"
+            aria-hidden="true"
           >
-            <span aria-hidden="true">＋</span>
-            Add photos
-          </button>
-        )}
-      </section>
-
-      <section className="gallery-library">
-        <header>
-          <div>
-            <span>library</span>
-            <strong>Your photos</strong>
+            <ImageIcon
+              size={28}
+              strokeWidth={1.25}
+            />
           </div>
 
-          <small>0 photos</small>
-        </header>
+          <div className="gallery-empty-copy">
+            <small>
+              {galleryView ===
+              "favorites"
+                ? "favorites"
+                : "camera roll"}
+            </small>
 
-        <div className="gallery-library-empty">
-          <p>
-            When the camera roll starts growing, this becomes the visual
-            archive. Memories will reference these photos instead of copying
-            them.
-          </p>
-        </div>
-      </section>
+            <h2>
+              {galleryView ===
+              "favorites"
+                ? "Nothing favorited yet."
+                : "No photos here yet."}
+            </h2>
+
+            <p>
+              {galleryView ===
+              "favorites"
+                ? "Photos you choose to favorite will collect here."
+                : "Add a real photo from your library. It will be stored privately and become part of this world."}
+            </p>
+          </div>
+
+          {galleryView ===
+            "photos" && (
+            <button
+              type="button"
+              className="gallery-add-button"
+              onClick={() =>
+                fileInputRef.current?.click()
+              }
+              disabled={
+                uploading
+              }
+            >
+              <span aria-hidden="true">
+                ＋
+              </span>
+
+              {uploading
+                ? "Adding…"
+                : "Add photos"}
+            </button>
+          )}
+        </section>
+      ) : (
+        <>
+          <section className="gallery-library">
+            <header>
+              <div>
+                <span>
+                  library
+                </span>
+
+                <strong>
+                  {galleryView ===
+                  "favorites"
+                    ? "Favorites"
+                    : "Your photos"}
+                </strong>
+              </div>
+
+              <small>
+                {visiblePhotos.length}{" "}
+                {visiblePhotos.length ===
+                1
+                  ? "photo"
+                  : "photos"}
+              </small>
+            </header>
+
+            <div className="gallery-photo-grid">
+              {visiblePhotos.map(
+                (photo) => (
+                  <figure
+                    key={
+                      photo.item.id
+                    }
+                    className="gallery-photo-item"
+                  >
+                    <img
+                      src={
+                        photo.url
+                      }
+                      alt={
+                        photo.item
+                          .title ??
+                        "Gallery photo"
+                      }
+                      loading="lazy"
+                    />
+
+                    <figcaption>
+                      <small>
+                        {photo.item
+                          .event_at
+                          ? new Intl.DateTimeFormat(
+                              "en",
+                              {
+                                day: "numeric",
+                                month:
+                                  "short",
+                                year:
+                                  "numeric",
+                                timeZone:
+                                  "America/Sao_Paulo",
+                              }
+                            ).format(
+                              new Date(
+                                photo.item
+                                  .event_at
+                              )
+                            )
+                          : "Photo"}
+                      </small>
+                    </figcaption>
+                  </figure>
+                )
+              )}
+            </div>
+          </section>
+
+          {galleryView ===
+            "photos" && (
+            <button
+              type="button"
+              className="gallery-add-button"
+              onClick={() =>
+                fileInputRef.current?.click()
+              }
+              disabled={
+                uploading
+              }
+            >
+              <span aria-hidden="true">
+                ＋
+              </span>
+
+              {uploading
+                ? "Adding…"
+                : "Add more photos"}
+            </button>
+          )}
+        </>
+      )}
+
+      {error && (
+        <p role="alert">
+          {error}
+        </p>
+      )}
     </section>
   );
 }
