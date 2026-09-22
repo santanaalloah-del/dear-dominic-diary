@@ -230,7 +230,9 @@ function DiarioApp() {
         {screen === "calendar" && (
   <CalendarScreen onOpen={openScreen} />
 )}
-          {screen === "timeline" && <TimelineScreen />}
+   {screen === "timeline" && (
+  <TimelineScreen onOpen={openScreen} />
+)}
           {screen === "music" && <MusicScreen />}
           {screen === "dates" && <DatesScreen />}
           {screen === "places" && <PlacesScreen />}
@@ -5849,7 +5851,11 @@ function MusicScreen() {
     </section>
   );
 }
-function TimelineScreen() {
+function TimelineScreen({
+  onOpen,
+}: {
+  onOpen: (screen: Screen) => void;
+}) {
   const { session } = usePrivateDiario();
 
   const [timelineView, setTimelineView] =
@@ -6093,13 +6099,17 @@ function TimelineScreen() {
                   entry.planned_for
                 );
 
-              return (
-                <article
-                  key={entry.id}
-                  className={`timeline-entry timeline-entry-${itemLabel(
-                    entry
-                  )}`}
-                >
+             return (
+  <button
+    key={entry.id}
+    type="button"
+    className={`timeline-entry timeline-entry-${itemLabel(
+      entry
+    )}`}
+    onClick={() =>
+      openTimelineItem(entry)
+    }
+  >
                   <span
                     className="timeline-entry-dot"
                     aria-hidden="true"
@@ -6143,7 +6153,7 @@ function TimelineScreen() {
                       </p>
                     )}
                   </div>
-                </article>
+                </button>
               );
             }
           )}
