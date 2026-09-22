@@ -1864,7 +1864,79 @@ function GalleryScreen() {
         onChange={handleFiles}
       />
 
-      {galleryView === "albums" ? (
+         {galleryView === "albums" ? (
+        selectedAlbum ? (
+          <section className="gallery-library">
+            <header>
+              <div>
+                <span>
+                  album
+                </span>
+
+                <strong>
+                  {selectedAlbum.title}
+                </strong>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedAlbum(null);
+                  setAlbumPhotoIds([]);
+                  setEditingAlbumPhotos(false);
+                }}
+              >
+                Back to albums
+              </button>
+            </header>
+
+            {loadingAlbum ? (
+              <div className="gallery-empty-stage">
+                <p>
+                  Opening album…
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="gallery-photo-grid">
+                  {photos
+                    .filter((photo) =>
+                      albumPhotoIds.includes(
+                        photo.item.id
+                      )
+                    )
+                    .map((photo) => (
+                      <figure
+                        key={photo.item.id}
+                        className="gallery-photo-item"
+                      >
+                        <img
+                          src={photo.url}
+                          alt={
+                            photo.item.title ??
+                            "Album photo"
+                          }
+                          loading="lazy"
+                        />
+                      </figure>
+                    ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="gallery-add-button"
+                  onClick={() =>
+                    setEditingAlbumPhotos(
+                      true
+                    )
+                  }
+                >
+                  ＋ Add or remove photos
+                </button>
+              </>
+            )}
+          </section>
+        ) : (
         <section className="gallery-library">
           <header>
             <div>
@@ -1999,6 +2071,7 @@ function GalleryScreen() {
             </>
           )}
         </section>
+        )
       ) : loading ? (
         <section className="gallery-empty-stage">
           <p>
