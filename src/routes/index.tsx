@@ -74,6 +74,7 @@ updateHomeObjectPlacement,
 storeHomeObject,
   type DiarioItem,
   type GalleryPhoto,
+restoreHomeObject,
 } from "@/lib/diario-world";
 import room from "@/assets/dominic-room.jpg";
 import livingRoomEmpty from "@/assets/living-room-empty.jpeg";
@@ -454,32 +455,32 @@ function RoomScreen({
 
   const [homeObjects, setHomeObjects] = useState<DiarioItem[]>([]);
   const [loadingObjects, setLoadingObjects] = useState(true);
+  const [arranging, setArranging] = useState(false);
+  const [showThings, setShowThings] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newImageUrl, setNewImageUrl] = useState("");
 
   const rooms = {
     living: {
       label: "Living Room",
       image: livingRoomEmpty,
-      caption: "our living room · empty for now",
     },
     bedroom: {
       label: "Bedroom",
       image: bedroomEmpty,
-      caption: "our bedroom · empty for now",
     },
     kitchen: {
       label: "Kitchen",
       image: kitchenEmpty,
-      caption: "our kitchen · empty for now",
     },
     bathroom: {
       label: "Bathroom",
       image: bathroomEmpty,
-      caption: "our bathroom · empty for now",
     },
     hall: {
       label: "Hall",
       image: hallEmpty,
-      caption: "our hallway · empty for now",
     },
   };
 
@@ -491,11 +492,7 @@ function RoomScreen({
 
     try {
       setLoadingObjects(true);
-
-      const objects = await getHomeObjects(
-        session.user.id
-      );
-
+      const objects = await getHomeObjects(session.user.id);
       setHomeObjects(objects);
     } finally {
       setLoadingObjects(false);
@@ -512,41 +509,59 @@ function RoomScreen({
       item.data?.location === "displayed"
   );
 
-  const addTestSofa = async () => {
-    if (!session?.user?.id) return;
+  const storedObjects = homeObjects.filter(
+    (item) => item.data?.location === "stored"
+  );
 
-await createHomeObject({
-  userId: session.user.id,
-  title: "Vintage sofa",
-  room: "living",
-  objectType: "sofa",
-  x: 50,
-  y: 70,
-});
+  const addFurniture = async () => {
+    if (!session?.user?.id || !newName.trim()) return;
+
+    await createHomeObject({
+      userId: session.user.id,
+      title: newName.trim(),
+      room: roomId,
+      objectType: "furniture",
+      x: 50,
+      y: 68,
+      scale: 1,
+      imageUrl: newImageUrl.trim() || undefined,
+    });
+
+    setNewName("");
+    setNewImageUrl("");
+    setShowAdd(false);
+    setArranging(true);
+
     await loadObjects();
   };
 
-  const moveObject = async (
+  const updateObject = async (
     item: DiarioItem,
-    x: number,
-    y: number
+    changes: {
+      x?: number;
+      y?: number;
+      scale?: number;
+    }
   ) => {
     if (!session?.user?.id) return;
+
+    const x = Number(item.data?.x ?? 50);
+    const y = Number(item.data?.y ?? 70);
+    const scale = Number(item.data?.scale ?? 1);
 
     await updateHomeObjectPlacement({
       userId: session.user.id,
       objectId: item.id,
       room: roomId,
-      x,
-      y,
+      x: changes.x ?? x,
+      y: changes.y ?? y,
+      scale: changes.scale ?? scale,
     });
 
     await loadObjects();
   };
 
-  const storeObject = async (
-    item: DiarioItem
-  ) => {
+  const storeObject = async (item: DiarioItem) => {
     if (!session?.user?.id) return;
 
     await storeHomeObject({
@@ -557,18 +572,148 @@ await createHomeObject({
     await loadObjects();
   };
 
+  const restoreObject = async (item: DiarioItem) => {
+    if (!session?.user?.id) return;
+
+    await restoreHomeObject({
+      userId: session.user.id,
+      objectId: item.id,
+      room: roomId,
+    });
+
+    setShowThings(false);
+    setArranging(true);
+
+    await loadObjects();
+  };
+
   return (
     <section className="room-screen apartment-screen">
       <ScreenIntro
         eyebrow={`${time.dateLabel} · ${time.timeLabel}`}
         title={room.label}
-      >
-        <p className="intro-copy">
-          {room.caption}
-        </p>
-      </ScreenIntro>
+      />
 
-      <section className="room-view-stage">
+      <div className="room-toolbar">
+        <button
+          type="button"
+          onClick={() => setArranging((value) => !value)}
+          className={arranging ? "active" : ""}
+        >
+          {arranging ? "Done" : "Arrange"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowAdd((value) => !value)}
+        >
+          + Add Furniture
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowThings((value) => !value)}
+        >
+          Our Things
+        </button>
+      </div>
+
+      {showAdd && (
+        <section className="home-add-panel">
+          <input
+            value={newName}
+            onChange={(event) => setNewName(event.target.value)}
+            placeholder="Furniture name"
+          />
+
+          <input
+            value={newImageUrl}
+            onChange={(event) => setNewImageUrl(event.target.value)}
+            placeholder="Image URL"
+          />
+
+          <button
+            type="button"
+            disabled={!newName.trim()}
+            onClick={addFurniture}
+          >
+            Add to {room.label}
+          </button>
+        </section>
+      )}
+
+      {showThings && (
+        <section className="our-things-panel">
+          <div className="our-things-heading">
+            <strong>Our Things</strong>
+            <small>
+              {homeObjects.length} saved object
+              {homeObjects.length === 1 ? "" : "s"}
+            </small>
+          </div>
+
+          {homeObjects.length === 0 ? (
+            <p>Nothing here yet.</p>
+          ) : (
+            <div className="our-things-list">
+              {homeObjects.map((item) => {
+                const stored =
+                  item.data?.location === "stored";
+
+                return (
+                  <div
+                    className="our-things-item"
+                    key={item.id}
+                  >
+                    {item.data?.imageUrl && (
+                      <img
+                        src={String(item.data.imageUrl)}
+                        alt=""
+                      />
+                    )}
+
+                    <div>
+                      <strong>
+                        {item.title ?? "Untitled object"}
+                      </strong>
+
+                      <small>
+                        {stored
+                          ? "Stored"
+                          : String(
+                              item.data?.room ?? "Apartment"
+                            )}
+                      </small>
+                    </div>
+
+                    {stored ? (
+                      <button
+                        type="button"
+                        onClick={() => restoreObject(item)}
+                      >
+                        Place here
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => storeObject(item)}
+                      >
+                        Store
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
+      <section
+        className={`room-view-stage ${
+          arranging ? "is-arranging" : ""
+        }`}
+      >
         <img
           className="room-view-image"
           src={room.image}
@@ -578,160 +723,159 @@ await createHomeObject({
         {displayedObjects.map((item) => {
           const x = Number(item.data?.x ?? 50);
           const y = Number(item.data?.y ?? 70);
+          const scale = Number(item.data?.scale ?? 1);
+          const imageUrl = String(
+            item.data?.imageUrl ?? ""
+          );
 
           return (
             <div
               key={item.id}
-              className="home-object-test"
+              className="home-object-layer"
               style={{
                 left: `${x}%`,
                 top: `${y}%`,
+                width: `${34 * scale}%`,
               }}
             >
-              <strong>
-                {item.title ?? "Vintage sofa"}
-              </strong>
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={item.title ?? "Furniture"}
+                  className="home-object-image"
+                />
+              ) : (
+                <div className="home-object-placeholder">
+                  {item.title ?? "Furniture"}
+                </div>
+              )}
 
-              <div className="home-object-test-controls">
-                <button
-                  type="button"
-                  onClick={() =>
-                    moveObject(
-                      item,
-                      Math.max(0, x - 5),
-                      y
-                    )
-                  }
-                >
-                  ←
-                </button>
+              {arranging && (
+                <div className="home-object-controls">
+                  <strong>
+                    {item.title ?? "Furniture"}
+                  </strong>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    moveObject(
-                      item,
-                      Math.min(100, x + 5),
-                      y
-                    )
-                  }
-                >
-                  →
-                </button>
+                  <div className="home-object-move-controls">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateObject(item, {
+                          x: Math.max(0, x - 4),
+                        })
+                      }
+                    >
+                      ←
+                    </button>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    moveObject(
-                      item,
-                      x,
-                      Math.max(0, y - 5)
-                    )
-                  }
-                >
-                  ↑
-                </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateObject(item, {
+                          y: Math.max(0, y - 4),
+                        })
+                      }
+                    >
+                      ↑
+                    </button>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    moveObject(
-                      item,
-                      x,
-                      Math.min(100, y + 5)
-                    )
-                  }
-                >
-                  ↓
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateObject(item, {
+                          y: Math.min(100, y + 4),
+                        })
+                      }
+                    >
+                      ↓
+                    </button>
 
-              <button
-                type="button"
-                onClick={() =>
-                  storeObject(item)
-                }
-              >
-                Store
-              </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateObject(item, {
+                          x: Math.min(100, x + 4),
+                        })
+                      }
+                    >
+                      →
+                    </button>
+                  </div>
+
+                  <div className="home-object-size-controls">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateObject(item, {
+                          scale: Math.max(
+                            0.25,
+                            scale - 0.1
+                          ),
+                        })
+                      }
+                    >
+                      −
+                    </button>
+
+                    <span>Size</span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateObject(item, {
+                          scale: Math.min(
+                            2.5,
+                            scale + 0.1
+                          ),
+                        })
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="home-object-store"
+                    onClick={() => storeObject(item)}
+                  >
+                    Store
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
-      </section>
 
-      {roomId === "living" &&
-        !loadingObjects &&
-        displayedObjects.length === 0 && (
-          <button
-            type="button"
-            className="add-test-sofa"
-            onClick={addTestSofa}
-          >
-            + Add test sofa
-          </button>
-        )}
+        {!loadingObjects &&
+          displayedObjects.length === 0 && (
+            <div className="room-no-objects">
+              <span>empty room</span>
+            </div>
+          )}
+      </section>
 
       <nav
         className="room-navigation"
         aria-label="Move through the apartment"
       >
         {[
-          {
-            id: "living",
-            label: "Living",
-          },
-          {
-            id: "bedroom",
-            label: "Bedroom",
-          },
-          {
-            id: "kitchen",
-            label: "Kitchen",
-          },
-          {
-            id: "bathroom",
-            label: "Bathroom",
-          },
-          {
-            id: "hall",
-            label: "Hall",
-          },
-        ].map((item) => (
+          ["living", "Living"],
+          ["bedroom", "Bedroom"],
+          ["kitchen", "Kitchen"],
+          ["bathroom", "Bathroom"],
+          ["hall", "Hall"],
+        ].map(([id, label]) => (
           <button
-            key={item.id}
+            key={id}
             type="button"
-            className={
-              roomId === item.id
-                ? "active"
-                : ""
-            }
-            onClick={() =>
-              onOpenRoom(item.id)
-            }
-            aria-current={
-              roomId === item.id
-                ? "page"
-                : undefined
-            }
+            className={roomId === id ? "active" : ""}
+            onClick={() => onOpenRoom(id)}
           >
-            {item.label}
+            {label}
           </button>
         ))}
       </nav>
-
-      <section className="room-canon-note">
-        <span>
-          apartment rule
-        </span>
-
-        <p>
-          Architecture stays fixed.
-          Furniture, decor, keepsakes and
-          photos remain independent objects
-          that can be added, moved, stored
-          and restored.
-        </p>
-      </section>
     </section>
   );
 }
