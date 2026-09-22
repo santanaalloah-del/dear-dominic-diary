@@ -4375,12 +4375,12 @@ function CalendarScreen() {
               const key =
                 dateKey(date);
 
-              const hasItems =
+                     const hasItems =
                 calendarItems.some(
                   (item) =>
-                    item.date === key
+                    itemDateKey(item) ===
+                    key
                 );
-
               const selected =
                 isSameDay(
                   date,
