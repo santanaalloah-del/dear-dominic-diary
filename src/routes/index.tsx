@@ -1894,7 +1894,10 @@ function GalleryScreen() {
 
   const [error, setError] =
     useState<string | null>(null);
-
+  
+const [selectedPhoto, setSelectedPhoto] =
+  useState<GalleryPhoto | null>(null);
+  
   const fileInputRef =
     useRef<HTMLInputElement>(null);
 
@@ -2254,10 +2257,15 @@ function GalleryScreen() {
                       )
                     )
                     .map((photo) => (
-                      <figure
-                        key={photo.item.id}
-                        className="gallery-photo-item"
-                      >
+                     <figure
+  key={
+    photo.item.id
+  }
+  className="gallery-photo-item"
+  onClick={() =>
+    setSelectedPhoto(photo)
+  }
+>
                         <img
                           src={photo.url}
                           alt={
@@ -2636,11 +2644,13 @@ function GalleryScreen() {
             <div className="gallery-photo-grid">
               {visiblePhotos.map(
                 (photo) => (
-                  <figure
-                    key={
-                      photo.item.id
-                    }
-                    className="gallery-photo-item"
+                 <figure
+  key={photo.item.id}
+  className="gallery-photo-item"
+  onClick={() =>
+    setSelectedPhoto(photo)
+  }
+>
                   >
                     <div className="gallery-photo-media">
                       <img
@@ -2673,11 +2683,13 @@ function GalleryScreen() {
                           photo.item.data
                             ?.favorite === true
                         }
-                        onClick={() =>
-                          toggleFavorite(
-                            photo
-                          )
-                        }
+                    onClick={(event) => {
+  event.stopPropagation();
+
+  void toggleFavorite(
+    photo
+  );
+}}
                       >
                         <Heart
                           size={18}
@@ -2750,6 +2762,122 @@ function GalleryScreen() {
           {error}
         </p>
       )}
+      {selectedPhoto && (
+  <div
+    className="gallery-photo-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Photo preview"
+    onClick={() =>
+      setSelectedPhoto(null)
+    }
+  >
+    <div
+      className="gallery-photo-modal-card"
+      onClick={(event) =>
+        event.stopPropagation()
+      }
+    >
+      <button
+        type="button"
+        className="gallery-photo-modal-close"
+        onClick={() =>
+          setSelectedPhoto(null)
+        }
+        aria-label="Close photo"
+      >
+        ×
+      </button>
+
+      <img
+        src={selectedPhoto.url}
+        alt={
+          selectedPhoto.item.title ??
+          "Gallery photo"
+        }
+      />
+
+      <div className="gallery-photo-modal-info">
+        <div>
+          <strong>
+            {selectedPhoto.item.title ??
+              "Photo"}
+          </strong>
+
+          <small>
+            {selectedPhoto.item.event_at
+              ? new Intl.DateTimeFormat(
+                  "en",
+                  {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    timeZone:
+                      "America/Sao_Paulo",
+                  }
+                ).format(
+                  new Date(
+                    selectedPhoto.item
+                      .event_at
+                  )
+                )
+              : "No date"}
+          </small>
+        </div>
+
+        <button
+          type="button"
+          className={
+            selectedPhoto.item.data
+              ?.favorite === true
+              ? "gallery-modal-favorite active"
+              : "gallery-modal-favorite"
+          }
+          onClick={async () => {
+            await toggleFavorite(
+              selectedPhoto
+            );
+
+            setSelectedPhoto(
+              (current) =>
+                current
+                  ? {
+                      ...current,
+                      item: {
+                        ...current.item,
+                        data: {
+                          ...(current.item
+                            .data ?? {}),
+                          favorite:
+                            current.item.data
+                              ?.favorite !==
+                            true,
+                        },
+                      },
+                    }
+                  : null
+            );
+          }}
+        >
+          <Heart
+            size={19}
+            fill={
+              selectedPhoto.item.data
+                ?.favorite === true
+                ? "currentColor"
+                : "none"
+            }
+          />
+
+          {selectedPhoto.item.data
+            ?.favorite === true
+            ? "Favorited"
+            : "Favorite"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </section>
   );
 }
