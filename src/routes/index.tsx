@@ -4124,6 +4124,66 @@ function CalendarScreen() {
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
 
+  useEffect(() => {
+    let active = true;
+
+    const monthStart =
+      new Date(
+        year,
+        month,
+        1
+      );
+
+    const nextMonthStart =
+      new Date(
+        year,
+        month + 1,
+        1
+      );
+
+    setLoadingCalendar(true);
+    setCalendarError(null);
+
+    getCalendarItems({
+      userId: session.user.id,
+      start:
+        monthStart.toISOString(),
+      end:
+        nextMonthStart.toISOString(),
+    })
+      .then((loadedItems) => {
+        if (!active) return;
+
+        setCalendarItems(
+          loadedItems
+        );
+
+        setLoadingCalendar(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Calendar:",
+          loadError
+        );
+
+        setCalendarError(
+          "The calendar could not be opened right now."
+        );
+
+        setLoadingCalendar(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    session.user.id,
+    year,
+    month,
+  ]);
+
   const firstWeekday = new Date(
     year,
     month,
@@ -4179,13 +4239,26 @@ function CalendarScreen() {
     return `${y}-${m}-${d}`;
   };
 
+  const itemDateKey = (
+    item: DiarioItem
+  ) => {
+    if (!item.event_at) {
+      return null;
+    }
+
+    return dateKey(
+      new Date(item.event_at)
+    );
+  };
+
   const selectedKey =
     dateKey(selectedDate);
 
   const selectedItems =
     calendarItems.filter(
       (item) =>
-        item.date === selectedKey
+        itemDateKey(item) ===
+        selectedKey
     );
 
   const isSameDay = (
