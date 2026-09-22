@@ -36,15 +36,19 @@ import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import {
   addItemToMemory,
   addPhotoToGalleryAlbum,
-   createDate,
+  createClothing,
+  createDate,
   createGalleryAlbum,
   createKeepsake,
   createLetter,
+  createLook,
   createMemory,
   getCalendarItems,
   getDates,
   getDiaryPages,
   getKeepsakes,
+  getLooks,
+  getWardrobeItems,
   getGalleryAlbumPhotoIds,
   getGalleryAlbums,
   getGalleryPhotos,
@@ -2417,52 +2421,206 @@ function GalleryScreen() {
   );
 }
 function WardrobeScreen() {
-  const [wardrobeOwner, setWardrobeOwner] = useState<
-    "mine" | "dominic"
-  >("mine");
+  const { session } = usePrivateDiario();
 
-  const [wardrobeView, setWardrobeView] = useState<
-    "closet" | "looks"
-  >("closet");
+  const [wardrobeOwner, setWardrobeOwner] =
+    useState<
+      "mine" | "dominic"
+    >("mine");
 
-  const wardrobeItems: Array<{
-    id: string;
-    owner: "mine" | "dominic";
-    name: string;
-    category:
-      | "top"
-      | "bottom"
-      | "dress"
-      | "outerwear"
-      | "shoes"
-      | "accessory";
-    imageUrl?: string;
-    acquiredAt?: string;
-    note?: string;
-  }> = [];
+  const [wardrobeView, setWardrobeView] =
+    useState<
+      "closet" | "looks"
+    >("closet");
 
-  const savedLooks: Array<{
-    id: string;
-    owner: "mine" | "dominic";
-    name: string;
-    itemIds: string[];
-    imageUrl?: string;
-    keptAt: string;
-    dateId?: string;
-    note?: string;
-  }> = [];
+  const [wardrobeItems, setWardrobeItems] =
+    useState<DiarioItem[]>([]);
+
+  const [savedLooks, setSavedLooks] =
+    useState<DiarioItem[]>([]);
+
+  const [loadingWardrobe, setLoadingWardrobe] =
+    useState(true);
+
+  const [wardrobeError, setWardrobeError] =
+    useState<string | null>(null);
+
+  const [addingClothing, setAddingClothing] =
+    useState(false);
+
+  const [addingLook, setAddingLook] =
+    useState(false);
+
+  const [clothingName, setClothingName] =
+    useState("");
+
+  const [clothingCategory, setClothingCategory] =
+    useState("top");
+
+  const [clothingNote, setClothingNote] =
+    useState("");
+
+  const [lookName, setLookName] =
+    useState("");
+
+  const [lookNote, setLookNote] =
+    useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    setLoadingWardrobe(true);
+    setWardrobeError(null);
+
+    Promise.all([
+      getWardrobeItems(
+        session.user.id
+      ),
+      getLooks(
+        session.user.id
+      ),
+    ])
+      .then(
+        ([
+          loadedClothing,
+          loadedLooks,
+        ]) => {
+          if (!active) return;
+
+          setWardrobeItems(
+            loadedClothing
+          );
+
+          setSavedLooks(
+            loadedLooks
+          );
+
+          setLoadingWardrobe(
+            false
+          );
+        }
+      )
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Wardrobe:",
+          loadError
+        );
+
+        setWardrobeError(
+          "The wardrobe could not be opened."
+        );
+
+        setLoadingWardrobe(
+          false
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const dbOwner =
+    wardrobeOwner === "mine"
+      ? "alloah"
+      : "dominic";
 
   const visibleItems =
     wardrobeItems.filter(
       (item) =>
-        item.owner === wardrobeOwner
+        item.owner === dbOwner
     );
 
   const visibleLooks =
     savedLooks.filter(
       (look) =>
-        look.owner === wardrobeOwner
+        look.owner === dbOwner
     );
+
+  const saveClothing = async () => {
+    if (!clothingName.trim()) {
+      return;
+    }
+
+    setWardrobeError(null);
+
+    try {
+      const savedItem =
+        await createClothing({
+          userId: session.user.id,
+          owner: dbOwner,
+          title: clothingName,
+          category:
+            clothingCategory,
+          note:
+            clothingNote,
+        });
+
+      setWardrobeItems(
+        (currentItems) => [
+          savedItem,
+          ...currentItems,
+        ]
+      );
+
+      setClothingName("");
+      setClothingCategory(
+        "top"
+      );
+      setClothingNote("");
+      setAddingClothing(false);
+    } catch (saveError) {
+      console.error(
+        "Could not save clothing:",
+        saveError
+      );
+
+      setWardrobeError(
+        "The clothing item could not be saved."
+      );
+    }
+  };
+
+  const saveLook = async () => {
+    if (!lookName.trim()) {
+      return;
+    }
+
+    setWardrobeError(null);
+
+    try {
+      const savedLook =
+        await createLook({
+          userId: session.user.id,
+          owner: dbOwner,
+          title: lookName,
+          note:
+            lookNote,
+        });
+
+      setSavedLooks(
+        (currentLooks) => [
+          savedLook,
+          ...currentLooks,
+        ]
+      );
+
+      setLookName("");
+      setLookNote("");
+      setAddingLook(false);
+    } catch (saveError) {
+      console.error(
+        "Could not save look:",
+        saveError
+      );
+
+      setWardrobeError(
+        "The look could not be saved."
+      );
+    }
+  };
 
   return (
     <section className="wardrobe-screen wardrobe-live">
@@ -2512,7 +2670,9 @@ function WardrobeScreen() {
               : ""
           }
           onClick={() =>
-            setWardrobeOwner("dominic")
+            setWardrobeOwner(
+              "dominic"
+            )
           }
         >
           Dominic
@@ -2536,7 +2696,9 @@ function WardrobeScreen() {
               : ""
           }
           onClick={() =>
-            setWardrobeView("closet")
+            setWardrobeView(
+              "closet"
+            )
           }
         >
           Closet
@@ -2554,14 +2716,23 @@ function WardrobeScreen() {
               : ""
           }
           onClick={() =>
-            setWardrobeView("looks")
+            setWardrobeView(
+              "looks"
+            )
           }
         >
           Looks
         </button>
       </div>
 
-      {wardrobeView === "closet" && (
+      {loadingWardrobe ? (
+        <section className="wardrobe-empty">
+          <p>
+            Opening the wardrobe…
+          </p>
+        </section>
+      ) : wardrobeView ===
+        "closet" ? (
         <section className="wardrobe-closet">
           <header>
             <div>
@@ -2570,18 +2741,127 @@ function WardrobeScreen() {
               </span>
 
               <strong>
-                {wardrobeOwner === "mine"
+                {wardrobeOwner ===
+                "mine"
                   ? "My clothes"
                   : "Dominic's clothes"}
               </strong>
             </div>
 
             <small>
-              {visibleItems.length} items
+              {visibleItems.length}{" "}
+              {visibleItems.length ===
+              1
+                ? "item"
+                : "items"}
             </small>
           </header>
 
-          {visibleItems.length === 0 ? (
+          {addingClothing ? (
+            <div className="wardrobe-empty">
+              <small>
+                new clothing
+              </small>
+
+              <h2>
+                Add clothing
+              </h2>
+
+              <input
+                type="text"
+                value={clothingName}
+                onChange={(event) =>
+                  setClothingName(
+                    event.target.value
+                  )
+                }
+                placeholder="Name"
+                autoFocus
+              />
+
+              <select
+                value={
+                  clothingCategory
+                }
+                onChange={(event) =>
+                  setClothingCategory(
+                    event.target.value
+                  )
+                }
+              >
+                <option value="top">
+                  Top
+                </option>
+
+                <option value="bottom">
+                  Bottom
+                </option>
+
+                <option value="dress">
+                  Dress
+                </option>
+
+                <option value="outerwear">
+                  Outerwear
+                </option>
+
+                <option value="shoes">
+                  Shoes
+                </option>
+
+                <option value="accessory">
+                  Accessory
+                </option>
+
+                <option value="other">
+                  Other
+                </option>
+              </select>
+
+              <textarea
+                value={clothingNote}
+                onChange={(event) =>
+                  setClothingNote(
+                    event.target.value
+                  )
+                }
+                placeholder="A note about it…"
+                rows={4}
+              />
+
+              <div className="diary-editor-actions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddingClothing(
+                      false
+                    );
+                    setClothingName("");
+                    setClothingCategory(
+                      "top"
+                    );
+                    setClothingNote("");
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="wardrobe-add-button"
+                  disabled={
+                    !clothingName.trim()
+                  }
+                  onClick={
+                    saveClothing
+                  }
+                >
+                  Save clothing
+                </button>
+              </div>
+            </div>
+          ) : visibleItems.length ===
+            0 ? (
             <div className="wardrobe-empty">
               <div
                 className="wardrobe-empty-icon"
@@ -2602,14 +2882,18 @@ function WardrobeScreen() {
               </h2>
 
               <p>
-                Real clothes can be added here
-                over time. References do not
-                automatically become owned items.
+                Real clothes can be added
+                here over time.
               </p>
 
               <button
                 type="button"
                 className="wardrobe-add-button"
+                onClick={() =>
+                  setAddingClothing(
+                    true
+                  )
+                }
               >
                 <span aria-hidden="true">
                   ＋
@@ -2619,51 +2903,77 @@ function WardrobeScreen() {
               </button>
             </div>
           ) : (
-            <div className="wardrobe-item-grid">
-              {visibleItems.map(
-                (item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="wardrobe-item"
-                  >
-                    <div
-                      className="wardrobe-item-image"
-                      aria-hidden={
-                        !item.imageUrl
-                      }
-                    >
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt=""
-                        />
-                      ) : (
-                        <Shirt
-                          size={23}
-                          strokeWidth={1.25}
-                        />
-                      )}
-                    </div>
+            <>
+              <div className="wardrobe-item-grid">
+                {visibleItems.map(
+                  (item) => {
+                    const category =
+                      typeof item.data
+                        ?.category ===
+                      "string"
+                        ? item.data
+                            .category
+                        : "other";
 
-                    <span>
-                      <strong>
-                        {item.name}
-                      </strong>
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className="wardrobe-item"
+                      >
+                        <div
+                          className="wardrobe-item-image"
+                          aria-hidden="true"
+                        >
+                          <Shirt
+                            size={23}
+                            strokeWidth={
+                              1.25
+                            }
+                          />
+                        </div>
 
-                      <small>
-                        {item.category}
-                      </small>
-                    </span>
-                  </button>
-                )
-              )}
-            </div>
+                        <span>
+                          <strong>
+                            {item.title ??
+                              "Untitled"}
+                          </strong>
+
+                          <small>
+                            {category}
+                          </small>
+
+                          {item.body && (
+                            <small>
+                              {item.body}
+                            </small>
+                          )}
+                        </span>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+
+              <button
+                type="button"
+                className="wardrobe-add-button"
+                onClick={() =>
+                  setAddingClothing(
+                    true
+                  )
+                }
+              >
+                <span aria-hidden="true">
+                  ＋
+                </span>
+
+                Add clothing
+              </button>
+            </>
           )}
         </section>
-      )}
-
-      {wardrobeView === "looks" && (
+      ) : (
         <section className="wardrobe-looks">
           <header>
             <div>
@@ -2672,18 +2982,85 @@ function WardrobeScreen() {
               </span>
 
               <strong>
-                {wardrobeOwner === "mine"
+                {wardrobeOwner ===
+                "mine"
                   ? "My looks"
                   : "Dominic's looks"}
               </strong>
             </div>
 
             <small>
-              {visibleLooks.length} looks
+              {visibleLooks.length}{" "}
+              {visibleLooks.length ===
+              1
+                ? "look"
+                : "looks"}
             </small>
           </header>
 
-          {visibleLooks.length === 0 ? (
+          {addingLook ? (
+            <div className="wardrobe-look-empty">
+              <small>
+                new look
+              </small>
+
+              <h2>
+                Keep a look
+              </h2>
+
+              <input
+                type="text"
+                value={lookName}
+                onChange={(event) =>
+                  setLookName(
+                    event.target.value
+                  )
+                }
+                placeholder="Look name"
+                autoFocus
+              />
+
+              <textarea
+                value={lookNote}
+                onChange={(event) =>
+                  setLookNote(
+                    event.target.value
+                  )
+                }
+                placeholder="What is this look for?"
+                rows={4}
+              />
+
+              <div className="diary-editor-actions">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddingLook(
+                      false
+                    );
+                    setLookName("");
+                    setLookNote("");
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="wardrobe-create-look"
+                  disabled={
+                    !lookName.trim()
+                  }
+                  onClick={
+                    saveLook
+                  }
+                >
+                  Keep look
+                </button>
+              </div>
+            </div>
+          ) : visibleLooks.length ===
+            0 ? (
             <div className="wardrobe-look-empty">
               <ImageIcon
                 size={24}
@@ -2695,56 +3072,86 @@ function WardrobeScreen() {
               </p>
 
               <small>
-                A generated or assembled look
-                only becomes part of the world
-                after you choose to keep it.
+                A look only becomes part
+                of the world after you
+                choose to keep it.
               </small>
+
+              <button
+                type="button"
+                className="wardrobe-create-look"
+                onClick={() =>
+                  setAddingLook(
+                    true
+                  )
+                }
+              >
+                <span aria-hidden="true">
+                  ＋
+                </span>
+
+                Create a look
+              </button>
             </div>
           ) : (
-            <div className="wardrobe-look-list">
-              {visibleLooks.map(
-                (look) => (
-                  <button
-                    key={look.id}
-                    type="button"
-                    className="wardrobe-look"
-                  >
-                    <div>
-                      <span>
-                        saved look
-                      </span>
+            <>
+              <div className="wardrobe-look-list">
+                {visibleLooks.map(
+                  (look) => (
+                    <button
+                      key={look.id}
+                      type="button"
+                      className="wardrobe-look"
+                    >
+                      <div>
+                        <span>
+                          saved look
+                        </span>
 
-                      <strong>
-                        {look.name}
-                      </strong>
+                        <strong>
+                          {look.title ??
+                            "Untitled look"}
+                        </strong>
 
-                      {look.note && (
-                        <small>
-                          {look.note}
-                        </small>
-                      )}
-                    </div>
+                        {look.body && (
+                          <small>
+                            {look.body}
+                          </small>
+                        )}
+                      </div>
 
-                    <ChevronRight
-                      size={17}
-                    />
-                  </button>
-                )
-              )}
-            </div>
+                      <ChevronRight
+                        size={17}
+                      />
+                    </button>
+                  )
+                )}
+              </div>
+
+              <button
+                type="button"
+                className="wardrobe-create-look"
+                onClick={() =>
+                  setAddingLook(
+                    true
+                  )
+                }
+              >
+                <span aria-hidden="true">
+                  ＋
+                </span>
+
+                Create a look
+              </button>
+            </>
           )}
-
-          <button
-            type="button"
-            className="wardrobe-create-look"
-          >
-            <span aria-hidden="true">
-              ＋
-            </span>
-
-            Create a look
-          </button>
         </section>
+      )}
+
+      {wardrobeError && (
+        <p role="alert">
+          {wardrobeError}
+        </p>
       )}
 
       <section className="wardrobe-date-link">
@@ -2759,10 +3166,9 @@ function WardrobeScreen() {
           </strong>
 
           <p>
-            A saved look can be attached
-            to a planned Date and later
-            remain connected to the real
-            day that happened.
+            A saved look can later be attached
+            to a planned Date without duplicating
+            the clothing it refers to.
           </p>
         </div>
       </section>
@@ -2771,9 +3177,7 @@ function WardrobeScreen() {
         <p>
           Clothes are owned items. Looks are
           combinations or references. Keeping a
-          look never creates duplicate clothing,
-          and nothing becomes relationship history
-          until it is actually used in the world.
+          look never creates duplicate clothing.
         </p>
       </section>
     </section>
