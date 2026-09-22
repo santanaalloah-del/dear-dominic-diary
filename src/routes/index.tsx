@@ -8091,11 +8091,6 @@ const [
     };
    }, [session.user.id]);
 
-  return () => {
-  active = false;
-};
-}, [session.user.id]);
-
 useEffect(() => {
   let active = true;
 
