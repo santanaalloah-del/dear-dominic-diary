@@ -4714,10 +4714,122 @@ function MemoriesScreen() {
             </p>
           )}
 
-          {loadingMemoryItems ? (
+             {loadingMemoryItems ? (
             <p>
               Opening memory…
             </p>
+          ) : editingMemoryItems ? (
+            <section className="memory-source-list">
+              <button
+                type="button"
+                onClick={() =>
+                  setEditingMemoryItems(
+                    false
+                  )
+                }
+              >
+                Done
+              </button>
+
+              {memoryChoices.length === 0 ? (
+                <p>
+                  No photos or letters available yet.
+                </p>
+              ) : (
+                memoryChoices.map(
+                  (item) => {
+                    const isConnected =
+                      memoryItemIds.includes(
+                        item.id
+                      );
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={async () => {
+                          if (!selectedMemory) {
+                            return;
+                          }
+
+                          setMemoryError(null);
+
+                          try {
+                            if (isConnected) {
+                              await removeItemFromMemory({
+                                userId:
+                                  session.user.id,
+                                memoryId:
+                                  selectedMemory.id,
+                                itemId:
+                                  item.id,
+                              });
+
+                              setMemoryItemIds(
+                                (currentIds) =>
+                                  currentIds.filter(
+                                    (id) =>
+                                      id !==
+                                      item.id
+                                  )
+                              );
+                            } else {
+                              await addItemToMemory({
+                                userId:
+                                  session.user.id,
+                                memoryId:
+                                  selectedMemory.id,
+                                itemId:
+                                  item.id,
+                              });
+
+                              setMemoryItemIds(
+                                (currentIds) => [
+                                  ...currentIds,
+                                  item.id,
+                                ]
+                              );
+                            }
+                          } catch (
+                            updateError
+                          ) {
+                            console.error(
+                              "Could not update Memory:",
+                              updateError
+                            );
+
+                            setMemoryError(
+                              "The memory could not be updated."
+                            );
+                          }
+                        }}
+                      >
+                        <span>
+                          {item.kind ===
+                          "photo"
+                            ? "Photo"
+                            : "Letter"}
+                        </span>
+
+                        <strong>
+                          {item.title ??
+                            (item.kind ===
+                            "photo"
+                              ? "Photo"
+                              : "Untitled letter")}
+                        </strong>
+
+                        <small>
+                          {isConnected
+                            ? "Remove"
+                            : "Add"}
+                        </small>
+                      </button>
+                    );
+                  }
+                )
+              )}
+            </section>
           ) : (
             <>
               <p>
@@ -4733,10 +4845,8 @@ function MemoriesScreen() {
               <button
                 type="button"
                 className="gallery-add-button"
-                onClick={() =>
-                  setEditingMemoryItems(
-                    true
-                  )
+                onClick={
+                  startEditingMemoryItems
                 }
               >
                 ＋ Add photos or letters
