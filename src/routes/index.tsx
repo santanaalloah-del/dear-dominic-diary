@@ -521,14 +521,23 @@ const [addingFurniture, setAddingFurniture] =
     (item) => item.data?.location === "stored"
   );
   
-const [newImageFile, setNewImageFile] =
-  useState<File | null>(null);
+  const handleFurnitureImage = (
+  event: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = event.target.files?.[0];
 
-const [newImagePreview, setNewImagePreview] =
-  useState("");
+  if (!file) return;
 
-const [addingFurniture, setAddingFurniture] =
-  useState(false);
+  setNewImageFile(file);
+
+  if (newImagePreview) {
+    URL.revokeObjectURL(newImagePreview);
+  }
+
+  setNewImagePreview(
+    URL.createObjectURL(file)
+  );
+};
 const addFurniture = async () => {
   if (
     !session?.user?.id ||
