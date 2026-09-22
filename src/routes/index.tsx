@@ -6640,46 +6640,58 @@ function MemoriesScreen() {
   const [memoryChoices, setMemoryChoices] =
     useState<DiarioItem[]>([]);
 
-  const startEditingMemoryItems = async () => {
-    if (!selectedMemory) {
-      return;
-    }
+  const [connectedMemoryItems, setConnectedMemoryItems] =
+  useState<DiarioItem[]>([]);
+  
+const startEditingMemoryItems = async () => {
+  if (!selectedMemory) {
+    return;
+  }
 
-    setMemoryError(null);
+  setMemoryError(null);
 
-    try {
-      const [
-        loadedPhotos,
-        loadedLetters,
-      ] = await Promise.all([
-        getGalleryPhotos(
-          session.user.id
-        ),
-        getLetters(
-          session.user.id
-        ),
-      ]);
+  try {
+    const [
+      loadedPhotos,
+      loadedLetters,
+      loadedSongs,
+      loadedDates,
+    ] = await Promise.all([
+      getGalleryPhotos(
+        session.user.id
+      ),
+      getLetters(
+        session.user.id
+      ),
+      getSongs(
+        session.user.id
+      ),
+      getDates(
+        session.user.id
+      ),
+    ]);
 
-      setMemoryChoices([
-        ...loadedPhotos.map(
-          (photo) => photo.item
-        ),
-        ...loadedLetters,
-      ]);
+    setMemoryChoices([
+      ...loadedPhotos.map(
+        (photo) => photo.item
+      ),
+      ...loadedLetters,
+      ...loadedSongs,
+      ...loadedDates,
+    ]);
 
-      setEditingMemoryItems(true);
-    } catch (loadError) {
-      console.error(
-        "Could not load Memory items:",
-        loadError
-      );
+    setEditingMemoryItems(true);
+  } catch (loadError) {
+    console.error(
+      "Could not load Memory items:",
+      loadError
+    );
 
-      setMemoryError(
-        "Photos and letters could not be opened."
-      );
-    }
-  };
-
+    setMemoryError(
+      "Photos, letters, music and dates could not be opened."
+    );
+  }
+};
   useEffect(() => {
     let active = true;
 
@@ -6748,35 +6760,74 @@ function MemoriesScreen() {
     }
   };
 
-  const openMemory = async (
-    memory: DiarioItem
-  ) => {
-    setSelectedMemory(memory);
-    setLoadingMemoryItems(true);
-    setEditingMemoryItems(false);
-    setMemoryError(null);
+const openMemory = async (
+  memory: DiarioItem
+) => {
+  setSelectedMemory(memory);
+  setLoadingMemoryItems(true);
+  setEditingMemoryItems(false);
+  setMemoryError(null);
+  setConnectedMemoryItems([]);
 
-    try {
-      const itemIds =
-        await getMemoryItemIds({
-          userId: session.user.id,
-          memoryId: memory.id,
-        });
+  try {
+    const [
+      itemIds,
+      loadedPhotos,
+      loadedLetters,
+      loadedSongs,
+      loadedDates,
+    ] = await Promise.all([
+      getMemoryItemIds({
+        userId: session.user.id,
+        memoryId: memory.id,
+      }),
 
-      setMemoryItemIds(itemIds);
-    } catch (openError) {
-      console.error(
-        "Could not open Memory:",
-        openError
-      );
+      getGalleryPhotos(
+        session.user.id
+      ),
 
-      setMemoryError(
-        "The memory could not be opened."
-      );
-    } finally {
-      setLoadingMemoryItems(false);
-    }
-  };
+      getLetters(
+        session.user.id
+      ),
+
+      getSongs(
+        session.user.id
+      ),
+
+      getDates(
+        session.user.id
+      ),
+    ]);
+
+    setMemoryItemIds(itemIds);
+
+    const allItems = [
+      ...loadedPhotos.map(
+        (photo) => photo.item
+      ),
+      ...loadedLetters,
+      ...loadedSongs,
+      ...loadedDates,
+    ];
+
+    setConnectedMemoryItems(
+      allItems.filter((item) =>
+        itemIds.includes(item.id)
+      )
+    );
+  } catch (openError) {
+    console.error(
+      "Could not open Memory:",
+      openError
+    );
+
+    setMemoryError(
+      "The memory could not be opened."
+    );
+  } finally {
+    setLoadingMemoryItems(false);
+  }
+};
 
   const filters = [
     { id: "all", label: "All" },
@@ -6831,11 +6882,12 @@ function MemoriesScreen() {
         <section className="memories-empty">
           <button
             type="button"
-            onClick={() => {
-              setSelectedMemory(null);
-              setMemoryItemIds([]);
-              setEditingMemoryItems(false);
-            }}
+           onClick={() => {
+  setSelectedMemory(null);
+  setMemoryItemIds([]);
+  setConnectedMemoryItems([]);
+  setEditingMemoryItems(false);
+}}
           >
             ← Back to memories
           </button>
@@ -6931,6 +6983,14 @@ function MemoriesScreen() {
                                       item.id
                                   )
                               );
+                              setConnectedMemoryItems(
+  (currentItems) =>
+    currentItems.filter(
+      (currentItem) =>
+        currentItem.id !==
+        item.id
+    )
+);
                             } else {
                               await addItemToMemory({
                                 userId:
@@ -6947,6 +7007,12 @@ function MemoriesScreen() {
                                   item.id,
                                 ]
                               );
+                              setConnectedMemoryItems(
+  (currentItems) => [
+    ...currentItems,
+    item,
+  ]
+);
                             }
                           } catch (
                             updateError
@@ -6962,20 +7028,30 @@ function MemoriesScreen() {
                           }
                         }}
                       >
-                        <span>
-                          {item.kind ===
-                          "photo"
-                            ? "Photo"
-                            : "Letter"}
-                        </span>
+                    <span>
+  {item.kind === "photo"
+    ? "Photo"
+    : item.kind === "letter"
+      ? "Letter"
+      : item.kind === "song"
+        ? "Music"
+        : item.kind === "date"
+          ? "Date"
+          : "Item"}
+</span>
 
                         <strong>
-                          {item.title ??
-                            (item.kind ===
-                            "photo"
-                              ? "Photo"
-                              : "Untitled letter")}
-                        </strong>
+  {item.title ??
+    (item.kind === "photo"
+      ? "Photo"
+      : item.kind === "letter"
+        ? "Untitled letter"
+        : item.kind === "song"
+          ? "Untitled song"
+          : item.kind === "date"
+            ? "Untitled date"
+            : "Untitled item")}
+</strong>
 
                         <small>
                           {isConnected
@@ -6988,29 +7064,88 @@ function MemoriesScreen() {
                 )
               )}
             </section>
-          ) : (
-            <>
-              <p>
-                {memoryItemIds.length === 0
-                  ? "Nothing is connected to this memory yet."
-                  : `${memoryItemIds.length} connected ${
-                      memoryItemIds.length === 1
-                        ? "item"
-                        : "items"
-                    }`}
-              </p>
+        ) : (
+  <>
+    {connectedMemoryItems.length === 0 ? (
+      <p>
+        Nothing is connected to this memory yet.
+      </p>
+    ) : (
+      <div className="memory-connected-items">
+        {connectedMemoryItems.map(
+          (item) => (
+            <article
+              key={item.id}
+              className={`memory-connected-item memory-kind-${item.kind}`}
+            >
+              <small>
+                {item.kind === "photo"
+                  ? "Photo"
+                  : item.kind === "letter"
+                    ? "Letter"
+                    : item.kind === "song"
+                      ? "Music"
+                      : item.kind === "date"
+                        ? "Date"
+                        : "Memory item"}
+              </small>
 
-              <button
-                type="button"
-                className="gallery-add-button"
-                onClick={
-                  startEditingMemoryItems
-                }
-              >
-                ＋ Add photos or letters
-              </button>
-            </>
-          )}
+              <strong>
+                {item.title ??
+                  (item.kind === "photo"
+                    ? "Photo"
+                    : item.kind === "letter"
+                      ? "Untitled letter"
+                      : item.kind === "song"
+                        ? "Untitled song"
+                        : item.kind === "date"
+                          ? "Untitled date"
+                          : "Untitled item")}
+              </strong>
+
+              {item.body && (
+                <p>
+                  {item.body}
+                </p>
+              )}
+
+              {item.event_at && (
+                <time
+                  dateTime={
+                    item.event_at
+                  }
+                >
+                  {new Intl.DateTimeFormat(
+                    "en-US",
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    }
+                  ).format(
+                    new Date(
+                      item.event_at
+                    )
+                  )}
+                </time>
+              )}
+            </article>
+          )
+        )}
+      </div>
+    )}
+
+    <button
+      type="button"
+      className="gallery-add-button"
+      onClick={
+        startEditingMemoryItems
+      }
+    >
+      ＋ Add or remove items
+    </button>
+  </>
+)}
         </section>
       ) : creatingMemory ? (
         <section className="memories-empty">
