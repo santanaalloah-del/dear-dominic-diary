@@ -4540,20 +4540,10 @@ function MemoriesScreen() {
     { id: "dates", label: "Dates" },
   ] as const;
 
-  const memories: Array<{
-    id: string;
-    date: string;
-    title: string;
-    note: string;
-    kind: "photos" | "letters" | "music" | "dates";
-  }> = [];
-
   const visibleMemories =
     memoryFilter === "all"
       ? memories
-      : memories.filter(
-          (memory) => memory.kind === memoryFilter
-        );
+      : [];
 
   return (
     <section className="memories-screen memories-live">
