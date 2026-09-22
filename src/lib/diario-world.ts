@@ -196,11 +196,56 @@ export async function createLetter({
       body: cleanBody,
       event_at:
         new Date().toISOString(),
+     data: {
+  state: "written",
+  opened:
+    owner === "alloah",
+},
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+export async function openLetter({
+  userId,
+  letterId,
+}: {
+  userId: string;
+  letterId: string;
+}): Promise<DiarioItem> {
+  const {
+    data: current,
+    error: currentError,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", letterId)
+    .eq("kind", "letter")
+    .single();
+
+  if (currentError) {
+    throw currentError;
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
       data: {
-        state: "written",
+        ...(current.data ?? {}),
         opened: true,
       },
     })
+    .eq("user_id", userId)
+    .eq("id", letterId)
     .select("*")
     .single();
 
