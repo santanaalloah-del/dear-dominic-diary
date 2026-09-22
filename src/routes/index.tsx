@@ -8138,6 +8138,37 @@ useEffect(() => {
     }
   }, [appearance]);
 
+  const handleSpotifyConnect =
+  async () => {
+    setSpotifyConnecting(true);
+    setSpotifyError(null);
+
+    try {
+      await connectSpotify();
+    } catch (error) {
+      console.error(
+        "Could not start Spotify connection:",
+        error
+      );
+
+      setSpotifyError(
+        "Spotify login could not be started."
+      );
+
+      setSpotifyConnecting(false);
+    }
+  };
+
+const handleSpotifyDisconnect =
+  () => {
+    disconnectSpotify();
+
+    setSpotifyConnected(false);
+    setMusicIntegration(false);
+    setSettingsSaved(false);
+    setSpotifyError(null);
+  };
+  
   const saveSettings = async () => {
     setSavingSettings(true);
     setSettingsError(null);
