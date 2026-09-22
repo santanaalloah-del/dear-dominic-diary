@@ -68,6 +68,10 @@ saveDiaryPage,
   saveDiarioSettings,
   setGalleryPhotoFavorite,
   uploadGalleryPhoto,
+  getHomeObjects,
+createHomeObject,
+updateHomeObjectPlacement,
+storeHomeObject,
   type DiarioItem,
   type GalleryPhoto,
 } from "@/lib/diario-world";
@@ -446,38 +450,113 @@ function RoomScreen({
   onOpen: (screen: Screen) => void;
   onOpenRoom: (roomId: string) => void;
 }) {
+  const { session } = usePrivateDiario();
+
+  const [homeObjects, setHomeObjects] = useState<DiarioItem[]>([]);
+  const [loadingObjects, setLoadingObjects] = useState(true);
+
   const rooms = {
     living: {
       label: "Living Room",
-      caption:
-        "architecture first · furniture comes later",
+      image: livingRoomEmpty,
+      caption: "our living room · empty for now",
     },
     bedroom: {
       label: "Bedroom",
-      caption:
-        "architecture first · furniture comes later",
+      image: bedroomEmpty,
+      caption: "our bedroom · empty for now",
     },
     kitchen: {
       label: "Kitchen",
-      caption:
-        "architecture first · furniture comes later",
+      image: kitchenEmpty,
+      caption: "our kitchen · empty for now",
     },
     bathroom: {
       label: "Bathroom",
-      caption:
-        "architecture first · furniture comes later",
+      image: bathroomEmpty,
+      caption: "our bathroom · empty for now",
     },
     hall: {
       label: "Hall",
-      caption:
-        "architecture first · furniture comes later",
+      image: hallEmpty,
+      caption: "our hallway · empty for now",
     },
   };
 
   const room =
-    rooms[
-      roomId as keyof typeof rooms
-    ] ?? rooms.living;
+    rooms[roomId as keyof typeof rooms] ?? rooms.living;
+
+  const loadObjects = async () => {
+    if (!session?.user?.id) return;
+
+    try {
+      setLoadingObjects(true);
+
+      const objects = await getHomeObjects(
+        session.user.id
+      );
+
+      setHomeObjects(objects);
+    } finally {
+      setLoadingObjects(false);
+    }
+  };
+
+  useEffect(() => {
+    loadObjects();
+  }, [session?.user?.id]);
+
+  const displayedObjects = homeObjects.filter(
+    (item) =>
+      item.data?.room === roomId &&
+      item.data?.location === "displayed"
+  );
+
+  const addTestSofa = async () => {
+    if (!session?.user?.id) return;
+
+    await createHomeObject({
+      userId: session.user.id,
+      name: "Vintage sofa",
+      room: "living",
+      location: "displayed",
+      x: 50,
+      y: 70,
+    });
+
+    await loadObjects();
+  };
+
+  const moveObject = async (
+    item: DiarioItem,
+    x: number,
+    y: number
+  ) => {
+    if (!session?.user?.id) return;
+
+    await updateHomeObjectPlacement({
+      userId: session.user.id,
+      objectId: item.id,
+      room: roomId,
+      x,
+      y,
+    });
+
+    await loadObjects();
+  };
+
+  const storeObject = async (
+    item: DiarioItem
+  ) => {
+    if (!session?.user?.id) return;
+
+    await storeHomeObject({
+      userId: session.user.id,
+      objectId: item.id,
+    });
+
+    await loadObjects();
+  };
 
   return (
     <section className="room-screen apartment-screen">
@@ -490,40 +569,108 @@ function RoomScreen({
         </p>
       </ScreenIntro>
 
-<section className="room-view-stage">
-  <img
-    className="room-view-image"
-    src={
-      roomId === "living"
-        ? livingRoomEmpty
-        : roomId === "bedroom"
-          ? bedroomEmpty
-          : roomId === "kitchen"
-            ? kitchenEmpty
-            : roomId === "bathroom"
-              ? bathroomEmpty
-              : hallEmpty
-    }
-    alt={`Empty ${room.label}`}
-  />
-</section>
+      <section className="room-view-stage">
+        <img
+          className="room-view-image"
+          src={room.image}
+          alt={`Empty ${room.label}`}
+        />
 
-      <section className="room-empty-state">
-        <small>
-          starting state
-        </small>
+        {displayedObjects.map((item) => {
+          const x = Number(item.data?.x ?? 50);
+          const y = Number(item.data?.y ?? 70);
 
-        <h2>
-          This room is still empty.
-        </h2>
+          return (
+            <div
+              key={item.id}
+              className="home-object-test"
+              style={{
+                left: `${x}%`,
+                top: `${y}%`,
+              }}
+            >
+              <strong>
+                {item.title ?? "Vintage sofa"}
+              </strong>
 
-        <p>
-          No furniture or decoration exists
-          here yet. Everything movable will
-          only appear after you explicitly
-          add or keep it.
-        </p>
+              <div className="home-object-test-controls">
+                <button
+                  type="button"
+                  onClick={() =>
+                    moveObject(
+                      item,
+                      Math.max(0, x - 5),
+                      y
+                    )
+                  }
+                >
+                  ←
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    moveObject(
+                      item,
+                      Math.min(100, x + 5),
+                      y
+                    )
+                  }
+                >
+                  →
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    moveObject(
+                      item,
+                      x,
+                      Math.max(0, y - 5)
+                    )
+                  }
+                >
+                  ↑
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    moveObject(
+                      item,
+                      x,
+                      Math.min(100, y + 5)
+                    )
+                  }
+                >
+                  ↓
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  storeObject(item)
+                }
+              >
+                Store
+              </button>
+            </div>
+          );
+        })}
       </section>
+
+      {roomId === "living" &&
+        !loadingObjects &&
+        displayedObjects.length === 0 && (
+          <button
+            type="button"
+            className="add-test-sofa"
+            onClick={addTestSofa}
+          >
+            + Add test sofa
+          </button>
+        )}
 
       <nav
         className="room-navigation"
