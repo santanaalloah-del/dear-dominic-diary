@@ -969,3 +969,149 @@ export async function createKeepsake({
 
   return data as DiarioItem;
 }
+type CreateClothingInput = {
+  userId: string;
+  owner: "alloah" | "dominic";
+  title: string;
+  category: string;
+  note?: string;
+};
+
+type CreateLookInput = {
+  userId: string;
+  owner: "alloah" | "dominic";
+  title: string;
+  note?: string;
+};
+
+export async function getWardrobeItems(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "clothing")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createClothing({
+  userId,
+  owner,
+  title,
+  category,
+  note,
+}: CreateClothingInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+
+  if (!cleanTitle) {
+    throw new Error(
+      "Clothing needs a name."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "clothing",
+      owner,
+      status: "active",
+      title: cleanTitle,
+      body:
+        note?.trim() || null,
+      event_at:
+        new Date().toISOString(),
+      data: {
+        category:
+          category.trim() || "other",
+      },
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
+export async function getLooks(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "look")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createLook({
+  userId,
+  owner,
+  title,
+  note,
+}: CreateLookInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+
+  if (!cleanTitle) {
+    throw new Error(
+      "A look needs a name."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "look",
+      owner,
+      status: "active",
+      title: cleanTitle,
+      body:
+        note?.trim() || null,
+      event_at:
+        new Date().toISOString(),
+      data: {},
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
