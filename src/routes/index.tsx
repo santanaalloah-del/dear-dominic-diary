@@ -4778,9 +4778,13 @@ function MemoriesScreen() {
         >
           {visibleMemories.map(
             (memory) => (
-              <article
+              <button
                 key={memory.id}
+                type="button"
                 className="memory-entry memory-story"
+                onClick={() =>
+                  openMemory(memory)
+                }
               >
                 <span className="memory-timeline-dot" />
 
@@ -4813,7 +4817,7 @@ function MemoriesScreen() {
                     </p>
                   )}
                 </div>
-              </article>
+              </button>
             )
           )}
         </div>
