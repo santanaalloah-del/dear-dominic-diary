@@ -397,3 +397,36 @@ export async function getGalleryPhotos(
       photo !== null
   );
 }
+export async function setGalleryPhotoFavorite({
+  userId,
+  photo,
+  favorite,
+}: {
+  userId: string;
+  photo: DiarioItem;
+  favorite: boolean;
+}): Promise<DiarioItem> {
+  const nextData = {
+    ...(photo.data ?? {}),
+    favorite,
+  };
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: nextData,
+    })
+    .eq("id", photo.id)
+    .eq("user_id", userId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
