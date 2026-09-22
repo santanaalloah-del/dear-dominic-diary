@@ -34,7 +34,9 @@ import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import {
+  createLetter,
   getDiaryPages,
+  getLetters,
   getLocalDateKey,
   saveDiaryPage,
   type DiarioItem,
@@ -1102,7 +1104,115 @@ function DiaryScreen() {
   );
 }
 function LettersScreen() {
-  const [letterView, setLetterView] = useState<"all" | "mine" | "dominic">("all");
+  const { session } = usePrivateDiario();
+
+  const [letterView, setLetterView] =
+    useState<"all" | "mine" | "dominic">("all");
+
+  const [letters, setLetters] =
+    useState<DiarioItem[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [writing, setWriting] =
+    useState(false);
+
+  const [title, setTitle] =
+    useState("");
+
+  const [body, setBody] =
+    useState("");
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    setLoading(true);
+    setError(null);
+
+    getLetters(session.user.id)
+      .then((loadedLetters) => {
+        if (!active) return;
+
+        setLetters(loadedLetters);
+        setLoading(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load letters:",
+          loadError
+        );
+
+        setError(
+          "The letter drawer could not be opened right now."
+        );
+
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const visibleLetters =
+    letters.filter((letter) => {
+      if (letterView === "all") {
+        return true;
+      }
+
+      if (letterView === "mine") {
+        return letter.owner === "alloah";
+      }
+
+      return letter.owner === "dominic";
+    });
+
+  const saveLetter = async () => {
+    if (!body.trim()) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const savedLetter =
+        await createLetter({
+          userId: session.user.id,
+          owner: "alloah",
+          title,
+          body,
+        });
+
+      setLetters((currentLetters) => [
+        savedLetter,
+        ...currentLetters,
+      ]);
+
+      setTitle("");
+      setBody("");
+      setWriting(false);
+      setLetterView("all");
+    } catch (saveError) {
+      console.error(
+        "Could not save letter:",
+        saveError
+      );
+
+      setError(
+        "Your letter could not be saved. Try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <section className="letters-screen letters-live">
@@ -1123,9 +1233,17 @@ function LettersScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={letterView === "all"}
-          className={letterView === "all" ? "active" : ""}
-          onClick={() => setLetterView("all")}
+          aria-selected={
+            letterView === "all"
+          }
+          className={
+            letterView === "all"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setLetterView("all")
+          }
         >
           All
         </button>
@@ -1133,9 +1251,17 @@ function LettersScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={letterView === "mine"}
-          className={letterView === "mine" ? "active" : ""}
-          onClick={() => setLetterView("mine")}
+          aria-selected={
+            letterView === "mine"
+          }
+          className={
+            letterView === "mine"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setLetterView("mine")
+          }
         >
           From me
         </button>
@@ -1143,73 +1269,231 @@ function LettersScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={letterView === "dominic"}
-          className={letterView === "dominic" ? "active" : ""}
-          onClick={() => setLetterView("dominic")}
+          aria-selected={
+            letterView === "dominic"
+          }
+          className={
+            letterView === "dominic"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setLetterView("dominic")
+          }
         >
           From Dominic
         </button>
       </div>
 
-      <div className="letters-empty-stage">
-        <div
-          className="letters-empty-envelope"
-          aria-hidden="true"
-        >
-          <span className="letters-envelope-flap" />
+      {writing ? (
+        <section className="letters-empty-stage letters-editor">
+          <div className="letters-empty-copy">
+            <small>
+              new letter
+            </small>
 
-          <div className="letters-envelope-mark">
-            <Mail size={23} strokeWidth={1.35} />
-          </div>
-        </div>
-
-        <div className="letters-empty-copy">
-          <small>
-            letter box
-          </small>
-
-          <h2>
-            No letters here yet.
-          </h2>
-
-          <p>
-            When a letter is written, sent or received in the world, its real
-            envelope and contents can live here.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="letters-write-button"
-        >
-          <span aria-hidden="true">＋</span>
-          Write a letter
-        </button>
-      </div>
-
-      <section className="letters-drawer">
-        <header>
-          <div>
-            <span>
-              saved
-            </span>
-
-            <strong>
-              Letter drawer
-            </strong>
+            <h2>
+              Write a letter
+            </h2>
           </div>
 
-          <small>
-            0 letters
-          </small>
-        </header>
+          <input
+            type="text"
+            value={title}
+            onChange={(event) =>
+              setTitle(
+                event.target.value
+              )
+            }
+            placeholder="Title"
+          />
 
-        <div className="letters-drawer-empty">
+          <textarea
+            value={body}
+            onChange={(event) =>
+              setBody(
+                event.target.value
+              )
+            }
+            placeholder="Write your letter…"
+            rows={12}
+            autoFocus
+          />
+
+          <div className="diary-editor-actions">
+            <button
+              type="button"
+              onClick={() => {
+                setWriting(false);
+                setTitle("");
+                setBody("");
+                setError(null);
+              }}
+              disabled={saving}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="letters-write-button"
+              onClick={saveLetter}
+              disabled={
+                saving ||
+                !body.trim()
+              }
+            >
+              {saving
+                ? "Saving…"
+                : "Keep letter"}
+            </button>
+          </div>
+        </section>
+      ) : loading ? (
+        <section className="letters-empty-stage">
           <p>
-            Sealed, opened and kept letters will collect here over time.
+            Opening the letter drawer…
           </p>
+        </section>
+      ) : visibleLetters.length === 0 ? (
+        <div className="letters-empty-stage">
+          <div
+            className="letters-empty-envelope"
+            aria-hidden="true"
+          >
+            <span className="letters-envelope-flap" />
+
+            <div className="letters-envelope-mark">
+              <Mail
+                size={23}
+                strokeWidth={1.35}
+              />
+            </div>
+          </div>
+
+          <div className="letters-empty-copy">
+            <small>
+              letter box
+            </small>
+
+            <h2>
+              No letters here yet.
+            </h2>
+
+            <p>
+              {letterView === "dominic"
+                ? "Letters from Dominic will only appear here when he actually writes or sends one in the world."
+                : "Write something you want to keep. It becomes part of the letter drawer only after you save it."}
+            </p>
+          </div>
+
+          {letterView !== "dominic" && (
+            <button
+              type="button"
+              className="letters-write-button"
+              onClick={() =>
+                setWriting(true)
+              }
+            >
+              <span aria-hidden="true">
+                ＋
+              </span>
+              Write a letter
+            </button>
+          )}
         </div>
-      </section>
+      ) : (
+        <section className="letters-drawer letters-drawer-filled">
+          <header>
+            <div>
+              <span>
+                saved
+              </span>
+
+              <strong>
+                Letter drawer
+              </strong>
+            </div>
+
+            <small>
+              {visibleLetters.length}{" "}
+              {visibleLetters.length === 1
+                ? "letter"
+                : "letters"}
+            </small>
+          </header>
+
+          <div className="letters-saved-list">
+            {visibleLetters.map(
+              (letter) => (
+                <article
+                  key={letter.id}
+                  className="letters-saved-item"
+                >
+                  <small>
+                    {letter.owner === "alloah"
+                      ? "From Alloah"
+                      : "From Dominic"}
+                  </small>
+
+                  <strong>
+                    {letter.title ??
+                      "Untitled letter"}
+                  </strong>
+
+                  <p>
+                    {letter.body}
+                  </p>
+
+                  {letter.event_at && (
+                    <time
+                      dateTime={
+                        letter.event_at
+                      }
+                    >
+                      {new Intl.DateTimeFormat(
+                        "en",
+                        {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                          timeZone:
+                            "America/Sao_Paulo",
+                        }
+                      ).format(
+                        new Date(
+                          letter.event_at
+                        )
+                      )}
+                    </time>
+                  )}
+                </article>
+              )
+            )}
+          </div>
+
+          {letterView !== "dominic" && (
+            <button
+              type="button"
+              className="letters-write-button"
+              onClick={() =>
+                setWriting(true)
+              }
+            >
+              <span aria-hidden="true">
+                ＋
+              </span>
+              Write another letter
+            </button>
+          )}
+        </section>
+      )}
+
+      {error && (
+        <p role="alert">
+          {error}
+        </p>
+      )}
     </section>
   );
 }
