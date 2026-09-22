@@ -5991,3 +5991,80 @@ html[data-diario-appearance="dark"] .settings-static-row {
 .chat-search-result small{
   opacity:.55;
 }
+.letter-envelope-button{
+  width:100%;
+  display:grid;
+  grid-template-columns:64px 1fr;
+  gap:12px;
+  align-items:center;
+  border:0;
+  padding:12px;
+  text-align:left;
+  background:transparent;
+}
+
+.letter-envelope-visual{
+  position:relative;
+  height:46px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(90,50,45,.18);
+  border-radius:8px;
+  background:var(--paper);
+}
+
+.letter-envelope-flap{
+  position:absolute;
+  inset:0;
+  clip-path:polygon(
+    0 0,
+    50% 55%,
+    100% 0
+  );
+  background:rgba(120,75,65,.08);
+}
+
+.letter-envelope-copy{
+  min-width:0;
+}
+
+.letter-envelope-copy small,
+.letter-envelope-copy strong,
+.letter-envelope-copy span{
+  display:block;
+}
+
+.letter-envelope-copy strong{
+  margin:3px 0;
+}
+
+.letter-envelope-copy span{
+  font-size:11px;
+  opacity:.55;
+}
+
+.letter-open-content{
+  margin:0 12px 12px;
+  padding:16px;
+  border-radius:12px;
+  background:var(--paper);
+}
+
+.letter-open-content p{
+  white-space:pre-wrap;
+  margin:0 0 12px;
+  line-height:1.55;
+}
+
+.letter-open-content time{
+  font-size:11px;
+  opacity:.5;
+}
+
+.letters-saved-item.is-sealed{
+  opacity:.95;
+}
+
+.letters-saved-item.is-opened{
+  opacity:1;
+}
