@@ -430,3 +430,127 @@ export async function setGalleryPhotoFavorite({
 
   return data as DiarioItem;
 }
+type CreateGalleryAlbumInput = {
+  userId: string;
+  title: string;
+};
+
+export async function getGalleryAlbums(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "album")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createGalleryAlbum({
+  userId,
+  title,
+}: CreateGalleryAlbumInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+
+  if (!cleanTitle) {
+    throw new Error(
+      "An album needs a name."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "album",
+      owner: "alloah",
+      status: "active",
+      title: cleanTitle,
+      body: null,
+      event_at: null,
+      data: {},
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
+export async function addPhotoToGalleryAlbum({
+  userId,
+  albumId,
+  photoId,
+}: {
+  userId: string;
+  albumId: string;
+  photoId: string;
+}): Promise<void> {
+  const {
+    error,
+  } = await diarioSupabase
+    .from("diario_links")
+    .upsert(
+      {
+        user_id: userId,
+        source_item_id: albumId,
+        target_item_id: photoId,
+        relation: "contains",
+        data: {},
+      },
+      {
+        onConflict:
+          "user_id,source_item_id,target_item_id,relation",
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function getGalleryAlbumPhotoIds({
+  userId,
+  albumId,
+}: {
+  userId: string;
+  albumId: string;
+}): Promise<string[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_links")
+    .select("target_item_id")
+    .eq("user_id", userId)
+    .eq("source_item_id", albumId)
+    .eq("relation", "contains");
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map(
+    (link: {
+      target_item_id: string;
+    }) => link.target_item_id
+  );
+}
