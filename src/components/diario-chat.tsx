@@ -164,7 +164,16 @@ function voiceDuration(content: string) {
   return `0:${String(Math.min(seconds, 59)).padStart(2, "0")}`;
 }
 
-export function DiarioChat() {
+export function DiarioChat({
+  onOpen,
+}: {
+  onOpen: (
+    screen:
+      | "letters"
+      | "music"
+      | "dates"
+  ) => void;
+}) {
   const { session, preferredName } = usePrivateDiario();
   const time = useTimeMood();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -192,6 +201,15 @@ const photoInputRef =
     useRef("");
 
   const [uploadingMedia, setUploadingMedia] =
+    useState(false);
+
+  const [searchOpen, setSearchOpen] =
+    useState(false);
+
+  const [searchTerm, setSearchTerm] =
+    useState("");
+
+  const [stickersOpen, setStickersOpen] =
     useState(false);
   
   useEffect(() => {
@@ -830,6 +848,19 @@ async function startVoiceCapture() {
       );
     }
   }
+  
+  const searchResults =
+    searchTerm.trim()
+      ? messages.filter((message) =>
+          message.content
+            .toLowerCase()
+            .includes(
+              searchTerm
+                .trim()
+                .toLowerCase()
+            )
+        )
+      : [];
   const statusCopy = useMemo(() => {
     if (time.mood === "late") return "still here";
     if (time.mood === "night") return "with you tonight";
@@ -995,6 +1026,21 @@ message.mediaUrl ? (
   onCamera={() =>
     cameraInputRef.current?.click()
   }
+  onStickers={() =>
+    setStickersOpen(true)
+  }
+  onMusic={() =>
+    onOpen("music")
+  }
+  onLetter={() =>
+    onOpen("letters")
+  }
+  onDate={() =>
+    onOpen("dates")
+  }
+  onSearch={() =>
+    setSearchOpen(true)
+  }
 />
               </Sheet>
 <Button
@@ -1010,9 +1056,18 @@ message.mediaUrl ? (
 >
   <Image />
 </Button>
-              <Button type="button" size="icon" variant="ghost" aria-label="Stickers" title="Stickers">
-                <Smile />
-              </Button>
+            <Button
+  type="button"
+  size="icon"
+  variant="ghost"
+  aria-label="Stickers"
+  title="Stickers"
+  onClick={() =>
+    setStickersOpen(true)
+  }
+>
+  <Smile />
+</Button>
             </PromptInputTools>
             <div className="composer-end-tools">
               <Button
@@ -1050,6 +1105,123 @@ message.mediaUrl ? (
   hidden
   onChange={handlePhotoInput}
 />
+      <Sheet
+  open={stickersOpen}
+  onOpenChange={setStickersOpen}
+>
+  <SheetContent
+    side="bottom"
+    className="chat-actions-sheet"
+  >
+    <SheetHeader>
+      <SheetTitle>
+        Stickers
+      </SheetTitle>
+    </SheetHeader>
+
+    <div className="chat-sticker-grid">
+      {[
+        "♡",
+        "♥",
+        "🥺",
+        "😭",
+        "😂",
+        "🫶",
+        "😘",
+        "😒",
+        "🙄",
+        "😴",
+        "🍒",
+        "🌙",
+        "✨",
+        "💌",
+        "🌹",
+        "🧸",
+      ].map((sticker) => (
+        <button
+          key={sticker}
+          type="button"
+          onClick={() => {
+            void sendMessage(
+              sticker
+            );
+
+            setStickersOpen(
+              false
+            );
+          }}
+        >
+          {sticker}
+        </button>
+      ))}
+    </div>
+  </SheetContent>
+</Sheet>
+
+<Sheet
+  open={searchOpen}
+  onOpenChange={setSearchOpen}
+>
+  <SheetContent
+    side="bottom"
+    className="chat-actions-sheet"
+  >
+    <SheetHeader>
+      <SheetTitle>
+        Search conversation
+      </SheetTitle>
+    </SheetHeader>
+
+    <input
+      className="chat-search-input"
+      value={searchTerm}
+      onChange={(event) =>
+        setSearchTerm(
+          event.target.value
+        )
+      }
+      placeholder="Search messages..."
+    />
+
+    <div className="chat-search-results">
+      {!searchTerm.trim() ? (
+        <p>
+          Type something to search
+          your conversation.
+        </p>
+      ) : searchResults.length ===
+        0 ? (
+        <p>No messages found.</p>
+      ) : (
+        searchResults.map(
+          (message) => (
+            <div
+              key={message.id}
+              className="chat-search-result"
+            >
+              <strong>
+                {message.role ===
+                "user"
+                  ? preferredName
+                  : "Dominic"}
+              </strong>
+
+              <p>
+                {message.content}
+              </p>
+
+              <small>
+                {formatTime(
+                  message.createdAt
+                )}
+              </small>
+            </div>
+          )
+        )
+      )}
+    </div>
+  </SheetContent>
+</Sheet>
     </section>
   );
 }
@@ -1109,55 +1281,72 @@ function ChatAppearanceSheet({
 function ChatActionsSheet({
   onPhotos,
   onCamera,
+  onStickers,
+  onMusic,
+  onLetter,
+  onDate,
+  onSearch,
 }: {
   onPhotos: () => void;
   onCamera: () => void;
+  onStickers: () => void;
+  onMusic: () => void;
+  onLetter: () => void;
+  onDate: () => void;
+  onSearch: () => void;
 }) {
-  const actions = [
-    {
-      label: "Photos",
-      note: "from your library",
-      icon: <Image />,
-      action: onPhotos,
-    },
-    {
-      label: "Camera",
-      note: "real moments",
-      icon: <Camera />,
-      action: onCamera,
-    },
-    {
-      label: "Stickers",
-      note: "react or send",
-      icon: <Smile />,
-    },
-    {
-      label: "Music",
-      note: "share a song",
-      icon: <Music2 />,
-    },
-    {
-      label: "Letter",
-      note: "I wrote you something",
-      icon: <Mail />,
-    },
-    {
-      label: "Date",
-      note: "make a plan together",
-      icon: <Heart />,
-    },
-    {
-      label: "Ask Dominic for a Photo",
-      note: "generated → keep or discard",
-      icon: <Camera />,
-    },
-    {
-      label: "Search",
-      note: "messages, media & links",
-      icon: <Search />,
-    },
-  ];
-
+const actions = [
+  {
+    label: "Photos",
+    note: "from your library",
+    icon: <Image />,
+    action: onPhotos,
+  },
+  {
+    label: "Camera",
+    note: "real moments",
+    icon: <Camera />,
+    action: onCamera,
+  },
+  {
+    label: "Stickers",
+    note: "react or send",
+    icon: <Smile />,
+    action: onStickers,
+  },
+  {
+    label: "Music",
+    note: "share a song",
+    icon: <Music2 />,
+    action: onMusic,
+  },
+  {
+    label: "Letter",
+    note: "I wrote you something",
+    icon: <Mail />,
+    action: onLetter,
+  },
+  {
+    label: "Date",
+    note: "make a plan together",
+    icon: <Heart />,
+    action: onDate,
+  },
+  {
+    label:
+      "Ask Dominic for a Photo",
+    note:
+      "generated → keep or discard",
+    icon: <Camera />,
+  },
+  {
+    label: "Search",
+    note:
+      "messages, media & links",
+    icon: <Search />,
+    action: onSearch,
+  },
+];
   return (
     <SheetContent
       side="bottom"
