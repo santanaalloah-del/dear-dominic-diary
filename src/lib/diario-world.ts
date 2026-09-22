@@ -1406,6 +1406,9 @@ type CreateHomeObjectInput = {
   x: number;
   y: number;
   note?: string;
+  imageUrl?: string;
+  scale?: number;
+  orientation?: "front" | "left" | "right";
 };
 
 export async function getHomeObjects(
@@ -1439,15 +1442,13 @@ export async function createHomeObject({
   x,
   y,
   note,
+  imageUrl,
+  scale = 1,
+  orientation = "front",
 }: CreateHomeObjectInput): Promise<DiarioItem> {
-  const cleanTitle =
-    title.trim();
-
-  const cleanRoom =
-    room.trim();
-
-  const cleanType =
-    objectType.trim();
+  const cleanTitle = title.trim();
+  const cleanRoom = room.trim();
+  const cleanType = objectType.trim();
 
   if (!cleanTitle) {
     throw new Error(
@@ -1461,17 +1462,20 @@ export async function createHomeObject({
     );
   }
 
-  const safeX =
-    Math.min(
-      100,
-      Math.max(0, x)
-    );
+  const safeX = Math.min(
+    100,
+    Math.max(0, x)
+  );
 
-  const safeY =
-    Math.min(
-      100,
-      Math.max(0, y)
-    );
+  const safeY = Math.min(
+    100,
+    Math.max(0, y)
+  );
+
+  const safeScale = Math.min(
+    2.5,
+    Math.max(0.25, scale)
+  );
 
   const {
     data,
@@ -1496,6 +1500,10 @@ export async function createHomeObject({
         location: "displayed",
         x: safeX,
         y: safeY,
+        imageUrl:
+          imageUrl?.trim() || null,
+        scale: safeScale,
+        orientation,
       },
     })
     .select("*")
@@ -1514,12 +1522,16 @@ export async function updateHomeObjectPlacement({
   room,
   x,
   y,
+  scale,
+  orientation,
 }: {
   userId: string;
   objectId: string;
   room: string;
   x: number;
   y: number;
+  scale?: number;
+  orientation?: "front" | "left" | "right";
 }): Promise<DiarioItem> {
   const {
     data: current,
@@ -1536,17 +1548,33 @@ export async function updateHomeObjectPlacement({
     throw currentError;
   }
 
-  const safeX =
-    Math.min(
-      100,
-      Math.max(0, x)
-    );
+  const safeX = Math.min(
+    100,
+    Math.max(0, x)
+  );
 
-  const safeY =
-    Math.min(
-      100,
-      Math.max(0, y)
-    );
+  const safeY = Math.min(
+    100,
+    Math.max(0, y)
+  );
+
+  const currentScale = Number(
+    current.data?.scale ?? 1
+  );
+
+  const safeScale = Math.min(
+    2.5,
+    Math.max(
+      0.25,
+      scale ?? currentScale
+    )
+  );
+
+  const currentOrientation =
+    current.data?.orientation === "left" ||
+    current.data?.orientation === "right"
+      ? current.data.orientation
+      : "front";
 
   const {
     data,
@@ -1559,7 +1587,59 @@ export async function updateHomeObjectPlacement({
         room,
         x: safeX,
         y: safeY,
+        scale: safeScale,
+        orientation:
+          orientation ??
+          currentOrientation,
         location: "displayed",
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
+export async function updateHomeObjectAsset({
+  userId,
+  objectId,
+  imageUrl,
+}: {
+  userId: string;
+  objectId: string;
+  imageUrl: string;
+}): Promise<DiarioItem> {
+  const {
+    data: current,
+    error: currentError,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .eq("kind", "home_object")
+    .single();
+
+  if (currentError) {
+    throw currentError;
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...current.data,
+        imageUrl:
+          imageUrl.trim(),
       },
     })
     .eq("user_id", userId)
@@ -1619,3 +1699,62 @@ export async function storeHomeObject({
   return data as DiarioItem;
 }
 
+export async function restoreHomeObject({
+  userId,
+  objectId,
+  room,
+}: {
+  userId: string;
+  objectId: string;
+  room: string;
+}): Promise<DiarioItem> {
+  const {
+    data: current,
+    error: currentError,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .eq("kind", "home_object")
+    .single();
+
+  if (currentError) {
+    throw currentError;
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...current.data,
+        room,
+        location: "displayed",
+        x: Number(
+          current.data?.x ?? 50
+        ),
+        y: Number(
+          current.data?.y ?? 70
+        ),
+        scale: Number(
+          current.data?.scale ?? 1
+        ),
+        orientation:
+          current.data?.orientation ??
+          "front",
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
