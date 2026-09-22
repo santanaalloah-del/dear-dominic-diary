@@ -59,7 +59,59 @@
   --radius-soft: 10px;
   --radius-small: 5px;
 }
+html[data-diario-appearance="light"] {
+  --background: var(--cream);
+  --foreground: var(--brown);
+  --card: var(--paper);
 
+  --surface: var(--cream);
+  --surface-raised: var(--paper);
+  --surface-deep: var(--paper-deep);
+
+  --text: var(--brown);
+  --text-soft: var(--brown-soft);
+  --text-on-dark: var(--cream);
+
+  --muted-foreground: var(--brown-soft);
+}
+
+html[data-diario-appearance="dark"] {
+  --background: #241918;
+  --foreground: #f1e6d8;
+  --card: #332321;
+
+  --surface: #241918;
+  --surface-raised: #332321;
+  --surface-deep: #402b28;
+
+  --text: #f1e6d8;
+  --text-soft: #cbb8a6;
+  --text-on-dark: #fff8ef;
+
+  --muted-foreground: #bca998;
+  --border: rgba(241, 230, 216, 0.18);
+  --divider: rgba(241, 230, 216, 0.12);
+}
+
+html[data-diario-appearance="dark"] body {
+  color: var(--text);
+}
+
+html[data-diario-appearance="dark"] .phone-shell {
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-diario-appearance="dark"] .screen-scroll {
+  background: var(--surface);
+}
+
+html[data-diario-appearance="dark"] .settings-group,
+html[data-diario-appearance="dark"] .settings-account,
+html[data-diario-appearance="dark"] .settings-row,
+html[data-diario-appearance="dark"] .settings-static-row {
+  color: var(--text);
+}
 * {   box-sizing: border-box; }  html {   background: var(--wine-deep); }  body {   margin: 0;   background: var(--wine-deep);   color: var(--text);   font-family: var(--font-body);   -webkit-font-smoothing: antialiased;   text-rendering: optimizeLegibility; }  button, input, textarea, select {   font: inherit;   color: inherit; }  button {   -webkit-tap-highlight-color: transparent; }  ::selection {   background: var(--blush);   color: var(--wine); }
 .prototype-stage {   min-height: 100dvh;   display: flex;   justify-content: center;   background:     radial-gradient(circle at 50% -10%, oklch(0.39 0.09 19 / 32%), transparent 42%),     linear-gradient(180deg, var(--wine), var(--wine-deep)); }
 .phone-shell {   position: relative;   width: min(100%, 430px);   min-height: 100dvh;   background:     linear-gradient(       180deg,       color-mix(in oklab, var(--cream) 96%, white 4%),       var(--cream)     );   overflow: hidden;   box-shadow:     0 0 0 1px oklch(0.86 0.022 70 / 18%),     0 28px 90px oklch(0.1 0.03 20 / 48%); }
