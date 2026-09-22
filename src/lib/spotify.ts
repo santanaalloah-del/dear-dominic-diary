@@ -496,11 +496,14 @@ export async function searchSpotifyTracks(
       }
     );
 
-  if (!response.ok) {
-    throw new Error(
-      "Spotify search failed."
-    );
-  }
+ if (!response.ok) {
+  const body =
+    await response.text();
+
+  throw new Error(
+    `Spotify search failed (${response.status}): ${body}`
+  );
+}
 
   const data =
     await response.json();
