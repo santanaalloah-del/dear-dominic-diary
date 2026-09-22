@@ -5939,3 +5939,55 @@ html[data-diario-appearance="dark"] .settings-static-row {
   font-style:normal;
   opacity:.75;
 }
+.chat-sticker-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  padding:18px 0;
+}
+
+.chat-sticker-grid button{
+  border:0;
+  min-height:62px;
+  border-radius:16px;
+  background:var(--paper);
+  font-size:30px;
+  cursor:pointer;
+}
+
+.chat-search-input{
+  width:100%;
+  margin:15px 0;
+  padding:13px 14px;
+  border:1px solid rgba(80,40,35,.16);
+  border-radius:14px;
+  background:white;
+  font:15px var(--font-display);
+}
+
+.chat-search-results{
+  display:grid;
+  gap:9px;
+  max-height:48vh;
+  overflow:auto;
+}
+
+.chat-search-result{
+  padding:12px;
+  border-radius:14px;
+  background:var(--paper);
+}
+
+.chat-search-result strong,
+.chat-search-result p,
+.chat-search-result small{
+  display:block;
+}
+
+.chat-search-result p{
+  margin:4px 0;
+}
+
+.chat-search-result small{
+  opacity:.55;
+}
