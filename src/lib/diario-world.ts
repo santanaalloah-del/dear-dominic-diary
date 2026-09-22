@@ -763,3 +763,41 @@ export async function getCalendarItems({
 
   return (data ?? []) as DiarioItem[];
 }
+export async function getTimelineItems(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .or(
+      "event_at.not.is.null,planned_for.not.is.null"
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  return (
+    (data ?? []) as DiarioItem[]
+  ).sort((first, second) => {
+    const firstDate =
+      first.event_at ??
+      first.planned_for ??
+      first.created_at;
+
+    const secondDate =
+      second.event_at ??
+      second.planned_for ??
+      second.created_at;
+
+    return (
+      new Date(firstDate).getTime() -
+      new Date(secondDate).getTime()
+    );
+  });
+}
