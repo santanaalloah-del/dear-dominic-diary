@@ -43,6 +43,7 @@ import {
   getGalleryPhotos,
   getLetters,
   getLocalDateKey,
+  removePhotoFromGalleryAlbum,
   saveDiaryPage,
   setGalleryPhotoFavorite,
   uploadGalleryPhoto,
