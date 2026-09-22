@@ -1218,6 +1218,11 @@ type CreateSongInput = {
   artist: string;
   album?: string;
   note?: string;
+  spotifyId?: string;
+  spotifyUri?: string;
+  spotifyUrl?: string;
+  coverUrl?: string | null;
+  durationMs?: number;
 };
 
 export async function getSongs(
@@ -1250,7 +1255,12 @@ export async function createSong({
   artist,
   album,
   note,
-}: CreateSongInput): Promise<DiarioItem> {
+  spotifyId,
+  spotifyUri,
+  spotifyUrl,
+  coverUrl,
+  durationMs,
+}: CreateSongInput) : Promise<DiarioItem> {
   const cleanTitle = title.trim();
   const cleanArtist = artist.trim();
 
@@ -1281,11 +1291,15 @@ export async function createSong({
         note?.trim() || null,
       event_at:
         new Date().toISOString(),
-      data: {
-        artist: cleanArtist,
-        album:
-          album?.trim() || null,
-      },
+ data: {
+  artist: cleanArtist,
+  album: album?.trim() || null,
+  spotifyId: spotifyId ?? null,
+  spotifyUri: spotifyUri ?? null,
+  spotifyUrl: spotifyUrl ?? null,
+  coverUrl: coverUrl ?? null,
+  durationMs: durationMs ?? null,
+},
     })
     .select("*")
     .single();
