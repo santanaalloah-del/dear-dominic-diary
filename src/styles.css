@@ -2845,6 +2845,68 @@ html[data-diario-appearance="dark"] .settings-static-row {
 }
 
 
+/* main room perspective */
+
+.apartment-screen .room-view-stage {
+  position:
+    relative;
+
+  margin:
+    10px
+    12px
+    16px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 10%,
+      transparent
+    );
+
+  border-radius:
+    24px;
+
+  background:
+    var(--paper);
+
+  box-shadow:
+    0
+    14px
+    34px
+    rgb(44 23 21 / 12%);
+}
+
+.apartment-screen .room-view-image {
+  display:
+    block;
+
+  width:
+    100%;
+
+  height:
+    auto;
+
+  aspect-ratio:
+    4 / 3;
+
+  object-fit:
+    cover;
+
+  object-position:
+    center;
+
+  user-select:
+    none;
+
+  -webkit-user-drag:
+    none;
+}
+
+
 /* room-to-room control */
 
 .apartment-screen .room-navigation {
