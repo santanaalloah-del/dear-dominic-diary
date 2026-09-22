@@ -160,6 +160,16 @@ function DiarioApp() {
   const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
   const time = useTimeMood();
   const detail = !primaryScreens.includes(screen);
+  useEffect(() => {
+  void finishSpotifyConnection().catch(
+    (error) => {
+      console.error(
+        "Could not finish Spotify connection:",
+        error
+      );
+    }
+  );
+}, []);
 
   const openScreen = (nextScreen: Screen) => {
     if (scrollRef.current) {
