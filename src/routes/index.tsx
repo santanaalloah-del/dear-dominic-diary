@@ -4467,6 +4467,18 @@ function MemoriesScreen() {
   const [memoryError, setMemoryError] =
     useState<string | null>(null);
 
+  const [selectedMemory, setSelectedMemory] =
+    useState<DiarioItem | null>(null);
+
+  const [memoryItemIds, setMemoryItemIds] =
+    useState<string[]>([]);
+
+  const [loadingMemoryItems, setLoadingMemoryItems] =
+    useState(false);
+
+  const [editingMemoryItems, setEditingMemoryItems] =
+    useState(false);
+
   useEffect(() => {
     let active = true;
 
