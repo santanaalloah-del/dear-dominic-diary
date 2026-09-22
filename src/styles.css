@@ -5866,3 +5866,38 @@ html[data-diario-appearance="dark"] .settings-static-row {
   line-height: 1.55;
   opacity: 0.58;
 }
+.furniture-photo-picker{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:46px;
+  border:1px dashed color-mix(in oklab,var(--wine) 35%,transparent);
+  border-radius:12px;
+  background:color-mix(in oklab,var(--cream) 75%,white);
+  cursor:pointer;
+  font:12px var(--font-display);
+}
+
+.furniture-photo-picker input{
+  position:absolute;
+  width:1px;
+  height:1px;
+  opacity:0;
+  pointer-events:none;
+}
+
+.furniture-image-preview{
+  display:grid;
+  place-items:center;
+  min-height:120px;
+  padding:10px;
+  border-radius:14px;
+  background:color-mix(in oklab,var(--cream) 60%,white);
+}
+
+.furniture-image-preview img{
+  display:block;
+  max-width:100%;
+  max-height:180px;
+  object-fit:contain;
+}
