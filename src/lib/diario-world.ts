@@ -1115,3 +1115,91 @@ export async function createLook({
 
   return data as DiarioItem;
 }
+type CreateSongInput = {
+  userId: string;
+  owner:
+    | "alloah"
+    | "dominic"
+    | "shared";
+  title: string;
+  artist: string;
+  album?: string;
+  note?: string;
+};
+
+export async function getSongs(
+  userId: string
+): Promise<DiarioItem[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "song")
+    .eq("status", "active")
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DiarioItem[];
+}
+
+export async function createSong({
+  userId,
+  owner,
+  title,
+  artist,
+  album,
+  note,
+}: CreateSongInput): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+  const cleanArtist = artist.trim();
+
+  if (!cleanTitle) {
+    throw new Error(
+      "A song needs a title."
+    );
+  }
+
+  if (!cleanArtist) {
+    throw new Error(
+      "A song needs an artist."
+    );
+  }
+
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .insert({
+      user_id: userId,
+      kind: "song",
+      owner,
+      status: "active",
+      title: cleanTitle,
+      body:
+        note?.trim() || null,
+      event_at:
+        new Date().toISOString(),
+      data: {
+        artist: cleanArtist,
+        album:
+          album?.trim() || null,
+      },
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
