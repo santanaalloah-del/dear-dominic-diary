@@ -515,15 +515,14 @@ function RoomScreen({
   const addTestSofa = async () => {
     if (!session?.user?.id) return;
 
-    await createHomeObject({
-      userId: session.user.id,
-      name: "Vintage sofa",
-      room: "living",
-      location: "displayed",
-      x: 50,
-      y: 70,
-    });
-
+await createHomeObject({
+  userId: session.user.id,
+  title: "Vintage sofa",
+  room: "living",
+  objectType: "sofa",
+  x: 50,
+  y: 70,
+});
     await loadObjects();
   };
 
