@@ -554,3 +554,26 @@ export async function getGalleryAlbumPhotoIds({
     }) => link.target_item_id
   );
 }
+export async function removePhotoFromGalleryAlbum({
+  userId,
+  albumId,
+  photoId,
+}: {
+  userId: string;
+  albumId: string;
+  photoId: string;
+}): Promise<void> {
+  const {
+    error,
+  } = await diarioSupabase
+    .from("diario_links")
+    .delete()
+    .eq("user_id", userId)
+    .eq("source_item_id", albumId)
+    .eq("target_item_id", photoId)
+    .eq("relation", "contains");
+
+  if (error) {
+    throw error;
+  }
+}
