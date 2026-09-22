@@ -4581,7 +4581,65 @@ function MemoriesScreen() {
         ))}
       </div>
 
-      {visibleMemories.length === 0 ? (
+      {creatingMemory ? (
+        <section className="memories-empty">
+          <small>
+            new memory
+          </small>
+
+          <h2>
+            Keep this moment
+          </h2>
+
+          <input
+            type="text"
+            value={memoryTitle}
+            onChange={(event) =>
+              setMemoryTitle(
+                event.target.value
+              )
+            }
+            placeholder="Memory title"
+            autoFocus
+          />
+
+          <textarea
+            value={memoryBody}
+            onChange={(event) =>
+              setMemoryBody(
+                event.target.value
+              )
+            }
+            placeholder="What happened?"
+            rows={8}
+          />
+
+          <div className="diary-editor-actions">
+            <button
+              type="button"
+              onClick={() => {
+                setCreatingMemory(false);
+                setMemoryTitle("");
+                setMemoryBody("");
+                setMemoryError(null);
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="gallery-add-button"
+              onClick={saveMemory}
+              disabled={
+                !memoryTitle.trim()
+              }
+            >
+              Keep memory
+            </button>
+          </div>
+        </section>
+      ) : visibleMemories.length === 0 ? (
         <section className="memories-empty">
           <div
             className="memories-empty-mark"
@@ -4607,6 +4665,16 @@ function MemoriesScreen() {
             letters and dates can connect here after
             they actually happen.
           </p>
+
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setCreatingMemory(true)
+            }
+          >
+            ＋ Create memory
+          </button>
 
           <div className="memory-source-list">
             <div>
