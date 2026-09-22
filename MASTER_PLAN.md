@@ -30,17 +30,33 @@ Use the same `Try Again / Keep / Discard` logic for generated photos, furniture 
 
 ## Home / Apartment
 Home is a living shared apartment, not a static hero image.
-- Rooms: living room, bedroom, kitchen, bathroom, entrance/hall and future spaces.
-- Time and atmosphere visibly change the room.
-- Hotspots open rooms/objects.
+
+### Architectural canon
+- The existing `apartment-floor-plan.png` is the authoritative apartment layout.
+- Walls, doors, windows, room boundaries and circulation must stay consistent with that floor plan.
+- Do not invent, relocate or generate architectural features that contradict the official floor plan.
+- Rooms: living room, bedroom, kitchen, bathroom, entrance/hall and future spaces only when deliberately added to the official layout.
+
+### Empty starting state
+- The apartment starts unfurnished.
+- At the beginning, rooms contain architecture only: no default sofa, bed, table, plants, decorations, frames or other movable objects.
+- Existing furnished room prototype images are visual references only and are not canon furniture state.
+- No furniture or decoration becomes part of the apartment merely because it appears in a generated/reference image.
+- Furniture, decor and movable objects only enter the apartment after Alloah explicitly adds or keeps them.
+- Every kept object is a persistent `home_object`, not baked into the room background.
+- Removing, moving, storing or restoring an object changes that same persistent object instead of creating duplicates.
+
+### Living apartment behavior
+- Time and atmosphere visibly change the room without changing its architecture.
+- Hotspots can open rooms and real persisted objects.
 - Alloah can add, move, remove/store and restore furniture/decor.
 - References can be saved and used to inspire proposals.
 - A room proposal can be regenerated, kept or discarded.
+- Generated proposals are preview/reference state until Alloah explicitly keeps them.
 - Kept/canon furniture and decor persist and can gain history over time.
 - Photos of Alloah and Dominic can be placed in frames, boards, fridge, desk, wall etc.
 - Keepsakes can be displayed in Home or stored.
 - Apartment should gradually feel more lived-in as history accumulates.
-
 ## Chat
 The chat should feel familiar like WhatsApp/iMessage, but fully customizable and visually part of Diário.
 
