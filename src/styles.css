@@ -2907,6 +2907,160 @@ html[data-diario-appearance="dark"] .settings-static-row {
 }
 
 
+/* temporary home-object prototype */
+
+.apartment-screen .home-object-test {
+  position:
+    absolute;
+
+  z-index:
+    4;
+
+  transform:
+    translate(-50%, -50%);
+
+  min-width:
+    120px;
+
+  padding:
+    10px;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--wine-deep) 20%,
+      transparent
+    );
+
+  border-radius:
+    16px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--paper) 92%,
+      transparent
+    );
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+
+  box-shadow:
+    0
+    10px
+    24px
+    rgb(44 23 21 / 18%);
+
+  text-align:
+    center;
+}
+
+.apartment-screen .home-object-test strong {
+  display:
+    block;
+
+  margin-bottom:
+    7px;
+
+  color:
+    var(--wine-deep);
+
+  font:
+    13px/1.2
+    var(--font-display);
+}
+
+.apartment-screen .home-object-test > div {
+  display:
+    flex;
+
+  justify-content:
+    center;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    4px;
+}
+
+.apartment-screen .home-object-test button {
+  min-width:
+    28px;
+
+  min-height:
+    28px;
+
+  padding:
+    4px
+    7px;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--brown) 12%,
+      transparent
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    var(--paper);
+
+  color:
+    var(--brown);
+
+  font:
+    11px
+    var(--font-body);
+}
+
+.apartment-screen .add-test-sofa {
+  display:
+    block;
+
+  margin:
+    0
+    auto
+    14px;
+
+  padding:
+    10px
+    16px;
+
+  border:
+    1px solid
+    color-mix(
+      in oklab,
+      var(--wine-deep) 18%,
+      transparent
+    );
+
+  border-radius:
+    14px;
+
+  background:
+    color-mix(
+      in oklab,
+      var(--blush) 55%,
+      var(--paper)
+    );
+
+  color:
+    var(--wine-deep);
+
+  font:
+    12px/1
+    var(--font-display);
+}
+
+
 /* room-to-room control */
 
 .apartment-screen .room-navigation {
