@@ -5466,13 +5466,15 @@ const searchSpotify = async () => {
       );
 
     setSpotifyResults(results);
-  } catch (error) {
-    console.error(error);
+ } catch (error) {
+  console.error(error);
 
-    setMusicError(
-      "Could not search Spotify."
-    );
-  } finally {
+  setMusicError(
+    error instanceof Error
+      ? error.message
+      : "Could not search Spotify."
+  );
+} finally {
     setSearchingSpotify(false);
   }
 };
