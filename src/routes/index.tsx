@@ -5600,11 +5600,13 @@ const searchSpotify = async () => {
         ]
       );
 
-     setSongTitle("");
+setSongTitle("");
 setSongArtist("");
 setSongAlbum("");
 setSongNote("");
-      setSelectedSpotifyTrack(null);
+setSpotifyQuery("");
+setSpotifyResults([]);
+setSelectedSpotifyTrack(null);
 setAddingSong(false);
     } catch (saveError) {
       console.error(
