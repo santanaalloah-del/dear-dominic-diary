@@ -265,82 +265,6 @@ function HomeScreen({
   time: TimeMoodState;
   onOpenRoom: (roomId: string) => void;
 }) {
-  const spaces = [
-    {
-      id: "living",
-      label: "Living Room",
-      caption: "the heart of the apartment",
-    },
-    {
-      id: "bedroom",
-      label: "Bedroom",
-      caption: "quiet, warm, ours",
-    },
-    {
-      id: "kitchen",
-      label: "Kitchen",
-      caption: "wood, white tile, everyday life",
-    },
-    {
-      id: "bathroom",
-      label: "Bathroom",
-      caption: "small, old, simple",
-    },
-    {
-      id: "hall",
-      label: "Hall",
-      caption: "the way in and out",
-    },
-  ];
-
-  const [activeSpace, setActiveSpace] = useState(0);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [showFloorPlan, setShowFloorPlan] = useState(false);
-
-  const currentSpace = spaces[activeSpace];
-
-  const previousSpace = () => {
-    setActiveSpace((current) =>
-      current === 0 ? spaces.length - 1 : current - 1
-    );
-  };
-
-  const nextSpace = () => {
-    setActiveSpace((current) =>
-      current === spaces.length - 1 ? 0 : current + 1
-    );
-  };
-
-  const handleTouchStart = (
-    event: React.TouchEvent<HTMLDivElement>
-  ) => {
-    setTouchStartX(event.touches[0].clientX);
-  };
-
-  const handleTouchEnd = (
-    event: React.TouchEvent<HTMLDivElement>
-  ) => {
-    if (touchStartX === null) return;
-
-    const endX = event.changedTouches[0].clientX;
-    const distance = touchStartX - endX;
-
-    if (Math.abs(distance) > 45) {
-      if (distance > 0) {
-        nextSpace();
-      } else {
-        previousSpace();
-      }
-    }
-
-    setTouchStartX(null);
-  };
-
-  const openRoomFromPlan = (roomId: string) => {
-    setShowFloorPlan(false);
-    onOpenRoom(roomId);
-  };
-
   return (
     <section className="home-screen home-live home-house">
       <header className="house-header">
@@ -349,173 +273,167 @@ function HomeScreen({
             our apartment · new york
           </span>
 
-          <strong>{currentSpace.label}</strong>
-
-          <small>{currentSpace.caption}</small>
-        </div>
-
-        <div className="house-time">
-          <span>{time.timeLabel}</span>
-          <small>{time.dateLabel}</small>
-        </div>
-      </header>
-
-      <div
-        className={`house-stage space-${currentSpace.id}`}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <img
-          src={
-            currentSpace.id === "living"
-              ? livingRoom
-              : currentSpace.id === "bedroom"
-                ? bedroom
-                : currentSpace.id === "kitchen"
-                  ? kitchen
-                  : currentSpace.id === "bathroom"
-                    ? bathroom
-                    : hall
-          }
-          alt={`${currentSpace.label} in our apartment`}
-          width={1280}
-          height={960}
-        />
-
-        <div className="house-stage-shade" />
-
-        <button
-          className="house-object house-object-one"
-          aria-label={`Open ${currentSpace.label}`}
-          onClick={() => onOpenRoom(currentSpace.id)}
-        >
-          <span />
-        </button>
-
-        <button
-          className="house-object house-object-two"
-          aria-label={`Open details for ${currentSpace.label}`}
-          onClick={() => onOpenRoom(currentSpace.id)}
-        >
-          <span />
-        </button>
-
-        <div className="house-room-label">
-          <strong>{currentSpace.label}</strong>
+          <strong>
+            Our Apartment
+          </strong>
 
           <small>
-            {activeSpace + 1} / {spaces.length}
+            empty now · built slowly over time
           </small>
         </div>
 
-        <button
-          className="house-arrow house-arrow-left"
-          onClick={previousSpace}
-          aria-label="Previous room"
-        >
-          ‹
-        </button>
+        <div className="house-time">
+          <span>
+            {time.timeLabel}
+          </span>
 
-        <button
-          className="house-arrow house-arrow-right"
-          onClick={nextSpace}
-          aria-label="Next room"
-        >
-          ›
-        </button>
-      </div>
+          <small>
+            {time.dateLabel}
+          </small>
+        </div>
+      </header>
 
-      <button
-        className="floor-plan-trigger"
-        onClick={() => setShowFloorPlan(true)}
-        aria-label="Open apartment floor plan"
-      >
-        <span aria-hidden="true">⌂</span>
-        <small>floor plan</small>
-      </button>
+      <section className="home-plan-stage">
+        <div className="floor-plan-heading">
+          <small>
+            official architecture
+          </small>
+
+          <strong>
+            Floor Plan
+          </strong>
+        </div>
+
+        <div className="official-floor-plan floor-plan-modal-map">
+          <img
+            src={floorPlan}
+            alt="Official floor plan of our apartment"
+            width={1536}
+            height={1024}
+          />
+
+          <button
+            type="button"
+            className="plan-hotspot plan-hotspot-living"
+            onClick={() =>
+              onOpenRoom("living")
+            }
+            aria-label="Enter Living Room"
+          />
+
+          <button
+            type="button"
+            className="plan-hotspot plan-hotspot-bedroom"
+            onClick={() =>
+              onOpenRoom("bedroom")
+            }
+            aria-label="Enter Bedroom"
+          />
+
+          <button
+            type="button"
+            className="plan-hotspot plan-hotspot-kitchen"
+            onClick={() =>
+              onOpenRoom("kitchen")
+            }
+            aria-label="Enter Kitchen"
+          />
+
+          <button
+            type="button"
+            className="plan-hotspot plan-hotspot-bathroom"
+            onClick={() =>
+              onOpenRoom("bathroom")
+            }
+            aria-label="Enter Bathroom"
+          />
+
+          <button
+            type="button"
+            className="plan-hotspot plan-hotspot-hall"
+            onClick={() =>
+              onOpenRoom("hall")
+            }
+            aria-label="Enter Hall"
+          />
+        </div>
+      </section>
+
+      <section className="home-empty-state">
+        <small>
+          day one
+        </small>
+
+        <h2>
+          The apartment starts empty.
+        </h2>
+
+        <p>
+          The architecture already exists.
+          Everything else will enter this
+          home only after you choose it.
+        </p>
+      </section>
 
       <nav
         className="house-space-strip"
         aria-label="Apartment rooms"
       >
-        {spaces.map((space, index) => (
+        {[
+          {
+            id: "living",
+            label: "Living Room",
+          },
+          {
+            id: "bedroom",
+            label: "Bedroom",
+          },
+          {
+            id: "kitchen",
+            label: "Kitchen",
+          },
+          {
+            id: "bathroom",
+            label: "Bathroom",
+          },
+          {
+            id: "hall",
+            label: "Hall",
+          },
+        ].map((room) => (
           <button
-            key={space.id}
-            className={index === activeSpace ? "active" : ""}
-            onClick={() => setActiveSpace(index)}
+            key={room.id}
+            type="button"
+            onClick={() =>
+              onOpenRoom(room.id)
+            }
           >
             <span
-              className={`room-thumb room-thumb-${space.id}`}
               aria-hidden="true"
-            />
+            >
+              □
+            </span>
 
-            <small>{space.label}</small>
+            <small>
+              {room.label}
+            </small>
           </button>
         ))}
       </nav>
 
-      {showFloorPlan && (
-        <div
-          className="floor-plan-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Apartment floor plan"
-        >
-          <div className="floor-plan-sheet">
-            <button
-              className="floor-plan-close"
-              onClick={() => setShowFloorPlan(false)}
-              aria-label="Close floor plan"
-            >
-              ×
-            </button>
+      <section className="room-canon-note">
+        <span>
+          apartment rule
+        </span>
 
-            <div className="floor-plan-heading">
-              <small>our apartment</small>
-              <strong>Floor Plan</strong>
-            </div>
-
-            <div className="official-floor-plan floor-plan-modal-map">
-              <img
-                src={floorPlan}
-                alt="Official floor plan of our apartment"
-                width={1536}
-                height={1024}
-              />
-
-              <button
-                className="plan-hotspot plan-hotspot-living"
-                onClick={() => openRoomFromPlan("living")}
-                aria-label="Enter Living Room"
-              />
-
-              <button
-                className="plan-hotspot plan-hotspot-bedroom"
-                onClick={() => openRoomFromPlan("bedroom")}
-                aria-label="Enter Bedroom"
-              />
-
-              <button
-                className="plan-hotspot plan-hotspot-kitchen"
-                onClick={() => openRoomFromPlan("kitchen")}
-                aria-label="Enter Kitchen"
-              />
-
-              <button
-                className="plan-hotspot plan-hotspot-bathroom"
-                onClick={() => openRoomFromPlan("bathroom")}
-                aria-label="Enter Bathroom"
-              />
-
-              <button
-                className="plan-hotspot plan-hotspot-hall"
-                onClick={() => openRoomFromPlan("hall")}
-                aria-label="Enter Hall"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+        <p>
+          The floor plan controls the
+          architecture. Furniture, decor,
+          photos and keepsakes will exist
+          separately and only after being
+          deliberately added.
+        </p>
+      </section>
     </section>
   );
 }
