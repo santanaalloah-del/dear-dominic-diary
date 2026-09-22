@@ -34,6 +34,7 @@ import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { useTimeMood, type TimeMoodState } from "@/lib/time-mood";
 import {
+  addItemToMemory,
   addPhotoToGalleryAlbum,
   createGalleryAlbum,
   createLetter,
@@ -45,6 +46,8 @@ import {
   getLetters,
   getLocalDateKey,
   getMemories,
+  getMemoryItemIds,
+  removeItemFromMemory,
   removePhotoFromGalleryAlbum,
   saveDiaryPage,
   setGalleryPhotoFavorite,
