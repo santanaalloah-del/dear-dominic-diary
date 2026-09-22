@@ -650,3 +650,86 @@ export async function createMemory({
 
   return data as DiarioItem;
 }
+export async function addItemToMemory({
+  userId,
+  memoryId,
+  itemId,
+}: {
+  userId: string;
+  memoryId: string;
+  itemId: string;
+}): Promise<void> {
+  const {
+    error,
+  } = await diarioSupabase
+    .from("diario_links")
+    .upsert(
+      {
+        user_id: userId,
+        source_item_id: memoryId,
+        target_item_id: itemId,
+        relation: "contains",
+        data: {},
+      },
+      {
+        onConflict:
+          "user_id,source_item_id,target_item_id,relation",
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function removeItemFromMemory({
+  userId,
+  memoryId,
+  itemId,
+}: {
+  userId: string;
+  memoryId: string;
+  itemId: string;
+}): Promise<void> {
+  const {
+    error,
+  } = await diarioSupabase
+    .from("diario_links")
+    .delete()
+    .eq("user_id", userId)
+    .eq("source_item_id", memoryId)
+    .eq("target_item_id", itemId)
+    .eq("relation", "contains");
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function getMemoryItemIds({
+  userId,
+  memoryId,
+}: {
+  userId: string;
+  memoryId: string;
+}): Promise<string[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_links")
+    .select("target_item_id")
+    .eq("user_id", userId)
+    .eq("source_item_id", memoryId)
+    .eq("relation", "contains");
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map(
+    (link: {
+      target_item_id: string;
+    }) => link.target_item_id
+  );
+}
