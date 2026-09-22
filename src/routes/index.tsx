@@ -8125,10 +8125,6 @@ useEffect(() => {
 useEffect(() => {
   document.documentElement.dataset.diarioAppearance =
     appearance;
-  
-  useEffect(() => {
-    document.documentElement.dataset.diarioAppearance =
-      appearance;
 
     if (appearance === "dark") {
       document.documentElement.style.colorScheme =
