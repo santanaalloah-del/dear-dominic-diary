@@ -4476,27 +4476,32 @@ function CalendarScreen() {
           </div>
         ) : (
           <div className="calendar-day-items">
-            {selectedItems.map(
-              (item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`calendar-item calendar-item-${item.type}`}
-                >
-                  <span>
-                    {item.type}
-                  </span>
+                       {selectedItems.map(
+                (item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`calendar-item calendar-item-${item.kind}`}
+                  >
+                    <span>
+                      {item.kind === "story_memory"
+                        ? "memory"
+                        : item.kind}
+                    </span>
 
-                  <strong>
-                    {item.title}
-                  </strong>
+                    <strong>
+                      {item.title ??
+                        (item.kind === "diary"
+                          ? "Diary entry"
+                          : "Untitled")}
+                    </strong>
 
-                  <ChevronRight
-                    size={16}
-                  />
-                </button>
-              )
-            )}
+                    <ChevronRight
+                      size={16}
+                    />
+                  </button>
+                )
+              )}
           </div>
         )}
       </section>
