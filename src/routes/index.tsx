@@ -7168,7 +7168,23 @@ function SettingsScreen() {
     return () => {
       active = false;
     };
-  }, [session.user.id]);
+   }, [session.user.id]);
+
+  useEffect(() => {
+    document.documentElement.dataset.diarioAppearance =
+      appearance;
+
+    if (appearance === "dark") {
+      document.documentElement.style.colorScheme =
+        "dark";
+    } else if (appearance === "light") {
+      document.documentElement.style.colorScheme =
+        "light";
+    } else {
+      document.documentElement.style.colorScheme =
+        "";
+    }
+  }, [appearance]);
 
   const saveSettings = async () => {
     setSavingSettings(true);
