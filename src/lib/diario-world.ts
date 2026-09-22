@@ -750,18 +750,32 @@ export async function getCalendarItems({
     .select("*")
     .eq("user_id", userId)
     .eq("status", "active")
-    .gte("event_at", start)
-    .lt("event_at", end)
-    .order("event_at", {
-      ascending: true,
-      nullsFirst: false,
-    });
+    .or(
+      `and(event_at.gte.${start},event_at.lt.${end}),and(planned_for.gte.${start},planned_for.lt.${end})`
+    );
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []) as DiarioItem[];
+  return (
+    (data ?? []) as DiarioItem[]
+  ).sort((first, second) => {
+    const firstDate =
+      first.event_at ??
+      first.planned_for ??
+      first.created_at;
+
+    const secondDate =
+      second.event_at ??
+      second.planned_for ??
+      second.created_at;
+
+    return (
+      new Date(firstDate).getTime() -
+      new Date(secondDate).getTime()
+    );
+  });
 }
 export async function getTimelineItems(
   userId: string
