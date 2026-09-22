@@ -41,6 +41,7 @@ import {
   createGalleryAlbum,
   createKeepsake,
   createLetter,
+  openLetter,
   createLook,
    createMemory,
   createPlace,
@@ -1388,7 +1389,10 @@ function LettersScreen() {
 
   const [error, setError] =
     useState<string | null>(null);
-
+  
+const [activeLetterId, setActiveLetterId] =
+  useState<string | null>(null);
+  
   useEffect(() => {
     let active = true;
 
@@ -1472,7 +1476,51 @@ function LettersScreen() {
       setSaving(false);
     }
   };
+const handleOpenLetter = async (
+  letter: DiarioItem
+) => {
+  const alreadyOpen =
+    letter.data?.opened === true;
 
+  if (alreadyOpen) {
+    setActiveLetterId(
+      activeLetterId === letter.id
+        ? null
+        : letter.id
+    );
+    return;
+  }
+
+  try {
+    const updated =
+      await openLetter({
+        userId: session.user.id,
+        letterId: letter.id,
+      });
+
+    setLetters((current) =>
+      current.map((item) =>
+        item.id === updated.id
+          ? updated
+          : item
+      )
+    );
+
+    setActiveLetterId(
+      updated.id
+    );
+  } catch (openError) {
+    console.error(
+      "Could not open letter:",
+      openError
+    );
+
+    setError(
+      "The letter could not be opened."
+    );
+  }
+};
+  
   return (
     <section className="letters-screen letters-live">
       <ScreenIntro
@@ -1682,54 +1730,104 @@ function LettersScreen() {
             </small>
           </header>
 
-          <div className="letters-saved-list">
-            {visibleLetters.map(
-              (letter) => (
-                <article
-                  key={letter.id}
-                  className="letters-saved-item"
-                >
-                  <small>
-                    {letter.owner === "alloah"
-                      ? "From Alloah"
-                      : "From Dominic"}
-                  </small>
+      <div className="letters-saved-list">
+  {visibleLetters.map(
+    (letter) => {
+      const opened =
+        letter.data?.opened === true;
 
-                  <strong>
-                    {letter.title ??
-                      "Untitled letter"}
-                  </strong>
+      const expanded =
+        activeLetterId ===
+        letter.id;
 
-                  <p>
-                    {letter.body}
-                  </p>
-
-                  {letter.event_at && (
-                    <time
-                      dateTime={
-                        letter.event_at
-                      }
-                    >
-                      {new Intl.DateTimeFormat(
-                        "en",
-                        {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                          timeZone:
-                            "America/Sao_Paulo",
-                        }
-                      ).format(
-                        new Date(
-                          letter.event_at
-                        )
-                      )}
-                    </time>
-                  )}
-                </article>
+      return (
+        <article
+          key={letter.id}
+          className={`letters-saved-item ${
+            opened
+              ? "is-opened"
+              : "is-sealed"
+          }`}
+        >
+          <button
+            type="button"
+            className="letter-envelope-button"
+            onClick={() =>
+              handleOpenLetter(
+                letter
               )
+            }
+          >
+            <div
+              className="letter-envelope-visual"
+              aria-hidden="true"
+            >
+              <span className="letter-envelope-flap" />
+              <Mail
+                size={22}
+                strokeWidth={1.35}
+              />
+            </div>
+
+            <div className="letter-envelope-copy">
+              <small>
+                {letter.owner ===
+                "alloah"
+                  ? "From Alloah"
+                  : "From Dominic"}
+              </small>
+
+              <strong>
+                {letter.title ??
+                  "Untitled letter"}
+              </strong>
+
+              <span>
+                {opened
+                  ? expanded
+                    ? "Close letter"
+                    : "Open again"
+                  : "Tap to open"}
+              </span>
+            </div>
+          </button>
+
+          {opened &&
+            expanded && (
+              <div className="letter-open-content">
+                <p>
+                  {letter.body}
+                </p>
+
+                {letter.event_at && (
+                  <time
+                    dateTime={
+                      letter.event_at
+                    }
+                  >
+                    {new Intl.DateTimeFormat(
+                      "en",
+                      {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                        timeZone:
+                          "America/Sao_Paulo",
+                      }
+                    ).format(
+                      new Date(
+                        letter.event_at
+                      )
+                    )}
+                  </time>
+                )}
+              </div>
             )}
-          </div>
+        </article>
+      );
+    }
+  )}
+</div>
 
           {letterView !== "dominic" && (
             <button
