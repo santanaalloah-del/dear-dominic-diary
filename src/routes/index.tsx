@@ -4440,9 +4440,97 @@ function CalendarScreen() {
 }
 
 function MemoriesScreen() {
+  const { session } = usePrivateDiario();
+
   const [memoryFilter, setMemoryFilter] = useState<
     "all" | "photos" | "letters" | "music" | "dates"
   >("all");
+
+  const [memories, setMemories] =
+    useState<DiarioItem[]>([]);
+
+  const [loadingMemories, setLoadingMemories] =
+    useState(true);
+
+  const [creatingMemory, setCreatingMemory] =
+    useState(false);
+
+  const [memoryTitle, setMemoryTitle] =
+    useState("");
+
+  const [memoryBody, setMemoryBody] =
+    useState("");
+
+  const [memoryError, setMemoryError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    setLoadingMemories(true);
+    setMemoryError(null);
+
+    getMemories(session.user.id)
+      .then((loadedMemories) => {
+        if (!active) return;
+
+        setMemories(loadedMemories);
+        setLoadingMemories(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Memories:",
+          loadError
+        );
+
+        setMemoryError(
+          "Memories could not be opened right now."
+        );
+
+        setLoadingMemories(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const saveMemory = async () => {
+    if (!memoryTitle.trim()) {
+      return;
+    }
+
+    setMemoryError(null);
+
+    try {
+      const savedMemory =
+        await createMemory({
+          userId: session.user.id,
+          title: memoryTitle,
+          body: memoryBody,
+        });
+
+      setMemories((currentMemories) => [
+        savedMemory,
+        ...currentMemories,
+      ]);
+
+      setMemoryTitle("");
+      setMemoryBody("");
+      setCreatingMemory(false);
+    } catch (saveError) {
+      console.error(
+        "Could not create Memory:",
+        saveError
+      );
+
+      setMemoryError(
+        "The memory could not be saved. Try again."
+      );
+    }
+  };
 
   const filters = [
     { id: "all", label: "All" },
