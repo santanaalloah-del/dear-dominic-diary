@@ -40,6 +40,7 @@ import {
   getLetters,
   getLocalDateKey,
   saveDiaryPage,
+  setGalleryPhotoFavorite,
   uploadGalleryPhoto,
   type DiarioItem,
   type GalleryPhoto,
@@ -1523,6 +1524,43 @@ function GalleryScreen() {
   const fileInputRef =
     useRef<HTMLInputElement>(null);
 
+    const toggleFavorite = async (
+    photo: GalleryPhoto
+  ) => {
+    const nextFavorite =
+      photo.item.data?.favorite !== true;
+
+    try {
+      const updatedItem =
+        await setGalleryPhotoFavorite({
+          userId: session.user.id,
+          photo: photo.item,
+          favorite: nextFavorite,
+        });
+
+      setPhotos((currentPhotos) =>
+        currentPhotos.map(
+          (currentPhoto) =>
+            currentPhoto.item.id ===
+            updatedItem.id
+              ? {
+                  ...currentPhoto,
+                  item: updatedItem,
+                }
+              : currentPhoto
+        )
+      );
+    } catch (favoriteError) {
+      console.error(
+        "Could not update favorite:",
+        favoriteError
+      );
+
+      setError(
+        "The photo could not be updated. Try again."
+      );
+    }
+  };
   useEffect(() => {
     let active = true;
 
@@ -1823,17 +1861,54 @@ function GalleryScreen() {
                     }
                     className="gallery-photo-item"
                   >
-                    <img
-                      src={
-                        photo.url
-                      }
-                      alt={
-                        photo.item
-                          .title ??
-                        "Gallery photo"
-                      }
-                      loading="lazy"
-                    />
+                    <div className="gallery-photo-media">
+                      <img
+                        src={
+                          photo.url
+                        }
+                        alt={
+                          photo.item
+                            .title ??
+                          "Gallery photo"
+                        }
+                        loading="lazy"
+                      />
+
+                      <button
+                        type="button"
+                        className={
+                          photo.item.data
+                            ?.favorite === true
+                            ? "gallery-favorite-button active"
+                            : "gallery-favorite-button"
+                        }
+                        aria-label={
+                          photo.item.data
+                            ?.favorite === true
+                            ? "Remove from favorites"
+                            : "Add to favorites"
+                        }
+                        aria-pressed={
+                          photo.item.data
+                            ?.favorite === true
+                        }
+                        onClick={() =>
+                          toggleFavorite(
+                            photo
+                          )
+                        }
+                      >
+                        <Heart
+                          size={18}
+                          fill={
+                            photo.item.data
+                              ?.favorite === true
+                              ? "currentColor"
+                              : "none"
+                          }
+                        />
+                      </button>
+                    </div>
 
                     <figcaption>
                       <small>
