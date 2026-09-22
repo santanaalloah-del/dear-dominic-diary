@@ -8516,51 +8516,6 @@ const handleSpotifyDisconnect =
               </strong>
             </header>
 
-            <button
-              type="button"
-              className="settings-row"
-              onClick={() => {
-                setMusicIntegration(
-                  (value) =>
-                    !value
-                );
-                setSettingsSaved(
-                  false
-                );
-              }}
-              aria-pressed={
-                musicIntegration
-              }
-            >
-              <div>
-                <Music2
-                  size={19}
-                  strokeWidth={1.4}
-                />
-
-                <span>
-                  <strong>
-                    Music connection
-                  </strong>
-
-                  <small>
-                    saved preference for
-                    future Spotify
-                    connection
-                  </small>
-                </span>
-              </div>
-
-              <i
-                className={
-                  musicIntegration
-                    ? "settings-toggle on"
-                    : "settings-toggle"
-                }
-                aria-hidden="true"
-              />
-            </button>
-
      <button
   type="button"
   className="settings-row"
