@@ -490,34 +490,23 @@ function RoomScreen({
         </p>
       </ScreenIntro>
 
-      <section className="room-architecture-base">
-        <div className="room-architecture-heading">
-          <small>
-            official architecture
-          </small>
-
-          <strong>
-            {room.label}
-          </strong>
-        </div>
-
-        <div className="official-floor-plan room-floor-plan">
-          <img
-            src={floorPlan}
-            alt="Official apartment floor plan"
-            width={1536}
-            height={1024}
-          />
-        </div>
-
-        <p>
-          This floor plan is the fixed
-          architectural source of truth.
-          Walls, doors, windows and room
-          circulation cannot change unless
-          the official plan itself changes.
-        </p>
-      </section>
+<section className="room-view-stage">
+  <img
+    className="room-view-image"
+    src={
+      roomId === "living"
+        ? livingRoomEmpty
+        : roomId === "bedroom"
+          ? bedroomEmpty
+          : roomId === "kitchen"
+            ? kitchenEmpty
+            : roomId === "bathroom"
+              ? bathroomEmpty
+              : hallEmpty
+    }
+    alt={`Empty ${room.label}`}
+  />
+</section>
 
       <section className="room-empty-state">
         <small>
