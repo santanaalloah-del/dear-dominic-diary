@@ -5463,6 +5463,11 @@ const [spotifyResults, setSpotifyResults] =
 const [searchingSpotify, setSearchingSpotify] =
   useState(false);
 
+  const [
+  selectedSpotifyTrack,
+  setSelectedSpotifyTrack,
+] = useState<SpotifyTrack | null>(null);
+  
 const searchSpotify = async () => {
   if (!spotifyQuery.trim()) return;
 
@@ -5492,6 +5497,7 @@ const searchSpotify = async () => {
   const chooseSpotifyTrack = (
   track: SpotifyTrack
 ) => {
+  setSelectedSpotifyTrack(track);
   setSongTitle(track.name);
   setSongArtist(
     track.artists.join(", ")
@@ -5565,19 +5571,27 @@ const searchSpotify = async () => {
 
     try {
       const savedSong =
-        await createSong({
-          userId: session.user.id,
-          owner:
-            ownerForView,
-          title:
-            songTitle,
-          artist:
-            songArtist,
-          album:
-            songAlbum,
-          note:
-            songNote,
-        });
+     await createSong({
+  userId: session.user.id,
+  owner: ownerForView,
+  title: songTitle,
+  artist: songArtist,
+  album: songAlbum,
+  note: songNote,
+  spotifyId:
+    selectedSpotifyTrack?.id,
+  spotifyUri:
+    selectedSpotifyTrack?.uri,
+  spotifyUrl:
+    selectedSpotifyTrack
+      ?.externalUrl,
+  coverUrl:
+    selectedSpotifyTrack
+      ?.coverUrl,
+  durationMs:
+    selectedSpotifyTrack
+      ?.durationMs,
+});
 
       setSongs(
         (currentSongs) => [
@@ -5590,8 +5604,7 @@ const searchSpotify = async () => {
 setSongArtist("");
 setSongAlbum("");
 setSongNote("");
-setSpotifyQuery("");
-setSpotifyResults([]);
+      setSelectedSpotifyTrack(null);
 setAddingSong(false);
     } catch (saveError) {
       console.error(
@@ -5809,6 +5822,7 @@ setAddingSong(false);
                 setSongAlbum("");
                 setSongNote("");
                 setSpotifyQuery("");
+                setSelectedSpotifyTrack(null);
 setSpotifyResults([]);
               }}
             >
@@ -5897,20 +5911,39 @@ setSpotifyResults([]);
                     ? song.data.album
                     : null;
 
+                const coverUrl =
+  typeof song.data?.coverUrl ===
+  "string"
+    ? song.data.coverUrl
+    : null;
+
+const spotifyUrl =
+  typeof song.data?.spotifyUrl ===
+  "string"
+    ? song.data.spotifyUrl
+    : null;
+                
                 return (
                   <article
                     key={song.id}
                     className="music-track"
                   >
-                    <div
-                      className="music-record"
-                      aria-hidden="true"
-                    >
-                      <Disc3
-                        size={24}
-                        strokeWidth={1.2}
-                      />
-                    </div>
+                <div
+  className="music-record"
+  aria-hidden="true"
+>
+  {coverUrl ? (
+    <img
+      src={coverUrl}
+      alt=""
+    />
+  ) : (
+    <Disc3
+      size={24}
+      strokeWidth={1.2}
+    />
+  )}
+</div>
 
                     <div>
                       <small>
@@ -5942,10 +5975,20 @@ setSpotifyResults([]);
                       )}
                     </div>
 
-                    <button
-                      type="button"
-                      aria-label="Play"
-                    >
+                   <button
+  type="button"
+  aria-label="Play on Spotify"
+  disabled={!spotifyUrl}
+  onClick={() => {
+    if (!spotifyUrl) return;
+
+    window.open(
+      spotifyUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }}
+>
                       <Play
                         size={16}
                         fill="currentColor"
