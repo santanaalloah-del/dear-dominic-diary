@@ -1683,7 +1683,37 @@ function GalleryScreen() {
       );
     }
   };
-  
+
+  const openAlbum = async (
+    album: DiarioItem
+  ) => {
+    setSelectedAlbum(album);
+    setLoadingAlbum(true);
+    setEditingAlbumPhotos(false);
+    setError(null);
+
+    try {
+      const photoIds =
+        await getGalleryAlbumPhotoIds({
+          userId: session.user.id,
+          albumId: album.id,
+        });
+
+      setAlbumPhotoIds(photoIds);
+    } catch (albumError) {
+      console.error(
+        "Could not open album:",
+        albumError
+      );
+
+      setError(
+        "The album could not be opened. Try again."
+      );
+    } finally {
+      setLoadingAlbum(false);
+    }
+  };
+
   const favoritePhotos =
     photos.filter(
       (photo) =>
