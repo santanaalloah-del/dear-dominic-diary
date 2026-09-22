@@ -5445,7 +5445,39 @@ function MusicScreen() {
 
   const [songNote, setSongNote] =
     useState("");
+const [spotifyQuery, setSpotifyQuery] =
+  useState("");
 
+const [spotifyResults, setSpotifyResults] =
+  useState<SpotifyTrack[]>([]);
+
+const [searchingSpotify, setSearchingSpotify] =
+  useState(false);
+
+const searchSpotify = async () => {
+  if (!spotifyQuery.trim()) return;
+
+  setSearchingSpotify(true);
+  setMusicError(null);
+
+  try {
+    const results =
+      await searchSpotifyTracks(
+        spotifyQuery
+      );
+
+    setSpotifyResults(results);
+  } catch (error) {
+    console.error(error);
+
+    setMusicError(
+      "Could not search Spotify."
+    );
+  } finally {
+    setSearchingSpotify(false);
+  }
+};
+  
   useEffect(() => {
     let active = true;
 
