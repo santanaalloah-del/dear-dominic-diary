@@ -1525,7 +1525,19 @@ function GalleryScreen() {
 
   const [albumTitle, setAlbumTitle] =
     useState("");
-  
+
+  const [selectedAlbum, setSelectedAlbum] =
+    useState<DiarioItem | null>(null);
+
+  const [albumPhotoIds, setAlbumPhotoIds] =
+    useState<string[]>([]);
+
+  const [editingAlbumPhotos, setEditingAlbumPhotos] =
+    useState(false);
+
+  const [loadingAlbum, setLoadingAlbum] =
+    useState(false);
+
   const [loading, setLoading] =
     useState(true);
 
