@@ -522,7 +522,6 @@ function HomeScreen({
 function RoomScreen({
   time,
   roomId,
-  onOpen,
   onOpenRoom,
 }: {
   time: TimeMoodState;
@@ -530,202 +529,157 @@ function RoomScreen({
   onOpen: (screen: Screen) => void;
   onOpenRoom: (roomId: string) => void;
 }) {
-  const [selectedObject, setSelectedObject] = useState<string | null>(null);
-
   const rooms = {
     living: {
       label: "Living Room",
-      caption: "the heart of the apartment",
-      image: livingRoom,
+      caption:
+        "architecture first · furniture comes later",
     },
     bedroom: {
       label: "Bedroom",
-      caption: "quiet, warm, ours",
-      image: bedroom,
+      caption:
+        "architecture first · furniture comes later",
     },
     kitchen: {
       label: "Kitchen",
-      caption: "wood, white tile, everyday life",
-      image: kitchen,
+      caption:
+        "architecture first · furniture comes later",
     },
     bathroom: {
       label: "Bathroom",
-      caption: "small, old, simple",
-      image: bathroom,
+      caption:
+        "architecture first · furniture comes later",
     },
     hall: {
       label: "Hall",
-      caption: "the way in and out",
-      image: hall,
+      caption:
+        "architecture first · furniture comes later",
     },
   };
 
   const room =
-  rooms[roomId as keyof typeof rooms] ?? rooms.living;
+    rooms[
+      roomId as keyof typeof rooms
+    ] ?? rooms.living;
 
-const roomObjects =
-  roomId === "living"
-    ? [
-        {
-          id: "sofa",
-          label: "Sofa",
-          type: "furniture",
-        },
-        {
-          id: "coffee-table",
-          label: "Coffee Table",
-          type: "furniture",
-        },
-        {
-          id: "record-corner",
-          label: "Records",
-          type: "music",
-        },
-        {
-          id: "window",
-          label: "Window",
-          type: "environment",
-        },
-        {
-          id: "monstera",
-          label: "Monstera",
-          type: "plant",
-        },
-      ]
-    : [];
-
-return (
+  return (
     <section className="room-screen apartment-screen">
       <ScreenIntro
         eyebrow={`${time.dateLabel} · ${time.timeLabel}`}
         title={room.label}
       >
-        <p className="intro-copy">{room.caption}</p>
+        <p className="intro-copy">
+          {room.caption}
+        </p>
       </ScreenIntro>
 
-<figure className={`room-view apartment-view room-view-${roomId}`}>
-  <img
-    src={room.image}
-    alt={`${room.label} in our apartment`}
-    width={1280}
-    height={960}
-  />
+      <section className="room-architecture-base">
+        <div className="room-architecture-heading">
+          <small>
+            official architecture
+          </small>
 
-{roomObjects.map((object) => (
-  <button
-    key={object.id}
-    className={`room-hotspot room-hotspot-${object.id}`}
-    aria-label={object.label}
-    data-object-type={object.type}
-    onClick={() => {
-      if (object.id === "record-corner") {
-        onOpen("music");
-        return;
-      }
+          <strong>
+            {room.label}
+          </strong>
+        </div>
 
-      setSelectedObject(object.id);
-    }}
-  >
-    <span />
-    <small>{object.label}</small>
-  </button>
-))}
-</figure>
-{selectedObject && (
-  <div className="room-object-sheet">
-    <div className="room-object-sheet-header">
-      <div>
-        <small>in this room</small>
+        <div className="official-floor-plan room-floor-plan">
+          <img
+            src={floorPlan}
+            alt="Official apartment floor plan"
+            width={1536}
+            height={1024}
+          />
+        </div>
 
-        <strong>
-          {roomObjects.find((object) => object.id === selectedObject)?.label}
-        </strong>
-      </div>
-
-      <button
-        className="room-object-close"
-        onClick={() => setSelectedObject(null)}
-        aria-label="Close object"
-      >
-        ×
-      </button>
-    </div>
-
-    <p>
-      {roomObjects.find((object) => object.id === selectedObject)?.type}
-    </p>
-
-    <div className="room-object-actions">
-      <button>
-        <span>↔</span>
-        Move
-      </button>
-
-      <button>
-        <span>✦</span>
-        Change
-      </button>
-
-      <button>
-        <span>□</span>
-        Store
-      </button>
-    </div>
-  </div>
-)}
-
-<nav className="room-navigation" aria-label="Move through the apartment">
-  {[
-    { id: "living", label: "Living" },
-    { id: "bedroom", label: "Bedroom" },
-    { id: "kitchen", label: "Kitchen" },
-    { id: "bathroom", label: "Bathroom" },
-    { id: "hall", label: "Hall" },
-  ].map((item) => (
-    <button
-      key={item.id}
-      className={roomId === item.id ? "active" : ""}
-      onClick={() => onOpenRoom(item.id)}
-      aria-current={roomId === item.id ? "page" : undefined}
-    >
-      {item.label}
-    </button>
-  ))}
-</nav>
-
-<div className="room-caption">
-        <span>our apartment · new york</span>
         <p>
-          This room keeps its architecture. Furniture, objects and memories
-          can change around it over time.
+          This floor plan is the fixed
+          architectural source of truth.
+          Walls, doors, windows and room
+          circulation cannot change unless
+          the official plan itself changes.
         </p>
-      </div>
+      </section>
 
-      <div className="room-tool-grid">
-        <button>
-          <span>＋</span>
-          <strong>Add something</strong>
-          <small>furniture, decor, objects</small>
-        </button>
+      <section className="room-empty-state">
+        <small>
+          starting state
+        </small>
 
-        <button>
-          <span>↔</span>
-          <strong>Move something</strong>
-          <small>change where an object lives</small>
-        </button>
+        <h2>
+          This room is still empty.
+        </h2>
 
-        <button>
-          <span>▧</span>
-          <strong>References</strong>
-          <small>save ideas for this room</small>
-        </button>
+        <p>
+          No furniture or decoration exists
+          here yet. Everything movable will
+          only appear after you explicitly
+          add or keep it.
+        </p>
+      </section>
 
-        <button>
-          <span>✦</span>
-          <strong>Try a change</strong>
-          <small>preview · keep · discard</small>
-        </button>
-      </div>
+      <nav
+        className="room-navigation"
+        aria-label="Move through the apartment"
+      >
+        {[
+          {
+            id: "living",
+            label: "Living",
+          },
+          {
+            id: "bedroom",
+            label: "Bedroom",
+          },
+          {
+            id: "kitchen",
+            label: "Kitchen",
+          },
+          {
+            id: "bathroom",
+            label: "Bathroom",
+          },
+          {
+            id: "hall",
+            label: "Hall",
+          },
+        ].map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={
+              roomId === item.id
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              onOpenRoom(item.id)
+            }
+            aria-current={
+              roomId === item.id
+                ? "page"
+                : undefined
+            }
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <section className="room-canon-note">
+        <span>
+          apartment rule
+        </span>
+
+        <p>
+          Architecture stays fixed.
+          Furniture, decor, keepsakes and
+          photos will be independent objects
+          that can be added, moved, stored
+          and restored later.
+        </p>
+      </section>
     </section>
   );
 }
