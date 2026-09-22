@@ -1922,17 +1922,140 @@ function GalleryScreen() {
                     ))}
                 </div>
 
-                <button
-                  type="button"
-                  className="gallery-add-button"
-                  onClick={() =>
-                    setEditingAlbumPhotos(
-                      true
-                    )
-                  }
-                >
-                  ＋ Add or remove photos
-                </button>
+                {editingAlbumPhotos ? (
+                  <section className="gallery-library">
+                    <header>
+                      <div>
+                        <span>
+                          choose photos
+                        </span>
+
+                        <strong>
+                          Add or remove
+                        </strong>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditingAlbumPhotos(
+                            false
+                          )
+                        }
+                      >
+                        Done
+                      </button>
+                    </header>
+
+                    <div className="gallery-photo-grid">
+                      {photos.map((photo) => {
+                        const isInAlbum =
+                          albumPhotoIds.includes(
+                            photo.item.id
+                          );
+
+                        return (
+                          <button
+                            key={photo.item.id}
+                            type="button"
+                            className={
+                              isInAlbum
+                                ? "gallery-photo-item active"
+                                : "gallery-photo-item"
+                            }
+                            onClick={async () => {
+                              if (!selectedAlbum) {
+                                return;
+                              }
+
+                              setError(null);
+
+                              try {
+                                if (isInAlbum) {
+                                  await removePhotoFromGalleryAlbum({
+                                    userId:
+                                      session.user.id,
+                                    albumId:
+                                      selectedAlbum.id,
+                                    photoId:
+                                      photo.item.id,
+                                  });
+
+                                  setAlbumPhotoIds(
+                                    (
+                                      currentIds
+                                    ) =>
+                                      currentIds.filter(
+                                        (id) =>
+                                          id !==
+                                          photo.item.id
+                                      )
+                                  );
+                                } else {
+                                  await addPhotoToGalleryAlbum({
+                                    userId:
+                                      session.user.id,
+                                    albumId:
+                                      selectedAlbum.id,
+                                    photoId:
+                                      photo.item.id,
+                                  });
+
+                                  setAlbumPhotoIds(
+                                    (
+                                      currentIds
+                                    ) => [
+                                      ...currentIds,
+                                      photo.item.id,
+                                    ]
+                                  );
+                                }
+                              } catch (
+                                albumPhotoError
+                              ) {
+                                console.error(
+                                  "Could not update album photo:",
+                                  albumPhotoError
+                                );
+
+                                setError(
+                                  "The album could not be updated. Try again."
+                                );
+                              }
+                            }}
+                          >
+                            <img
+                              src={photo.url}
+                              alt={
+                                photo.item.title ??
+                                "Gallery photo"
+                              }
+                              loading="lazy"
+                            />
+
+                            <span>
+                              {isInAlbum
+                                ? "Remove"
+                                : "Add"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : (
+                  <button
+                    type="button"
+                    className="gallery-add-button"
+                    onClick={() =>
+                      setEditingAlbumPhotos(
+                        true
+                      )
+                    }
+                  >
+                    ＋ Add or remove photos
+                  </button>
+                )}
               </>
             )}
           </section>
