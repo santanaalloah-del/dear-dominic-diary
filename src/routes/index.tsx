@@ -43,9 +43,11 @@ import {
   createLetter,
   createLook,
   createMemory,
+  createSong,
   getCalendarItems,
   getDates,
   getDiaryPages,
+  getSongs,
   getKeepsakes,
   getLooks,
   getWardrobeItems,
@@ -4377,69 +4379,162 @@ function DatesScreen() {
   );
 }
 function MusicScreen() {
-  const [musicView, setMusicView] = useState<
-    "mine" | "dominic" | "ours"
-  >("ours");
+  const { session } = usePrivateDiario();
 
-  const [period, setPeriod] = useState<
-    "week" | "month" | "year" | "all"
-  >("month");
+  const [musicView, setMusicView] =
+    useState<
+      "mine" | "dominic" | "ours"
+    >("ours");
 
-  const tracks: Array<{
-    id: string;
-    title: string;
-    artist: string;
-    owner: "mine" | "dominic" | "ours";
-    playedAt?: string;
-    memoryId?: string;
-  }> = [];
+  const [songs, setSongs] =
+    useState<DiarioItem[]>([]);
 
-  const sharedSongs: Array<{
-    id: string;
-    title: string;
-    artist: string;
-    addedAt: string;
-    note?: string;
-  }> = [];
+  const [loadingSongs, setLoadingSongs] =
+    useState(true);
 
-  const filteredTracks =
-    tracks.filter(
-      (track) =>
-        musicView === "ours"
-          ? track.owner === "ours"
-          : track.owner === musicView
+  const [musicError, setMusicError] =
+    useState<string | null>(null);
+
+  const [addingSong, setAddingSong] =
+    useState(false);
+
+  const [songTitle, setSongTitle] =
+    useState("");
+
+  const [songArtist, setSongArtist] =
+    useState("");
+
+  const [songAlbum, setSongAlbum] =
+    useState("");
+
+  const [songNote, setSongNote] =
+    useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    setLoadingSongs(true);
+    setMusicError(null);
+
+    getSongs(
+      session.user.id
+    )
+      .then((loadedSongs) => {
+        if (!active) return;
+
+        setSongs(
+          loadedSongs
+        );
+
+        setLoadingSongs(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Music:",
+          loadError
+        );
+
+        setMusicError(
+          "Music could not be opened."
+        );
+
+        setLoadingSongs(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
+
+  const ownerForView =
+    musicView === "mine"
+      ? "alloah"
+      : musicView === "dominic"
+        ? "dominic"
+        : "shared";
+
+  const visibleSongs =
+    songs.filter(
+      (song) =>
+        song.owner ===
+        ownerForView
     );
 
-  const periodLabel =
-    period === "week"
-      ? "This week"
-      : period === "month"
-        ? "This month"
-        : period === "year"
-          ? "This year"
-          : "All time";
+  const saveSong = async () => {
+    if (
+      !songTitle.trim() ||
+      !songArtist.trim()
+    ) {
+      return;
+    }
+
+    setMusicError(null);
+
+    try {
+      const savedSong =
+        await createSong({
+          userId: session.user.id,
+          owner:
+            ownerForView,
+          title:
+            songTitle,
+          artist:
+            songArtist,
+          album:
+            songAlbum,
+          note:
+            songNote,
+        });
+
+      setSongs(
+        (currentSongs) => [
+          savedSong,
+          ...currentSongs,
+        ]
+      );
+
+      setSongTitle("");
+      setSongArtist("");
+      setSongAlbum("");
+      setSongNote("");
+      setAddingSong(false);
+    } catch (saveError) {
+      console.error(
+        "Could not save song:",
+        saveError
+      );
+
+      setMusicError(
+        "The song could not be saved."
+      );
+    }
+  };
 
   return (
     <section className="music-screen music-live">
       <ScreenIntro
-        eyebrow="Listening · songs · shared soundtrack"
+        eyebrow="Mine · Dominic · Ours"
         title="Music"
       >
         <p className="intro-copy">
-          what you listen to can stay personal,
-          become shared, or attach itself to a real moment.
+          songs can belong to either of you,
+          or become part of the shared soundtrack.
         </p>
       </ScreenIntro>
 
       <div
-        className="music-owner-tabs"
+        className="music-tabs"
         role="tablist"
         aria-label="Music owner"
       >
         <button
           type="button"
           role="tab"
-          aria-selected={musicView === "mine"}
+          aria-selected={
+            musicView === "mine"
+          }
           className={
             musicView === "mine"
               ? "active"
@@ -4464,7 +4559,9 @@ function MusicScreen() {
               : ""
           }
           onClick={() =>
-            setMusicView("dominic")
+            setMusicView(
+              "dominic"
+            )
           }
         >
           Dominic
@@ -4473,7 +4570,9 @@ function MusicScreen() {
         <button
           type="button"
           role="tab"
-          aria-selected={musicView === "ours"}
+          aria-selected={
+            musicView === "ours"
+          }
           className={
             musicView === "ours"
               ? "active"
@@ -4487,258 +4586,242 @@ function MusicScreen() {
         </button>
       </div>
 
-      <section className="music-now">
-        <div
-          className="music-record"
-          aria-hidden="true"
-        >
-          <Disc3
-            size={34}
-            strokeWidth={1.2}
-          />
-        </div>
-
-        <div>
+      {addingSong ? (
+        <section className="music-empty">
           <small>
-            now playing
+            new song
           </small>
 
-          <strong>
-            Nothing playing
-          </strong>
+          <h2>
+            Add a song
+          </h2>
 
-          <span>
-            Spotify connection comes later.
-          </span>
-        </div>
-
-        <button
-          type="button"
-          aria-label="Play"
-          disabled
-        >
-          <Play
-            size={17}
+          <input
+            type="text"
+            value={songTitle}
+            onChange={(event) =>
+              setSongTitle(
+                event.target.value
+              )
+            }
+            placeholder="Song title"
+            autoFocus
           />
-        </button>
-      </section>
 
-      <section className="music-recap">
-        <header>
-          <div>
-            <span>
-              listening recap
-            </span>
+          <input
+            type="text"
+            value={songArtist}
+            onChange={(event) =>
+              setSongArtist(
+                event.target.value
+              )
+            }
+            placeholder="Artist"
+          />
 
-            <strong>
-              {periodLabel}
-            </strong>
+          <input
+            type="text"
+            value={songAlbum}
+            onChange={(event) =>
+              setSongAlbum(
+                event.target.value
+              )
+            }
+            placeholder="Album (optional)"
+          />
+
+          <textarea
+            value={songNote}
+            onChange={(event) =>
+              setSongNote(
+                event.target.value
+              )
+            }
+            placeholder="Why does this song matter?"
+            rows={4}
+          />
+
+          <div className="diary-editor-actions">
+            <button
+              type="button"
+              onClick={() => {
+                setAddingSong(false);
+                setSongTitle("");
+                setSongArtist("");
+                setSongAlbum("");
+                setSongNote("");
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="gallery-add-button"
+              disabled={
+                !songTitle.trim() ||
+                !songArtist.trim()
+              }
+              onClick={
+                saveSong
+              }
+            >
+              Save song
+            </button>
           </div>
-
+        </section>
+      ) : loadingSongs ? (
+        <section className="music-empty">
+          <p>
+            Opening the record shelf…
+          </p>
+        </section>
+      ) : visibleSongs.length ===
+        0 ? (
+        <section className="music-empty">
           <div
-            className="music-period-tabs"
-            role="tablist"
-            aria-label="Recap period"
+            className="music-empty-icon"
+            aria-hidden="true"
           >
-            <button
-              type="button"
-              className={
-                period === "week"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setPeriod("week")
-              }
-            >
-              W
-            </button>
-
-            <button
-              type="button"
-              className={
-                period === "month"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setPeriod("month")
-              }
-            >
-              M
-            </button>
-
-            <button
-              type="button"
-              className={
-                period === "year"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setPeriod("year")
-              }
-            >
-              Y
-            </button>
-
-            <button
-              type="button"
-              className={
-                period === "all"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setPeriod("all")
-              }
-            >
-              ∞
-            </button>
+            <Disc3
+              size={28}
+              strokeWidth={1.25}
+            />
           </div>
-        </header>
 
-        <div className="music-recap-empty">
-          <Music2
-            size={22}
-            strokeWidth={1.3}
-          />
+          <small>
+            {musicView === "mine"
+              ? "my music"
+              : musicView ===
+                  "dominic"
+                ? "Dominic's music"
+                : "our soundtrack"}
+          </small>
+
+          <h2>
+            No songs here yet.
+          </h2>
 
           <p>
-            Listening history will build
-            after music is connected.
+            A song only enters this part
+            of the world after it is actually
+            kept here.
           </p>
 
-          <small>
-            Later this can show top songs,
-            artists, repeats and listening
-            patterns for each period.
-          </small>
-        </div>
-      </section>
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setAddingSong(true)
+            }
+          >
+            ＋ Add song
+          </button>
+        </section>
+      ) : (
+        <>
+          <div className="music-library">
+            {visibleSongs.map(
+              (song) => {
+                const artist =
+                  typeof song.data
+                    ?.artist ===
+                  "string"
+                    ? song.data.artist
+                    : "Unknown artist";
 
-      <section className="music-library">
-        <header>
-          <div>
-            <span>
-              {musicView}
-            </span>
+                const album =
+                  typeof song.data
+                    ?.album ===
+                  "string"
+                    ? song.data.album
+                    : null;
 
-            <strong>
-              {musicView === "mine"
-                ? "My listening"
-                : musicView === "dominic"
-                  ? "Dominic's listening"
-                  : "Our songs"}
-            </strong>
-          </div>
-
-          <small>
-            {filteredTracks.length} songs
-          </small>
-        </header>
-
-        {filteredTracks.length === 0 ? (
-          <div className="music-library-empty">
-            <p>
-              {musicView === "ours"
-                ? "A song only becomes ours after it actually gains shared meaning."
-                : "Listening history will appear here when music is connected."}
-            </p>
-          </div>
-        ) : (
-          <div className="music-track-list">
-            {filteredTracks.map(
-              (track) => (
-                <button
-                  key={track.id}
-                  type="button"
-                  className="music-track"
-                >
-                  <div
-                    className="music-track-art"
-                    aria-hidden="true"
+                return (
+                  <article
+                    key={song.id}
+                    className="music-track"
                   >
-                    <Music2
-                      size={17}
-                    />
-                  </div>
+                    <div
+                      className="music-record"
+                      aria-hidden="true"
+                    >
+                      <Disc3
+                        size={24}
+                        strokeWidth={1.2}
+                      />
+                    </div>
 
-                  <span>
-                    <strong>
-                      {track.title}
-                    </strong>
+                    <div>
+                      <small>
+                        {musicView ===
+                        "ours"
+                          ? "ours"
+                          : musicView}
+                      </small>
 
-                    <small>
-                      {track.artist}
-                    </small>
-                  </span>
+                      <strong>
+                        {song.title ??
+                          "Untitled song"}
+                      </strong>
 
-                  <Play
-                    size={15}
-                  />
-                </button>
-              )
+                      <span>
+                        {artist}
+                      </span>
+
+                      {album && (
+                        <em>
+                          {album}
+                        </em>
+                      )}
+
+                      {song.body && (
+                        <p>
+                          {song.body}
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      aria-label="Play"
+                    >
+                      <Play
+                        size={16}
+                        fill="currentColor"
+                      />
+                    </button>
+                  </article>
+                );
+              }
             )}
           </div>
-        )}
-      </section>
 
-      <section className="music-shared">
-        <header>
-          <span>
-            shared soundtrack
-          </span>
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setAddingSong(true)
+            }
+          >
+            ＋ Add another song
+          </button>
+        </>
+      )}
 
-          <strong>
-            Songs with a history
-          </strong>
-        </header>
+      {musicError && (
+        <p role="alert">
+          {musicError}
+        </p>
+      )}
 
-        {sharedSongs.length === 0 ? (
-          <div className="music-shared-empty">
-            <p>
-              No shared songs yet.
-            </p>
-
-            <small>
-              When a song becomes connected
-              to a real conversation, date,
-              memory or moment, it can live here.
-            </small>
-          </div>
-        ) : (
-          <div>
-            {sharedSongs.map(
-              (song) => (
-                <article
-                  key={song.id}
-                  className="shared-song"
-                >
-                  <Music2
-                    size={18}
-                  />
-
-                  <div>
-                    <strong>
-                      {song.title}
-                    </strong>
-
-                    <span>
-                      {song.artist}
-                    </span>
-
-                    {song.note && (
-                      <p>
-                        {song.note}
-                      </p>
-                    )}
-                  </div>
-                </article>
-              )
-            )}
-          </div>
-        )}
+      <section className="music-rule">
+        <p>
+          Music can be yours, Dominic's or shared.
+          A shared song does not imply a memory or
+          relationship milestone until it is actually
+          connected to one.
+        </p>
       </section>
     </section>
   );
