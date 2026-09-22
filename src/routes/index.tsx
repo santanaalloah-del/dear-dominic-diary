@@ -46,8 +46,9 @@ import {
   getGalleryPhotos,
   getLetters,
   getLocalDateKey,
-  getMemories,
+    getMemories,
   getMemoryItemIds,
+  getTimelineItems,
   removeItemFromMemory,
   removePhotoFromGalleryAlbum,
   saveDiaryPage,
@@ -3821,42 +3822,95 @@ function MusicScreen() {
   );
 }
 function TimelineScreen() {
-  const [timelineView, setTimelineView] = useState<
-    "all" | "lived" | "planned"
-  >("all");
+  const { session } = usePrivateDiario();
 
-  const timelineEntries: Array<{
-    id: string;
-    date: string;
-    title: string;
-    description: string;
-    status: "lived" | "planned";
-    kind:
-      | "memory"
-      | "date"
-      | "letter"
-      | "photo"
-      | "music"
-      | "home"
-      | "wardrobe"
-      | "diary";
-  }> = [];
+  const [timelineView, setTimelineView] =
+    useState<
+      "all" | "lived" | "planned"
+    >("all");
+
+  const [timelineItems, setTimelineItems] =
+    useState<DiarioItem[]>([]);
+
+  const [loadingTimeline, setLoadingTimeline] =
+    useState(true);
+
+  const [timelineError, setTimelineError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    setLoadingTimeline(true);
+    setTimelineError(null);
+
+    getTimelineItems(
+      session.user.id
+    )
+      .then((loadedItems) => {
+        if (!active) return;
+
+        setTimelineItems(
+          loadedItems
+        );
+
+        setLoadingTimeline(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load Timeline:",
+          loadError
+        );
+
+        setTimelineError(
+          "The timeline could not be opened right now."
+        );
+
+        setLoadingTimeline(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id]);
 
   const visibleEntries =
-    timelineView === "all"
-      ? timelineEntries
-      : timelineEntries.filter(
-          (entry) =>
-            entry.status === timelineView
-        );
+    timelineItems.filter((item) => {
+      const isPlanned =
+        !item.event_at &&
+        Boolean(item.planned_for);
+
+      if (timelineView === "planned") {
+        return isPlanned;
+      }
+
+      if (timelineView === "lived") {
+        return !isPlanned;
+      }
+
+      return true;
+    });
 
   const sortedEntries = [
     ...visibleEntries,
-  ].sort(
-    (first, second) =>
-      new Date(first.date).getTime() -
-      new Date(second.date).getTime()
-  );
+  ].sort((first, second) => {
+    const firstDate =
+      first.event_at ??
+      first.planned_for ??
+      first.created_at;
+
+    const secondDate =
+      second.event_at ??
+      second.planned_for ??
+      second.created_at;
+
+    return (
+      new Date(firstDate).getTime() -
+      new Date(secondDate).getTime()
+    );
+  });
 
   const todayLabel =
     new Intl.DateTimeFormat(
@@ -3867,6 +3921,26 @@ function TimelineScreen() {
         year: "numeric",
       }
     ).format(new Date());
+
+  const itemLabel = (
+    item: DiarioItem
+  ) => {
+    if (
+      item.kind ===
+      "story_memory"
+    ) {
+      return "memory";
+    }
+
+    if (
+      item.kind ===
+      "home_change"
+    ) {
+      return "home";
+    }
+
+    return item.kind;
+  };
 
   return (
     <section className="timeline-screen timeline-live">
@@ -3940,7 +4014,13 @@ function TimelineScreen() {
         </button>
       </div>
 
-      {sortedEntries.length === 0 ? (
+      {loadingTimeline ? (
+        <section className="timeline-empty">
+          <p>
+            Opening the timeline…
+          </p>
+        </section>
+      ) : sortedEntries.length === 0 ? (
         <section className="timeline-empty">
           <div
             className="timeline-empty-icon"
@@ -3966,68 +4046,6 @@ function TimelineScreen() {
             changes happen, they can join the
             timeline automatically.
           </p>
-
-          <div className="timeline-source-list">
-            <div>
-              <Heart
-                size={17}
-                strokeWidth={1.4}
-              />
-              <span>
-                Memories
-              </span>
-            </div>
-
-            <div>
-              <MapPin
-                size={17}
-                strokeWidth={1.4}
-              />
-              <span>
-                Dates
-              </span>
-            </div>
-
-            <div>
-              <Music2
-                size={17}
-                strokeWidth={1.4}
-              />
-              <span>
-                Music
-              </span>
-            </div>
-
-            <div>
-              <Home
-                size={17}
-                strokeWidth={1.4}
-              />
-              <span>
-                Home changes
-              </span>
-            </div>
-
-            <div>
-              <Shirt
-                size={17}
-                strokeWidth={1.4}
-              />
-              <span>
-                Wardrobe
-              </span>
-            </div>
-
-            <div>
-              <BookOpen
-                size={17}
-                strokeWidth={1.4}
-              />
-              <span>
-                Diary
-              </span>
-            </div>
-          </div>
         </section>
       ) : (
         <div
@@ -4035,46 +4053,79 @@ function TimelineScreen() {
           aria-label="Life timeline"
         >
           {sortedEntries.map(
-            (entry) => (
-              <article
-                key={entry.id}
-                className={`timeline-entry timeline-entry-${entry.kind}`}
-              >
-                <span
-                  className="timeline-entry-dot"
-                  aria-hidden="true"
-                />
+            (entry) => {
+              const entryDate =
+                entry.event_at ??
+                entry.planned_for ??
+                entry.created_at;
 
-                <time>
-                  {new Intl.DateTimeFormat(
-                    "en-US",
-                    {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    }
-                  ).format(
-                    new Date(entry.date)
-                  )}
-                </time>
+              const isPlanned =
+                !entry.event_at &&
+                Boolean(
+                  entry.planned_for
+                );
 
-                <div>
-                  <small>
-                    {entry.status}
-                  </small>
+              return (
+                <article
+                  key={entry.id}
+                  className={`timeline-entry timeline-entry-${itemLabel(
+                    entry
+                  )}`}
+                >
+                  <span
+                    className="timeline-entry-dot"
+                    aria-hidden="true"
+                  />
 
-                  <strong>
-                    {entry.title}
-                  </strong>
+                  <time>
+                    {new Intl.DateTimeFormat(
+                      "en-US",
+                      {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      }
+                    ).format(
+                      new Date(
+                        entryDate
+                      )
+                    )}
+                  </time>
 
-                  <p>
-                    {entry.description}
-                  </p>
-                </div>
-              </article>
-            )
+                  <div>
+                    <small>
+                      {isPlanned
+                        ? "planned"
+                        : itemLabel(
+                            entry
+                          )}
+                    </small>
+
+                    <strong>
+                      {entry.title ??
+                        (entry.kind ===
+                        "diary"
+                          ? "Diary entry"
+                          : "Untitled")}
+                    </strong>
+
+                    {entry.body && (
+                      <p>
+                        {entry.body}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              );
+            }
           )}
         </div>
+      )}
+
+      {timelineError && (
+        <p role="alert">
+          {timelineError}
+        </p>
       )}
 
       <section className="timeline-explainer">
