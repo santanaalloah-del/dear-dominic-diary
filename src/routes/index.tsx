@@ -5975,7 +5975,38 @@ function TimelineScreen({
 
     return item.kind;
   };
+const openTimelineItem = (
+  item: DiarioItem
+) => {
+  switch (item.kind) {
+    case "story_memory":
+      onOpen("memories");
+      break;
 
+    case "photo":
+      onOpen("gallery");
+      break;
+
+    case "letter":
+      onOpen("letters");
+      break;
+
+    case "song":
+      onOpen("music");
+      break;
+
+    case "date":
+      onOpen("dates");
+      break;
+
+    case "diary":
+      onOpen("diary");
+      break;
+
+    default:
+      break;
+  }
+};
   return (
     <section className="timeline-screen timeline-live">
       <ScreenIntro
