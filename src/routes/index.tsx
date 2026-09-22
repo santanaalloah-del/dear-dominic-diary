@@ -626,11 +626,15 @@ function RoomScreen({
             placeholder="Furniture name"
           />
 
-          <input
-            value={newImageUrl}
-            onChange={(event) => setNewImageUrl(event.target.value)}
-            placeholder="Image URL"
-          />
+<input
+
+  type="file"
+
+  accept="image/*"
+
+  onChange={handleFurnitureImage}
+
+/
 
           <button
             type="button"
