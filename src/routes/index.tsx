@@ -204,8 +204,9 @@ function DiarioApp() {
             />
           )}
 
-          {screen === "chat" && <DiarioChat />}
-
+{screen === "chat" && (
+  <DiarioChat onOpen={openScreen} />
+)}
           {screen === "diary" && <DiaryScreen />}
 
           {screen === "more" && (
