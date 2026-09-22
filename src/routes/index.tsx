@@ -4110,18 +4110,16 @@ function CalendarScreen() {
         )
     );
 
-  const calendarItems: Array<{
-    id: string;
-    date: string;
-    type:
-      | "memory"
-      | "date"
-      | "letter"
-      | "photo"
-      | "note"
-      | "plan";
-    title: string;
-  }> = [];
+  const { session } = usePrivateDiario();
+
+  const [calendarItems, setCalendarItems] =
+    useState<DiarioItem[]>([]);
+
+  const [loadingCalendar, setLoadingCalendar] =
+    useState(true);
+
+  const [calendarError, setCalendarError] =
+    useState<string | null>(null);
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
