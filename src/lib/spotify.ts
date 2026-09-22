@@ -436,3 +436,95 @@ export async function getSpotifyAccessToken() {
     null
   );
 }
+export type SpotifyTrack = {
+  id: string;
+  name: string;
+  uri: string;
+  externalUrl: string;
+  artists: string[];
+  album: string;
+  coverUrl: string | null;
+  durationMs: number;
+};
+
+export async function searchSpotifyTracks(
+  query: string
+): Promise<SpotifyTrack[]> {
+  const cleanQuery = query.trim();
+
+  if (!cleanQuery) {
+    return [];
+  }
+
+  const accessToken =
+    await getSpotifyAccessToken();
+
+  if (!accessToken) {
+    throw new Error(
+      "Spotify is not connected."
+    );
+  }
+
+  const url =
+    new URL(
+      "https://api.spotify.com/v1/search"
+    );
+
+  url.searchParams.set(
+    "q",
+    cleanQuery
+  );
+
+  url.searchParams.set(
+    "type",
+    "track"
+  );
+
+  url.searchParams.set(
+    "limit",
+    "10"
+  );
+
+  const response =
+    await fetch(
+      url.toString(),
+      {
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      "Spotify search failed."
+    );
+  }
+
+  const data =
+    await response.json();
+
+  return (
+    data.tracks?.items ?? []
+  ).map((track: any) => ({
+    id: track.id,
+    name: track.name,
+    uri: track.uri,
+    externalUrl:
+      track.external_urls?.spotify ??
+      "",
+    artists:
+      track.artists?.map(
+        (artist: any) =>
+          artist.name
+      ) ?? [],
+    album:
+      track.album?.name ?? "",
+    coverUrl:
+      track.album?.images?.[0]
+        ?.url ?? null,
+    durationMs:
+      track.duration_ms ?? 0,
+  }));
+}
