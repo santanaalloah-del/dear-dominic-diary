@@ -4667,22 +4667,38 @@ function MemoriesScreen() {
             (memory) => (
               <article
                 key={memory.id}
-                className={`memory-entry memory-${memory.kind}`}
+                className="memory-entry memory-story"
               >
                 <span className="memory-timeline-dot" />
 
                 <time>
-                  {memory.date}
+                  {memory.event_at
+                    ? new Intl.DateTimeFormat(
+                        "en-US",
+                        {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        }
+                      ).format(
+                        new Date(
+                          memory.event_at
+                        )
+                      )
+                    : "Memory"}
                 </time>
 
                 <div>
                   <strong>
-                    {memory.title}
+                    {memory.title ??
+                      "Untitled memory"}
                   </strong>
 
-                  <p>
-                    {memory.note}
-                  </p>
+                  {memory.body && (
+                    <p>
+                      {memory.body}
+                    </p>
+                  )}
                 </div>
               </article>
             )
