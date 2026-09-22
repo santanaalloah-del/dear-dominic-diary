@@ -4547,6 +4547,36 @@ function MemoriesScreen() {
     }
   };
 
+  const openMemory = async (
+    memory: DiarioItem
+  ) => {
+    setSelectedMemory(memory);
+    setLoadingMemoryItems(true);
+    setEditingMemoryItems(false);
+    setMemoryError(null);
+
+    try {
+      const itemIds =
+        await getMemoryItemIds({
+          userId: session.user.id,
+          memoryId: memory.id,
+        });
+
+      setMemoryItemIds(itemIds);
+    } catch (openError) {
+      console.error(
+        "Could not open Memory:",
+        openError
+      );
+
+      setMemoryError(
+        "The memory could not be opened."
+      );
+    } finally {
+      setLoadingMemoryItems(false);
+    }
+  };
+
   const filters = [
     { id: "all", label: "All" },
     { id: "photos", label: "Photos" },
