@@ -8315,6 +8315,56 @@ function MorningNightScreen({
     );
   };
 
+  const openDayMoment = (
+  item: DiarioItem
+) => {
+  switch (item.kind) {
+    case "story_memory":
+      onOpen("memories");
+      break;
+
+    case "photo":
+      onOpen("gallery");
+      break;
+
+    case "letter":
+      onOpen("letters");
+      break;
+
+    case "song":
+      onOpen("music");
+      break;
+
+    case "date":
+      onOpen("dates");
+      break;
+
+    case "diary":
+      onOpen("diary");
+      break;
+
+    case "place":
+      onOpen("places");
+      break;
+
+    case "keepsake":
+      onOpen("keepsakes");
+      break;
+
+    case "clothing":
+    case "look":
+      onOpen("wardrobe");
+      break;
+
+    case "home_change":
+      onOpen("home");
+      break;
+
+    default:
+      break;
+  }
+};
+  
   return (
     <section className="day-cycle-screen">
       <ScreenIntro
@@ -8487,13 +8537,16 @@ function MorningNightScreen({
           </div>
         ) : (
           <div className="day-cycle-moment-list">
-            {activeMoments.map(
-              (moment) => (
-                <article
-                  key={
-                    moment.id
-                  }
-                >
+        {activeMoments.map(
+  (moment) => (
+    <button
+      key={moment.id}
+      type="button"
+      className="day-cycle-moment"
+      onClick={() =>
+        openDayMoment(moment)
+      }
+    >
                   <header>
                     <span>
                       {momentLabel(
@@ -8532,7 +8585,7 @@ function MorningNightScreen({
                         planned
                       </small>
                     )}
-                </article>
+               </button>
               )
             )}
           </div>
