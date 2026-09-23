@@ -160,6 +160,13 @@ function Index() {
 
 function DiarioApp() {
   const [screen, setScreen] = useState<Screen>("home");
+  const [privacyCovered, setPrivacyCovered] =
+  useState(false);
+
+const [privacyCoverEnabled, setPrivacyCoverEnabled] =
+  useState(false);
+
+const { session } = usePrivateDiario();
   const [activeRoom, setActiveRoom] = useState("living");
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
@@ -176,6 +183,54 @@ function DiarioApp() {
   );
 }, []);
 
+  useEffect(() => {
+  let active = true;
+
+  getDiarioSettings(session.user.id)
+    .then((settings) => {
+      if (!active) return;
+
+      setPrivacyCoverEnabled(
+        settings.privacy_cover
+      );
+    })
+    .catch((error) => {
+      console.error(
+        "Could not load privacy setting:",
+        error
+      );
+    });
+
+  return () => {
+    active = false;
+  };
+}, [session.user.id]);
+
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (!privacyCoverEnabled) {
+      setPrivacyCovered(false);
+      return;
+    }
+
+    setPrivacyCovered(
+      document.hidden
+    );
+  };
+
+  document.addEventListener(
+    "visibilitychange",
+    handleVisibilityChange
+  );
+
+  return () => {
+    document.removeEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+  };
+}, [privacyCoverEnabled]);
+  
   const openScreen = (nextScreen: Screen) => {
     if (scrollRef.current) {
       scrollPositions.current[screen] = scrollRef.current.scrollTop;
@@ -202,6 +257,14 @@ function DiarioApp() {
       className={`prototype-stage time-${time.mood}`}
       data-time-theme={time.mood}
     >
+      {privacyCovered && (
+  <div className="privacy-cover">
+    <div>
+      <strong>Diário</strong>
+      <small>private</small>
+    </div>
+  </div>
+)}
       <div className="phone-shell" data-time-theme={time.mood}>
         <div className="statusbar" aria-hidden="true">
           <span>{time.timeLabel}</span>
