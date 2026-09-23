@@ -59,6 +59,7 @@ import {
   createSong,
   getCalendarItems,
   getDates,
+  markDateAsLived,
   getDiaryPages,
   getDiarioSettings,
   getPlaces,
@@ -5043,7 +5044,38 @@ function DatesScreen() {
       );
     }
   };
+const markAsLived = async (
+  date: DiarioItem
+) => {
+  setDateError(null);
 
+  try {
+    const updatedDate =
+      await markDateAsLived({
+        userId: session.user.id,
+        dateId: date.id,
+      });
+
+    setDates((currentDates) =>
+      currentDates.map(
+        (currentDate) =>
+          currentDate.id ===
+          updatedDate.id
+            ? updatedDate
+            : currentDate
+      )
+    );
+  } catch (updateError) {
+    console.error(
+      "Could not mark Date as lived:",
+      updateError
+    );
+
+    setDateError(
+      "The date could not be marked as lived."
+    );
+  }
+};
   return (
     <section className="dates-screen dates-live">
       <ScreenIntro
@@ -5325,6 +5357,18 @@ function DatesScreen() {
                         {date.body}
                       </p>
                     )}
+                    {!isLived && (
+  <button
+    type="button"
+    className="gallery-add-button"
+    onClick={() =>
+      void markAsLived(date)
+    }
+  >
+    Mark as lived
+  </button>
+)}
+                    
                   </article>
                 );
               }
