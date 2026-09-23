@@ -1274,6 +1274,65 @@ export async function createLook({
 
   return data as DiarioItem;
 }
+export async function addClothingToLook({
+  userId,
+  lookId,
+  clothingId,
+}: {
+  userId: string;
+  lookId: string;
+  clothingId: string;
+}): Promise<void> {
+  const { error } =
+    await diarioSupabase
+      .from("diario_links")
+      .upsert(
+        {
+          user_id: userId,
+          source_item_id: lookId,
+          target_item_id: clothingId,
+          relation: "contains",
+          data: {},
+        },
+        {
+          onConflict:
+            "user_id,source_item_id,target_item_id,relation",
+        }
+      );
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function getLookClothingIds({
+  userId,
+  lookId,
+}: {
+  userId: string;
+  lookId: string;
+}): Promise<string[]> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_links")
+    .select("target_item_id")
+    .eq("user_id", userId)
+    .eq("source_item_id", lookId)
+    .eq("relation", "contains");
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map(
+    (link: {
+      target_item_id: string;
+    }) => link.target_item_id
+  );
+}
+
 type CreateSongInput = {
   userId: string;
   owner:
