@@ -1091,6 +1091,43 @@ export async function createKeepsake({
 
   return data as DiarioItem;
 }
+export async function updateKeepsakeLocation({
+  userId,
+  keepsake,
+  location,
+}: {
+  userId: string;
+  keepsake: DiarioItem;
+  location: "home" | "stored";
+}): Promise<DiarioItem> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...(keepsake.data ?? {}),
+        location,
+        room:
+          location === "stored"
+            ? null
+            : keepsake.data?.room ?? null,
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", keepsake.id)
+    .eq("kind", "keepsake")
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
 type CreateClothingInput = {
   userId: string;
   owner: "alloah" | "dominic";
