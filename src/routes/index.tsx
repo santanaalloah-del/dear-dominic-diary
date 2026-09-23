@@ -160,13 +160,12 @@ function Index() {
 
 function DiarioApp() {
   const [screen, setScreen] = useState<Screen>("home");
-  const [privacyCovered, setPrivacyCovered] =
-  useState(false);
+function DiarioApp() {
+  const [screen, setScreen] =
+    useState<Screen>("home");
 
-const [privacyCoverEnabled, setPrivacyCoverEnabled] =
-  useState(false);
-
-const { session } = usePrivateDiario();
+  const [activeRoom, setActiveRoom] =
+    useState("living");
   const [activeRoom, setActiveRoom] = useState("living");
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
@@ -182,31 +181,6 @@ const { session } = usePrivateDiario();
     }
   );
 }, []);
-
-  useEffect(() => {
-  let active = true;
-
-  getDiarioSettings(session.user.id)
-    .then((settings) => {
-      if (!active) return;
-
-      setPrivacyCoverEnabled(
-        settings.privacy_cover
-      );
-    })
-    .catch((error) => {
-      console.error(
-        "Could not load privacy setting:",
-        error
-      );
-    });
-
-  return () => {
-    active = false;
-  };
-}, [session.user.id]);
-
-useEffect(() => {
   
   const openScreen = (nextScreen: Screen) => {
     if (scrollRef.current) {
