@@ -1422,6 +1422,40 @@ export async function createPlace({
 
   return data as DiarioItem;
 }
+export async function markPlaceAsVisited({
+  userId,
+  place,
+}: {
+  userId: string;
+  place: DiarioItem;
+}): Promise<DiarioItem> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      event_at:
+        place.event_at ??
+        new Date().toISOString(),
+      data: {
+        ...(place.data ?? {}),
+        placeStatus: "visited",
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", place.id)
+    .eq("kind", "place")
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
 export type DiarioSettings = {
   user_id: string;
   appearance:
