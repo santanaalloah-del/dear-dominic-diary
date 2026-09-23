@@ -977,6 +977,35 @@ export async function createDate({
 
   return data as DiarioItem;
 }
+export async function markDateAsLived({
+  userId,
+  dateId,
+}: {
+  userId: string;
+  dateId: string;
+}): Promise<DiarioItem> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      event_at:
+        new Date().toISOString(),
+    })
+    .eq("user_id", userId)
+    .eq("id", dateId)
+    .eq("kind", "date")
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
 type CreateKeepsakeInput = {
   userId: string;
   title: string;
