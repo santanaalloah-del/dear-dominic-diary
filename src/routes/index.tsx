@@ -244,22 +244,32 @@ function DiarioApp() {
             />
           )}
 
-          {screen === "letters" && <LettersScreen />}
-          {screen === "gallery" && <GalleryScreen />}
-          {screen === "night" && <MorningNightScreen time={time} />}
-          {screen === "memories" && <MemoriesScreen />}
-        {screen === "calendar" && (
+         {screen === "letters" && <LettersScreen />}
+{screen === "gallery" && <GalleryScreen />}
+
+{screen === "night" && (
+  <MorningNightScreen
+    time={time}
+    onOpen={openScreen}
+  />
+)}
+
+{screen === "memories" && <MemoriesScreen />}
+
+{screen === "calendar" && (
   <CalendarScreen onOpen={openScreen} />
 )}
-   {screen === "timeline" && (
+
+{screen === "timeline" && (
   <TimelineScreen onOpen={openScreen} />
 )}
-          {screen === "music" && <MusicScreen />}
-          {screen === "dates" && <DatesScreen />}
-          {screen === "places" && <PlacesScreen />}
-          {screen === "keepsakes" && <KeepsakesScreen />}
-          {screen === "wardrobe" && <WardrobeScreen />}
-          {screen === "settings" && <SettingsScreen />}
+
+{screen === "music" && <MusicScreen />}
+{screen === "dates" && <DatesScreen />}
+{screen === "places" && <PlacesScreen />}
+{screen === "keepsakes" && <KeepsakesScreen />}
+{screen === "wardrobe" && <WardrobeScreen />}
+{screen === "settings" && <SettingsScreen />}
         </div>
 
         {!detail && (
@@ -7766,8 +7776,10 @@ const visibleMemories =
 }
 function MorningNightScreen({
   time,
+  onOpen,
 }: {
   time: TimeMoodState;
+  onOpen: (screen: Screen) => void;
 }) {
   const { session } = usePrivateDiario();
 
@@ -8195,76 +8207,80 @@ function MorningNightScreen({
         </p>
       )}
 
-      <section className="day-cycle-links">
-        <article>
-          <Music2
-            size={18}
-            strokeWidth={1.35}
-          />
+    <section className="day-cycle-links">
+  <button
+    type="button"
+    onClick={() => onOpen("music")}
+  >
+    <Music2
+      size={18}
+      strokeWidth={1.35}
+    />
 
-          <span>
-            <strong>
-              Music
-            </strong>
+    <span>
+      <strong>Music</strong>
 
-            <small>
-              what was really kept today
-            </small>
-          </span>
-        </article>
+      <small>
+        what was really kept today
+      </small>
+    </span>
+  </button>
 
-        <article>
-          <BookOpen
-            size={18}
-            strokeWidth={1.35}
-          />
+  <button
+    type="button"
+    onClick={() => onOpen("diary")}
+  >
+    <BookOpen
+      size={18}
+      strokeWidth={1.35}
+    />
 
-          <span>
-            <strong>
-              Diary
-            </strong>
+    <span>
+      <strong>Diary</strong>
 
-            <small>
-              writing from this day
-            </small>
-          </span>
-        </article>
+      <small>
+        writing from this day
+      </small>
+    </span>
+  </button>
 
-        <article>
-          <CalendarIcon
-            size={18}
-            strokeWidth={1.35}
-          />
+  <button
+    type="button"
+    onClick={() => onOpen("calendar")}
+  >
+    <CalendarIcon
+      size={18}
+      strokeWidth={1.35}
+    />
 
-          <span>
-            <strong>
-              Calendar
-            </strong>
+    <span>
+      <strong>Calendar</strong>
 
-            <small>
-              today's plans and events
-            </small>
-          </span>
-        </article>
+      <small>
+        today's plans and events
+      </small>
+    </span>
+  </button>
 
-        <article>
-          <Heart
-            size={18}
-            strokeWidth={1.35}
-          />
+  <button
+    type="button"
+    onClick={() => onOpen("memories")}
+  >
+    <Heart
+      size={18}
+      strokeWidth={1.35}
+    />
 
-          <span>
-            <strong>
-              Memories
-            </strong>
+    <span>
+      <strong>Memories</strong>
 
-            <small>
-              only if something stays
-            </small>
-          </span>
-        </article>
-      </section>
-
+      <small>
+        only if something stays
+      </small>
+    </span>
+  </button>
+</section>
+      
       <section className="day-cycle-rule">
         <p>
           Morning and Night never create
