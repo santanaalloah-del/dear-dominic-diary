@@ -66,6 +66,7 @@ import {
   markPlaceAsVisited,
   getSongs,
   getKeepsakes,
+  updateKeepsakeLocation,
   getLooks,
   getWardrobeItems,
   getGalleryAlbumPhotoIds,
@@ -4447,6 +4448,41 @@ function KeepsakesScreen() {
     }
   };
 
+  const moveKeepsake = async (
+  item: DiarioItem,
+  location: "home" | "stored"
+) => {
+  setKeepsakeError(null);
+
+  try {
+    const updatedKeepsake =
+      await updateKeepsakeLocation({
+        userId: session.user.id,
+        keepsake: item,
+        location,
+      });
+
+    setKeepsakes((currentKeepsakes) =>
+      currentKeepsakes.map(
+        (currentKeepsake) =>
+          currentKeepsake.id ===
+          updatedKeepsake.id
+            ? updatedKeepsake
+            : currentKeepsake
+      )
+    );
+  } catch (updateError) {
+    console.error(
+      "Could not move keepsake:",
+      updateError
+    );
+
+    setKeepsakeError(
+      "The keepsake could not be moved."
+    );
+  }
+};
+  
   return (
     <section className="keepsakes-screen keepsakes-live">
       <ScreenIntro
@@ -4831,6 +4867,23 @@ function KeepsakesScreen() {
                         {item.body}
                       </small>
                     )}
+                    <button
+  type="button"
+  className="gallery-add-button"
+  onClick={() =>
+    void moveKeepsake(
+      item,
+      location === "home"
+        ? "stored"
+        : "home"
+    )
+  }
+>
+  {location === "home"
+    ? "Store away"
+    : "Bring home"}
+</button>
+                  
                   </article>
                 );
               }
