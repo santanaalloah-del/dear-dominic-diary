@@ -63,6 +63,7 @@ import {
   getDiaryPages,
   getDiarioSettings,
   getPlaces,
+  markPlaceAsVisited,
   getSongs,
   getKeepsakes,
   getLooks,
@@ -3817,6 +3818,39 @@ function PlacesScreen() {
     }
   };
 
+  const markAsVisited = async (
+  place: DiarioItem
+) => {
+  setPlaceError(null);
+
+  try {
+    const updatedPlace =
+      await markPlaceAsVisited({
+        userId: session.user.id,
+        place,
+      });
+
+    setPlaces((currentPlaces) =>
+      currentPlaces.map(
+        (currentPlace) =>
+          currentPlace.id ===
+          updatedPlace.id
+            ? updatedPlace
+            : currentPlace
+      )
+    );
+  } catch (updateError) {
+    console.error(
+      "Could not mark place as visited:",
+      updateError
+    );
+
+    setPlaceError(
+      "The place could not be marked as visited."
+    );
+  }
+};
+  
   return (
     <section className="places-screen places-live">
       <ScreenIntro
@@ -4150,6 +4184,18 @@ function PlacesScreen() {
                           )}
                         </time>
                       )}
+                    {status === "saved" && (
+  <button
+    type="button"
+    className="gallery-add-button"
+    onClick={() =>
+      void markAsVisited(place)
+    }
+  >
+    Mark as visited
+  </button>
+)}
+                    
                   </article>
                 );
               }
