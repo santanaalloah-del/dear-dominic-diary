@@ -6279,12 +6279,29 @@ const openTimelineItem = (
       onOpen("dates");
       break;
 
-    case "diary":
-      onOpen("diary");
-      break;
+ case "diary":
+  onOpen("diary");
+  break;
 
-    default:
-      break;
+case "place":
+  onOpen("places");
+  break;
+
+case "keepsake":
+  onOpen("keepsakes");
+  break;
+
+case "clothing":
+case "look":
+  onOpen("wardrobe");
+  break;
+
+case "home_change":
+  onOpen("home");
+  break;
+
+default:
+  break;
   }
 };
   return (
@@ -6735,12 +6752,29 @@ const openCalendarItem = (
       onOpen("dates");
       break;
 
-    case "diary":
-      onOpen("diary");
-      break;
+case "diary":
+  onOpen("diary");
+  break;
 
-    default:
-      break;
+case "place":
+  onOpen("places");
+  break;
+
+case "keepsake":
+  onOpen("keepsakes");
+  break;
+
+case "clothing":
+case "look":
+  onOpen("wardrobe");
+  break;
+
+case "home_change":
+  onOpen("home");
+  break;
+
+default:
+  break;
   }
 };
   return (
