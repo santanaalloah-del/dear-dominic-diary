@@ -46,6 +46,7 @@ import {
 } from "@/lib/time-mood";
 import {
   addItemToMemory,
+  addClothingToLook,
   addPhotoToGalleryAlbum,
   createClothing,
   createDate,
@@ -68,6 +69,7 @@ import {
   getKeepsakes,
   updateKeepsakeLocation,
   getLooks,
+  getLookClothingIds,
   getWardrobeItems,
   getGalleryAlbumPhotoIds,
   getGalleryAlbums,
@@ -2964,6 +2966,18 @@ function WardrobeScreen() {
   const [lookNote, setLookNote] =
     useState("");
 
+  const [
+  selectedLookClothingIds,
+  setSelectedLookClothingIds,
+] = useState<string[]>([]);
+
+const [
+  lookClothingByLookId,
+  setLookClothingByLookId,
+] = useState<
+  Record<string, string[]>
+>({});
+  
   useEffect(() => {
     let active = true;
 
@@ -3019,7 +3033,60 @@ function WardrobeScreen() {
       active = false;
     };
   }, [session.user.id]);
+useEffect(() => {
+  let active = true;
 
+  const loadLookClothing =
+    async () => {
+      if (
+        savedLooks.length === 0
+      ) {
+        setLookClothingByLookId({});
+        return;
+      }
+
+      try {
+        const entries =
+          await Promise.all(
+            savedLooks.map(
+              async (look) => {
+                const ids =
+                  await getLookClothingIds({
+                    userId:
+                      session.user.id,
+                    lookId: look.id,
+                  });
+
+                return [
+                  look.id,
+                  ids,
+                ] as const;
+              }
+            )
+          );
+
+        if (!active) return;
+
+        setLookClothingByLookId(
+          Object.fromEntries(entries)
+        );
+      } catch (loadError) {
+        console.error(
+          "Could not load look clothing:",
+          loadError
+        );
+      }
+    };
+
+  void loadLookClothing();
+
+  return () => {
+    active = false;
+  };
+}, [
+  savedLooks,
+  session.user.id,
+]);
   const dbOwner =
     wardrobeOwner === "mine"
       ? "alloah"
@@ -3098,6 +3165,25 @@ function WardrobeScreen() {
             lookNote,
         });
 
+      await Promise.all(
+  selectedLookClothingIds.map(
+    (clothingId) =>
+      addClothingToLook({
+        userId: session.user.id,
+        lookId: savedLook.id,
+        clothingId,
+      })
+  )
+);
+
+setLookClothingByLookId(
+  (current) => ({
+    ...current,
+    [savedLook.id]:
+      selectedLookClothingIds,
+  })
+);
+      
       setSavedLooks(
         (currentLooks) => [
           savedLook,
@@ -3105,9 +3191,10 @@ function WardrobeScreen() {
         ]
       );
 
-      setLookName("");
-      setLookNote("");
-      setAddingLook(false);
+  setLookName("");
+setLookNote("");
+setSelectedLookClothingIds([]);
+setAddingLook(false);
     } catch (saveError) {
       console.error(
         "Could not save look:",
@@ -3528,17 +3615,69 @@ function WardrobeScreen() {
                 placeholder="What is this look for?"
                 rows={4}
               />
+<div className="wardrobe-item-grid">
+  {visibleItems.map((item) => {
+    const selected =
+      selectedLookClothingIds.includes(
+        item.id
+      );
 
+    return (
+      <button
+        key={item.id}
+        type="button"
+        className={
+          selected
+            ? "wardrobe-item active"
+            : "wardrobe-item"
+        }
+        onClick={() =>
+          setSelectedLookClothingIds(
+            (current) =>
+              current.includes(
+                item.id
+              )
+                ? current.filter(
+                    (id) =>
+                      id !== item.id
+                  )
+                : [
+                    ...current,
+                    item.id,
+                  ]
+          )
+        }
+      >
+        <Shirt
+          size={20}
+          strokeWidth={1.3}
+        />
+
+        <span>
+          <strong>
+            {item.title ??
+              "Untitled"}
+          </strong>
+
+          <small>
+            {selected
+              ? "Selected"
+              : "Add to look"}
+          </small>
+        </span>
+      </button>
+    );
+  })}
+</div>
               <div className="diary-editor-actions">
                 <button
                   type="button"
-                  onClick={() => {
-                    setAddingLook(
-                      false
-                    );
-                    setLookName("");
-                    setLookNote("");
-                  }}
+onClick={() => {
+  setAddingLook(false);
+  setLookName("");
+  setLookNote("");
+  setSelectedLookClothingIds([]);
+}}
                 >
                   Cancel
                 </button>
@@ -3594,36 +3733,58 @@ function WardrobeScreen() {
           ) : (
             <>
               <div className="wardrobe-look-list">
-                {visibleLooks.map(
-                  (look) => (
-                    <button
-                      key={look.id}
-                      type="button"
-                      className="wardrobe-look"
-                    >
-                      <div>
-                        <span>
-                          saved look
-                        </span>
+   {visibleLooks.map(
+  (look) => {
+    const clothingIds =
+      lookClothingByLookId[
+        look.id
+      ] ?? [];
 
-                        <strong>
-                          {look.title ??
-                            "Untitled look"}
-                        </strong>
+    const clothing =
+      wardrobeItems.filter(
+        (item) =>
+          clothingIds.includes(
+            item.id
+          )
+      );
 
-                        {look.body && (
-                          <small>
-                            {look.body}
-                          </small>
-                        )}
-                      </div>
+    return (
+      <div
+        key={look.id}
+        className="wardrobe-look"
+      >
+        <div>
+          <span>
+            saved look
+          </span>
 
-                      <ChevronRight
-                        size={17}
-                      />
-                    </button>
+          <strong>
+            {look.title ??
+              "Untitled look"}
+          </strong>
+
+          {look.body && (
+            <small>
+              {look.body}
+            </small>
+          )}
+
+          <small>
+            {clothing.length === 0
+              ? "No clothing attached"
+              : clothing
+                  .map(
+                    (item) =>
+                      item.title ??
+                      "Untitled"
                   )
-                )}
+                  .join(" · ")}
+          </small>
+        </div>
+      </div>
+    );
+  }
+)}
               </div>
 
               <button
