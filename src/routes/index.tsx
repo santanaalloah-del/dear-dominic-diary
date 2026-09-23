@@ -207,29 +207,6 @@ const { session } = usePrivateDiario();
 }, [session.user.id]);
 
 useEffect(() => {
-  const handleVisibilityChange = () => {
-    if (!privacyCoverEnabled) {
-      setPrivacyCovered(false);
-      return;
-    }
-
-    setPrivacyCovered(
-      document.hidden
-    );
-  };
-
-  document.addEventListener(
-    "visibilitychange",
-    handleVisibilityChange
-  );
-
-  return () => {
-    document.removeEventListener(
-      "visibilitychange",
-      handleVisibilityChange
-    );
-  };
-}, [privacyCoverEnabled]);
   
   const openScreen = (nextScreen: Screen) => {
     if (scrollRef.current) {
@@ -257,14 +234,7 @@ useEffect(() => {
       className={`prototype-stage time-${time.mood}`}
       data-time-theme={time.mood}
     >
-      {privacyCovered && (
-  <div className="privacy-cover">
-    <div>
-      <strong>Diário</strong>
-      <small>private</small>
-    </div>
-  </div>
-)}
+
       <div className="phone-shell" data-time-theme={time.mood}>
         <div className="statusbar" aria-hidden="true">
           <span>{time.timeLabel}</span>
