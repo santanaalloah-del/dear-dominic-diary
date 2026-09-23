@@ -10,7 +10,7 @@ import {
 import { BookHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-
+import { getDiarioSettings } from "@/lib/diario-world";
 type PrivateDiarioContextValue = {
   session: Session;
   preferredName: string;
@@ -48,6 +48,10 @@ export function PrivateDiario({
 
   const [privacyCover, setPrivacyCover] =
     useState(false);
+  const [
+  privacyCoverEnabled,
+  setPrivacyCoverEnabled,
+] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -102,91 +106,125 @@ export function PrivateDiario({
       active = false;
     };
   }, [session]);
+useEffect(() => {
+  if (!session) return;
 
-  useEffect(() => {
-    let revealTimer:
-      | number
-      | undefined;
+  let active = true;
 
-    const hideContent = () => {
-      if (revealTimer) {
-        window.clearTimeout(
-          revealTimer
-        );
+  getDiarioSettings(
+    session.user.id
+  )
+    .then((settings) => {
+      if (!active) return;
+
+      setPrivacyCoverEnabled(
+        settings.privacy_cover
+      );
+
+      if (!settings.privacy_cover) {
+        setPrivacyCover(false);
       }
+    })
+    .catch((error) => {
+      console.error(
+        "Could not load privacy setting:",
+        error
+      );
+    });
 
-      setPrivacyCover(true);
-    };
+  return () => {
+    active = false;
+  };
+}, [session]);
+  
+useEffect(() => {
+  let revealTimer:
+    | number
+    | undefined;
 
-    const showContent = () => {
-      if (revealTimer) {
-        window.clearTimeout(
-          revealTimer
-        );
-      }
+  const hideContent = () => {
+    if (!privacyCoverEnabled) {
+      setPrivacyCover(false);
+      return;
+    }
 
-      revealTimer =
-        window.setTimeout(() => {
-          setPrivacyCover(false);
-        }, 250);
-    };
+    if (revealTimer) {
+      window.clearTimeout(
+        revealTimer
+      );
+    }
 
-    const handleVisibility = () => {
-      if (
-        document.visibilityState ===
-        "hidden"
-      ) {
-        hideContent();
-        return;
-      }
+    setPrivacyCover(true);
+  };
 
-      if (
-        document.visibilityState ===
-        "visible"
-      ) {
-        showContent();
-      }
-    };
+  const showContent = () => {
+    if (revealTimer) {
+      window.clearTimeout(
+        revealTimer
+      );
+    }
 
-    document.addEventListener(
+    revealTimer =
+      window.setTimeout(() => {
+        setPrivacyCover(false);
+      }, 250);
+  };
+
+  const handleVisibility = () => {
+    if (
+      document.visibilityState ===
+      "hidden"
+    ) {
+      hideContent();
+      return;
+    }
+
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+      showContent();
+    }
+  };
+
+  document.addEventListener(
+    "visibilitychange",
+    handleVisibility
+  );
+
+  window.addEventListener(
+    "pagehide",
+    hideContent
+  );
+
+  window.addEventListener(
+    "pageshow",
+    showContent
+  );
+
+  return () => {
+    document.removeEventListener(
       "visibilitychange",
       handleVisibility
     );
 
-    window.addEventListener(
+    window.removeEventListener(
       "pagehide",
       hideContent
     );
 
-    window.addEventListener(
+    window.removeEventListener(
       "pageshow",
       showContent
     );
 
-    return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibility
+    if (revealTimer) {
+      window.clearTimeout(
+        revealTimer
       );
-
-      window.removeEventListener(
-        "pagehide",
-        hideContent
-      );
-
-      window.removeEventListener(
-        "pageshow",
-        showContent
-      );
-
-      if (revealTimer) {
-        window.clearTimeout(
-          revealTimer
-        );
-      }
-    };
-  }, []);
-
+    }
+  };
+}, [privacyCoverEnabled]);
   if (!ready) {
     return (
       <main className="private-entry private-entry-loading">
