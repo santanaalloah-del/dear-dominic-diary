@@ -9286,6 +9286,46 @@ const handleSpotifyDisconnect =
     {spotifyError}
   </p>
 )}
+           <button
+  type="button"
+  className="settings-row"
+  onClick={() => {
+    setVoiceEnabled(
+      (value) => !value
+    );
+
+    setSettingsSaved(false);
+  }}
+  aria-pressed={voiceEnabled}
+>
+  <div>
+    <Send
+      size={19}
+      strokeWidth={1.4}
+    />
+
+    <span>
+      <strong>
+        Voice
+      </strong>
+
+      <small>
+        allow voice features
+        inside Diário
+      </small>
+    </span>
+  </div>
+
+  <i
+    className={
+      voiceEnabled
+        ? "settings-toggle on"
+        : "settings-toggle"
+    }
+    aria-hidden="true"
+  />
+</button>
+            
           </section>
 
           <section className="settings-group">
