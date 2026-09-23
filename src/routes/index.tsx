@@ -159,14 +159,11 @@ function Index() {
 }
 
 function DiarioApp() {
-  const [screen, setScreen] = useState<Screen>("home");
-function DiarioApp() {
   const [screen, setScreen] =
     useState<Screen>("home");
 
   const [activeRoom, setActiveRoom] =
     useState("living");
-  const [activeRoom, setActiveRoom] = useState("living");
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
   const time = useTimeMood();
