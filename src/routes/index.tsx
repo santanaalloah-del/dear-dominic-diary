@@ -6913,7 +6913,12 @@ function MemoriesScreen() {
 
   const [connectedMemoryItems, setConnectedMemoryItems] =
   useState<DiarioItem[]>([]);
-  
+  const [
+  memoryItemsByMemoryId,
+  setMemoryItemsByMemoryId,
+] = useState<
+  Record<string, DiarioItem[]>
+>({});
 const startEditingMemoryItems = async () => {
   if (!selectedMemory) {
     return;
@@ -6996,6 +7001,104 @@ const startEditingMemoryItems = async () => {
     };
   }, [session.user.id]);
 
+  useEffect(() => {
+  let active = true;
+
+  if (memories.length === 0) {
+    setMemoryItemsByMemoryId({});
+    return () => {
+      active = false;
+    };
+  }
+
+  const loadMemoryConnections =
+    async () => {
+      try {
+        const [
+          loadedPhotos,
+          loadedLetters,
+          loadedSongs,
+          loadedDates,
+          memoryLinks,
+        ] = await Promise.all([
+          getGalleryPhotos(
+            session.user.id
+          ),
+          getLetters(
+            session.user.id
+          ),
+          getSongs(
+            session.user.id
+          ),
+          getDates(
+            session.user.id
+          ),
+          Promise.all(
+            memories.map(
+              async (memory) => {
+                const itemIds =
+                  await getMemoryItemIds({
+                    userId:
+                      session.user.id,
+                    memoryId:
+                      memory.id,
+                  });
+
+                return [
+                  memory.id,
+                  itemIds,
+                ] as const;
+              }
+            )
+          ),
+        ]);
+
+        if (!active) return;
+
+        const allItems = [
+          ...loadedPhotos.map(
+            (photo) => photo.item
+          ),
+          ...loadedLetters,
+          ...loadedSongs,
+          ...loadedDates,
+        ];
+
+        const nextMap: Record<
+          string,
+          DiarioItem[]
+        > = {};
+
+        memoryLinks.forEach(
+          ([memoryId, itemIds]) => {
+            nextMap[memoryId] =
+              allItems.filter(
+                (item) =>
+                  itemIds.includes(
+                    item.id
+                  )
+              );
+          }
+        );
+
+        setMemoryItemsByMemoryId(
+          nextMap
+        );
+      } catch (loadError) {
+        console.error(
+          "Could not load Memory connections:",
+          loadError
+        );
+      }
+    };
+
+  void loadMemoryConnections();
+
+  return () => {
+    active = false;
+  };
+}, [memories, session.user.id]);
+  
   const saveMemory = async () => {
     if (!memoryTitle.trim()) {
       return;
@@ -7108,11 +7211,42 @@ const openMemory = async (
     { id: "dates", label: "Dates" },
   ] as const;
 
-  const visibleMemories =
-    memoryFilter === "all"
-      ? memories
-      : [];
+const visibleMemories =
+  memoryFilter === "all"
+    ? memories
+    : memories.filter(
+        (memory) => {
+          const connectedItems =
+            memoryItemsByMemoryId[
+              memory.id
+            ] ?? [];
 
+          const wantedKind =
+            memoryFilter ===
+            "photos"
+              ? "photo"
+              : memoryFilter ===
+                  "letters"
+                ? "letter"
+                : memoryFilter ===
+                    "music"
+                  ? "song"
+                  : memoryFilter ===
+                      "dates"
+                    ? "date"
+                    : null;
+
+          if (!wantedKind) {
+            return true;
+          }
+
+          return connectedItems.some(
+            (item) =>
+              item.kind ===
+              wantedKind
+          );
+        }
+      );
   return (
     <section className="memories-screen memories-live">
       <ScreenIntro
