@@ -162,6 +162,8 @@ function Index() {
 function DiarioApp() {
   const [screen, setScreen] =
     useState<Screen>("home");
+  const [previousScreen, setPreviousScreen] =
+  useState<Screen>("home");
   
 const [previousScreen, setPreviousScreen] =
   useState<Screen>("home");
@@ -191,7 +193,6 @@ const openScreen = (nextScreen: Screen) => {
   setPreviousScreen(screen);
   setScreen(nextScreen);
 };
-
   const shareToChat = (text: string) => {
   if (typeof window !== "undefined") {
     window.localStorage.setItem(
@@ -199,6 +200,7 @@ const openScreen = (nextScreen: Screen) => {
       text
     );
   }
+
 
   openScreen("chat");
 };
@@ -232,7 +234,7 @@ const openScreen = (nextScreen: Screen) => {
         {detail && (
           <button
             className="back-button"
-          onClick={() => openScreen(screen === "room" ? "home" : previousScreen)}
+     onClick={() => openScreen(screen === "room" ? "home" : previousScreen)}
             aria-label="Go back"
           >
             <ArrowLeft size={20} />
@@ -5977,6 +5979,18 @@ setAddingSong(false);
         role="tablist"
         aria-label="Music owner"
       >
+        {onShareToChat && (
+  <button
+    type="button"
+    onClick={() =>
+      onShareToChat(
+        `I sent you a song: "${song.title ?? "Untitled song"}" by ${artist}.`
+      )
+    }
+  >
+    Send to chat
+  </button>
+)}
         <button
           type="button"
           role="tab"
