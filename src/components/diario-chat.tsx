@@ -963,14 +963,6 @@ message.mediaUrl ? (
         src={message.mediaUrl}
       />
     )}
-    
-{message.kind === "photo" && message.mediaUrl ? (
-  <img
-    src={message.mediaUrl}
-    alt="Sent photo"
-    className="chat-photo-message"
-  />
-) : null}
 
 {message.kind === "voice" && message.mediaUrl ? (
   <audio
