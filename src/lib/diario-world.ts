@@ -34,13 +34,13 @@ export type DiarioItem = {
   body: string | null;
   event_at: string | null;
   planned_for: string | null;
-  data: Record<string, unknown>;
+  data: any;
   created_at: string;
   updated_at: string;
 };
 
 type SaveDiaryPageInput = {
-  id?: string;
+  id?: string | undefined;
   userId: string;
   owner: "alloah" | "dominic";
   body: string;
@@ -433,7 +433,7 @@ export async function getGalleryPhotos(
           item
         ): Promise<GalleryPhoto | null> => {
           const storagePath =
-            item.data?.storage_path;
+            (item.data as any)?.storage_path;
 
           if (
             typeof storagePath !== "string"
@@ -1011,9 +1011,9 @@ type CreateKeepsakeInput = {
   title: string;
   keepsakeType: string;
   location: "home" | "stored";
-  room?: string;
-  origin?: string;
-  note?: string;
+  room?: string | undefined;
+  origin?: string | undefined;
+  note?: string | undefined;
 };
 
 export async function getKeepsakes(
@@ -1112,7 +1112,7 @@ export async function updateKeepsakeLocation({
         room:
           location === "stored"
             ? null
-            : keepsake.data?.room ?? null,
+            : (keepsake.data as any)?.room ?? null,
       },
     })
     .eq("user_id", userId)
@@ -1341,13 +1341,13 @@ type CreateSongInput = {
     | "shared";
   title: string;
   artist: string;
-  album?: string;
-  note?: string;
-  spotifyId?: string;
-  spotifyUri?: string;
-  spotifyUrl?: string;
-  coverUrl?: string | null;
-  durationMs?: number;
+  album?: string | undefined;
+  note?: string | undefined;
+  spotifyId?: string | undefined;
+  spotifyUri?: string | undefined;
+  spotifyUrl?: string | undefined;
+  coverUrl?: string | null | undefined;
+  durationMs?: number | undefined;
 };
 
 export async function getSongs(
@@ -1562,7 +1562,7 @@ export type DiarioSettings = {
   privacy_cover: boolean;
   music_enabled: boolean;
   voice_enabled: boolean;
-  data: Record<string, unknown>;
+  data: any;
   created_at: string;
   updated_at: string;
 };
@@ -1689,7 +1689,7 @@ export async function getHomeObjects(
   return Promise.all(
     items.map(async (item) => {
       const imagePath =
-        item.data?.imagePath;
+        (item.data as any)?.imagePath;
 
       if (
         typeof imagePath !== "string" ||
