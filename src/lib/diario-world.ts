@@ -40,7 +40,7 @@ export type DiarioItem = {
 };
 
 type SaveDiaryPageInput = {
-  id?: string;
+  id?: string | undefined;
   userId: string;
   owner: "alloah" | "dominic";
   body: string;
@@ -1011,9 +1011,9 @@ type CreateKeepsakeInput = {
   title: string;
   keepsakeType: string;
   location: "home" | "stored";
-  room?: string;
-  origin?: string;
-  note?: string;
+  room?: string | undefined;
+  origin?: string | undefined;
+  note?: string | undefined;
 };
 
 export async function getKeepsakes(
@@ -1341,13 +1341,13 @@ type CreateSongInput = {
     | "shared";
   title: string;
   artist: string;
-  album?: string;
-  note?: string;
-  spotifyId?: string;
-  spotifyUri?: string;
-  spotifyUrl?: string;
-  coverUrl?: string | null;
-  durationMs?: number;
+  album?: string | undefined;
+  note?: string | undefined;
+  spotifyId?: string | undefined;
+  spotifyUri?: string | undefined;
+  spotifyUrl?: string | undefined;
+  coverUrl?: string | null | undefined;
+  durationMs?: number | undefined;
 };
 
 export async function getSongs(

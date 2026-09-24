@@ -991,7 +991,7 @@ const addFurniture = async () => {
             key={id}
             type="button"
             className={roomId === id ? "active" : ""}
-            onClick={() => onOpenRoom(id)}
+            onClick={() => onOpenRoom(id ?? "")}
           >
             {label}
           </button>
