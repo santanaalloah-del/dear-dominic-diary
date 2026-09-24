@@ -601,25 +601,6 @@ async function sendPhoto(file: File) {
     "I sent you a photo, but the app can't show it to you yet."
   );
 }
-
-    try {
-      setUploadingMedia(true);
-
-      await uploadChatMedia({
-        file,
-        type: "photo",
-      });
-
-      await loadHistory(false);
-
-      await sendMessage(
-        "I sent you a photo."
-      );
-    } finally {
-      setUploadingMedia(false);
-    }
-  }
-
  function handlePhotoInput(
   event: React.ChangeEvent<HTMLInputElement>
 ) {
