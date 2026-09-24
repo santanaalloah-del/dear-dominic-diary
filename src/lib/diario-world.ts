@@ -34,7 +34,7 @@ export type DiarioItem = {
   body: string | null;
   event_at: string | null;
   planned_for: string | null;
-  data: Record<string, unknown>;
+  data: any;
   created_at: string;
   updated_at: string;
 };
@@ -1562,7 +1562,7 @@ export type DiarioSettings = {
   privacy_cover: boolean;
   music_enabled: boolean;
   voice_enabled: boolean;
-  data: Record<string, unknown>;
+  data: any;
   created_at: string;
   updated_at: string;
 };
