@@ -621,11 +621,7 @@ async function sendPhoto(file: File) {
 ) {
   const file = event.target.files?.[0];
 
-  alert(
-    file
-      ? `Photo selected: ${file.name}`
-      : "No photo selected"
-  );
+ 
 
   if (!file) return;
 
