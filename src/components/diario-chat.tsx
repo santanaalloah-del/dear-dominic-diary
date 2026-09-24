@@ -704,12 +704,15 @@ async function startVoiceCapture() {
                 }
               );
 
-            await uploadChatMedia({
-              file,
-              type: "voice",
-              transcript,
-            });
-
+          try {
+  await uploadChatMedia({
+    file,
+    type: "voice",
+    transcript,
+  });
+} catch {
+  // ignore upload failure for now
+}
             if (transcript) {
               rememberVoice(
                 transcript,
@@ -720,15 +723,16 @@ async function startVoiceCapture() {
                 transcript,
                 "voice"
               );
-            } else {
-              await loadHistory(
-                false
-              );
+     } else {
+  await sendMessage(
+    "I sent you a voice message, but the app couldn't transcribe it.",
+    "voice"
+  );
 
-              setVoiceNotice(
-                "Voice saved, but I couldn't transcribe it."
-              );
-            }
+  setVoiceNotice(
+    "Voice sent without transcript."
+  );
+}
           } finally {
             setVoiceStatus(
               "idle"
