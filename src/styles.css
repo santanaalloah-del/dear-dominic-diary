@@ -6201,3 +6201,13 @@ html[data-diario-appearance="dark"] .settings-static-row {
 .timeline-entry:active{
   transform:scale(.995);
 }
+.chat-photo-message {
+  max-width: 220px;
+  border-radius: 18px;
+  display: block;
+}
+
+.chat-voice-message {
+  width: 220px;
+  display: block;
+}
