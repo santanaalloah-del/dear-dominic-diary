@@ -607,7 +607,24 @@ const { data, error } = await supabase.functions.invoke("clever-service", {
       setSending(false);
     }
   }
+useEffect(() => {
+  if (typeof window === "undefined") return;
 
+  const pendingMessage =
+    window.localStorage.getItem(
+      "diario-pending-chat-message"
+    );
+
+  if (!pendingMessage) return;
+
+  window.localStorage.removeItem(
+    "diario-pending-chat-message"
+  );
+
+  window.setTimeout(() => {
+    void sendMessage(pendingMessage);
+  }, 400);
+}, []);
   function handleSubmit(message: PromptInputMessage) {
     return sendMessage(message.text);
   }
