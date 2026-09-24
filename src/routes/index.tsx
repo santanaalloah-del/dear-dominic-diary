@@ -5759,7 +5759,11 @@ const markAsLived = async (
     </section>
   );
 }
-function MusicScreen() {
+function MusicScreen({
+  onShareToChat,
+}: {
+  onShareToChat?: (text: string) => void;
+}) {
   const { session } = usePrivateDiario();
 
   const [musicView, setMusicView] =
