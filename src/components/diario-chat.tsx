@@ -542,6 +542,25 @@ const photoInputRef =
   useEffect(() => {
     void loadHistory();
   }, [loadHistory]);
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const pendingMessage =
+    window.localStorage.getItem(
+      "diario-pending-chat-message"
+    );
+
+  if (!pendingMessage) return;
+
+  window.localStorage.removeItem(
+    "diario-pending-chat-message"
+  );
+
+  window.setTimeout(() => {
+    void sendMessage(pendingMessage);
+  }, 400);
+}, []);
+  
 
   useEffect(
     () => () => {
