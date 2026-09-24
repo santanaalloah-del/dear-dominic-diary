@@ -565,9 +565,9 @@ const photoInputRef =
     setFailedMessage(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke("clever-service", {
-        body: { message: clean },
-      });
+const { data, error } = await supabase.functions.invoke("chat", {
+  body: { message: clean },
+});
       if (error || typeof data?.reply !== "string") throw error ?? new Error("Missing reply");
       setMessages((current) => [
         ...current,
