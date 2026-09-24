@@ -162,7 +162,10 @@ function Index() {
 function DiarioApp() {
   const [screen, setScreen] =
     useState<Screen>("home");
-
+  
+const [previousScreen, setPreviousScreen] =
+  useState<Screen>("home");
+  
   const [activeRoom, setActiveRoom] =
     useState("living");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -180,13 +183,14 @@ function DiarioApp() {
   );
 }, []);
   
-  const openScreen = (nextScreen: Screen) => {
-    if (scrollRef.current) {
-      scrollPositions.current[screen] = scrollRef.current.scrollTop;
-    }
+const openScreen = (nextScreen: Screen) => {
+  if (scrollRef.current) {
+    scrollPositions.current[screen] = scrollRef.current.scrollTop;
+  }
 
-    setScreen(nextScreen);
-  };
+  setPreviousScreen(screen);
+  setScreen(nextScreen);
+};
 
   const openRoom = (roomId: string) => {
     setActiveRoom(roomId);
@@ -217,7 +221,7 @@ function DiarioApp() {
         {detail && (
           <button
             className="back-button"
-            onClick={() => openScreen(screen === "room" ? "home" : "more")}
+          onClick={() => openScreen(screen === "room" ? "home" : previousScreen)}
             aria-label="Go back"
           >
             <ArrowLeft size={20} />
