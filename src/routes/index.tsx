@@ -289,7 +289,9 @@ const openScreen = (nextScreen: Screen) => {
   <TimelineScreen onOpen={openScreen} />
 )}
 
-{screen === "music" && <MusicScreen />}
+{screen === "music" && (
+  <MusicScreen onShareToChat={shareToChat} />
+)}
 {screen === "dates" && <DatesScreen />}
 {screen === "places" && <PlacesScreen />}
 {screen === "keepsakes" && <KeepsakesScreen />}
