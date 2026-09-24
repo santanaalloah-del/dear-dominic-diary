@@ -620,18 +620,23 @@ async function sendPhoto(file: File) {
     }
   }
 
-  function handlePhotoInput(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file =
-      event.target.files?.[0];
+ function handlePhotoInput(
+  event: React.ChangeEvent<HTMLInputElement>
+) {
+  const file = event.target.files?.[0];
 
-    if (!file) return;
+  alert(
+    file
+      ? `Photo selected: ${file.name}`
+      : "No photo selected"
+  );
 
-    void sendPhoto(file);
+  if (!file) return;
 
-    event.target.value = "";
-  }
+  void sendPhoto(file);
+
+  event.target.value = "";
+}
   
 async function startVoiceCapture() {
     if (
