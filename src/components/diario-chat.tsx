@@ -597,6 +597,21 @@ async function sendPhoto(file: File) {
     return;
   }
 
+  const photoUrl = URL.createObjectURL(file);
+  const now = new Date().toISOString();
+
+  setMessages((current) => [
+    ...current,
+    {
+      id: `photo-${Date.now()}`,
+      role: "user",
+      content: "",
+      createdAt: now,
+      kind: "photo",
+      mediaUrl: photoUrl,
+    },
+  ]);
+
   await sendMessage(
     "I sent you a photo, but the app can't show it to you yet."
   );
@@ -703,7 +718,23 @@ async function startVoiceCapture() {
                     "audio/webm",
                 }
               );
+const voiceUrl = URL.createObjectURL(file);
+const now = new Date().toISOString();
 
+setMessages((current) => [
+  ...current,
+  {
+    id: `voice-${Date.now()}`,
+    role: "user",
+    content:
+      transcript ||
+      "Voice message",
+    createdAt: now,
+    kind: "voice",
+    mediaUrl: voiceUrl,
+  },
+]);
+            
           try {
   await uploadChatMedia({
     file,
