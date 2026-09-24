@@ -192,6 +192,17 @@ const openScreen = (nextScreen: Screen) => {
   setScreen(nextScreen);
 };
 
+  const shareToChat = (text: string) => {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(
+      "diario-pending-chat-message",
+      text
+    );
+  }
+
+  openScreen("chat");
+};
+  
   const openRoom = (roomId: string) => {
     setActiveRoom(roomId);
     openScreen("room");
