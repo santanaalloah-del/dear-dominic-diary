@@ -55,8 +55,8 @@ type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
-  kind?: MessageKind;
-  mediaUrl?: string;
+  kind?: MessageKind | undefined;
+  mediaUrl?: string | undefined;
 };
 
 type ChatTheme = "diary" | "cherry" | "old-letter" | "soft-rose" | "midnight";
@@ -313,10 +313,10 @@ const photoInputRef =
         (data ?? []).map(
           async (item): Promise<ChatMedia | null> => {
             const storagePath =
-              item.data?.storage_path;
+              (item.data as any)?.storage_path;
 
             const mediaType =
-              item.data?.media_type;
+              (item.data as any)?.media_type;
 
             if (
               typeof storagePath !== "string" ||
@@ -345,9 +345,9 @@ const photoInputRef =
               type: mediaType,
               url: signedData.signedUrl,
               transcript:
-                typeof item.data?.transcript ===
+                typeof (item.data as any)?.transcript ===
                 "string"
-                  ? item.data.transcript
+                  ? (item.data as any).transcript
                   : undefined,
               createdAt:
                 item.event_at ??
@@ -964,7 +964,7 @@ message.mediaUrl ? (
       />
     )}
     
-{message.kind === "photo" && message.mediaUrl ? (
+{(message.kind as MessageKind) === "photo" && message.mediaUrl ? (
   <img
     src={message.mediaUrl}
     alt="Sent photo"

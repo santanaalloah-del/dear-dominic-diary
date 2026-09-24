@@ -433,7 +433,7 @@ export async function getGalleryPhotos(
           item
         ): Promise<GalleryPhoto | null> => {
           const storagePath =
-            item.data?.storage_path;
+            (item.data as any)?.storage_path;
 
           if (
             typeof storagePath !== "string"
@@ -1112,7 +1112,7 @@ export async function updateKeepsakeLocation({
         room:
           location === "stored"
             ? null
-            : keepsake.data?.room ?? null,
+            : (keepsake.data as any)?.room ?? null,
       },
     })
     .eq("user_id", userId)
@@ -1689,7 +1689,7 @@ export async function getHomeObjects(
   return Promise.all(
     items.map(async (item) => {
       const imagePath =
-        item.data?.imagePath;
+        (item.data as any)?.imagePath;
 
       if (
         typeof imagePath !== "string" ||

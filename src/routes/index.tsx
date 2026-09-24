@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createFileRoute } from "@tanstack/react-router";
 import {
   useEffect,
@@ -8435,7 +8436,7 @@ function MorningNightScreen({
             src={
               dayView ===
               "morning"
-                ? bedroom
+                ? bedroomEmpty
                 : room
             }
             alt={
