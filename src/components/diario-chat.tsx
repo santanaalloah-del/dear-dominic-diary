@@ -592,16 +592,15 @@ const { data, error } = await supabase.functions.invoke("clever-service", {
   function handleSubmit(message: PromptInputMessage) {
     return sendMessage(message.text);
   }
-async function sendPhoto(
-    file: File
-  ) {
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      return;
-    }
+async function sendPhoto(file: File) {
+  if (!file.type.startsWith("image/")) {
+    return;
+  }
+
+  await sendMessage(
+    "I sent you a photo, but the app can't show it to you yet."
+  );
+}
 
     try {
       setUploadingMedia(true);
