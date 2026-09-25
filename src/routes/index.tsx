@@ -94,6 +94,11 @@ storeHomeObject,
   type GalleryPhoto,
 restoreHomeObject,
   uploadHomeObjectImage,
+  createVisualReference,
+  getVisualReferences,
+  setVisualReferenceFavorite,
+  type VisualReferenceSubject,
+  type VisualReferenceWithUrl,
 } from "@/lib/diario-world";
 import room from "@/assets/dominic-room.jpg";
 import livingRoomEmpty from "@/assets/living-room-empty.jpeg";
@@ -118,6 +123,7 @@ type Screen =
   | "places"
   | "keepsakes"
   | "wardrobe"
+  | "references"
   | "night"
   | "settings";
 
@@ -295,6 +301,7 @@ const openScreen = (nextScreen: Screen) => {
 {screen === "places" && <PlacesScreen />}
 {screen === "keepsakes" && <KeepsakesScreen />}
 {screen === "wardrobe" && <WardrobeScreen />}
+{screen === "references" && <ReferencesScreen />}
 {screen === "settings" && <SettingsScreen />}
         </div>
 
@@ -1022,6 +1029,7 @@ function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
   const entries: { name: string; note: string; target: Screen; icon: ReactNode }[] = [
     { name: "Memories", note: "the moments that stay", target: "memories", icon: <Heart /> },
     { name: "Gallery", note: "photos, videos & context", target: "gallery", icon: <ImageIcon /> },
+    { name: "References", note: "faces, poses, places & visual canon", target: "references", icon: <ImageIcon /> },
     { name: "Letters", note: "letters, notes & envelopes", target: "letters", icon: <Mail /> },
     { name: "Calendar", note: "days, plans & what happened", target: "calendar", icon: <CalendarIcon /> },
     { name: "Timeline", note: "our story in order", target: "timeline", icon: <Clock /> },
@@ -2941,6 +2949,8 @@ const [selectedPhoto, setSelectedPhoto] =
     </section>
   );
 }
+
+
 function WardrobeScreen() {
   const { session } = usePrivateDiario();
 
