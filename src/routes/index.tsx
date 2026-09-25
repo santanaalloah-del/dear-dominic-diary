@@ -6341,6 +6341,7 @@ const spotifyUrl =
     Send to chat
   </button>
 )}
+                     <button
   type="button"
   aria-label="Play on Spotify"
   disabled={!spotifyUrl}
