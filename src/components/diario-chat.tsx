@@ -605,9 +605,15 @@ async function flushPendingMessages() {
   setSending(true);
   setFailedMessage(null);
 
-  const combinedMessage = queuedMessages
-    .map((item) => item.text)
-    .join("\n");
+ const combinedMessage =
+  queuedMessages.length === 1
+    ? queuedMessages[0].text
+    : queuedMessages
+        .map(
+          (item, index) =>
+            `Alloah message ${index + 1}: ${item.text}`
+        )
+        .join("\n");
 
   try {
     const { data, error } =
@@ -711,11 +717,11 @@ async function sendMessage(
   setSending(true);
   setFailedMessage(null);
 
-  queueTimerRef.current =
-    window.setTimeout(() => {
-      queueTimerRef.current = null;
-      void flushPendingMessages();
-    }, 1600);
+queueTimerRef.current =
+  window.setTimeout(() => {
+    queueTimerRef.current = null;
+    void flushPendingMessages();
+  }, 4500);
 }
   
 useEffect(() => {
