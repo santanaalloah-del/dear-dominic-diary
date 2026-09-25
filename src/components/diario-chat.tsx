@@ -185,6 +185,17 @@ export function DiarioChat({
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [openTranscript, setOpenTranscript] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const pendingMessagesRef =
+  useRef<
+    {
+      text: string;
+      kind: MessageKind;
+    }[]
+  >([]);
+
+const processingQueueRef =
+  useRef(false);
+  
 const photoInputRef =
     useRef<HTMLInputElement | null>(null);
 
@@ -569,44 +580,97 @@ useEffect(() => {
     [],
   );
 
-  async function sendMessage(text: string, kind: MessageKind = "text") {
-    const clean = text.trim();
-    if (!clean || sending) return;
+async function sendMessage(
+  text: string,
+  kind: MessageKind = "text"
+) {
+  const clean = text.trim();
 
-    const now = new Date().toISOString();
-    if (kind === "voice") rememberVoice(clean, now);
+  if (!clean) return;
 
-    setMessages((current) => [
-      ...current,
-      { id: `local-${Date.now()}`, role: "user", content: clean, createdAt: now, kind },
-    ]);
-    setSending(true);
-    setFailedMessage(null);
+  const now = new Date().toISOString();
 
-    try {
-const { data, error } = await supabase.functions.invoke("clever-service", {
-  body: { message: clean },
-});
-      if (error || typeof data?.reply !== "string") throw error ?? new Error("Missing reply");
-      setMessages((current) => [
-        ...current,
-        {
-          id: `reply-${Date.now()}`,
-          role: "assistant",
-          content: data.reply,
-          createdAt: new Date().toISOString(),
-          kind: "text",
-        },
-      ]);
-      window.setTimeout(() => {
-        void loadHistory(false);
-      }, 800);
-    } catch {
-      setFailedMessage(clean);
-    } finally {
-      setSending(false);
-    }
+  if (kind === "voice") {
+    rememberVoice(clean, now);
   }
+
+  setMessages((current) => [
+    ...current,
+    {
+      id: `local-${crypto.randomUUID()}`,
+      role: "user",
+      content: clean,
+      createdAt: now,
+      kind,
+    },
+  ]);
+
+  pendingMessagesRef.current.push({
+    text: clean,
+    kind,
+  });
+
+  if (processingQueueRef.current) {
+    return;
+  }
+
+  processingQueueRef.current = true;
+  setSending(true);
+  setFailedMessage(null);
+
+  try {
+    while (pendingMessagesRef.current.length > 0) {
+      const next =
+        pendingMessagesRef.current.shift();
+
+      if (!next) continue;
+
+      try {
+        const { data, error } =
+          await supabase.functions.invoke(
+            "clever-service",
+            {
+              body: {
+                message: next.text,
+              },
+            }
+          );
+
+        if (
+          error ||
+          typeof data?.reply !== "string"
+        ) {
+          throw (
+            error ??
+            new Error("Missing reply")
+          );
+        }
+
+        setMessages((current) => [
+          ...current,
+          {
+            id: `reply-${crypto.randomUUID()}`,
+            role: "assistant",
+            content: data.reply,
+            createdAt:
+              new Date().toISOString(),
+            kind: "text",
+          },
+        ]);
+      } catch {
+        setFailedMessage(next.text);
+        break;
+      }
+    }
+
+    window.setTimeout(() => {
+      void loadHistory(false);
+    }, 800);
+  } finally {
+    processingQueueRef.current = false;
+    setSending(false);
+  }
+}
 useEffect(() => {
   if (typeof window === "undefined") return;
 
@@ -1078,7 +1142,11 @@ message.mediaUrl ? (
         {voiceNotice && <div className={`voice-transcription-status ${voiceStatus}`}>{voiceNotice}</div>}
 
         <PromptInput onSubmit={handleSubmit} className="live-composer messenger-composer">
-          <PromptInputTextarea placeholder="Message Dominic…" disabled={sending || voiceStatus === "listening"} aria-label="Message Dominic" />
+        <PromptInputTextarea
+  placeholder="Message Dominic…"
+  disabled={voiceStatus === "listening"}
+  aria-label="Message Dominic"
+/>
           <PromptInputFooter>
             <PromptInputTools>
               <Sheet>
@@ -1150,7 +1218,11 @@ message.mediaUrl ? (
               >
                 <Mic />
               </Button>
-              <PromptInputSubmit status={sending ? "submitted" : "ready"} disabled={sending || voiceStatus === "listening"} className="live-send">
+             <PromptInputSubmit
+  status="ready"
+  disabled={voiceStatus === "listening"}
+  className="live-send"
+>
                 <SendHorizontal />
               </PromptInputSubmit>
             </div>
