@@ -193,11 +193,6 @@ const sunOpacity =
 
 const shadowOpacity =
   0.04 + daylight * 0.44;
-const sunOpacity =
-  0.08 + daylight * 0.72;
-
-const shadowOpacity =
-  0.04 + daylight * 0.44;
   
   const detail = !primaryScreens.includes(screen);
   useEffect(() => {
