@@ -6,6 +6,7 @@ export type TimeMoodState = {
   mood: TimeMood;
   hour: number;
   minute: number;
+  dayProgress: number;
   timeLabel: string;
   dateLabel: string;
   greeting: string;
@@ -29,6 +30,9 @@ function partsFor(date: Date) {
 
 export function getTimeMood(date = new Date()): TimeMoodState {
   const { hour, minute } = partsFor(date);
+  
+  const totalMinutes = hour * 60 + minute;
+const dayProgress = totalMinutes / (24 * 60);
 
   let mood: TimeMood;
   if (hour >= 4 && hour < 8) mood = "early";
