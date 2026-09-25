@@ -6452,9 +6452,10 @@ html[data-diario-appearance="dark"] .settings-static-row {
   background:
     radial-gradient(
       circle at var(--day-x, 50%) 0%,
-      rgba(255, 220, 170, 0.22) 0%,
-      rgba(255, 220, 170, 0.10) 22%,
-      transparent 48%
+      rgba(255, 214, 160, 0.34) 0%,
+      rgba(255, 214, 160, 0.18) 24%,
+      rgba(255, 236, 210, 0.08) 42%,
+      transparent 62%
     ),
     var(--background);
 }
