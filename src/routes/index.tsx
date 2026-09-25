@@ -6328,8 +6328,7 @@ const spotifyUrl =
                       )}
                     </div>
 
-                   <button
-                     {onShareToChat && (
+{onShareToChat && (
   <button
     type="button"
     onClick={() =>
@@ -6341,7 +6340,8 @@ const spotifyUrl =
     Send to chat
   </button>
 )}
-                     <button
+
+<button
   type="button"
   aria-label="Play on Spotify"
   disabled={!spotifyUrl}
