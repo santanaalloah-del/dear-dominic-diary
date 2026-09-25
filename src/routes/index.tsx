@@ -3088,16 +3088,30 @@ function ReferencesScreen() {
 
       setTitle("");
       setDescription("");
-    } catch (uploadError) {
-      console.error(
-        "Could not upload reference:",
-        uploadError
-      );
+      
+} catch (uploadError) {
+  console.error(
+    "Could not upload reference:",
+    uploadError
+  );
 
-      setError(
-        "This reference could not be uploaded."
-      );
-    } finally {
+  const message =
+    uploadError instanceof Error
+      ? uploadError.message
+      : typeof uploadError === "object" &&
+          uploadError !== null &&
+          "message" in uploadError
+        ? String(
+            (uploadError as { message?: unknown })
+              .message
+          )
+        : JSON.stringify(uploadError);
+
+  setError(
+    `Upload failed: ${message}`
+  );
+}
+    finally {
       setUploading(false);
       event.target.value = "";
     }
