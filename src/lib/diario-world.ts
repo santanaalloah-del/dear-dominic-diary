@@ -51,6 +51,216 @@ type SaveDiaryPageInput = {
 const diarioSupabase =
   supabase as unknown as SupabaseClient<any>;
 
+export type VisualReferenceSubject =
+  | "alloah"
+  | "dominic"
+  | "couple"
+  | "pose"
+  | "style"
+  | "place"
+  | "wardrobe"
+  | "mood";
+
+export type VisualReference = {
+  id: string;
+  user_id: string;
+  subject: VisualReferenceSubject;
+  title: string | null;
+  description: string | null;
+  storage_bucket: string;
+  storage_path: string;
+  source: string;
+  tags: string[];
+  is_favorite: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VisualReferenceWithUrl = {
+  reference: VisualReference;
+  url: string;
+};
+
+export async function getVisualReferences({
+  userId,
+  subject,
+}: {
+  userId: string;
+  subject?: VisualReferenceSubject;
+}): Promise<VisualReferenceWithUrl[]> {
+  let query = diarioSupabase
+    .from("visual_references")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("is_favorite", {
+      ascending: false,
+    })
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (subject) {
+    query = query.eq("subject", subject);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  const references = (data ?? []) as VisualReference[];
+
+  const withUrls = await Promise.all(
+    references.map(
+      async (
+        reference
+      ): Promise<VisualReferenceWithUrl | null> => {
+        const { data: signedData, error: signedError } =
+          await diarioSupabase.storage
+            .from(reference.storage_bucket)
+            .createSignedUrl(
+              reference.storage_path,
+              60 * 60
+            );
+
+        if (signedError) {
+          console.error(
+            "Could not create reference URL:",
+            signedError
+          );
+
+          return null;
+        }
+
+        return {
+          reference,
+          url: signedData.signedUrl,
+        };
+      }
+    )
+  );
+
+  return withUrls.filter(
+    (
+      item
+    ): item is VisualReferenceWithUrl =>
+      item !== null
+  );
+}
+
+export async function createVisualReference({
+  userId,
+  file,
+  subject,
+  title,
+  description,
+}: {
+  userId: string;
+  file: File;
+  subject: VisualReferenceSubject;
+  title?: string;
+  description?: string;
+}): Promise<VisualReferenceWithUrl> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error(
+      "Only image references can be uploaded for now."
+    );
+  }
+
+  const extension =
+    file.name.split(".").pop() || "jpg";
+
+  const storagePath = `${userId}/references/${crypto.randomUUID()}.${extension}`;
+
+  const { error: uploadError } =
+    await diarioSupabase.storage
+      .from("diario-media")
+      .upload(storagePath, file, {
+        upsert: false,
+        contentType: file.type,
+      });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data, error } = await diarioSupabase
+    .from("visual_references")
+    .insert({
+      user_id: userId,
+      subject,
+      title:
+        title?.trim() ||
+        file.name.replace(/\.[^/.]+$/, ""),
+      description:
+        description?.trim() || null,
+      storage_bucket: "diario-media",
+      storage_path: storagePath,
+      source: "upload",
+      tags: [],
+      is_favorite: false,
+      is_active: true,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    await diarioSupabase.storage
+      .from("diario-media")
+      .remove([storagePath]);
+
+    throw error;
+  }
+
+  const { data: signedData, error: signedError } =
+    await diarioSupabase.storage
+      .from("diario-media")
+      .createSignedUrl(
+        storagePath,
+        60 * 60
+      );
+
+  if (signedError) {
+    throw signedError;
+  }
+
+  return {
+    reference: data as VisualReference,
+    url: signedData.signedUrl,
+  };
+}
+
+export async function setVisualReferenceFavorite({
+  userId,
+  referenceId,
+  favorite,
+}: {
+  userId: string;
+  referenceId: string;
+  favorite: boolean;
+}): Promise<VisualReference> {
+  const { data, error } = await diarioSupabase
+    .from("visual_references")
+    .update({
+      is_favorite: favorite,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", referenceId)
+    .eq("user_id", userId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as VisualReference;
+}
+
+
 export async function getDiaryPages(
   userId: string,
   owner: "alloah" | "dominic"
