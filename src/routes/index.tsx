@@ -176,6 +176,27 @@ function DiarioApp() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
   const time = useTimeMood();
+  const daylight =
+  Math.max(
+    0,
+    Math.sin(
+      Math.PI *
+        Math.max(
+          0,
+          Math.min(
+            1,
+            (time.dayProgress - 0.25) / 0.5
+          )
+        )
+    )
+  );
+
+const sunOpacity =
+  0.08 + daylight * 0.72;
+
+const shadowOpacity =
+  0.04 + daylight * 0.44;
+  
   const detail = !primaryScreens.includes(screen);
   useEffect(() => {
   void finishSpotifyConnection().catch(
@@ -230,12 +251,14 @@ const openScreen = (nextScreen: Screen) => {
   <div
   className="phone-shell"
   data-time-theme={time.mood}
-  style={
-    {
-      "--day-progress": time.dayProgress,
-      "--day-x": `${time.dayProgress * 100}%`,
-    } as React.CSSProperties
-  }
+ style={
+  {
+    "--day-progress": time.dayProgress,
+    "--day-x": `${time.dayProgress * 100}%`,
+    "--sun-opacity": sunOpacity,
+    "--shadow-opacity": shadowOpacity,
+  } as React.CSSProperties
+}
 >
         <div className="statusbar" aria-hidden="true">
           <span>{time.timeLabel}</span>
