@@ -6512,3 +6512,35 @@ html[data-diario-appearance="dark"] .settings-static-row {
     brightness(0.42)
     saturate(0.68);
 }
+
+/* ROOMS · MOVING SUNLIGHT */
+
+.apartment-screen .room-view-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at var(--day-x, 50%) 18%,
+      rgba(255, 226, 177, 0.34) 0%,
+      rgba(255, 226, 177, 0.18) 20%,
+      rgba(255, 239, 214, 0.07) 38%,
+      transparent 58%
+    );
+
+  mix-blend-mode: screen;
+  opacity: 0.8;
+}
+
+.phone-shell[data-time-theme="night"]
+.apartment-screen .room-view-stage::after {
+  opacity: 0.16;
+}
+
+.phone-shell[data-time-theme="late"]
+.apartment-screen .room-view-stage::after {
+  opacity: 0.08;
+}
