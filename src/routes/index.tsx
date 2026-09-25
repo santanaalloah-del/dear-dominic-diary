@@ -346,9 +346,12 @@ function HomeScreen({
   data-home-time={time.mood}
   style={
     {
-      "--day-progress": time.dayProgress,
-    } as React.CSSProperties
-  }
+ style={
+  {
+    "--day-progress": time.dayProgress,
+    "--day-x": `${time.dayProgress * 100}%`,
+  } as React.CSSProperties
+}
 >
       <header className="house-header">
         <div className="house-heading">
