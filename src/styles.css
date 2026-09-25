@@ -6544,3 +6544,44 @@ html[data-diario-appearance="dark"] .settings-static-row {
 .apartment-screen .room-view-stage::after {
   opacity: 0.08;
 }
+
+/* ROOMS · WINDOW SHADOW */
+
+.apartment-screen .room-view-stage::before {
+  content: "";
+  position: absolute;
+  top: -10%;
+  left: calc(var(--day-x, 50%) - 22%);
+  width: 44%;
+  height: 120%;
+  z-index: 2;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      112deg,
+      transparent 0% 22%,
+      rgba(58, 34, 26, 0.10) 23% 27%,
+      transparent 28% 45%,
+      rgba(58, 34, 26, 0.08) 46% 50%,
+      transparent 51% 100%
+    );
+
+  transform: skewX(-8deg);
+  mix-blend-mode: multiply;
+  opacity: 0.48;
+
+  transition:
+    left 1s linear,
+    opacity 0.8s ease;
+}
+
+.phone-shell[data-time-theme="night"]
+.apartment-screen .room-view-stage::before {
+  opacity: 0.12;
+}
+
+.phone-shell[data-time-theme="late"]
+.apartment-screen .room-view-stage::before {
+  opacity: 0.06;
+}
