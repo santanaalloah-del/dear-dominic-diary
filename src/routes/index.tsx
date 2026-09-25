@@ -227,7 +227,16 @@ const openScreen = (nextScreen: Screen) => {
       data-time-theme={time.mood}
     >
 
-      <div className="phone-shell" data-time-theme={time.mood}>
+  <div
+  className="phone-shell"
+  data-time-theme={time.mood}
+  style={
+    {
+      "--day-progress": time.dayProgress,
+      "--day-x": `${time.dayProgress * 100}%`,
+    } as React.CSSProperties
+  }
+>
         <div className="statusbar" aria-hidden="true">
           <span>{time.timeLabel}</span>
           <span className="brand-mark">Diário</span>
@@ -344,12 +353,6 @@ function HomeScreen({
 <section
   className="home-screen home-live home-house"
   data-home-time={time.mood}
-  style={
-    {
-      "--day-progress": time.dayProgress,
-      "--day-x": `${time.dayProgress * 100}%`,
-    } as React.CSSProperties
-  }
 >
       <header className="house-header">
         <div className="house-heading">
