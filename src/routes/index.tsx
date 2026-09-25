@@ -2950,6 +2950,384 @@ const [selectedPhoto, setSelectedPhoto] =
   );
 }
 
+const referenceSubjects: {
+  id: VisualReferenceSubject;
+  label: string;
+  note: string;
+}[] = [
+  {
+    id: "alloah",
+    label: "Alloah",
+    note: "your face, body, mood, details",
+  },
+  {
+    id: "dominic",
+    label: "Dominic",
+    note: "his face, style, expressions",
+  },
+  {
+    id: "couple",
+    label: "Couple",
+    note: "poses and chemistry together",
+  },
+  {
+    id: "pose",
+    label: "Pose",
+    note: "specific body language",
+  },
+  {
+    id: "style",
+    label: "Style",
+    note: "vintage, camera, lighting",
+  },
+  {
+    id: "place",
+    label: "Place",
+    note: "NY, apartment, cafés, streets",
+  },
+  {
+    id: "wardrobe",
+    label: "Wardrobe",
+    note: "clothes and looks",
+  },
+  {
+    id: "mood",
+    label: "Mood",
+    note: "atmosphere and emotion",
+  },
+];
+
+function ReferencesScreen() {
+  const { session } = usePrivateDiario();
+
+  const [subject, setSubject] =
+    useState<VisualReferenceSubject>("alloah");
+
+  const [references, setReferences] =
+    useState<VisualReferenceWithUrl[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [uploading, setUploading] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [title, setTitle] =
+    useState("");
+
+  const [description, setDescription] =
+    useState("");
+
+  const fileInputRef =
+    useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    setLoading(true);
+    setError(null);
+
+    getVisualReferences({
+      userId: session.user.id,
+      subject,
+    })
+      .then((loadedReferences) => {
+        if (!active) return;
+
+        setReferences(loadedReferences);
+        setLoading(false);
+      })
+      .catch((loadError) => {
+        if (!active) return;
+
+        console.error(
+          "Could not load references:",
+          loadError
+        );
+
+        setError(
+          "The references could not be opened right now."
+        );
+
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session.user.id, subject]);
+
+  async function handleReferenceUpload(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) return;
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const createdReference =
+        await createVisualReference({
+          userId: session.user.id,
+          file,
+          subject,
+          title,
+          description,
+        });
+
+      setReferences((current) => [
+        createdReference,
+        ...current,
+      ]);
+
+      setTitle("");
+      setDescription("");
+    } catch (uploadError) {
+      console.error(
+        "Could not upload reference:",
+        uploadError
+      );
+
+      setError(
+        "This reference could not be uploaded."
+      );
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  }
+
+  async function toggleReferenceFavorite(
+    item: VisualReferenceWithUrl
+  ) {
+    const nextFavorite =
+      item.reference.is_favorite !== true;
+
+    try {
+      const updatedReference =
+        await setVisualReferenceFavorite({
+          userId: session.user.id,
+          referenceId: item.reference.id,
+          favorite: nextFavorite,
+        });
+
+      setReferences((current) =>
+        current.map((currentItem) =>
+          currentItem.reference.id ===
+          item.reference.id
+            ? {
+                ...currentItem,
+                reference: updatedReference,
+              }
+            : currentItem
+        )
+      );
+    } catch (favoriteError) {
+      console.error(
+        "Could not favorite reference:",
+        favoriteError
+      );
+
+      setError(
+        "This reference could not be updated."
+      );
+    }
+  }
+
+  const activeSubject =
+    referenceSubjects.find(
+      (item) => item.id === subject
+    );
+
+  return (
+    <section className="references-screen">
+      <ScreenIntro
+        eyebrow="visual canon"
+        title="References"
+      >
+        <p>
+          Save the images that define how
+          Alloah, Dominic, places, poses,
+          outfits and the world should look.
+        </p>
+      </ScreenIntro>
+
+      <div className="reference-subject-strip">
+        {referenceSubjects.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={
+              subject === item.id
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setSubject(item.id)
+            }
+          >
+            <strong>
+              {item.label}
+            </strong>
+
+            <small>
+              {item.note}
+            </small>
+          </button>
+        ))}
+      </div>
+
+      <section className="reference-upload-card">
+        <div>
+          <small>
+            current board
+          </small>
+
+          <h2>
+            {activeSubject?.label ??
+              "References"}
+          </h2>
+
+          <p>
+            {activeSubject?.note}
+          </p>
+        </div>
+
+        <input
+          value={title}
+          onChange={(event) =>
+            setTitle(event.target.value)
+          }
+          placeholder="Reference title"
+        />
+
+        <textarea
+          value={description}
+          onChange={(event) =>
+            setDescription(
+              event.target.value
+            )
+          }
+          placeholder="Notes: lighting, pose, mood, details..."
+        />
+
+        <Button
+          type="button"
+          onClick={() =>
+            fileInputRef.current?.click()
+          }
+          disabled={uploading}
+        >
+          <ImageIcon />
+          {uploading
+            ? "Uploading..."
+            : "Upload reference"}
+        </Button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={handleReferenceUpload}
+        />
+      </section>
+
+      {error && (
+        <p className="form-error">
+          {error}
+        </p>
+      )}
+
+      {loading ? (
+        <p className="empty-copy">
+          loading references...
+        </p>
+      ) : references.length === 0 ? (
+        <section className="empty-state-card">
+          <ImageIcon />
+
+          <h2>
+            No references yet.
+          </h2>
+
+          <p>
+            Upload the first image for this
+            board. This is what future
+            realistic photos will learn from.
+          </p>
+        </section>
+      ) : (
+        <div className="reference-grid">
+          {references.map((item) => (
+            <article
+              key={item.reference.id}
+              className="reference-card"
+            >
+              <img
+                src={item.url}
+                alt={
+                  item.reference.title ??
+                  "Visual reference"
+                }
+              />
+
+              <div>
+                <strong>
+                  {item.reference.title ??
+                    "Untitled reference"}
+                </strong>
+
+                {item.reference.description && (
+                  <p>
+                    {
+                      item.reference
+                        .description
+                    }
+                  </p>
+                )}
+
+                <button
+                  type="button"
+                  className={
+                    item.reference.is_favorite
+                      ? "active"
+                      : ""
+                  }
+                  onClick={() =>
+                    void toggleReferenceFavorite(
+                      item
+                    )
+                  }
+                >
+                  <Heart
+                    size={16}
+                    fill={
+                      item.reference
+                        .is_favorite
+                        ? "currentColor"
+                        : "none"
+                    }
+                  />
+
+                  {item.reference.is_favorite
+                    ? "Favorite"
+                    : "Mark favorite"}
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 function WardrobeScreen() {
   const { session } = usePrivateDiario();
