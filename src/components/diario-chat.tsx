@@ -195,6 +195,11 @@ export function DiarioChat({
 
 const processingQueueRef =
   useRef(false);
+
+  const queueTimerRef =
+  useRef<ReturnType<typeof window.setTimeout> | null>(
+    null
+  );
   
 const photoInputRef =
     useRef<HTMLInputElement | null>(null);
@@ -580,6 +585,95 @@ useEffect(() => {
     [],
   );
 
+async function flushPendingMessages() {
+  if (processingQueueRef.current) {
+    return;
+  }
+
+  const queuedMessages = [
+    ...pendingMessagesRef.current,
+  ];
+
+  pendingMessagesRef.current = [];
+
+  if (queuedMessages.length === 0) {
+    setSending(false);
+    return;
+  }
+
+  processingQueueRef.current = true;
+  setSending(true);
+  setFailedMessage(null);
+
+  const combinedMessage = queuedMessages
+    .map((item) => item.text)
+    .join("\n");
+
+  try {
+    const { data, error } =
+      await supabase.functions.invoke(
+        "clever-service",
+        {
+          body: {
+            message: combinedMessage,
+          },
+        }
+      );
+
+    const replies =
+      Array.isArray(data?.replies)
+        ? data.replies
+            .filter(
+              (item: unknown): item is string =>
+                typeof item === "string"
+            )
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : typeof data?.reply === "string"
+          ? [data.reply.trim()].filter(Boolean)
+          : [];
+
+    if (error || replies.length === 0) {
+      throw (
+        error ??
+        new Error("Missing reply")
+      );
+    }
+
+    setMessages((current) => [
+      ...current,
+      ...replies.map((reply) => ({
+        id: `reply-${crypto.randomUUID()}`,
+        role: "assistant" as const,
+        content: reply,
+        createdAt:
+          new Date().toISOString(),
+        kind: "text" as const,
+      })),
+    ]);
+
+    window.setTimeout(() => {
+      void loadHistory(false);
+    }, 800);
+  } catch {
+    setFailedMessage(combinedMessage);
+  } finally {
+    processingQueueRef.current = false;
+
+    if (pendingMessagesRef.current.length > 0) {
+      queueTimerRef.current =
+        window.setTimeout(() => {
+          queueTimerRef.current = null;
+          void flushPendingMessages();
+        }, 1200);
+
+      return;
+    }
+
+    setSending(false);
+  }
+}
+
 async function sendMessage(
   text: string,
   kind: MessageKind = "text"
@@ -610,67 +704,20 @@ async function sendMessage(
     kind,
   });
 
-  if (processingQueueRef.current) {
-    return;
+  if (queueTimerRef.current) {
+    window.clearTimeout(queueTimerRef.current);
   }
 
-  processingQueueRef.current = true;
   setSending(true);
   setFailedMessage(null);
 
-  try {
-    while (pendingMessagesRef.current.length > 0) {
-      const next =
-        pendingMessagesRef.current.shift();
-
-      if (!next) continue;
-
-      try {
-        const { data, error } =
-          await supabase.functions.invoke(
-            "clever-service",
-            {
-              body: {
-                message: next.text,
-              },
-            }
-          );
-
-        if (
-          error ||
-          typeof data?.reply !== "string"
-        ) {
-          throw (
-            error ??
-            new Error("Missing reply")
-          );
-        }
-
-        setMessages((current) => [
-          ...current,
-          {
-            id: `reply-${crypto.randomUUID()}`,
-            role: "assistant",
-            content: data.reply,
-            createdAt:
-              new Date().toISOString(),
-            kind: "text",
-          },
-        ]);
-      } catch {
-        setFailedMessage(next.text);
-        break;
-      }
-    }
-
+  queueTimerRef.current =
     window.setTimeout(() => {
-      void loadHistory(false);
-    }, 800);
-  } finally {
-    processingQueueRef.current = false;
-    setSending(false);
-  }
+      queueTimerRef.current = null;
+      void flushPendingMessages();
+    }, 1600);
 }
+  
 useEffect(() => {
   if (typeof window === "undefined") return;
 
