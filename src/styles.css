@@ -6459,3 +6459,56 @@ html[data-diario-appearance="dark"] .settings-static-row {
     ),
     var(--background);
 }
+
+/* ROOMS · TIME AWARE LIGHT */
+
+.apartment-screen .room-view-image {
+  transition:
+    filter 0.8s ease,
+    opacity 0.8s ease;
+}
+
+.phone-shell[data-time-theme="early"]
+.apartment-screen .room-view-image {
+  filter:
+    brightness(0.82)
+    saturate(0.82)
+    sepia(0.06);
+}
+
+.phone-shell[data-time-theme="morning"]
+.apartment-screen .room-view-image {
+  filter:
+    brightness(1.04)
+    saturate(0.95);
+}
+
+.phone-shell[data-time-theme="afternoon"]
+.apartment-screen .room-view-image {
+  filter:
+    brightness(1)
+    saturate(0.98);
+}
+
+.phone-shell[data-time-theme="golden"]
+.apartment-screen .room-view-image {
+  filter:
+    brightness(0.9)
+    saturate(1.04)
+    sepia(0.14);
+}
+
+.phone-shell[data-time-theme="night"]
+.apartment-screen .room-view-image {
+  filter:
+    brightness(0.58)
+    saturate(0.78)
+    sepia(0.05);
+}
+
+.phone-shell[data-time-theme="late"]
+.apartment-screen .room-view-image {
+  filter:
+    brightness(0.42)
+    saturate(0.68);
+}
