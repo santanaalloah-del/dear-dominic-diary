@@ -6542,7 +6542,7 @@ html[data-diario-appearance="dark"] .settings-static-row {
 
 .phone-shell[data-time-theme="late"]
 .apartment-screen .room-view-stage::after {
-  opacity: 0.08;
+opacity: var(--sun-opacity, 0.8);
 }
 
 /* ROOMS · WINDOW SHADOW */
@@ -6569,7 +6569,7 @@ html[data-diario-appearance="dark"] .settings-static-row {
 
   transform: skewX(-8deg);
   mix-blend-mode: multiply;
-  opacity: 0.48;
+ opacity: var(--shadow-opacity, 0.48);
 
   transition:
     left 1s linear,
