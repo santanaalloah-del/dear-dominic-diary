@@ -165,9 +165,6 @@ function DiarioApp() {
   const [previousScreen, setPreviousScreen] =
   useState<Screen>("home");
   
-const [previousScreen, setPreviousScreen] =
-  useState<Screen>("home");
-  
   const [activeRoom, setActiveRoom] =
     useState("living");
   const scrollRef = useRef<HTMLDivElement>(null);
