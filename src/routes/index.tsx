@@ -344,6 +344,11 @@ function HomeScreen({
 <section
   className="home-screen home-live home-house"
   data-home-time={time.mood}
+  style={
+    {
+      "--day-progress": time.dayProgress,
+    } as React.CSSProperties
+  }
 >
       <header className="house-header">
         <div className="house-heading">
