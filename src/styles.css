@@ -6445,3 +6445,16 @@ html[data-diario-appearance="dark"] .settings-static-row {
   color: var(--cherry);
   font-size: 12px;
 }
+
+/* HOME · MOVING DAYLIGHT */
+
+.home-house {
+  background:
+    radial-gradient(
+      circle at var(--day-x, 50%) 0%,
+      rgba(255, 220, 170, 0.22) 0%,
+      rgba(255, 220, 170, 0.10) 22%,
+      transparent 48%
+    ),
+    var(--background);
+}
