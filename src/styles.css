@@ -6445,3 +6445,31 @@ html[data-diario-appearance="dark"] .settings-static-row {
   color: var(--cherry);
   font-size: 12px;
 }
+/* HOME · CONTINUOUS DAYLIGHT TEST */
+
+.home-house {
+  position: relative;
+  isolation: isolate;
+}
+
+.home-house::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at var(--day-x, 50%) 0%,
+      rgba(255, 220, 170, 0.20),
+      transparent 38%
+    );
+
+  transition: background-position 1s linear;
+}
+
+.home-house > * {
+  position: relative;
+  z-index: 1;
+}
