@@ -69,11 +69,12 @@ const dayProgress = totalMinutes / (24 * 60);
     },
   };
 
-  return {
-    mood,
-    hour,
-    minute,
-    timeLabel: new Intl.DateTimeFormat("en-US", {
+return {
+  mood,
+  hour,
+  minute,
+  dayProgress,
+  timeLabel: new Intl.DateTimeFormat("en-US", {
       timeZone: TIME_ZONE,
       hour: "numeric",
       minute: "2-digit",
