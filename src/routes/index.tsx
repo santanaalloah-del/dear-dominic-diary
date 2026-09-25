@@ -176,21 +176,23 @@ function DiarioApp() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
   const time = useTimeMood();
-  const daylight =
+  const daylightProgress =
   Math.max(
     0,
-    Math.sin(
-      Math.PI *
-        Math.max(
-          0,
-          Math.min(
-            1,
-            (time.dayProgress - 0.25) / 0.5
-          )
-        )
+    Math.min(
+      1,
+      (time.dayProgress - 0.25) / 0.5
     )
   );
 
+const daylight =
+  Math.sin(Math.PI * daylightProgress);
+
+const sunOpacity =
+  0.08 + daylight * 0.72;
+
+const shadowOpacity =
+  0.04 + daylight * 0.44;
 const sunOpacity =
   0.08 + daylight * 0.72;
 
@@ -254,7 +256,7 @@ const openScreen = (nextScreen: Screen) => {
  style={
   {
     "--day-progress": time.dayProgress,
-    "--day-x": `${time.dayProgress * 100}%`,
+   "--day-x": `${daylightProgress * 100}%`,
     "--sun-opacity": sunOpacity,
     "--shadow-opacity": shadowOpacity,
   } as React.CSSProperties
