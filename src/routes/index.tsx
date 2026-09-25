@@ -341,7 +341,10 @@ function HomeScreen({
   onOpenRoom: (roomId: string) => void;
 }) {
   return (
-    <section className="home-screen home-live home-house">
+<section
+  className="home-screen home-live home-house"
+  data-home-time={time.mood}
+>
       <header className="house-header">
         <div className="house-heading">
           <span className="house-kicker">
