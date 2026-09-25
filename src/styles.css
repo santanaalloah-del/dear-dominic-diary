@@ -6211,3 +6211,237 @@ html[data-diario-appearance="dark"] .settings-static-row {
   width: 220px;
   display: block;
 }
+.references-screen {
+  padding: 28px 22px 120px;
+  animation: page-in 0.28s ease both;
+}
+
+.references-screen .screen-intro {
+  margin-bottom: 18px;
+}
+
+.reference-subject-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 18px 0 18px;
+}
+
+.reference-subject-strip button {
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 92%, white 8%),
+      var(--paper)
+    );
+  border-radius: 14px;
+  padding: 12px 11px;
+  text-align: left;
+  box-shadow: var(--paper-shadow-soft);
+  cursor: pointer;
+}
+
+.reference-subject-strip button strong {
+  display: block;
+  font: 18px/1 var(--font-display);
+  color: var(--wine);
+  margin-bottom: 5px;
+}
+
+.reference-subject-strip button small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--text-soft);
+}
+
+.reference-subject-strip button.active {
+  border-color: color-mix(in oklab, var(--cherry) 55%, var(--border));
+  background:
+    radial-gradient(
+      circle at 80% 0%,
+      color-mix(in oklab, var(--blush) 70%, transparent),
+      transparent 42%
+    ),
+    var(--paper);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--cherry) 20%, transparent),
+    var(--paper-shadow);
+}
+
+.reference-upload-card {
+  position: relative;
+  margin: 18px 0 20px;
+  padding: 18px;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 94%, white 6%),
+      var(--paper)
+    );
+  box-shadow: var(--paper-shadow);
+  border: 1px solid var(--border);
+}
+
+.reference-upload-card:before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 54px;
+  height: 14px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: color-mix(in oklab, var(--butter) 60%, transparent);
+}
+
+.reference-upload-card small {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.reference-upload-card h2 {
+  margin: 0;
+  font: 30px/0.95 var(--font-display);
+  color: var(--wine);
+}
+
+.reference-upload-card p {
+  margin: 8px 0 14px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+
+.reference-upload-card input,
+.reference-upload-card textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--cream) 88%, white 12%);
+  border-radius: 12px;
+  padding: 11px 12px;
+  margin-bottom: 10px;
+  outline: none;
+  font-size: 13px;
+}
+
+.reference-upload-card textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.reference-upload-card input:focus,
+.reference-upload-card textarea:focus {
+  border-color: color-mix(in oklab, var(--cherry) 55%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--blush) 45%, transparent);
+}
+
+.reference-upload-card button {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+  margin-top: 18px;
+}
+
+.reference-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.reference-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background: var(--paper-deep);
+}
+
+.reference-card > div {
+  padding: 11px 11px 12px;
+}
+
+.reference-card strong {
+  display: block;
+  font: 17px/1.05 var(--font-display);
+  color: var(--wine);
+}
+
+.reference-card p {
+  margin: 6px 0 9px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-soft);
+}
+
+.reference-card button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--text-soft);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.reference-card button.active {
+  color: var(--cherry);
+}
+
+.references-screen .empty-state-card {
+  margin-top: 20px;
+  padding: 28px 22px;
+  border: 1px dashed color-mix(in oklab, var(--wine) 35%, var(--border));
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 82%, transparent),
+      color-mix(in oklab, var(--cream) 92%, transparent)
+    );
+  text-align: center;
+}
+
+.references-screen .empty-state-card svg {
+  color: var(--cherry);
+  margin-bottom: 10px;
+}
+
+.references-screen .empty-state-card h2 {
+  margin: 0 0 7px;
+  font: 28px/1 var(--font-display);
+  color: var(--wine);
+}
+
+.references-screen .empty-state-card p,
+.references-screen .empty-copy {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+
+.references-screen .form-error {
+  margin: 12px 0;
+  color: var(--cherry);
+  font-size: 12px;
+}
