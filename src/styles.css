@@ -6567,3 +6567,27 @@ opacity: var(--sun-opacity, 0.8);
 .our-things-delete {
   color: var(--cherry);
 }
+
+/* ROOMS · NIGHT LAMP GLOW */
+
+.apartment-screen .room-lamp-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at 72% 48%,
+      rgb(255 185 105 / 0.55) 0%,
+      rgb(255 176 92 / 0.24) 18%,
+      rgb(255 168 82 / 0.08) 36%,
+      transparent 58%
+    );
+
+  mix-blend-mode: screen;
+  opacity: var(--lamp-opacity, 0);
+
+  transition:
+    opacity 0.8s linear;
+}
