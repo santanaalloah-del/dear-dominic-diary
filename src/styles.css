@@ -6591,3 +6591,27 @@ opacity: var(--sun-opacity, 0.8);
   transition:
     opacity 0.8s linear;
 }
+
+/* ROOMS · NIGHT WINDOW / SKY CAST */
+
+.apartment-screen .room-night-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgb(35 49 78 / 0.58) 0%,
+      rgb(46 42 70 / 0.34) 38%,
+      rgb(67 49 59 / 0.12) 68%,
+      transparent 100%
+    );
+
+  mix-blend-mode: multiply;
+  opacity: var(--night-opacity, 0);
+
+  transition:
+    opacity 0.8s linear;
+}
