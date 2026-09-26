@@ -11785,3 +11785,37 @@ select {
 .screen-chat .conversation-scroll {
   display: none !important;
 }
+
+/* ─────────────────────────────────────────
+   FINE TUNE · REMOVE BIG MESSAGE OUTER BUBBLE
+   ───────────────────────────────────────── */
+
+.screen-chat .diario-message.messenger-message,
+.screen-chat .messenger-message {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  padding-block: 0 !important;
+}
+
+.screen-chat .diario-message.messenger-message::before,
+.screen-chat .diario-message.messenger-message::after,
+.screen-chat .messenger-message::before,
+.screen-chat .messenger-message::after {
+  display: none !important;
+}
+
+.screen-chat .messenger-bubble,
+.screen-chat .diario-message-content {
+  box-shadow: 0 5px 16px rgb(45 24 20 / 7%) !important;
+}
+
+.screen-chat .messenger-message.is-user,
+.screen-chat .diario-message.is-user {
+  align-self: flex-end !important;
+}
+
+.screen-chat .messenger-message.is-assistant,
+.screen-chat .diario-message.is-assistant {
+  align-self: flex-start !important;
+}
