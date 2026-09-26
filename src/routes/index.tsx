@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import {
+import {
   ArrowLeft,
   BookOpen,
   Box as BoxIcon,
@@ -57,6 +58,7 @@ import {
   previousSpotifyTrack,
   resumeSpotifyPlayback,
   subscribeSpotifyPlayer,
+  seekSpotifyPlayback,
   type DiarioSpotifyState,
   type DiarioSpotifyTrack,
 } from "@/lib/spotify-player";
@@ -6638,6 +6640,11 @@ function MusicScreen({
   const [spotifyPlayerState, setSpotifyPlayerState] =
   useState<DiarioSpotifyState | null>(null);
 
+  const [
+  localSpotifyPositionMs,
+  setLocalSpotifyPositionMs,
+] = useState(0);
+  
 const [spotifyPlayerLoading, setSpotifyPlayerLoading] =
   useState(false);
 
@@ -6774,6 +6781,79 @@ const searchSpotify = async () => {
 
   return unsubscribe;
 }, []);
+
+  useEffect(() => {
+  setLocalSpotifyPositionMs(
+    spotifyPlayerState?.positionMs ?? 0
+  );
+}, [
+  spotifyPlayerState?.positionMs,
+  spotifyPlayerState?.track?.uri,
+]);
+
+useEffect(() => {
+  if (
+    !spotifyPlayerState ||
+    spotifyPlayerState.paused ||
+    spotifyPlayerState.durationMs <= 0
+  ) {
+    return;
+  }
+
+  const interval = window.setInterval(() => {
+    setLocalSpotifyPositionMs((position) =>
+      Math.min(
+        position + 1000,
+        spotifyPlayerState.durationMs
+      )
+    );
+  }, 1000);
+
+  return () =>
+    window.clearInterval(interval);
+}, [
+  spotifyPlayerState?.paused,
+  spotifyPlayerState?.durationMs,
+  spotifyPlayerState?.track?.uri,
+]);
+
+const spotifyProgressPercent =
+  spotifyPlayerState?.durationMs
+    ? Math.min(
+        100,
+        (localSpotifyPositionMs /
+          spotifyPlayerState.durationMs) *
+          100
+      )
+    : 0;
+
+const seekSpotifyToPercent = async (
+  percent: number
+) => {
+  if (!spotifyPlayerState?.durationMs) return;
+
+  const safePercent = Math.max(
+    0,
+    Math.min(100, percent)
+  );
+
+  const nextPosition = Math.round(
+    spotifyPlayerState.durationMs *
+      (safePercent / 100)
+  );
+
+  setLocalSpotifyPositionMs(nextPosition);
+
+  try {
+    await seekSpotifyPlayback(nextPosition);
+  } catch (error) {
+    console.error(error);
+
+    setMusicError(
+      "Could not move through this song."
+    );
+  }
+};
   
   useEffect(() => {
     let active = true;
@@ -7187,23 +7267,29 @@ setAddingSong(false);
         {spotifyPlayerState.track.artist}
       </span>
 
-      <div className="spotify-live-progress">
-        <span
-          style={{
-            width: `${
-              spotifyPlayerState.durationMs > 0
-                ? Math.min(
-                    100,
-                    (spotifyPlayerState.positionMs /
-                      spotifyPlayerState.durationMs) *
-                      100
-                  )
-                : 0
-            }%`,
-          }}
-        />
-      </div>
-    </div>
+    <button
+  type="button"
+  className="spotify-live-progress"
+  aria-label="Move through song"
+  onClick={(event) => {
+    const rect =
+      event.currentTarget.getBoundingClientRect();
+
+    const percent =
+      ((event.clientX - rect.left) /
+        rect.width) *
+      100;
+
+    void seekSpotifyToPercent(percent);
+  }}
+>
+  <span
+    style={{
+      width: `${spotifyProgressPercent}%`,
+    }}
+  />
+</button>
+
 
     <div className="spotify-live-controls">
       <button
