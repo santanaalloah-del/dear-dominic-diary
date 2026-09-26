@@ -973,6 +973,15 @@ function applyCommitmentBias(
   return candidates.map((candidate) => {
     let weight = candidate.weight;
 
+    if (
+  nearby.commitment.kind === "date" &&
+  nearby.minutesUntil <= 45 &&
+  nearby.minutesUntil >= -30 &&
+  candidate.location === "out"
+) {
+  weight *= 1.8;
+}
+
     if (nearby.minutesUntil > 45) {
       if (
         [
