@@ -417,6 +417,38 @@ function HomeScreen({
 
   const { session } = usePrivateDiario();
 
+  const [dominicState, setDominicState] =
+  useState<DominicState | null>(null);
+
+useEffect(() => {
+  if (!session?.user?.id) return;
+
+  let cancelled = false;
+
+  const refreshDominic = async () => {
+    const state =
+      await getCurrentDominicState(
+        session.user.id
+      );
+
+    if (!cancelled) {
+      setDominicState(state);
+    }
+  };
+
+  void refreshDominic();
+
+  const timer = window.setInterval(
+    refreshDominic,
+    60_000
+  );
+
+  return () => {
+    cancelled = true;
+    window.clearInterval(timer);
+  };
+}, [session?.user?.id]);
+
 const [dominicState, setDominicState] =
   useState<DominicState | null>(null);
 
@@ -1123,6 +1155,19 @@ placeholder="Object name"
           src={room.image}
           alt={`Empty ${room.label}`}
         />
+
+        {dominicState?.location === roomId && (
+  <div className="room-dominic-presence">
+    <small>DOMINIC IS HERE</small>
+
+    <strong>
+      {dominicState.activity.replaceAll(
+        "_",
+        " "
+      )}
+    </strong>
+  </div>
+)}
 
         <div
   className="room-night-wash"
