@@ -1107,16 +1107,17 @@ const displayY =
           );
 
           return (
-          <div
+<div
   key={item.id}
   className={`home-object-layer ${
-    data-object-type={String(
-  item.data?.objectType ?? "object"
-)}
     draggingObjectId === item.id
       ? "is-dragging"
       : ""
   }`}
+  data-object-type={String(
+    item.data?.objectType ?? "object"
+  )}
+  
   style={{
     left: `${displayX}%`,
     top: `${displayY}%`,
