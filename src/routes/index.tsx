@@ -274,6 +274,8 @@ const openScreen = (nextScreen: Screen) => {
     "--room-brightness": roomBrightness,
 "--room-saturation": roomSaturation,
 "--room-sepia": roomSepia,
+    "--night-opacity": nightOpacity,
+"--home-plan-brightness": homePlanBrightness,
   } as React.CSSProperties
 }
 >
