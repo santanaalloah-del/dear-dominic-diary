@@ -4,7 +4,7 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
-  useState,
+  useSta\e,
   type ReactNode,
 } from "react";
 
@@ -44,11 +44,12 @@ import {
 import {
   useTimeMood,
   type TimeMoodState,
-  import {
+} from "@/lib/time-mood";
+
+import {
   getCurrentDominicState,
   type DominicState,
 } from "@/lib/dominic-state";
-} from "@/lib/time-mood";
 import {
   addItemToMemory,
   addClothingToLook,
