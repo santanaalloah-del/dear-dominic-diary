@@ -660,9 +660,19 @@ async function flushPendingMessages() {
       await supabase.functions.invoke(
         "clever-service",
         {
-          body: {
-            message: combinedMessage,
-          },
+        body: {
+  message: combinedMessage,
+  dominicContext: dominicState
+    ? {
+        activity: dominicState.activity,
+        location: dominicState.location,
+        mood: dominicState.mood ?? null,
+        energy: dominicState.energy ?? null,
+        startedAt: dominicState.startedAt,
+        nextChangeAt: dominicState.nextChangeAt,
+      }
+    : null,
+},
         }
       );
 
