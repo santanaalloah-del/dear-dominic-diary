@@ -448,6 +448,8 @@ useEffect(() => {
     window.clearInterval(timer);
   };
 }, [session?.user?.id]);
+
+return (
 <section
   className="home-screen home-live home-house"
   data-home-time={time.mood}
