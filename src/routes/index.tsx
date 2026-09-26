@@ -7288,7 +7288,7 @@ setAddingSong(false);
     }}
   />
 </button>
-
+    </div>
 
     <div className="spotify-live-controls">
       <button
