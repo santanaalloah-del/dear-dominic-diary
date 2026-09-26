@@ -207,6 +207,8 @@ export function DiarioChat({
 const processingQueueRef =
   useRef(false);
 
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
   const queueTimerRef =
   useRef<ReturnType<typeof window.setTimeout> | null>(
     null
@@ -302,6 +304,30 @@ const loadNearbyCommitmentsNow = useCallback(async () => {
       const time =
         new Date(item.planned_for).getTime();
 
+      const scrollToLatestMessage = useCallback(
+  (behavior: ScrollBehavior = "smooth") => {
+    window.requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({
+        block: "end",
+        behavior,
+      });
+    });
+  },
+  []
+);
+
+useEffect(() => {
+  if (loading) return;
+
+  scrollToLatestMessage("auto");
+}, [loading, scrollToLatestMessage]);
+
+useEffect(() => {
+  if (loading) return;
+
+  scrollToLatestMessage("smooth");
+}, [messages.length, sending, loading, scrollToLatestMessage]);
+      
       return (
         time >= pastWindow &&
         time <= futureWindow
@@ -1330,6 +1356,11 @@ message.mediaUrl ? (
               </MessageContent>
             </Message>
           )}
+          <div
+  ref={messagesEndRef}
+  className="chat-scroll-anchor"
+  aria-hidden="true"
+/>
         </ConversationContent>
         <ConversationScrollButton className="conversation-scroll" aria-label="Go to newest message" />
       </Conversation>
