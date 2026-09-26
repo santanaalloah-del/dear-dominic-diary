@@ -6858,11 +6858,27 @@ const searchSpotify = async () => {
 } catch (error) {
     console.error(error);
 
-    setMusicError(
-      error instanceof Error
-        ? error.message
-        : "Spotify player could not start."
-    );
+   const message =
+  error instanceof Error
+    ? error.message
+    : "Spotify player could not start.";
+
+setMusicError(
+  `${message} ${
+    spotifyUrl
+      ? "Opening Spotify as fallback."
+      : ""
+  }`
+);
+
+if (spotifyUrl) {
+  window.open(
+    spotifyUrl,
+    "_blank",
+    "noopener,noreferrer"
+  );
+}
+   
   } finally {
     setSpotifyPlayerLoading(false);
   }
