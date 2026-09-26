@@ -1179,12 +1179,18 @@ export async function getCurrentDominicState(
 
   const now = new Date();
 
+  const worldContext =
+  await loadDominicWorldContext(
+    userId
+  );
+
 if (!state) {
   state =
     createNextDominicState(
-      null,
-      now
-    );
+  null,
+  now,
+  worldContext
+);
 
   await saveDominicState(
     userId,
@@ -1214,10 +1220,10 @@ if (!state) {
 
     state =
       createNextDominicState(
-        state,
-        transitionTime
-      );
-
+  state,
+  transitionTime,
+  worldContext
+);
     changes += 1;
   }
 
