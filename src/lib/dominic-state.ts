@@ -595,6 +595,77 @@ function applyRecentPenalty(
   });
 }
 
+function applyDailyHistoryBias(
+  candidates: DominicCandidate[],
+  recentActions: DominicRecentAction[]
+): DominicCandidate[] {
+  if (recentActions.length === 0) {
+    return candidates;
+  }
+
+  return candidates.map((candidate) => {
+    const timesDone =
+      recentActions.filter(
+        (action) =>
+          action.activity === candidate.activity
+      ).length;
+
+    if (timesDone === 0) {
+      return candidate;
+    }
+
+    let weight = candidate.weight;
+
+    if (
+      [
+        "showering",
+        "getting_dressed",
+        "doing_laundry",
+      ].includes(candidate.activity)
+    ) {
+      weight *= Math.pow(
+        0.2,
+        timesDone
+      );
+    } else if (
+      [
+        "working",
+        "recording",
+        "shopping",
+        "with_friends",
+      ].includes(candidate.activity)
+    ) {
+      weight *= Math.pow(
+        0.5,
+        timesDone
+      );
+    } else if (
+      [
+        "making_coffee",
+        "cooking",
+        "eating",
+      ].includes(candidate.activity)
+    ) {
+      weight *= Math.pow(
+        0.72,
+        timesDone
+      );
+    } else {
+      weight *=
+        1 /
+        (1 + timesDone * 0.55);
+    }
+
+    return {
+      ...candidate,
+      weight: Math.max(
+        0.08,
+        weight
+      ),
+    };
+  });
+}
+
 function clampEnergy(value: number) {
   return Math.max(
     5,
