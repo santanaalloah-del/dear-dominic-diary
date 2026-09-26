@@ -1626,7 +1626,7 @@ export async function createSong({
         note?.trim() || null,
       event_at:
         new Date().toISOString(),
- data: {
+data: {
   artist: cleanArtist,
   album: album?.trim() || null,
   spotifyId: spotifyId ?? null,
@@ -1634,6 +1634,7 @@ export async function createSong({
   spotifyUrl: spotifyUrl ?? null,
   coverUrl: coverUrl ?? null,
   durationMs: durationMs ?? null,
+  favorite: false,
 },
     })
     .select("*")
@@ -1645,6 +1646,40 @@ export async function createSong({
 
   return data as DiarioItem;
 }
+
+export async function setSongFavorite({
+  userId,
+  song,
+  favorite,
+}: {
+  userId: string;
+  song: DiarioItem;
+  favorite: boolean;
+}): Promise<DiarioItem> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...(song.data ?? {}),
+        favorite,
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", song.id)
+    .eq("kind", "song")
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
 type CreatePlaceInput = {
   userId: string;
   title: string;
