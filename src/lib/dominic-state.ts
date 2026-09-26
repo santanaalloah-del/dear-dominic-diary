@@ -1520,16 +1520,21 @@ export async function getCurrentDominicState(
   await loadRecentDominicActions(
     userId
   );
-  
+
+  const commitments =
+  await loadDominicCommitments(
+    userId,
+    now
+  );
 if (!state) {
   state =
-   createNextDominicState(
+ createNextDominicState(
   null,
   now,
   worldContext,
-  recentActions
+  recentActions,
+  commitments
 );
-
   await saveDominicState(
     userId,
     state
@@ -1566,9 +1571,9 @@ createNextDominicState(
   state,
   transitionTime,
   worldContext,
-  recentActions
+  recentActions,
+  commitments
 );
-
 await recordDominicAction(
   userId,
   state
