@@ -585,6 +585,8 @@ function RoomScreen({
   const [showThings, setShowThings] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newObjectType, setNewObjectType] =
+  useState("furniture");
 const [newImageFile, setNewImageFile] =
   useState<File | null>(null);
 
@@ -693,7 +695,7 @@ const addFurniture = async () => {
       userId: session.user.id,
       title: newName.trim(),
       room: roomId,
-      objectType: "furniture",
+     objectType: newObjectType,
       x: 50,
       y: 68,
       scale: 1,
@@ -707,6 +709,7 @@ const addFurniture = async () => {
     }
 
     setNewName("");
+    setNewObjectType("furniture");
     setNewImageFile(null);
     setNewImagePreview("");
     setShowAdd(false);
@@ -835,7 +838,7 @@ const addFurniture = async () => {
           type="button"
           onClick={() => setShowAdd((value) => !value)}
         >
-          + Add Furniture
+  + Add Object
         </button>
 
         <button
@@ -853,8 +856,21 @@ const addFurniture = async () => {
       onChange={(event) =>
         setNewName(event.target.value)
       }
-      placeholder="Furniture name"
+placeholder="Object name"
     />
+    
+    <select
+  value={newObjectType}
+  onChange={(event) =>
+    setNewObjectType(event.target.value)
+  }
+>
+  <option value="furniture">Furniture</option>
+  <option value="decor">Decor</option>
+  <option value="plant">Plant</option>
+  <option value="lighting">Lighting</option>
+  <option value="other">Other</option>
+</select>
 
     <label className="furniture-photo-picker">
       <span>
