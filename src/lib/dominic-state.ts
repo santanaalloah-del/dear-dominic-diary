@@ -46,6 +46,12 @@ export type DominicState = {
   detail?: string;
   mood?: string;
 
+  recent?: Array<{
+  activity: DominicActivity;
+  location: DominicLocation;
+  endedAt: string;
+}>;
+
   startedAt: string;
   nextChangeAt: string;
 
@@ -333,6 +339,42 @@ function weightedPick(
 
   return candidates[candidates.length - 1];
 }
+
+function applyRecentPenalty(
+  candidates: DominicCandidate[],
+  previous: DominicState | null
+): DominicCandidate[] {
+  if (!previous) return candidates;
+
+  const recentActivities = [
+    previous.activity,
+    ...(previous.recent ?? [])
+      .slice(-5)
+      .map((item) => item.activity),
+  ];
+
+  return candidates.map((candidate) => {
+    const repeats =
+      recentActivities.filter(
+        (activity) =>
+          activity === candidate.activity
+      ).length;
+
+    if (repeats === 0) {
+      return candidate;
+    }
+
+    return {
+      ...candidate,
+      weight: Math.max(
+        0.15,
+        candidate.weight /
+          (1 + repeats * 1.8)
+      ),
+    };
+  });
+}
+
 
 function homeCandidates(
   hour: number
@@ -648,13 +690,16 @@ export function createNextDominicState(
   previous: DominicState | null,
   at = new Date()
 ): DominicState {
-  const candidate = weightedPick(
+ const candidate = weightedPick(
+  applyRecentPenalty(
     candidatesAfter(
       previous,
       at.getHours()
-    )
-  );
-
+    ),
+    previous
+  )
+);
+  
   const [minMinutes, maxMinutes] =
     ACTIVITY_DURATION[
       candidate.activity
@@ -672,9 +717,22 @@ export function createNextDominicState(
         durationMinutes * 60_000
     );
 
+  const recent =
+  previous
+    ? [
+        ...(previous.recent ?? []),
+        {
+          activity: previous.activity,
+          location: previous.location,
+          endedAt: at.toISOString(),
+        },
+      ].slice(-8)
+    : [];
+
   return {
     location: candidate.location,
     activity: candidate.activity,
+    recent,
     startedAt: at.toISOString(),
     nextChangeAt:
       nextChangeAt.toISOString(),
