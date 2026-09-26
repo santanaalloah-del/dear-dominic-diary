@@ -10238,3 +10238,390 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   background: color-mix(in oklab, var(--paper) 84%, white 8%);
   box-shadow: var(--paper-shadow-soft);
 }
+
+/* ─────────────────────────────────────────
+   REFERENCES + SETTINGS · POLISH
+   ───────────────────────────────────────── */
+
+.references-screen,
+.settings-screen.settings-live {
+  min-height: max-content;
+  padding-bottom: 165px;
+}
+
+.references-screen .screen-intro,
+.settings-live .screen-intro {
+  padding: 32px 24px 12px;
+}
+
+.references-screen .screen-intro h1,
+.settings-live .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 52px/.84 var(--font-display);
+}
+
+.references-screen .screen-intro > p:not(.eyebrow),
+.settings-live .intro-copy {
+  max-width: 292px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+/* References */
+
+.reference-subject-strip {
+  display: flex;
+  gap: 9px;
+  margin: 16px 22px 0;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.reference-subject-strip button {
+  flex: 0 0 138px;
+  min-height: 74px;
+  border: 1px solid var(--divider);
+  border-radius: 23px;
+  background: color-mix(in oklab, var(--paper) 86%, white 8%);
+  padding: 13px;
+  text-align: left;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.reference-subject-strip button.active {
+  border-color: color-mix(in oklab, var(--cherry) 48%, var(--divider));
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 52%, transparent), transparent 55%),
+    color-mix(in oklab, var(--paper) 88%, white 8%);
+}
+
+.reference-subject-strip strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 22px/.95 var(--font-display);
+}
+
+.reference-subject-strip small {
+  display: block;
+  margin-top: 5px;
+  color: var(--brown-soft);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.reference-upload-card,
+.empty-state-card {
+  margin: 18px 22px 0;
+  padding: 22px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 90%, white 8%);
+  box-shadow: var(--paper-shadow);
+}
+
+.reference-upload-card small,
+.empty-state-card small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.reference-upload-card h2,
+.empty-state-card h2 {
+  margin: 8px 0;
+  color: var(--wine-deep);
+  font: 400 32px/.95 var(--font-display);
+}
+
+.reference-upload-card p,
+.empty-state-card p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.reference-upload-card input,
+.reference-upload-card textarea {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  padding: 13px 14px;
+  color: var(--brown);
+  outline: none;
+}
+
+.reference-upload-card textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.reference-upload-card button {
+  width: 100%;
+  min-height: 43px;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  font-weight: 800;
+  box-shadow: 0 10px 24px oklch(0.22 0.06 20 / 16%);
+}
+
+.reference-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 13px;
+  margin: 20px 22px 0;
+}
+
+.reference-card {
+  overflow: hidden;
+  border: 1px solid var(--divider);
+  border-radius: 25px;
+  background: color-mix(in oklab, var(--paper) 88%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.reference-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.15;
+  object-fit: cover;
+}
+
+.reference-card > div {
+  padding: 12px;
+}
+
+.reference-card strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 22px/.95 var(--font-display);
+}
+
+.reference-card p {
+  margin: 7px 0 0;
+  color: var(--brown-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.reference-card button {
+  width: 100%;
+  min-height: 35px;
+  margin-top: 11px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 38%, transparent);
+  color: var(--wine);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.reference-card button.active {
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.empty-copy {
+  margin: 18px 22px 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Settings */
+
+.settings-group,
+.settings-account {
+  margin: 18px 22px 0;
+  padding: 18px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 94%, white 6%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  box-shadow: var(--paper-shadow);
+}
+
+.settings-group > header,
+.settings-account > header {
+  margin-bottom: 14px;
+}
+
+.settings-group > header span,
+.settings-account > header span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.settings-group > header strong,
+.settings-account > header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 29px/.95 var(--font-display);
+}
+
+.settings-segment {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+}
+
+.settings-segment button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.settings-segment button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.settings-note,
+.settings-account p {
+  margin: 13px 0 0;
+  color: var(--brown-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.settings-row,
+.settings-static-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--divider);
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+  padding: 13px;
+  text-align: left;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.settings-row + .settings-row,
+.settings-row + .settings-static-row,
+.settings-static-row + .settings-row,
+.settings-static-row + .settings-static-row {
+  margin-top: 10px;
+}
+
+.settings-row > div,
+.settings-static-row > div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.settings-row svg,
+.settings-static-row svg {
+  color: var(--cherry);
+  flex: 0 0 auto;
+}
+
+.settings-row strong,
+.settings-static-row strong {
+  display: block;
+  color: var(--wine-deep);
+  font-size: 13px;
+}
+
+.settings-row small,
+.settings-static-row small {
+  display: block;
+  margin-top: 2px;
+  color: var(--brown-soft);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.settings-static-row > small {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 36%, transparent);
+  color: var(--wine);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.settings-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--brown-soft) 20%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--brown-soft) 20%, transparent);
+}
+
+.settings-toggle::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 3px 8px oklch(0.22 0.04 35 / 18%);
+  transition: transform .2s ease;
+}
+
+.settings-toggle.on {
+  background: var(--wine);
+}
+
+.settings-toggle.on::before {
+  transform: translateX(18px);
+}
+
+.settings-account button {
+  width: 100%;
+  min-height: 43px;
+  margin-top: 15px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  font-weight: 800;
+  box-shadow: 0 10px 24px oklch(0.22 0.06 20 / 16%);
+}
+
+.settings-account p:last-child {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: color-mix(in oklab, var(--blush) 32%, transparent);
+  color: var(--wine);
+  font-weight: 700;
+}
