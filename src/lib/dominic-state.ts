@@ -384,6 +384,136 @@ function applyRecentPenalty(
   });
 }
 
+function clampEnergy(value: number) {
+  return Math.max(
+    5,
+    Math.min(100, value)
+  );
+}
+
+function applyInternalStateBias(
+  candidates: DominicCandidate[],
+  previous: DominicState | null
+): DominicCandidate[] {
+  if (!previous) return candidates;
+
+  const energy =
+    previous.energy ?? 60;
+
+  const mood =
+    previous.mood ?? "calm";
+
+  return candidates.map((candidate) => {
+    let weight = candidate.weight;
+
+    if (energy < 30) {
+      if (
+        [
+          "sleeping",
+          "napping",
+          "relaxing",
+          "scrolling",
+          "watching_something",
+        ].includes(candidate.activity)
+      ) {
+        weight *= 1.8;
+      }
+
+      if (
+        [
+          "working",
+          "recording",
+          "cleaning",
+          "with_friends",
+          "leaving_home",
+        ].includes(candidate.activity)
+      ) {
+        weight *= 0.5;
+      }
+    }
+
+    if (energy > 70) {
+      if (
+        [
+          "walking",
+          "cleaning",
+          "playing_guitar",
+          "recording",
+          "working",
+          "leaving_home",
+        ].includes(candidate.activity)
+      ) {
+        weight *= 1.45;
+      }
+    }
+
+    if (
+      mood === "social" &&
+      [
+        "with_friends",
+        "at_a_cafe",
+        "on_the_phone",
+        "getting_food",
+      ].includes(candidate.activity)
+    ) {
+      weight *= 1.7;
+    }
+
+    if (
+      mood === "focused" &&
+      [
+        "writing_music",
+        "recording",
+        "reading",
+        "working",
+      ].includes(candidate.activity)
+    ) {
+      weight *= 1.7;
+    }
+
+    if (
+      mood === "restless" &&
+      [
+        "walking",
+        "driving",
+        "shopping",
+        "leaving_home",
+        "cleaning",
+      ].includes(candidate.activity)
+    ) {
+      weight *= 1.6;
+    }
+
+    if (
+      mood === "playful" &&
+      [
+        "playing_guitar",
+        "listening_to_music",
+        "with_friends",
+        "driving",
+      ].includes(candidate.activity)
+    ) {
+      weight *= 1.5;
+    }
+
+    if (
+      mood === "tired" &&
+      [
+        "sleeping",
+        "napping",
+        "relaxing",
+        "scrolling",
+      ].includes(candidate.activity)
+    ) {
+      weight *= 1.8;
+    }
+
+    return {
+      ...candidate,
+      weight,
+    };
+  });
+}
 
 function homeCandidates(
   hour: number
