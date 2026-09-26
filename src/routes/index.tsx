@@ -205,10 +205,10 @@ const nightDepth =
         : 0;
 
 const sunOpacity =
-  0.08 + daylight * 0.72;
+  daylight * 0.8;
 
 const shadowOpacity =
-  0.04 + daylight * 0.44;
+  daylight * 0.48;
 
 const roomBrightness =
   0.55 + daylight * 0.5 - nightDepth * 0.18;
