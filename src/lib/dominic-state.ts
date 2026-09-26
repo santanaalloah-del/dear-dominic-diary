@@ -110,13 +110,10 @@ export const DOMINIC_ACTIVITIES = [
   },
   {
     {
-  activity: "getting_ready",
-  location: "bedroom",
-  weight: 0.35,
+{
+  activity: "watching_something",
+  locations: ["living", "bedroom"],
 },
-    activity: "watching_something",
-    locations: ["living", "bedroom"],
-  },
   {
     activity: "listening_to_music",
     locations: ["living", "bedroom"],
