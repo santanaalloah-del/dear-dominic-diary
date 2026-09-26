@@ -6722,6 +6722,45 @@ const searchSpotify = async () => {
         ownerForView
     );
 
+  const startListeningToSong = ({
+  song,
+  artist,
+  coverUrl,
+  spotifyUrl,
+  owner,
+}: {
+  song: DiarioItem;
+  artist: string;
+  coverUrl: string | null;
+  spotifyUrl: string | null;
+  owner: "alloah" | "dominic" | "together";
+}) => {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem(
+    "diario-active-listening-track-v1",
+    JSON.stringify({
+      title: song.title ?? "Untitled song",
+      artist,
+      coverUrl,
+      spotifyUrl,
+      owner,
+    })
+  );
+
+  window.dispatchEvent(
+    new Event("diario-active-listening-track")
+  );
+
+  if (spotifyUrl) {
+    window.open(
+      spotifyUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+};
+  
   const saveSong = async () => {
     if (
       !songTitle.trim() ||
@@ -6800,18 +6839,7 @@ setAddingSong(false);
         role="tablist"
         aria-label="Music owner"
       >
-        {onShareToChat && (
-  <button
-    type="button"
-    onClick={() =>
-      onShareToChat(
-        `I sent you a song: "${song.title ?? "Untitled song"}" by ${artist}.`
-      )
-    }
-  >
-    Send to chat
-  </button>
-)}
+ 
         <button
           type="button"
           role="tab"
@@ -7162,28 +7190,30 @@ const spotifyUrl =
     }
   >
     Send to chat
-  </button>
-)}
-
-<button
+ <button
   type="button"
-  aria-label="Play on Spotify"
+  aria-label="Listen now"
   disabled={!spotifyUrl}
-  onClick={() => {
-    if (!spotifyUrl) return;
-
-    window.open(
+  onClick={() =>
+    startListeningToSong({
+      song,
+      artist,
+      coverUrl,
       spotifyUrl,
-      "_blank",
-      "noopener,noreferrer"
-    );
-  }}
+      owner:
+        musicView === "mine"
+          ? "alloah"
+          : musicView === "dominic"
+            ? "dominic"
+            : "together",
+    })
+  }
 >
-                      <Play
-                        size={16}
-                        fill="currentColor"
-                      />
-                    </button>
+  <Play
+    size={16}
+    fill="currentColor"
+  />
+</button>
                   </article>
                 );
               }
