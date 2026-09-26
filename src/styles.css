@@ -11582,3 +11582,53 @@ select {
   right: 13px;
   bottom: 13px;
 }
+
+/* ─────────────────────────────────────────
+   FINE TUNE · SMALLER BOTTOM NAV
+   ───────────────────────────────────────── */
+
+.bottom-nav {
+  left: 18px;
+  right: 18px;
+  bottom: 14px;
+  gap: 5px;
+  padding: 6px;
+  border-radius: 26px;
+}
+
+.bottom-nav button {
+  min-height: 46px;
+  border-radius: 19px;
+  gap: 2px;
+  padding: 5px 4px;
+  font-size: 8.5px;
+}
+
+.bottom-nav button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.bottom-nav button.active {
+  border-radius: 22px;
+}
+
+.screen-scroll {
+  padding-bottom: 104px;
+}
+
+.more-screen .richer-index {
+  padding-bottom: 24px;
+}
+
+.more-screen .richer-index button {
+  min-height: 72px;
+}
+
+.more-screen .richer-index strong {
+  font-size: 25px;
+}
+
+.more-screen .richer-index small {
+  font-size: 10.5px;
+}
