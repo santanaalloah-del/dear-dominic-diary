@@ -65,7 +65,8 @@ type ChatMessage = {
   createdAt: string;
   kind?: MessageKind | undefined;
   mediaUrl?: string | undefined;
-  
+};
+
 type ActiveListeningTrack = {
   title: string;
   artist?: string | null;
