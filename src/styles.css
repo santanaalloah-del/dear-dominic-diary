@@ -6669,3 +6669,307 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   font-weight: 700;
   box-shadow: 0 12px 28px oklch(0.24 0.06 20 / 18%);
 }
+
+/* ─────────────────────────────────────────
+   DATES · PLANS THAT BECOME MEMORIES
+   ───────────────────────────────────────── */
+
+.dates-screen.dates-live {
+  min-height: max-content;
+  padding-bottom: 220px;
+}
+
+.dates-screen .screen-intro {
+  padding: 31px 24px 8px;
+}
+
+.dates-screen .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 52px/.84 var(--font-display);
+}
+
+.dates-screen .intro-copy {
+  max-width: 285px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+.dates-screen .dates-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 18px 24px 0;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 82%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.dates-screen .dates-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.dates-screen .dates-tabs button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 6px 16px oklch(0.24 0.06 20 / 16%);
+}
+
+.dates-sticky-add {
+  position: sticky;
+  top: 10px;
+  z-index: 12;
+  display: block;
+  width: calc(100% - 48px);
+  margin: 16px 24px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    var(--wine),
+    color-mix(in oklab, var(--cherry) 78%, var(--wine))
+  );
+  color: var(--cream);
+  padding: 13px 18px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  box-shadow: 0 12px 28px oklch(0.24 0.06 20 / 20%);
+}
+
+.dates-screen .dates-empty {
+  margin: 18px 24px 0;
+  padding: 22px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 26px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 92%, white 6%),
+      var(--paper)
+    );
+  box-shadow: var(--paper-shadow);
+  display: grid;
+  gap: 12px;
+}
+
+.dates-screen .dates-empty small {
+  color: var(--cherry);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.dates-screen .dates-empty h2 {
+  margin: 0;
+  color: var(--wine-deep);
+  font: 400 31px/.95 var(--font-display);
+}
+
+.dates-screen .dates-empty p {
+  margin: 0;
+  color: var(--brown-soft);
+  font: 13px/1.45 var(--font-body);
+}
+
+.dates-screen .dates-empty input,
+.dates-screen .dates-empty textarea {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 17px;
+  background: color-mix(in oklab, var(--cream) 74%, white 12%);
+  padding: 13px 14px;
+  outline: none;
+  color: var(--brown);
+  font-size: 13px;
+}
+
+.dates-screen .dates-empty textarea {
+  resize: vertical;
+  min-height: 104px;
+}
+
+.dates-screen .diary-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.dates-screen .diary-editor-actions button {
+  min-height: 38px;
+  border-radius: 999px;
+  padding-inline: 15px;
+}
+
+.dates-screen .dates-list {
+  display: grid;
+  gap: 14px;
+  margin: 8px 24px 0;
+}
+
+.dates-screen .date-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--divider);
+  border-radius: 25px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 93%, white 7%),
+      color-mix(in oklab, var(--paper-deep) 40%, var(--paper))
+    );
+  padding: 18px 18px 17px;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.dates-screen .date-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--cherry);
+  opacity: .72;
+}
+
+.dates-screen .date-card.date-lived::before {
+  background: var(--olive);
+}
+
+.dates-screen .date-card header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dates-screen .date-card header span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.dates-screen .date-card.date-lived header span {
+  color: var(--olive);
+}
+
+.dates-screen .date-card header strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 25px/.95 var(--font-display);
+}
+
+.dates-screen .date-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 13px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 34%, transparent);
+  color: var(--wine);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dates-screen .date-card time {
+  display: block;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font-size: 11px;
+  letter-spacing: .02em;
+}
+
+.dates-screen .date-card p {
+  margin: 12px 0 0;
+  color: var(--brown);
+  font: 13px/1.45 var(--font-body);
+}
+
+.dates-screen .date-card .gallery-add-button,
+.dates-screen > .gallery-add-button {
+  margin-top: 14px;
+  border-radius: 999px;
+}
+
+.dates-screen > .gallery-add-button {
+  width: calc(100% - 48px);
+  margin: 18px 24px 0;
+}
+
+.dates-screen [role="alert"] {
+  margin: 14px 24px 0;
+  color: var(--cherry);
+  font-size: 12px;
+}
+
+.dates-screen .date-life-cycle {
+  margin: 24px 24px 0;
+  padding: 18px;
+  border: 1px solid var(--divider);
+  border-radius: 25px;
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.dates-screen .date-life-cycle header span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.dates-screen .date-life-cycle header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 23px/1 var(--font-display);
+}
+
+.dates-screen .date-life-cycle > div {
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.dates-screen .date-life-cycle article {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 12px;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 55%, transparent);
+}
+
+.dates-screen .date-life-cycle article svg {
+  color: var(--cherry);
+}
+
+.dates-screen .date-life-cycle article strong {
+  display: block;
+  color: var(--wine);
+  font-size: 12px;
+}
+
+.dates-screen .date-life-cycle article small {
+  display: block;
+  margin-top: 2px;
+  color: var(--brown-soft);
+  font-size: 10px;
+}
