@@ -6752,6 +6752,20 @@ const searchSpotify = async () => {
         ? "dominic"
         : "shared";
 
+  const getSpotifyUriFromUrl = (
+  url: string | null
+) => {
+  if (!url) return null;
+
+  const match = url.match(
+    /open\.spotify\.com\/track\/([A-Za-z0-9]+)/
+  );
+
+  return match?.[1]
+    ? `spotify:track:${match[1]}`
+    : null;
+};
+  
   const visibleSongs =
     songs.filter(
       (song) =>
@@ -7408,11 +7422,15 @@ const spotifyUrl =
     ? song.data.spotifyUrl
     : null;
                 
-                const spotifyUri =
+             const savedSpotifyUri =
   typeof song.data?.spotifyUri ===
   "string"
     ? song.data.spotifyUri
     : null;
+
+const spotifyUri =
+  savedSpotifyUri ??
+  getSpotifyUriFromUrl(spotifyUrl);
                 
                 return (
                   <article
@@ -7482,7 +7500,7 @@ const spotifyUrl =
 <button
   type="button"
   aria-label="Listen now"
-  disabled={!spotifyUrl}
+ disabled={!spotifyUri}
   onClick={() =>
     startListeningToSong({
       song,
