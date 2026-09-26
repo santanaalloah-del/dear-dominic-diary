@@ -11325,3 +11325,121 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   background: var(--wine);
   color: var(--cream);
 }
+
+/* ─────────────────────────────────────────
+   FINAL APP PASS · NAV + SAFE POLISH
+   ───────────────────────────────────────── */
+
+.phone-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.phone-shell *,
+.phone-shell *::before,
+.phone-shell *::after {
+  box-sizing: border-box;
+}
+
+.screen-scroll {
+  padding-bottom: 118px;
+  scrollbar-width: none;
+}
+
+.screen-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.bottom-nav {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  z-index: 70;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid color-mix(in oklab, var(--divider) 78%, white 8%);
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 88%, white 9%),
+      color-mix(in oklab, var(--cream) 88%, white 5%)
+    );
+  box-shadow:
+    0 18px 38px oklch(0.18 0.05 25 / 22%),
+    inset 0 1px 0 color-mix(in oklab, white 46%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.bottom-nav button {
+  min-width: 0;
+  min-height: 54px;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: var(--brown-soft);
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  padding: 7px 4px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+
+.bottom-nav button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.bottom-nav button.active {
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--blush) 52%, transparent), transparent 64%),
+    var(--wine);
+  color: var(--cream);
+  box-shadow: 0 8px 18px oklch(0.22 0.06 20 / 18%);
+}
+
+.screen-chat .chat-composer,
+.screen-chat .diario-chat-composer {
+  bottom: 82px;
+  margin-inline: 12px;
+  border-radius: 26px;
+  border: 1px solid var(--divider);
+  box-shadow: 0 14px 34px oklch(0.18 0.05 25 / 16%);
+}
+
+.back-button {
+  z-index: 75;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+@media (max-width: 420px) {
+  .phone-shell {
+    border-radius: 0;
+  }
+
+  .bottom-nav {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .screen-scroll {
+    padding-bottom: 124px;
+  }
+}
