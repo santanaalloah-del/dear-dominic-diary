@@ -970,12 +970,35 @@ function applyCommitmentBias(
     return candidates;
   }
 
+  const commitmentData =
+  nearby.commitment.data &&
+  typeof nearby.commitment.data === "object"
+    ? nearby.commitment.data as Record<string, unknown>
+    : null;
+
+const place =
+  typeof commitmentData?.place === "string"
+    ? commitmentData.place.trim().toLowerCase()
+    : "";
+
+const isHomeCommitment =
+  place.includes("home") ||
+  place.includes("apartment") ||
+  place.includes("casa") ||
+  place.includes("living") ||
+  place.includes("bedroom") ||
+  place.includes("kitchen");
+
+const isOutCommitment =
+  place.length > 0 &&
+  !isHomeCommitment;
+  
   return candidates.map((candidate) => {
     let weight = candidate.weight;
 
     if (
-  nearby.commitment.kind === "date" &&
-  nearby.minutesUntil <= 45 &&
+isOutCommitment &&
+      nearby.minutesUntil <= 45 &&
   nearby.minutesUntil >= -30 &&
   candidate.location === "out"
 ) {
@@ -1001,6 +1024,7 @@ function applyCommitmentBias(
       }
 
       if (
+         isOutCommitment &&
   nearby.minutesUntil >= 0 &&
   candidate.activity ===
     "leaving_home"
@@ -1009,6 +1033,7 @@ function applyCommitmentBias(
 }
 
 if (
+   isOutCommitment &&
   nearby.minutesUntil < 0 &&
   candidate.location === "out"
 ) {
@@ -1016,6 +1041,7 @@ if (
 }
 
 if (
+   isOutCommitment &&
   nearby.minutesUntil < 0 &&
   candidate.activity ===
     "coming_home"
