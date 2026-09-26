@@ -40,6 +40,14 @@ export type DominicActivity =
   | "driving"
   | "idle";
 
+export type DominicMood =
+  | "calm"
+  | "focused"
+  | "social"
+  | "restless"
+  | "playful"
+  | "tired";
+
 export type DominicState = {
   location: DominicLocation;
   activity: DominicActivity;
