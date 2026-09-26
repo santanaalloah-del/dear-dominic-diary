@@ -11844,3 +11844,14 @@ select {
 .screen-chat .live-messages {
   padding-bottom: 14px !important;
 }
+
+/* ─────────────────────────────────────────
+   MUSIC · CHAT PLAYER ONLY WHEN ACTIVE
+   ───────────────────────────────────────── */
+
+.chat-now-playing .mini-album-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
