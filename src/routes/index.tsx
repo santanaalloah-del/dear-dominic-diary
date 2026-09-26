@@ -7469,6 +7469,36 @@ const spotifyUrl =
   />
 )}
 </button>
+
+                    <button
+  type="button"
+  aria-label="Add to queue"
+  disabled={!spotifyUri}
+  onClick={() => {
+    if (!spotifyUri) return;
+
+    void addSpotifyUriToQueue(
+      spotifyUri
+    )
+      .then(() => {
+        setSpotifyQueueOpen(true);
+
+        return refreshSpotifyQueue();
+      })
+      .catch((error) => {
+        console.error(error);
+
+        setMusicError(
+          error instanceof Error
+            ? error.message
+            : "Could not add to queue."
+        );
+      });
+  }}
+>
+  queue
+</button>
+                    
                   </article>
                 );
               }
