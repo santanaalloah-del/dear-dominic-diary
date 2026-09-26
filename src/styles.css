@@ -12443,3 +12443,69 @@ select {
 .spotify-top-actions button:disabled {
   opacity: .55;
 }
+
+/* ─────────────────────────────────────────
+   MUSIC · PRETTIER PLAYER CONTROLS
+   ───────────────────────────────────────── */
+
+.spotify-live-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.spotify-side-control,
+.spotify-main-control,
+.spotify-play-next-control {
+  border: 0;
+  cursor: pointer;
+}
+
+.spotify-side-control {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--wine) 10%, transparent);
+  color: var(--wine);
+}
+
+.spotify-main-control {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 10px 24px rgb(48 25 22 / 18%);
+}
+
+.spotify-main-control svg {
+  transform: translateX(1px);
+}
+
+.spotify-play-next-control {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: color-mix(in oklab, var(--rose) 22%, white);
+  color: var(--wine);
+  font: 10px var(--font-body);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.spotify-top-actions button,
+.music-track button[aria-label="Add to queue"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
