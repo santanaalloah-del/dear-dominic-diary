@@ -6446,20 +6446,30 @@ html[data-diario-appearance="dark"] .settings-static-row {
   font-size: 12px;
 }
 
-/* HOME · MOVING DAYLIGHT */
+/* HOME · CONTINUOUS DAY + NIGHT */
 
 .home-house {
   background:
     radial-gradient(
       circle at var(--day-x, 50%) 0%,
-      rgba(255, 214, 160, 0.34) 0%,
-      rgba(255, 214, 160, 0.18) 24%,
-      rgba(255, 236, 210, 0.08) 42%,
+      rgb(255 214 160 / var(--sun-opacity, 0.2)) 0%,
+      rgb(255 226 190 / 0.10) 28%,
       transparent 62%
+    ),
+    linear-gradient(
+      rgb(38 28 36 / var(--night-opacity, 0)),
+      rgb(38 28 36 / var(--night-opacity, 0))
     ),
     var(--background);
 }
 
+.home-house .official-floor-plan > img {
+  filter:
+    brightness(var(--home-plan-brightness, 1));
+
+  transition:
+    filter 0.8s linear;
+}
 /* ROOMS · CONTINUOUS TIME LIGHT */
 
 .apartment-screen .room-view-image {
