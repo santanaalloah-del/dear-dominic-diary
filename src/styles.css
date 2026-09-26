@@ -6578,7 +6578,7 @@ opacity: var(--sun-opacity, 0.8);
 
   background:
     radial-gradient(
-      circle at 72% 48%,
+circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
       rgb(255 185 105 / 0.55) 0%,
       rgb(255 176 92 / 0.24) 18%,
       rgb(255 168 82 / 0.08) 36%,
