@@ -170,11 +170,18 @@ export const Route = createFileRoute("/")({
 const navItems: { id: Screen; label: string; icon: typeof Home }[] = [
   { id: "home", label: "Home", icon: Home },
   { id: "chat", label: "Chat", icon: Send },
+  { id: "music", label: "Player", icon: Music2 },
   { id: "diary", label: "Diary", icon: BookOpen },
   { id: "more", label: "More", icon: Menu },
 ];
 
-const primaryScreens: Screen[] = ["home", "chat", "diary", "more"];
+const primaryScreens: Screen[] = [
+  "home",
+  "chat",
+  "music",
+  "diary",
+  "more",
+];
 
 function Index() {
   return (
