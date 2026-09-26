@@ -963,18 +963,38 @@ placeholder="Object name"
                       />
                     )}
 
+                    <button
+  type="button"
+  className="our-things-delete"
+  onClick={() => {
+    if (
+      window.confirm(
+        `Delete "${item.title ?? "this object"}"?`
+      )
+    ) {
+      void removeObject(item);
+    }
+  }}
+>
+  Delete
+</button>
+                    
+
                     <div>
                       <strong>
                         {item.title ?? "Untitled object"}
                       </strong>
 
-                      <small>
-                        {stored
-                          ? "Stored"
-                          : String(
-                              item.data?.room ?? "Apartment"
-                            )}
-                      </small>
+                     <small>
+  {String(
+    item.data?.objectType ?? "object"
+  )}{" · "}
+  {stored
+    ? "Stored"
+    : String(
+        item.data?.room ?? "Apartment"
+      )}
+</small>
                     </div>
 {stored ? (
   <button
