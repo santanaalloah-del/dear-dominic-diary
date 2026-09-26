@@ -37,6 +37,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { usePrivateDiario } from "@/components/private-diario";
+import {
+  getCurrentDominicState,
+  type DominicState,
+} from "@/lib/dominic-state";
 import { useTimeMood } from "@/lib/time-mood";
 import dominic from "@/assets/dominic-candid.jpg";
 
@@ -230,6 +234,39 @@ const photoInputRef =
 
   const [stickersOpen, setStickersOpen] =
     useState(false);
+
+  const [dominicState, setDominicState] =
+  useState<DominicState | null>(null);
+
+useEffect(() => {
+  let cancelled = false;
+
+  const refreshDominicState =
+    async () => {
+      const state =
+        await getCurrentDominicState(
+          session.user.id
+        );
+
+      if (!cancelled) {
+        setDominicState(state);
+      }
+    };
+
+  void refreshDominicState();
+
+  const timer =
+    window.setInterval(
+      refreshDominicState,
+      60_000
+    );
+
+  return () => {
+    cancelled = true;
+    window.clearInterval(timer);
+  };
+}, [session.user.id]);
+
   
   useEffect(() => {
     setPreferences(readPreferences());
@@ -1033,12 +1070,24 @@ setMessages((current) => [
             )
         )
       : [];
-  const statusCopy = useMemo(() => {
-    if (time.mood === "late") return "still here";
-    if (time.mood === "night") return "with you tonight";
-    if (time.mood === "golden") return "thinking about you";
-    return "online now";
-  }, [time.mood]);
+ const statusCopy = useMemo(() => {
+  if (!dominicState) {
+    return "somewhere in the city";
+  }
+
+  const activity =
+    dominicState.activity.replaceAll(
+      "_",
+      " "
+    );
+
+  const location =
+    dominicState.location === "living"
+      ? "living room"
+      : dominicState.location;
+
+  return `${activity} · ${location}`;
+}, [dominicState]);
 
   const chatClassName = [
     "live-chat-screen messenger-chat",
