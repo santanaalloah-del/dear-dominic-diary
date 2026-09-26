@@ -179,12 +179,16 @@ function DiarioApp() {
   const time = useTimeMood();
   const clockHour = time.dayProgress * 24;
 
+const daylightStart = 5.5;
+const daylightEnd = 19.25;
+
 const daylightProgress =
   Math.max(
     0,
     Math.min(
       1,
-      (time.dayProgress - 0.25) / 0.5
+      (clockHour - daylightStart) /
+        (daylightEnd - daylightStart)
     )
   );
 
