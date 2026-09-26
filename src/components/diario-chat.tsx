@@ -1082,7 +1082,7 @@ setMessages((current) => [
       : [];
  const statusCopy = useMemo(() => {
   if (!dominicState) {
-    return "somewhere in the city";
+return "checking where he is";
   }
 
   const activity =
