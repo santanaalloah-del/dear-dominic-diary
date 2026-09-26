@@ -1367,12 +1367,18 @@ export async function getCurrentDominicState(
     userId
   );
 
+  const recentActions =
+  await loadRecentDominicActions(
+    userId
+  );
+  
 if (!state) {
   state =
-    createNextDominicState(
+   createNextDominicState(
   null,
   now,
-  worldContext
+  worldContext,
+  recentActions
 );
 
   await saveDominicState(
@@ -1407,11 +1413,12 @@ if (!state) {
       );
 
    state =
-  createNextDominicState(
-    state,
-    transitionTime,
-    worldContext
-  );
+createNextDominicState(
+  state,
+  transitionTime,
+  worldContext,
+  recentActions
+);
 
 await recordDominicAction(
   userId,
