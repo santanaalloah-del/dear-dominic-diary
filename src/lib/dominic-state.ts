@@ -939,6 +939,75 @@ function applyWorldContextBias(
   });
 }
 
+function applyCommitmentBias(
+  candidates: DominicCandidate[],
+  commitments: DominicCommitment[],
+  at: Date
+): DominicCandidate[] {
+  const nearby =
+    commitments
+      .map((commitment) => ({
+        commitment,
+        minutesUntil:
+          (new Date(
+            commitment.plannedFor
+          ).getTime() -
+            at.getTime()) /
+          60_000,
+      }))
+      .filter(
+        (item) =>
+          item.minutesUntil >= -30 &&
+          item.minutesUntil <= 180
+      )
+      .sort(
+        (a, b) =>
+          Math.abs(a.minutesUntil) -
+          Math.abs(b.minutesUntil)
+      )[0];
+
+  if (!nearby) {
+    return candidates;
+  }
+
+  return candidates.map((candidate) => {
+    let weight = candidate.weight;
+
+    if (nearby.minutesUntil > 45) {
+      if (
+        [
+          "getting_ready",
+          "showering",
+          "getting_dressed",
+        ].includes(candidate.activity)
+      ) {
+        weight *= 1.7;
+      }
+    } else {
+      if (
+        candidate.activity ===
+        "getting_ready"
+      ) {
+        weight *= 2.4;
+      }
+
+      if (
+        [
+          "sleeping",
+          "napping",
+        ].includes(candidate.activity)
+      ) {
+        weight *= 0.2;
+      }
+    }
+
+    return {
+      ...candidate,
+      weight,
+    };
+  });
+}
+
 function evolveInternalState(
   previous: DominicState | null,
   activity: DominicActivity,
@@ -1359,26 +1428,32 @@ export function createNextDominicState(
   previous: DominicState | null,
   at = new Date(),
   worldContext: DominicWorldContext[] = [],
-  recentActions: DominicRecentAction[] = []
+  recentActions: DominicRecentAction[] = [],
+commitments: DominicCommitment[] = []
 ): DominicState {
 const candidate = weightedPick(
-  applyWorldContextBias(
-    applyInternalStateBias(
-      applyDailyHistoryBias(
-        applyRecentPenalty(
-          candidatesAfter(
-            previous,
-            at.getHours()
+  applyCommitmentBias(
+    applyWorldContextBias(
+      applyInternalStateBias(
+        applyDailyHistoryBias(
+          applyRecentPenalty(
+            candidatesAfter(
+              previous,
+              at.getHours()
+            ),
+            previous
           ),
-          previous
+          recentActions
         ),
-        recentActions
+        previous
       ),
-      previous
+      worldContext
     ),
-    worldContext
+    commitments,
+    at
   )
 );
+  
   const [minMinutes, maxMinutes] =
     ACTIVITY_DURATION[
       candidate.activity
