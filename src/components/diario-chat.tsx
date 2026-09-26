@@ -100,6 +100,9 @@ declare global {
 const PREFS_KEY = "diario-chat-preferences-v1";
 const VOICE_KEY = "diario-voice-markers-v1";
 
+const DOMINIC_NAME = "Dominic";
+const DOMINIC_STATUS = "home";
+
 const defaultPreferences: ChatPreferences = {
   theme: "diary",
   bubbles: "soft",
@@ -1054,7 +1057,7 @@ setMessages((current) => [
           <span className="presence-dot" />
         </button>
         <div className="messenger-person">
-          <h1>Dominic <span>♡</span></h1>
+         <h1>{DOMINIC_NAME} <span>♡</span></h1>
           <p>{statusCopy}</p>
         </div>
         <div className="messenger-header-actions">
