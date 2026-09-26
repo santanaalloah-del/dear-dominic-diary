@@ -328,6 +328,57 @@ export async function syncDominicActiveContext(
     });
 }
 
+export type DominicWorldContext = {
+  activity: string | null;
+  place: string | null;
+  status: string;
+  title: string | null;
+  contextType: string;
+  togetherNow: boolean | null;
+  state: unknown;
+  metadata: unknown;
+  startedAt: string;
+};
+
+export async function loadDominicWorldContext(
+  userId: string
+): Promise<DominicWorldContext[]> {
+  const { data, error } =
+    await supabase
+      .from("active_context")
+      .select(
+        "activity,place,status,title,context_type,together_now,state,metadata,started_at,source_id,last_activity_at"
+      )
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .order("last_activity_at", {
+        ascending: false,
+      })
+      .limit(12);
+
+  if (error) throw error;
+
+  return (data ?? [])
+    .filter(
+      (item) =>
+        item.source_id !== "dominic"
+    )
+    .map((item) => ({
+      activity: item.activity,
+      place: item.place,
+      status: item.status,
+      title: item.title,
+      contextType:
+        item.context_type,
+      togetherNow:
+        item.together_now,
+      state: item.state,
+      metadata: item.metadata,
+      startedAt:
+        item.started_at,
+    }));
+}
+
 type DominicCandidate = {
   activity: DominicActivity;
   location: DominicLocation;
