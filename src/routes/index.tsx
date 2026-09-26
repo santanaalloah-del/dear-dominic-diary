@@ -593,6 +593,14 @@ const [newImagePreview, setNewImagePreview] =
 const [addingFurniture, setAddingFurniture] =
   useState(false);
 
+  const [draggingObjectId, setDraggingObjectId] =
+  useState<string | null>(null);
+
+const [dragPositions, setDragPositions] =
+  useState<
+    Record<string, { x: number; y: number }>
+  >({});
+
   const rooms = {
     living: {
       label: "Living Room",
@@ -762,6 +770,40 @@ const addFurniture = async () => {
   };
 
   return (
+
+    const getDragPosition = (
+  event: React.PointerEvent<HTMLDivElement>
+) => {
+  const stage =
+    event.currentTarget.parentElement;
+
+  if (!stage) return null;
+
+  const rect =
+    stage.getBoundingClientRect();
+
+  return {
+    x: Math.max(
+      0,
+      Math.min(
+        100,
+        ((event.clientX - rect.left) /
+          rect.width) *
+          100
+      )
+    ),
+    y: Math.max(
+      0,
+      Math.min(
+        100,
+        ((event.clientY - rect.top) /
+          rect.height) *
+          100
+      )
+    ),
+  };
+};
+  
     <section className="room-screen apartment-screen">
       <ScreenIntro
         eyebrow={`${time.dateLabel} · ${time.timeLabel}`}
@@ -922,21 +964,103 @@ const addFurniture = async () => {
         {displayedObjects.map((item) => {
           const x = Number(item.data?.x ?? 50);
           const y = Number(item.data?.y ?? 70);
+        const dragPosition =
+  dragPositions[item.id];
+
+const displayX =
+  dragPosition?.x ?? x;
+
+const displayY =
+  dragPosition?.y ?? y;
           const scale = Number(item.data?.scale ?? 1);
           const imageUrl = String(
             item.data?.imageUrl ?? ""
           );
 
           return (
-            <div
-              key={item.id}
-              className="home-object-layer"
-              style={{
-                left: `${x}%`,
-                top: `${y}%`,
-                width: `${34 * scale}%`,
-              }}
-            >
+          <div
+  key={item.id}
+  className={`home-object-layer ${
+    draggingObjectId === item.id
+      ? "is-dragging"
+      : ""
+  }`}
+  style={{
+    left: `${displayX}%`,
+    top: `${displayY}%`,
+    width: `${34 * scale}%`,
+  }}
+  onPointerDown={(event) => {
+    if (!arranging) return;
+
+    if (
+      (event.target as HTMLElement).closest(
+        ".home-object-controls"
+      )
+    ) {
+      return;
+    }
+
+    const position =
+      getDragPosition(event);
+
+    if (!position) return;
+
+    event.currentTarget.setPointerCapture(
+      event.pointerId
+    );
+
+    setDraggingObjectId(item.id);
+
+    setDragPositions((current) => ({
+      ...current,
+      [item.id]: position,
+    }));
+  }}
+  onPointerMove={(event) => {
+    if (
+      !arranging ||
+      draggingObjectId !== item.id
+    ) {
+      return;
+    }
+
+    const position =
+      getDragPosition(event);
+
+    if (!position) return;
+
+    setDragPositions((current) => ({
+      ...current,
+      [item.id]: position,
+    }));
+  }}
+  onPointerUp={async (event) => {
+    if (
+      draggingObjectId !== item.id
+    ) {
+      return;
+    }
+
+    const position =
+      getDragPosition(event);
+
+    setDraggingObjectId(null);
+
+    if (!position) return;
+
+    setDragPositions((current) => {
+      const next = { ...current };
+      delete next[item.id];
+      return next;
+    });
+
+    await updateObject(item, {
+      x: position.x,
+      y: position.y,
+    });
+  }}
+>
               {imageUrl ? (
                 <img
                   src={imageUrl}
