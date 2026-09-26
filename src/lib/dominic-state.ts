@@ -1111,3 +1111,4 @@ await syncDominicActiveContext(
 );
 
 return state;
+}
