@@ -1103,18 +1103,22 @@ function candidatesAfter(
 
 export function createNextDominicState(
   previous: DominicState | null,
-  at = new Date()
+  at = new Date(),
+  worldContext: DominicWorldContext[] = []
 ): DominicState {
- const candidate = weightedPick(
-  applyInternalStateBias(
-    applyRecentPenalty(
-      candidatesAfter(
-        previous,
-        at.getHours()
+const candidate = weightedPick(
+  applyWorldContextBias(
+    applyInternalStateBias(
+      applyRecentPenalty(
+        candidatesAfter(
+          previous,
+          at.getHours()
+        ),
+        previous
       ),
       previous
     ),
-    previous
+    worldContext
   )
 );
   
