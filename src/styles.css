@@ -6563,3 +6563,7 @@ opacity: var(--sun-opacity, 0.8);
 .home-object-layer.is-dragging {
   cursor: grabbing;
 }
+
+.our-things-delete {
+  color: var(--cherry);
+}
