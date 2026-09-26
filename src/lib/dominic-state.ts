@@ -1056,21 +1056,26 @@ export async function getCurrentDominicState(
 
   const now = new Date();
 
-  if (!state) {
-    state =
-      createNextDominicState(
-        null,
-        now
-      );
-
-    await saveDominicState(
-      userId,
-      state
+if (!state) {
+  state =
+    createNextDominicState(
+      null,
+      now
     );
 
-    return state;
-  }
+  await saveDominicState(
+    userId,
+    state
+  );
 
+  await syncDominicActiveContext(
+    userId,
+    state
+  );
+
+  return state;
+}
+  
   let changes = 0;
 
   while (
@@ -1093,12 +1098,16 @@ export async function getCurrentDominicState(
     changes += 1;
   }
 
-  if (changes > 0) {
-    await saveDominicState(
-      userId,
-      state
-    );
-  }
-
-  return state;
+ if (changes > 0) {
+  await saveDominicState(
+    userId,
+    state
+  );
 }
+
+await syncDominicActiveContext(
+  userId,
+  state
+);
+
+return state;
