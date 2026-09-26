@@ -379,6 +379,66 @@ export async function loadDominicWorldContext(
     }));
 }
 
+export async function recordDominicAction(
+  userId: string,
+  state: DominicState
+) {
+  await supabase
+    .from("character_actions")
+    .update({
+      status: "completed",
+      completed_at: state.startedAt,
+    })
+    .eq("user_id", userId)
+    .eq("character_name", "Dominic")
+    .eq("source_type", "autonomy_engine")
+    .eq("source_id", "dominic")
+    .eq("status", "active");
+
+  const { error } =
+    await supabase
+      .from("character_actions")
+      .insert({
+        user_id: userId,
+        character_name: "Dominic",
+        action_type: state.activity,
+        agency_class: "autonomous",
+        agency_valid: true,
+        motive_type: "ambient_life",
+        status: "active",
+
+        title:
+          state.activity.replaceAll(
+            "_",
+            " "
+          ),
+
+        description:
+          `${state.activity.replaceAll(
+            "_",
+            " "
+          )} · ${state.location}`,
+
+        decided_at: state.startedAt,
+        executed_at: state.startedAt,
+        scheduled_for: state.startedAt,
+
+        source_type:
+          "autonomy_engine",
+        source_id: "dominic",
+
+        payload: {
+          location: state.location,
+          mood: state.mood ?? null,
+          energy: state.energy ?? null,
+          nextChangeAt:
+            state.nextChangeAt,
+        },
+      });
+
+  if (error) throw error;
+}
+
 type DominicCandidate = {
   activity: DominicActivity;
   location: DominicLocation;
