@@ -415,30 +415,14 @@ function HomeScreen({
   onOpenRoom: (roomId: string) => void;
 }) {
 
-  const { session } = usePrivateDiario();
-
-    if (!cancelled) {
-      setDominicState(state);
-    }
-  };
-
-  void refreshDominic();
-
-  const timer = window.setInterval(
-    refreshDominic,
-    60_000
-  );
-
-  return () => {
-    cancelled = true;
-    window.clearInterval(timer);
-  };
-}, [session?.user?.id]);
+ const { session } = usePrivateDiario();
 
 const [dominicState, setDominicState] =
   useState<DominicState | null>(null);
 
 useEffect(() => {
+  if (!session?.user?.id) return;
+
   let cancelled = false;
 
   const refresh = async () => {
@@ -463,9 +447,7 @@ useEffect(() => {
     cancelled = true;
     window.clearInterval(timer);
   };
-}, [session.user.id]);
-  
-  return (
+}, [session?.user?.id]);
 <section
   className="home-screen home-live home-house"
   data-home-time={time.mood}
