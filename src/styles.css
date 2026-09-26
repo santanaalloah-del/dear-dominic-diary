@@ -6975,3 +6975,178 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   color: var(--brown-soft);
   font-size: 10px;
 }
+
+/* ─────────────────────────────────────────
+   GLOBAL UI POLISH · DIÁRIO SYSTEM
+   makes every screen feel like the same app
+   ───────────────────────────────────────── */
+
+.phone-shell {
+  isolation: isolate;
+}
+
+.screen-scroll {
+  scroll-behavior: smooth;
+}
+
+.screen-scroll > section {
+  position: relative;
+}
+
+.screen-intro {
+  position: relative;
+}
+
+.screen-intro .eyebrow,
+.eyebrow {
+  font-weight: 700;
+}
+
+.phone-shell input,
+.phone-shell textarea,
+.phone-shell select {
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease,
+    background .2s ease,
+    transform .2s ease;
+}
+
+.phone-shell input:focus,
+.phone-shell textarea:focus,
+.phone-shell select:focus {
+  border-color: color-mix(in oklab, var(--cherry) 52%, var(--divider));
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--blush) 35%, transparent),
+    0 10px 24px oklch(0.25 0.04 35 / 7%);
+  background: color-mix(in oklab, var(--cream) 86%, white 14%);
+}
+
+.phone-shell button {
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    background .18s ease,
+    color .18s ease,
+    opacity .18s ease;
+}
+
+.phone-shell button:active {
+  transform: scale(.97);
+}
+
+.phone-shell button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.gallery-add-button,
+.diary-write-button,
+.letters-write-button,
+.wardrobe-add-button,
+.wardrobe-create-look {
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  font-weight: 800;
+  box-shadow: 0 10px 24px oklch(0.22 0.06 20 / 16%);
+}
+
+.gallery-add-button:hover,
+.diary-write-button:hover,
+.letters-write-button:hover,
+.wardrobe-add-button:hover,
+.wardrobe-create-look:hover,
+.dates-sticky-add:hover {
+  box-shadow: 0 14px 30px oklch(0.22 0.06 20 / 20%);
+  transform: translateY(-1px);
+}
+
+.gallery-add-button:active,
+.diary-write-button:active,
+.letters-write-button:active,
+.wardrobe-add-button:active,
+.wardrobe-create-look:active,
+.dates-sticky-add:active {
+  transform: scale(.97);
+}
+
+.dates-empty,
+.gallery-empty-stage,
+.letters-empty-stage,
+.wardrobe-empty,
+.wardrobe-look-empty,
+.keepsakes-empty,
+.empty-state-card {
+  backdrop-filter: blur(10px);
+}
+
+.date-card,
+.gallery-library,
+.diary-today-card,
+.diary-archive-preview,
+.letters-drawer,
+.wardrobe-closet,
+.wardrobe-looks,
+.keepsakes-list,
+.date-life-cycle,
+.keepsake-life {
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
+}
+
+.date-card:hover,
+.gallery-library:hover,
+.diary-today-card:hover,
+.letters-drawer:hover,
+.wardrobe-closet:hover,
+.wardrobe-looks:hover {
+  box-shadow: 0 16px 38px oklch(0.22 0.04 35 / 10%);
+}
+
+.date-card,
+.keepsake-card,
+.wardrobe-item,
+.gallery-album-item,
+.letters-saved-item {
+  will-change: transform;
+}
+
+.date-card:active,
+.keepsake-card:active,
+.wardrobe-item:active,
+.gallery-album-item:active,
+.letters-saved-item:active {
+  transform: scale(.992);
+}
+
+.gallery-photo-item img,
+.reference-card img,
+.hero-polaroid img,
+.photo-archive img {
+  background: color-mix(in oklab, var(--paper) 70%, white 12%);
+}
+
+[role="alert"],
+.form-error {
+  border-radius: 18px;
+  padding: 11px 13px;
+  background: color-mix(in oklab, var(--blush) 38%, transparent);
+  color: var(--cherry);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-shell *,
+  .phone-shell *::before,
+  .phone-shell *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
