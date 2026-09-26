@@ -302,25 +302,6 @@ const loadNearbyCommitmentsNow = useCallback(async () => {
       const time =
         new Date(item.planned_for).getTime();
 
-   const scrollToLatestMessage = useCallback(() => {
-  window.requestAnimationFrame(() => {
-    const messagesArea =
-      document.querySelector<HTMLElement>(
-        ".screen-chat .messenger-messages, .screen-chat .live-messages"
-      );
-
-    if (!messagesArea) return;
-
-    messagesArea.scrollTop = messagesArea.scrollHeight;
-  });
-}, []);
-
-useEffect(() => {
-  if (loading) return;
-
-  scrollToLatestMessage();
-}, [loading, messages.length, sending, scrollToLatestMessage]);
-      
       return (
         time >= pastWindow &&
         time <= futureWindow
@@ -339,6 +320,29 @@ useEffect(() => {
       timeKnown: false,
     }));
 }, [session.user.id]);
+
+const scrollToLatestMessage = useCallback(() => {
+  const runScroll = () => {
+    const messagesArea =
+      document.querySelector<HTMLElement>(
+        ".screen-chat .messenger-messages, .screen-chat .live-messages"
+      );
+
+    if (!messagesArea) return;
+
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+  };
+
+  window.requestAnimationFrame(runScroll);
+  window.setTimeout(runScroll, 120);
+  window.setTimeout(runScroll, 450);
+}, []);
+
+useEffect(() => {
+  if (loading) return;
+
+  scrollToLatestMessage();
+}, [loading, messages.length, sending, scrollToLatestMessage]);
 
 useEffect(() => {
   let cancelled = false;
