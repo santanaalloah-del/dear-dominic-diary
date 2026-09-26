@@ -417,20 +417,6 @@ function HomeScreen({
 
   const { session } = usePrivateDiario();
 
-  const [dominicState, setDominicState] =
-  useState<DominicState | null>(null);
-
-useEffect(() => {
-  if (!session?.user?.id) return;
-
-  let cancelled = false;
-
-  const refreshDominic = async () => {
-    const state =
-      await getCurrentDominicState(
-        session.user.id
-      );
-
     if (!cancelled) {
       setDominicState(state);
     }
@@ -684,6 +670,38 @@ function RoomScreen({
   onOpenRoom: (roomId: string) => void;
 }) {
   const { session } = usePrivateDiario();
+
+  const [dominicState, setDominicState] =
+  useState<DominicState | null>(null);
+
+useEffect(() => {
+  if (!session?.user?.id) return;
+
+  let cancelled = false;
+
+  const refreshDominic = async () => {
+    const state =
+      await getCurrentDominicState(
+        session.user.id
+      );
+
+    if (!cancelled) {
+      setDominicState(state);
+    }
+  };
+
+  void refreshDominic();
+
+  const timer = window.setInterval(
+    refreshDominic,
+    60_000
+  );
+
+  return () => {
+    cancelled = true;
+    window.clearInterval(timer);
+  };
+}, [session?.user?.id]);
 
   const [homeObjects, setHomeObjects] = useState<DiarioItem[]>([]);
   const [loadingObjects, setLoadingObjects] = useState(true);
