@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 export type DominicLocation =
   | "living"
   | "bedroom"
@@ -170,3 +171,93 @@ export const DOMINIC_ACTIVITIES = [
     locations: ["out"],
   },
 ] as const;
+
+export async function loadDominicState(
+  userId: string
+): Promise<DominicState | null> {
+  const { data, error } = await supabase
+    .from("home_state")
+    .select(
+      "id,current_room,metadata,updated_at"
+    )
+    .eq("user_id", userId)
+    .order("updated_at", {
+      ascending: false,
+    })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const metadata =
+    (data.metadata ?? {}) as Record<
+      string,
+      unknown
+    >;
+
+  const saved =
+    metadata.dominicState as
+      | DominicState
+      | undefined;
+
+  return saved ?? null;
+}
+
+export async function saveDominicState(
+  userId: string,
+  state: DominicState
+) {
+  const { data: existing, error } =
+    await supabase
+      .from("home_state")
+      .select("id,metadata")
+      .eq("user_id", userId)
+      .order("updated_at", {
+        ascending: false,
+      })
+      .limit(1)
+      .maybeSingle();
+
+  if (error) throw error;
+
+  const previousMetadata =
+    (existing?.metadata ?? {}) as Record<
+      string,
+      unknown
+    >;
+
+  const metadata = {
+    ...previousMetadata,
+    dominicState: state,
+  };
+
+  if (existing) {
+    const { error: updateError } =
+      await supabase
+        .from("home_state")
+        .update({
+          current_room: state.location,
+          metadata,
+        })
+        .eq("id", existing.id)
+        .eq("user_id", userId);
+
+    if (updateError) throw updateError;
+
+    return;
+  }
+
+  const { error: insertError } =
+    await supabase
+      .from("home_state")
+      .insert({
+        user_id: userId,
+        home_name: "Our Apartment",
+        city: "New York",
+        current_room: state.location,
+        metadata,
+      });
+
+  if (insertError) throw insertError;
+}
