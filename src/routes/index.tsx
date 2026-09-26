@@ -6828,11 +6828,34 @@ const searchSpotify = async () => {
   setSpotifyPlayerLoading(true);
   setMusicError(null);
 
-  try {
-    await initializeSpotifyPlayer();
-await playSpotifyUri(spotifyUri);
-await refreshSpotifyQueue();
-  } catch (error) {
+ try {
+  await Promise.race([
+    (async () => {
+      await initializeSpotifyPlayer();
+      await playSpotifyUri(spotifyUri);
+
+      await resumeSpotifyPlayback().catch(
+        (resumeError) => {
+          console.warn(
+            "Spotify resume needed another user interaction:",
+            resumeError
+          );
+        }
+      );
+
+      await refreshSpotifyQueue();
+    })(),
+    new Promise((_, reject) => {
+      window.setTimeout(() => {
+        reject(
+          new Error(
+            "Spotify took too long to start. Tap play again or open Spotify and choose Diário Player."
+          )
+        );
+      }, 12000);
+    }),
+  ]);
+} catch (error) {
     console.error(error);
 
     setMusicError(
