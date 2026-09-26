@@ -11819,3 +11819,13 @@ select {
 .screen-chat .diario-message.is-assistant {
   align-self: flex-start !important;
 }
+
+/* ─────────────────────────────────────────
+   FIX · CHAT ALWAYS OPENS AT LATEST MESSAGE
+   ───────────────────────────────────────── */
+
+.chat-scroll-anchor {
+  flex: 0 0 1px;
+  width: 100%;
+  height: 1px;
+}
