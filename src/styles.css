@@ -11443,3 +11443,142 @@ select {
     padding-bottom: 124px;
   }
 }
+
+/* ─────────────────────────────────────────
+   FINE TUNE · MORE + REFERENCES + MUSIC
+   ───────────────────────────────────────── */
+
+/* More: voltar para lista bonita, sem cards cortados */
+
+.more-screen .richer-index {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  margin: 20px 22px 0 !important;
+}
+
+.more-screen .richer-index button {
+  width: 100% !important;
+  min-height: 76px;
+  display: grid !important;
+  grid-template-columns: 34px 42px 1fr 18px !important;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  padding: 14px !important;
+  border: 1px solid var(--divider);
+  border-radius: 25px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--paper) 92%, white 8%),
+      color-mix(in oklab, var(--cream) 88%, white 5%)
+    );
+  box-shadow: var(--paper-shadow-soft);
+  text-align: left;
+}
+
+.more-screen .richer-index .index-number {
+  color: var(--cherry);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+
+.more-screen .richer-index .index-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--blush) 42%, transparent);
+  color: var(--wine);
+}
+
+.more-screen .richer-index .index-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.more-screen .richer-index button > div {
+  min-width: 0;
+}
+
+.more-screen .richer-index strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 26px/.95 var(--font-display);
+  white-space: normal;
+}
+
+.more-screen .richer-index small {
+  display: block;
+  margin-top: 4px;
+  color: var(--brown-soft);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.more-screen .richer-index button > svg {
+  color: var(--brown-soft);
+}
+
+/* References: mais contraste, menos “apagado” */
+
+.references-screen .screen-intro,
+.references-screen .screen-intro * {
+  opacity: 1 !important;
+}
+
+.reference-subject-strip button {
+  opacity: 1 !important;
+  background: color-mix(in oklab, var(--paper) 92%, white 8%) !important;
+}
+
+.reference-subject-strip button.active {
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 58%, transparent), transparent 55%),
+    color-mix(in oklab, var(--paper) 94%, white 8%) !important;
+  border-color: color-mix(in oklab, var(--cherry) 58%, var(--divider));
+}
+
+.reference-subject-strip strong {
+  color: var(--wine-deep) !important;
+}
+
+.reference-subject-strip small {
+  color: var(--brown-soft) !important;
+}
+
+.reference-upload-card,
+.reference-upload-card * {
+  opacity: 1;
+}
+
+.reference-upload-card button:disabled {
+  opacity: .65;
+  background: color-mix(in oklab, var(--wine) 72%, var(--brown-soft));
+  color: var(--cream);
+}
+
+/* Music: botão Send to chat no lugar certo */
+
+.music-track {
+  grid-template-columns: 62px 1fr !important;
+}
+
+.music-track > button:not(:last-child) {
+  grid-column: 2;
+  width: fit-content;
+  min-height: 32px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  justify-self: start;
+  background: color-mix(in oklab, var(--blush) 42%, transparent);
+  color: var(--wine);
+}
+
+.music-track > button:last-child {
+  right: 13px;
+  bottom: 13px;
+}
