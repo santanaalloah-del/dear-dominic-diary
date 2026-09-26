@@ -39,6 +39,8 @@ import {
   finishSpotifyConnection,
   isSpotifyConnected,
   searchSpotifyTracks,
+  getSpotifyTopTracks,
+  type SpotifyTopRange,
   type SpotifyTrack,
 } from "@/lib/spotify";
 import {
@@ -6671,6 +6673,17 @@ const [searchingSpotify, setSearchingSpotify] =
   selectedSpotifyTrack,
   setSelectedSpotifyTrack,
 ] = useState<SpotifyTrack | null>(null);
+
+  const [spotifyTopRange, setSpotifyTopRange] =
+  useState<SpotifyTopRange>(
+    "short_term"
+  );
+
+const [spotifyTopTracks, setSpotifyTopTracks] =
+  useState<SpotifyTrack[]>([]);
+
+const [loadingSpotifyTop, setLoadingSpotifyTop] =
+  useState(false);
   
 const searchSpotify = async () => {
   if (!spotifyQuery.trim()) return;
@@ -6711,6 +6724,44 @@ const searchSpotify = async () => {
   setSpotifyQuery(track.name);
 };
 
+  useEffect(() => {
+  let active = true;
+
+  const loadTopTracks = async () => {
+    setLoadingSpotifyTop(true);
+
+    try {
+      const tracks =
+        await getSpotifyTopTracks(
+          spotifyTopRange
+        );
+
+      if (!active) return;
+
+      setSpotifyTopTracks(tracks);
+    } catch (error) {
+      console.error(
+        "Could not load Spotify top tracks:",
+        error
+      );
+
+      if (!active) return;
+
+      setSpotifyTopTracks([]);
+    } finally {
+      if (active) {
+        setLoadingSpotifyTop(false);
+      }
+    }
+  };
+
+  void loadTopTracks();
+
+  return () => {
+    active = false;
+  };
+}, [spotifyTopRange]);
+  
   useEffect(() => {
   const unsubscribe =
     subscribeSpotifyPlayer((state) => {
@@ -6961,6 +7012,74 @@ if (spotifyUrl) {
     );
   }
 };
+
+  const playSpotifyTopTrack = (
+  track: SpotifyTrack
+) => {
+  const artist =
+    track.artists.join(", ") ||
+    "Unknown artist";
+
+  void startListeningToSong({
+    song: {
+      id: track.id,
+      title: track.name,
+    } as DiarioItem,
+    artist,
+    coverUrl: track.coverUrl,
+    spotifyUrl: track.externalUrl,
+    spotifyUri: track.uri,
+    owner: "alloah",
+  });
+};
+
+const saveSpotifyTopTrack = async (
+  track: SpotifyTrack
+) => {
+  const alreadySaved =
+    songs.some(
+      (song) =>
+        song.data?.spotifyId ===
+        track.id
+    );
+
+  if (alreadySaved) return;
+
+  setMusicError(null);
+
+  try {
+    const savedSong =
+      await createSong({
+        userId: session.user.id,
+        owner: "alloah",
+        title: track.name,
+        artist:
+          track.artists.join(", ") ||
+          "Unknown artist",
+        album: track.album,
+        note: "Saved from Spotify top rotation.",
+        spotifyId: track.id,
+        spotifyUri: track.uri,
+        spotifyUrl: track.externalUrl,
+        coverUrl: track.coverUrl,
+        durationMs: track.durationMs,
+      });
+
+    setSongs((currentSongs) => [
+      savedSong,
+      ...currentSongs,
+    ]);
+  } catch (error) {
+    console.error(
+      "Could not save top track:",
+      error
+    );
+
+    setMusicError(
+      "This Spotify track could not be saved."
+    );
+  }
+};
   
   const saveSong = async () => {
     if (
@@ -7191,6 +7310,175 @@ setAddingSong(false);
     )}
   </section>
 )}
+
+            <section className="spotify-top-rotation">
+        <header>
+          <div>
+            <span>
+              your top rotation
+            </span>
+
+            <strong>
+              Most played
+            </strong>
+          </div>
+
+          <div
+            className="spotify-top-range-tabs"
+            role="tablist"
+            aria-label="Spotify top range"
+          >
+            {[
+              ["short_term", "short"],
+              ["medium_term", "medium"],
+              ["long_term", "long"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={
+                  spotifyTopRange === id
+                }
+                className={
+                  spotifyTopRange === id
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setSpotifyTopRange(
+                    id as SpotifyTopRange
+                  )
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {loadingSpotifyTop ? (
+          <p>
+            Loading your rotation…
+          </p>
+        ) : spotifyTopTracks.length === 0 ? (
+          <p>
+            Connect Spotify again to show
+            your top tracks here.
+          </p>
+        ) : (
+          <div className="spotify-top-list">
+            {spotifyTopTracks
+              .slice(0, 6)
+              .map((track, index) => {
+                const artist =
+                  track.artists.join(", ") ||
+                  "Unknown artist";
+
+                const alreadySaved =
+                  songs.some(
+                    (song) =>
+                      song.data
+                        ?.spotifyId ===
+                      track.id
+                  );
+
+                return (
+                  <article
+                    key={track.id}
+                    className="spotify-top-track"
+                  >
+                    <span className="spotify-top-rank">
+                      {index + 1}
+                    </span>
+
+                    <div className="spotify-top-cover">
+                      {track.coverUrl ? (
+                        <img
+                          src={track.coverUrl}
+                          alt=""
+                        />
+                      ) : (
+                        <Disc3
+                          size={18}
+                          strokeWidth={1.25}
+                        />
+                      )}
+                    </div>
+
+                    <div className="spotify-top-copy">
+                      <strong>
+                        {track.name}
+                      </strong>
+
+                      <span>
+                        {artist}
+                      </span>
+                    </div>
+
+                    <div className="spotify-top-actions">
+                      <button
+                        type="button"
+                        aria-label="Play top track"
+                        onClick={() =>
+                          playSpotifyTopTrack(
+                            track
+                          )
+                        }
+                      >
+                        <Play
+                          size={14}
+                          fill="currentColor"
+                        />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void addSpotifyUriToQueue(
+                            track.uri
+                          )
+                            .then(() => {
+                              setSpotifyQueueOpen(
+                                true
+                              );
+
+                              return refreshSpotifyQueue();
+                            })
+                            .catch((error) => {
+                              console.error(error);
+
+                              setMusicError(
+                                error instanceof Error
+                                  ? error.message
+                                  : "Could not add to queue."
+                              );
+                            })
+                        }
+                      >
+                        queue
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={alreadySaved}
+                        onClick={() =>
+                          void saveSpotifyTopTrack(
+                            track
+                          )
+                        }
+                      >
+                        {alreadySaved
+                          ? "saved"
+                          : "save"}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+          </div>
+        )}
+      </section>
       
       <div
         className="music-tabs"
