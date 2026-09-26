@@ -515,6 +515,112 @@ function applyInternalStateBias(
   });
 }
 
+function evolveInternalState(
+  previous: DominicState | null,
+  activity: DominicActivity,
+  hour: number
+) {
+  let energy =
+    previous?.energy ??
+    randomBetween(45, 80);
+
+  if (activity === "sleeping") {
+    energy += randomBetween(25, 45);
+  } else if (activity === "napping") {
+    energy += randomBetween(10, 25);
+  } else if (
+    [
+      "working",
+      "recording",
+      "cleaning",
+      "walking",
+      "with_friends",
+      "shopping",
+    ].includes(activity)
+  ) {
+    energy -= randomBetween(7, 16);
+  } else {
+    energy += randomBetween(-5, 5);
+  }
+
+  if (hour >= 0 && hour < 6) {
+    energy -= randomBetween(3, 10);
+  }
+
+  energy = clampEnergy(energy);
+
+  const moods: DominicMood[] = [
+    previous?.mood ?? "calm",
+    "calm",
+  ];
+
+  if (energy < 30) {
+    moods.push(
+      "tired",
+      "tired"
+    );
+  }
+
+  if (
+    [
+      "with_friends",
+      "at_a_cafe",
+      "on_the_phone",
+    ].includes(activity)
+  ) {
+    moods.push(
+      "social",
+      "social"
+    );
+  }
+
+  if (
+    [
+      "writing_music",
+      "recording",
+      "reading",
+      "working",
+    ].includes(activity)
+  ) {
+    moods.push(
+      "focused",
+      "focused"
+    );
+  }
+
+  if (
+    [
+      "walking",
+      "driving",
+      "shopping",
+    ].includes(activity)
+  ) {
+    moods.push("restless");
+  }
+
+  if (
+    [
+      "playing_guitar",
+      "listening_to_music",
+    ].includes(activity)
+  ) {
+    moods.push("playful");
+  }
+
+  const mood =
+    moods[
+      randomBetween(
+        0,
+        moods.length - 1
+      )
+    ];
+
+  return {
+    energy,
+    mood,
+  };
+}
+
 function homeCandidates(
   hour: number
 ): DominicCandidate[] {
