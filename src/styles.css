@@ -6535,3 +6535,15 @@ opacity: var(--sun-opacity, 0.8);
     left 1s linear,
     opacity 0.8s ease;
 }
+
+/* ROOM OBJECTS · FOLLOW AMBIENT LIGHT */
+
+.apartment-screen .home-object-layer img {
+  filter:
+    brightness(var(--room-brightness, 1))
+    saturate(var(--room-saturation, 1))
+    sepia(var(--room-sepia, 0));
+
+  transition:
+    filter 0.8s linear;
+}
