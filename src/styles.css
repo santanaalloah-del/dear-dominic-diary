@@ -7527,3 +7527,132 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
 .diario-chat-composer button:disabled {
   opacity: .45;
 }
+
+/* ─────────────────────────────────────────
+   MORE · MAIN INDEX POLISH
+   ───────────────────────────────────────── */
+
+.more-screen {
+  min-height: max-content;
+  padding-bottom: 150px;
+}
+
+.more-screen .screen-intro {
+  padding: 32px 24px 14px;
+}
+
+.more-screen .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 54px/.82 var(--font-display);
+}
+
+.more-screen .intro-copy {
+  max-width: 260px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.35 var(--font-display);
+}
+
+.more-screen .richer-index {
+  display: grid;
+  gap: 10px;
+  margin: 10px 22px 0;
+}
+
+.more-screen .richer-index > button {
+  position: relative;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: 34px 38px 1fr 18px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--paper) 88%, white 8%),
+      color-mix(in oklab, var(--cream) 92%, white 5%)
+    );
+  box-shadow: var(--paper-shadow-soft);
+  padding: 11px 14px;
+  text-align: left;
+}
+
+.more-screen .richer-index > button.available::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  border-radius: 24px 0 0 24px;
+  background: var(--cherry);
+  opacity: .65;
+}
+
+.more-screen .index-number {
+  color: var(--cherry);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.more-screen .index-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--blush) 38%, transparent);
+  color: var(--wine);
+}
+
+.more-screen .index-icon svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.55;
+}
+
+.more-screen .richer-index strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 21px/.95 var(--font-display);
+}
+
+.more-screen .richer-index small {
+  display: block;
+  margin-top: 4px;
+  color: var(--brown-soft);
+  font-size: 10px;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.more-screen .richer-index > button > svg {
+  color: color-mix(in oklab, var(--brown-soft) 58%, transparent);
+}
+
+.more-screen .richer-index > button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px oklch(0.22 0.04 35 / 10%);
+}
+
+.more-screen .more-signoff {
+  margin: 18px 22px 0;
+  padding: 16px;
+  border: 1px solid var(--divider);
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--paper) 82%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.more-screen .index-signoff {
+  color: var(--brown-soft);
+  font: italic 15px/1.25 var(--font-display);
+}
+
+.more-screen .more-signoff button {
+  border-radius: 999px;
+  color: var(--wine);
+  background: color-mix(in oklab, var(--blush) 40%, transparent);
+}
