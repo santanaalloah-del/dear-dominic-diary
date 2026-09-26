@@ -1257,6 +1257,11 @@ if (!state) {
     state
   );
 
+  await recordDominicAction(
+  userId,
+  state
+);
+  
   await syncDominicActiveContext(
     userId,
     state
@@ -1278,13 +1283,19 @@ if (!state) {
         state.nextChangeAt
       );
 
-    state =
-      createNextDominicState(
-  state,
-  transitionTime,
-  worldContext
+   state =
+  createNextDominicState(
+    state,
+    transitionTime,
+    worldContext
+  );
+
+await recordDominicAction(
+  userId,
+  state
 );
-    changes += 1;
+
+changes += 1;
   }
 
  if (changes > 0) {
