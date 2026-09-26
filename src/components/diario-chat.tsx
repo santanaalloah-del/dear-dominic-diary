@@ -1271,6 +1271,34 @@ return "checking where he is";
   return `${activity} · ${location}`;
 }, [dominicState]);
 
+  const clearActiveListeningTrack = () => {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(
+      "diario-active-listening-track-v1"
+    );
+
+    window.dispatchEvent(
+      new Event("diario-active-listening-track")
+    );
+  }
+
+  setActiveListeningTrack(null);
+};
+
+const inviteToListenTogether = () => {
+  if (!activeListeningTrack) return;
+
+  const songText = activeListeningTrack.artist
+    ? `"${activeListeningTrack.title}" by ${activeListeningTrack.artist}`
+    : `"${activeListeningTrack.title}"`;
+
+  void sendMessage(
+    activeListeningTrack.owner === "dominic"
+      ? `I'm listening to what you're playing: ${songText}.`
+      : `Listen to this with me: ${songText}.`
+  );
+};
+  
   const chatClassName = [
     "live-chat-screen messenger-chat",
     `chat-theme-${preferences.theme}`,
@@ -1305,46 +1333,64 @@ return "checking where he is";
       </header>
 
   {activeListeningTrack && (
-  <button
-    className="chat-now-playing"
-    type="button"
-    onClick={() => {
-      if (activeListeningTrack.spotifyUrl) {
-        window.open(
-          activeListeningTrack.spotifyUrl,
-          "_blank",
-          "noopener,noreferrer"
-        );
+  <section className="chat-now-playing">
+    <button
+      type="button"
+      className="chat-now-playing-main"
+      onClick={() => {
+        if (activeListeningTrack.spotifyUrl) {
+          window.open(
+            activeListeningTrack.spotifyUrl,
+            "_blank",
+            "noopener,noreferrer"
+          );
 
-        return;
-      }
+          return;
+        }
 
-      onOpen("music");
-    }}
-  >
-    <div className="mini-album-art">
-      {activeListeningTrack.coverUrl ? (
-        <img
-          src={activeListeningTrack.coverUrl}
-          alt=""
-          aria-hidden="true"
-        />
-      ) : (
-        <Music2 />
-      )}
+        onOpen("music");
+      }}
+    >
+      <div className="mini-album-art">
+        {activeListeningTrack.coverUrl ? (
+          <img
+            src={activeListeningTrack.coverUrl}
+            alt=""
+            aria-hidden="true"
+          />
+        ) : (
+          <Music2 />
+        )}
+      </div>
+
+      <span>
+        <small>{activeListeningLabel}</small>
+        <strong>
+          {activeListeningTrack.artist
+            ? `${activeListeningTrack.title} · ${activeListeningTrack.artist}`
+            : activeListeningTrack.title}
+        </strong>
+      </span>
+
+      <ChevronRight />
+    </button>
+
+    <div className="chat-now-playing-actions">
+      <button
+        type="button"
+        onClick={inviteToListenTogether}
+      >
+        listen together
+      </button>
+
+      <button
+        type="button"
+        onClick={clearActiveListeningTrack}
+      >
+        stop
+      </button>
     </div>
-
-    <span>
-      <small>{activeListeningLabel}</small>
-      <strong>
-        {activeListeningTrack.artist
-          ? `${activeListeningTrack.title} · ${activeListeningTrack.artist}`
-          : activeListeningTrack.title}
-      </strong>
-    </span>
-
-    <ChevronRight />
-  </button>
+  </section>
 )}
 
       <Conversation className="live-conversation messenger-conversation">
