@@ -976,10 +976,6 @@ placeholder="Object name"
                             )}
                       </small>
                     </div>
-
-                    {stored ? (
-                      <button
-                        type="button"
 {stored ? (
   <button
     type="button"
@@ -1002,7 +998,7 @@ placeholder="Object name"
     Move here
   </button>
 )}
-                    )}
+                    
                   </div>
                 );
               })}
