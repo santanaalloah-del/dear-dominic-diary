@@ -769,9 +769,7 @@ const addFurniture = async () => {
     await loadObjects();
   };
 
-  return (
-
-    const getDragPosition = (
+  const getDragPosition = (
   event: React.PointerEvent<HTMLDivElement>
 ) => {
   const stage =
@@ -804,6 +802,8 @@ const addFurniture = async () => {
   };
 };
   
+  return (
+
     <section className="room-screen apartment-screen">
       <ScreenIntro
         eyebrow={`${time.dateLabel} · ${time.timeLabel}`}
