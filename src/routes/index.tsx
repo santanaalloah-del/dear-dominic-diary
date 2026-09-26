@@ -282,7 +282,6 @@ const openScreen = (nextScreen: Screen) => {
 
   <div
   className="phone-shell"
-  data-time-theme={time.mood}
  style={
   {
     "--day-progress": time.dayProgress,
