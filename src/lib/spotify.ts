@@ -20,6 +20,7 @@ const SPOTIFY_SCOPES = [
   "user-read-playback-state",
   "user-read-currently-playing",
   "user-modify-playback-state",
+  "user-top-read",
 ].join(" ");
 
 type SpotifyToken = {
@@ -447,6 +448,11 @@ export type SpotifyTrack = {
   durationMs: number;
 };
 
+export type SpotifyTopRange =
+  | "short_term"
+  | "medium_term"
+  | "long_term";
+
 export async function searchSpotifyTracks(
   query: string
 ): Promise<SpotifyTrack[]> {
@@ -530,4 +536,75 @@ export async function searchSpotifyTracks(
     durationMs:
       track.duration_ms ?? 0,
   }));
+}
+
+export async function getSpotifyTopTracks(
+  timeRange: SpotifyTopRange = "short_term"
+): Promise<SpotifyTrack[]> {
+  const accessToken =
+    await getSpotifyAccessToken();
+
+  if (!accessToken) {
+    throw new Error(
+      "Spotify is not connected."
+    );
+  }
+
+  const url = new URL(
+    "https://api.spotify.com/v1/me/top/tracks"
+  );
+
+  url.searchParams.set(
+    "time_range",
+    timeRange
+  );
+
+  url.searchParams.set(
+    "limit",
+    "10"
+  );
+
+  const response = await fetch(
+    url.toString(),
+    {
+      headers: {
+        Authorization:
+          `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const body =
+      await response.text();
+
+    throw new Error(
+      `Spotify top tracks failed (${response.status}): ${body}`
+    );
+  }
+
+  const data =
+    await response.json();
+
+  return (data.items ?? []).map(
+    (track: any) => ({
+      id: track.id,
+      name: track.name,
+      uri: track.uri,
+      externalUrl:
+        track.external_urls?.spotify ?? "",
+      artists:
+        track.artists?.map(
+          (artist: any) =>
+            artist.name
+        ) ?? [],
+      album:
+        track.album?.name ?? "",
+      coverUrl:
+        track.album?.images?.[0]
+          ?.url ?? null,
+      durationMs:
+        track.duration_ms ?? 0,
+    })
+  );
 }
