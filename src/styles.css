@@ -6680,9 +6680,11 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
 }
 
 .dates-screen .screen-intro {
-  padding: 31px 24px 8px;
+  padding: 31px 24px 8px 56px;
 }
-
+.dates-screen .intro-copy {
+ max-width: 250px;
+}
 .dates-screen .screen-intro h1 {
   color: var(--wine-deep);
   font: 400 52px/.84 var(--font-display);
