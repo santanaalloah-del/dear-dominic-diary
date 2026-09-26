@@ -90,6 +90,7 @@ saveDiaryPage,
 createHomeObject,
 updateHomeObjectPlacement,
 storeHomeObject,
+  deleteHomeObject,
   type DiarioItem,
   type GalleryPhoto,
 restoreHomeObject,
@@ -769,6 +770,17 @@ const addFurniture = async () => {
     await loadObjects();
   };
 
+  const removeObject = async (item: DiarioItem) => {
+  if (!session?.user?.id) return;
+
+  await deleteHomeObject({
+    userId: session.user.id,
+    objectId: item.id,
+  });
+
+  await loadObjects();
+};
+  
   const getDragPosition = (
   event: React.PointerEvent<HTMLDivElement>
 ) => {
@@ -1125,8 +1137,8 @@ const displayY =
                     </button>
                   </div>
 
-                  <div className="home-object-size-controls">
-                    <button
+<div className="home-object-size-controls">
+  <button
                       type="button"
                       onClick={() =>
                         updateObject(item, {
@@ -1163,6 +1175,13 @@ const displayY =
                     onClick={() => storeObject(item)}
                   >
                     Store
+                    <button
+  type="button"
+  className="home-object-delete"
+  onClick={() => removeObject(item)}
+>
+  Delete
+</button>
                   </button>
                 </div>
               )}
