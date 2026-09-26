@@ -194,6 +194,17 @@ const sunOpacity =
 const shadowOpacity =
   0.04 + daylight * 0.44;
   
+  const roomBrightness =
+  0.5 + daylight * 0.55;
+
+const roomSaturation =
+  0.72 + daylight * 0.28;
+
+const roomSepia =
+  daylight *
+  Math.abs(daylightProgress - 0.5) *
+  0.8;
+  
   const detail = !primaryScreens.includes(screen);
   useEffect(() => {
   void finishSpotifyConnection().catch(
@@ -254,6 +265,9 @@ const openScreen = (nextScreen: Screen) => {
    "--day-x": `${daylightProgress * 100}%`,
     "--sun-opacity": sunOpacity,
     "--shadow-opacity": shadowOpacity,
+    "--room-brightness": roomBrightness,
+"--room-saturation": roomSaturation,
+"--room-sepia": roomSepia,
   } as React.CSSProperties
 }
 >
