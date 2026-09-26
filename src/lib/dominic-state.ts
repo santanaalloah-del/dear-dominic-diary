@@ -936,10 +936,13 @@ export function createNextDominicState(
   at = new Date()
 ): DominicState {
  const candidate = weightedPick(
-  applyRecentPenalty(
-    candidatesAfter(
-      previous,
-      at.getHours()
+  applyInternalStateBias(
+    applyRecentPenalty(
+      candidatesAfter(
+        previous,
+        at.getHours()
+      ),
+      previous
     ),
     previous
   )
@@ -974,9 +977,18 @@ export function createNextDominicState(
       ].slice(-8)
     : [];
 
+  const internal =
+  evolveInternalState(
+    previous,
+    candidate.activity,
+    at.getHours()
+  );
+
   return {
     location: candidate.location,
     activity: candidate.activity,
+    mood: internal.mood,
+energy: internal.energy,
     recent,
     startedAt: at.toISOString(),
     nextChangeAt:
