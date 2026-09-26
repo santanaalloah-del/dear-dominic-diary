@@ -9185,3 +9185,319 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   font-size: 12px;
   line-height: 1.45;
 }
+
+/* ─────────────────────────────────────────
+   MUSIC · RECORD SHELF POLISH
+   ───────────────────────────────────────── */
+
+.music-screen.music-live {
+  min-height: max-content;
+  padding-bottom: 165px;
+}
+
+.music-live .screen-intro {
+  padding: 32px 24px 12px;
+}
+
+.music-live .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 52px/.84 var(--font-display);
+}
+
+.music-live .intro-copy {
+  max-width: 285px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+.music-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 16px 24px 0;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.music-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.music-tabs button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.music-empty {
+  margin: 18px 22px 0;
+  padding: 22px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 90%, white 8%);
+  box-shadow: var(--paper-shadow);
+}
+
+.music-empty-icon {
+  width: 58px;
+  height: 58px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, color-mix(in oklab, var(--paper) 86%, white 8%) 0 22%, transparent 23%),
+    var(--wine);
+  color: var(--cream);
+  box-shadow: 0 12px 24px oklch(0.22 0.05 25 / 14%);
+}
+
+.music-empty small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.music-empty h2 {
+  margin: 8px 0;
+  color: var(--wine-deep);
+  font: 400 32px/.95 var(--font-display);
+}
+
+.music-empty p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.music-empty input,
+.music-empty textarea {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  padding: 13px 14px;
+  color: var(--brown);
+  outline: none;
+}
+
+.music-empty input + input,
+.music-empty input + textarea,
+.music-empty textarea {
+  margin-top: 10px;
+}
+
+.music-spotify-search {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.music-spotify-search input {
+  margin: 0;
+}
+
+.music-spotify-search button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  padding: 0 14px;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 8px 18px oklch(0.22 0.06 20 / 14%);
+}
+
+.music-spotify-results {
+  display: grid;
+  gap: 9px;
+  margin: 0 0 13px;
+}
+
+.music-spotify-results button {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+  padding: 9px;
+  text-align: left;
+}
+
+.music-spotify-results img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.music-spotify-results strong {
+  display: block;
+  color: var(--wine-deep);
+  font-size: 12px;
+}
+
+.music-spotify-results small {
+  display: block;
+  margin-top: 3px;
+  color: var(--brown-soft);
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.music-library {
+  display: grid;
+  gap: 13px;
+  margin: 20px 22px 0;
+}
+
+.music-track {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 14px;
+  position: relative;
+  border: 1px solid var(--divider);
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--paper) 92%, white 8%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  box-shadow: var(--paper-shadow-soft);
+  padding: 15px;
+}
+
+.music-record {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, color-mix(in oklab, var(--paper) 90%, white 7%) 0 17%, transparent 18%),
+    repeating-radial-gradient(circle, var(--wine) 0 7px, color-mix(in oklab, var(--wine) 78%, black 8%) 8px 10px);
+  color: var(--cream);
+  box-shadow:
+    inset 0 0 0 1px oklch(1 0 0 / 18%),
+    0 10px 20px oklch(0.2 0.05 25 / 16%);
+}
+
+.music-record img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.music-track small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.music-track strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--wine-deep);
+  font: 400 25px/.95 var(--font-display);
+}
+
+.music-track span {
+  display: block;
+  margin-top: 5px;
+  color: var(--brown);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.music-track em {
+  display: block;
+  margin-top: 4px;
+  color: var(--brown-soft);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.music-track p {
+  margin: 9px 0 0;
+  color: var(--brown-soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.music-track > button {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 38%, transparent);
+  color: var(--wine);
+  padding: 8px 11px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.music-track > button:last-child {
+  position: absolute;
+  right: 13px;
+  bottom: 13px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 8px 18px oklch(0.22 0.06 20 / 14%);
+}
+
+.music-track > button:disabled {
+  background: color-mix(in oklab, var(--brown-soft) 18%, transparent);
+  color: var(--brown-soft);
+}
+
+.music-live > .gallery-add-button {
+  width: calc(100% - 44px);
+  min-height: 42px;
+  margin: 18px 22px 0;
+  padding: 11px 17px;
+}
+
+.music-rule {
+  margin: 22px 22px 0;
+  padding: 16px;
+  border: 1px solid var(--divider);
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.music-rule p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
