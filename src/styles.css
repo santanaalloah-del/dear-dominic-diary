@@ -10625,3 +10625,331 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   color: var(--wine);
   font-weight: 700;
 }
+
+/* ─────────────────────────────────────────
+   MORNING / NIGHT · DAY CYCLE POLISH
+   ───────────────────────────────────────── */
+
+.day-cycle-screen {
+  min-height: max-content;
+  padding-bottom: 165px;
+}
+
+.day-cycle-screen .screen-intro {
+  padding: 32px 24px 12px;
+}
+
+.day-cycle-screen .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 48px/.84 var(--font-display);
+}
+
+.day-cycle-screen .intro-copy {
+  max-width: 288px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+.day-cycle-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  margin: 16px 24px 0;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.day-cycle-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.day-cycle-tabs button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.day-cycle-current {
+  overflow: hidden;
+  margin: 18px 22px 0;
+  border: 1px solid var(--divider);
+  border-radius: 32px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 94%, white 6%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  box-shadow: var(--paper-shadow);
+}
+
+.day-cycle-image {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1.42 / 1;
+  background: var(--brown);
+}
+
+.day-cycle-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      transparent 38%,
+      oklch(0.16 0.04 25 / 38%)
+    );
+  pointer-events: none;
+}
+
+.day-cycle-morning .day-cycle-image::after {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--butter) 20%, transparent),
+      transparent 48%,
+      oklch(0.18 0.03 30 / 16%)
+    );
+}
+
+.day-cycle-night .day-cycle-image::after {
+  background:
+    radial-gradient(circle at 20% 0%, color-mix(in oklab, var(--blush) 22%, transparent), transparent 45%),
+    linear-gradient(
+      180deg,
+      oklch(0.18 0.05 270 / 18%),
+      oklch(0.12 0.04 260 / 42%)
+    );
+}
+
+.day-cycle-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter:
+    brightness(var(--room-brightness, 1))
+    saturate(var(--room-saturation, .95))
+    sepia(var(--room-sepia, 0));
+}
+
+.day-cycle-copy {
+  padding: 18px;
+}
+
+.day-cycle-copy small,
+.day-cycle-context header span,
+.day-cycle-moments header span,
+.day-cycle-moment header span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.day-cycle-copy h2 {
+  margin: 7px 0 8px;
+  color: var(--wine-deep);
+  font: 400 31px/.95 var(--font-display);
+}
+
+.day-cycle-copy p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.day-cycle-context,
+.day-cycle-moments,
+.day-cycle-links {
+  margin: 18px 22px 0;
+  padding: 18px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 92%, white 6%),
+      color-mix(in oklab, var(--cream) 88%, white 5%)
+    );
+  box-shadow: var(--paper-shadow);
+}
+
+.day-cycle-context header,
+.day-cycle-moments > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.day-cycle-context header strong,
+.day-cycle-moments header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 28px/.95 var(--font-display);
+}
+
+.day-cycle-context p {
+  margin: 0;
+  color: var(--brown);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.day-cycle-context > small,
+.day-cycle-moments > header > small {
+  display: inline-flex;
+  margin-top: 12px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 36%, transparent);
+  color: var(--wine);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.day-cycle-moments > header > small {
+  margin-top: 0;
+  align-self: flex-start;
+}
+
+.day-cycle-empty {
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+  color: var(--wine);
+  text-align: center;
+}
+
+.day-cycle-empty svg {
+  margin-bottom: 10px;
+  color: var(--cherry);
+}
+
+.day-cycle-empty p {
+  margin: 0;
+  color: var(--wine-deep);
+  font: 400 23px/.95 var(--font-display);
+}
+
+.day-cycle-empty small {
+  display: block;
+  margin-top: 6px;
+  color: var(--brown-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.day-cycle-moment-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.day-cycle-moment {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+  padding: 14px;
+  text-align: left;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.day-cycle-moment header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+
+.day-cycle-moment time {
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.day-cycle-moment strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 23px/.95 var(--font-display);
+}
+
+.day-cycle-moment p {
+  margin: 8px 0 0;
+  color: var(--brown-soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.day-cycle-moment > small {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 34%, transparent);
+  color: var(--wine);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.day-cycle-links {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 11px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.day-cycle-links button {
+  min-height: 72px;
+  border: 1px solid var(--divider);
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--paper) 86%, white 8%);
+  padding: 13px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-align: left;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.day-cycle-links svg {
+  color: var(--cherry);
+  flex: 0 0 auto;
+}
+
+.day-cycle-links strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 20px/.95 var(--font-display);
+}
+
+.day-cycle-links small {
+  display: block;
+  margin-top: 4px;
+  color: var(--brown-soft);
+  font-size: 10px;
+  line-height: 1.25;
+}
