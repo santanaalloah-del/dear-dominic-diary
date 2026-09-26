@@ -469,8 +469,8 @@ export async function loadRecentDominicActions(
         "autonomy_engine"
       )
       .eq("source_id", "dominic")
-      .gte("created_at", since)
-      .order("created_at", {
+.gte("executed_at", since)
+.order("executed_at", {
         ascending: false,
       })
       .limit(40);
