@@ -11853,3 +11853,74 @@ select {
 .bottom-nav {
   bottom: 12px;
 }
+
+/* ─────────────────────────────────────────
+   FIX · CHAT COMPOSER STICK TO BOTTOM
+   ───────────────────────────────────────── */
+
+.screen-scroll.screen-chat {
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+.screen-chat .live-chat-screen.messenger-chat {
+  position: relative !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding-bottom: 0 !important;
+}
+
+.screen-chat .messenger-header {
+  flex: 0 0 auto;
+}
+
+.screen-chat .chat-now-playing {
+  flex: 0 0 auto;
+  margin: 10px 20px 8px !important;
+}
+
+.screen-chat .messenger-conversation,
+.screen-chat .live-conversation {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.screen-chat .messenger-messages,
+.screen-chat .live-messages {
+  height: 100% !important;
+  overflow-y: auto !important;
+  padding: 10px 18px 205px !important;
+  scrollbar-width: none;
+}
+
+.screen-chat .messenger-messages::-webkit-scrollbar,
+.screen-chat .live-messages::-webkit-scrollbar {
+  display: none;
+}
+
+.screen-chat .messenger-composer-wrap,
+.screen-chat .live-composer-wrap {
+  position: absolute !important;
+  left: 16px !important;
+  right: 16px !important;
+  bottom: 88px !important;
+  z-index: 80 !important;
+}
+
+.screen-chat .messenger-composer,
+.screen-chat .live-composer {
+  min-height: 92px !important;
+  border-radius: 25px !important;
+}
+
+.screen-chat .conversation-scroll {
+  display: none !important;
+}
+
+.screen-chat .bottom-nav {
+  z-index: 85;
+}
