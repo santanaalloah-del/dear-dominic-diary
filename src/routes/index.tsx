@@ -177,7 +177,9 @@ function DiarioApp() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
   const time = useTimeMood();
-  const daylightProgress =
+  const clockHour = time.dayProgress * 24;
+
+const daylightProgress =
   Math.max(
     0,
     Math.min(
@@ -189,29 +191,37 @@ function DiarioApp() {
 const daylight =
   Math.sin(Math.PI * daylightProgress);
 
+const nightDepth =
+  clockHour >= 18
+    ? Math.min(1, (clockHour - 18) / 4)
+    : clockHour < 4
+      ? 1
+      : clockHour < 7
+        ? 1 - (clockHour - 4) / 3
+        : 0;
+
 const sunOpacity =
   0.08 + daylight * 0.72;
 
 const shadowOpacity =
   0.04 + daylight * 0.44;
-  
-  const roomBrightness =
-  0.5 + daylight * 0.55;
+
+const roomBrightness =
+  0.55 + daylight * 0.5 - nightDepth * 0.18;
 
 const roomSaturation =
-  0.72 + daylight * 0.28;
+  0.72 + daylight * 0.28 - nightDepth * 0.08;
 
 const roomSepia =
   daylight *
   Math.abs(daylightProgress - 0.5) *
   0.8;
 
-  const nightOpacity =
-  (1 - daylight) * 0.34;
+const nightOpacity =
+  nightDepth * 0.38;
 
 const homePlanBrightness =
-  0.68 + daylight * 0.32;
-  
+  1 - nightDepth * 0.32;
   const detail = !primaryScreens.includes(screen);
   useEffect(() => {
   void finishSpotifyConnection().catch(
