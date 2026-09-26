@@ -283,57 +283,64 @@ useEffect(() => {
   };
 }, [session.user.id]);
 
-  useEffect(() => {
+const loadNearbyCommitmentsNow = useCallback(async () => {
+  const dates =
+    await getDates(session.user.id);
+
+  const now = Date.now();
+  const pastWindow =
+    now - 24 * 60 * 60_000;
+  const futureWindow =
+    now + 48 * 60 * 60_000;
+
+  return dates
+    .filter((item) => {
+      if (!item.planned_for) {
+        return false;
+      }
+
+      const time =
+        new Date(item.planned_for).getTime();
+
+      return (
+        time >= pastWindow &&
+        time <= futureWindow
+      );
+    })
+    .slice(0, 5)
+    .map((item) => ({
+      kind: item.kind,
+      title: item.title,
+      note: item.body,
+      plannedFor: item.planned_for,
+      place:
+        typeof item.data?.place === "string"
+          ? item.data.place
+          : null,
+      timeKnown: false,
+    }));
+}, [session.user.id]);
+
+useEffect(() => {
   let cancelled = false;
 
-  const loadNearbyCommitments = async () => {
-    const dates =
-      await getDates(session.user.id);
-
-    const now = Date.now();
- const pastWindow =
-  now - 24 * 60 * 60_000;
-    const futureWindow =
-      now + 48 * 60 * 60_000;
-
-    const nearby = dates
-      .filter((item) => {
-        if (!item.planned_for) {
-          return false;
-        }
-
-        const time =
-          new Date(item.planned_for).getTime();
-
-        return (
-          time >= pastWindow &&
-          time <= futureWindow
-        );
-      })
-      .slice(0, 5)
-      .map((item) => ({
-        kind: item.kind,
-        title: item.title,
-        note: item.body,
-        plannedFor: item.planned_for,
-     place:
-  typeof item.data?.place === "string"
-    ? item.data.place
-    : null,
-timeKnown: false,
-      }));
-
-    if (!cancelled) {
-      setNearbyCommitments(nearby);
-    }
-  };
-
-  void loadNearbyCommitments();
+  void loadNearbyCommitmentsNow()
+    .then((nearby) => {
+      if (!cancelled) {
+        setNearbyCommitments(nearby);
+      }
+    })
+    .catch((error) => {
+      console.error(
+        "Could not load nearby commitments:",
+        error
+      );
+    });
 
   return () => {
     cancelled = true;
   };
-}, [session.user.id]);
+}, [loadNearbyCommitmentsNow]);
 
   
   useEffect(() => {
@@ -723,11 +730,24 @@ async function flushPendingMessages() {
         )
         .join("\n");
 
-  try {
-    const { data, error } =
-      await supabase.functions.invoke(
-        "clever-service",
-        {
+try {
+  const liveNearbyCommitments =
+    await loadNearbyCommitmentsNow()
+      .catch((error) => {
+        console.error(
+          "Could not refresh nearby commitments:",
+          error
+        );
+
+        return nearbyCommitments;
+      });
+
+  setNearbyCommitments(liveNearbyCommitments);
+
+  const { data, error } =
+    await supabase.functions.invoke(
+      "clever-service",
+      {
         body: {
   message: combinedMessage,
   dominicContext: dominicState
@@ -739,8 +759,8 @@ async function flushPendingMessages() {
         startedAt: dominicState.startedAt,
         nextChangeAt: dominicState.nextChangeAt,
       }
-    : null,
-  nearbyCommitments,
+       : null,
+  nearbyCommitments: liveNearbyCommitments,
 },
         }
       );
