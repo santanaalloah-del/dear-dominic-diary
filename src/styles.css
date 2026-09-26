@@ -11924,3 +11924,58 @@ select {
 .screen-chat .bottom-nav {
   z-index: 85;
 }
+
+/* ─────────────────────────────────────────
+   REVERT · CHAT BACK TO NORMAL FLOW
+   ───────────────────────────────────────── */
+
+.screen-scroll.screen-chat {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-bottom: 118px !important;
+}
+
+.screen-chat .live-chat-screen.messenger-chat {
+  position: relative !important;
+  height: auto !important;
+  min-height: max-content !important;
+  overflow: visible !important;
+  display: block !important;
+  padding-bottom: 150px !important;
+}
+
+.screen-chat .messenger-conversation,
+.screen-chat .live-conversation {
+  display: block !important;
+  height: auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+.screen-chat .messenger-messages,
+.screen-chat .live-messages {
+  height: auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
+  padding: 14px 18px 26px !important;
+}
+
+.screen-chat .messenger-composer-wrap,
+.screen-chat .live-composer-wrap {
+  position: sticky !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: 92px !important;
+  z-index: 80 !important;
+  margin: 0 16px 14px !important;
+}
+
+.screen-chat .messenger-composer,
+.screen-chat .live-composer {
+  min-height: 92px !important;
+  border-radius: 25px !important;
+}
+
+.screen-chat .conversation-scroll {
+  display: none !important;
+}
