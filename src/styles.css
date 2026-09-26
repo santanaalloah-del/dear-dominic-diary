@@ -11632,3 +11632,56 @@ select {
 .more-screen .richer-index small {
   font-size: 10.5px;
 }
+
+/* ─────────────────────────────────────────
+   FINE TUNE · CHAT + MORE BREATHING ROOM
+   ───────────────────────────────────────── */
+
+.more-screen {
+  padding-bottom: 175px;
+}
+
+.more-screen .richer-index {
+  padding-bottom: 130px !important;
+}
+
+.screen-chat .chat-messages,
+.screen-chat .diario-chat-messages {
+  padding-bottom: 220px;
+}
+
+.screen-chat .chat-composer,
+.screen-chat .diario-chat-composer {
+  bottom: 82px;
+  min-height: 118px;
+  padding: 14px 16px;
+  border-radius: 28px;
+}
+
+.screen-chat .chat-composer textarea,
+.screen-chat .diario-chat-composer textarea,
+.screen-chat .chat-composer input,
+.screen-chat .diario-chat-composer input {
+  font-size: 17px;
+}
+
+.screen-chat .chat-message,
+.screen-chat .diario-message {
+  max-width: 86%;
+}
+
+.screen-chat .chat-message p,
+.screen-chat .diario-message p {
+  font-size: 17px;
+  line-height: 1.32;
+}
+
+.screen-chat .chat-message.from-dominic,
+.screen-chat .diario-message.from-dominic {
+  border-radius: 30px 30px 30px 12px;
+}
+
+.screen-chat .chat-message.from-user,
+.screen-chat .diario-message.from-user {
+  border-radius: 26px 26px 10px 26px;
+}
