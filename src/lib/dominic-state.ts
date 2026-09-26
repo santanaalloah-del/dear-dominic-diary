@@ -1284,24 +1284,27 @@ function candidatesAfter(
 export function createNextDominicState(
   previous: DominicState | null,
   at = new Date(),
-  worldContext: DominicWorldContext[] = []
+  worldContext: DominicWorldContext[] = [],
+  recentActions: DominicRecentAction[] = []
 ): DominicState {
 const candidate = weightedPick(
   applyWorldContextBias(
     applyInternalStateBias(
-      applyRecentPenalty(
-        candidatesAfter(
-          previous,
-          at.getHours()
+      applyDailyHistoryBias(
+        applyRecentPenalty(
+          candidatesAfter(
+            previous,
+            at.getHours()
+          ),
+          previous
         ),
-        previous
+        recentActions
       ),
       previous
     ),
     worldContext
   )
 );
-  
   const [minMinutes, maxMinutes] =
     ACTIVITY_DURATION[
       candidate.activity
