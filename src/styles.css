@@ -12158,3 +12158,127 @@ select {
 .screen-music .music-tabs {
   margin-top: 4px !important;
 }
+
+/* ─────────────────────────────────────────
+   MUSIC · SPOTIFY-LIKE SECTIONS
+   ───────────────────────────────────────── */
+
+.music-section-tabs {
+  display: flex;
+  gap: 7px;
+  margin: 0 18px 14px;
+  padding: 5px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--wine) 7%, transparent);
+}
+
+.music-section-tabs button {
+  flex: 1;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in oklab, var(--ink) 58%, transparent);
+  padding: 8px 6px;
+  font: 10px var(--font-body);
+}
+
+.music-section-tabs button.active {
+  background: var(--paper);
+  color: var(--wine);
+  box-shadow: 0 6px 16px rgb(48 25 22 / 9%);
+}
+
+.music-playlist-board {
+  margin: 0 18px 15px;
+  padding: 16px;
+  border-radius: 26px;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--wine) 18%, transparent),
+      color-mix(in oklab, var(--rose) 18%, transparent)
+    ),
+    var(--paper);
+  box-shadow: 0 16px 36px rgb(48 25 22 / 12%);
+}
+
+.music-playlist-board header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 13px;
+}
+
+.music-playlist-board header span {
+  display: block;
+  font: 9px var(--font-body);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--cherry);
+}
+
+.music-playlist-board header strong {
+  display: block;
+  margin-top: 3px;
+  font: 24px/.95 var(--font-display);
+  color: var(--wine);
+}
+
+.music-playlist-board header small {
+  font: 11px var(--font-body);
+  color: color-mix(in oklab, var(--ink) 58%, transparent);
+}
+
+.music-playlist-cover {
+  width: 132px;
+  height: 132px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  overflow: hidden;
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--wine) 10%, white);
+  box-shadow: 0 12px 24px rgb(48 25 22 / 14%);
+}
+
+.music-playlist-cover img,
+.music-playlist-cover div {
+  width: 100%;
+  height: 100%;
+}
+
+.music-playlist-cover img {
+  object-fit: cover;
+}
+
+.music-playlist-cover div {
+  display: grid;
+  place-items: center;
+  color: var(--wine);
+}
+
+.music-playlist-board p {
+  margin: 13px 0 14px;
+  font: 13px/1.45 var(--font-body);
+  color: color-mix(in oklab, var(--ink) 68%, transparent);
+}
+
+.music-section-panel {
+  margin-top: 0;
+}
+
+.music-favorite-button {
+  border: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--rose) 15%, transparent);
+  color: var(--wine);
+}
+
+.music-favorite-button.active {
+  background: var(--wine);
+  color: var(--cream);
+}
