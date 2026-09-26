@@ -12282,3 +12282,164 @@ select {
   background: var(--wine);
   color: var(--cream);
 }
+
+/* ─────────────────────────────────────────
+   MUSIC · SPOTIFY TOP ROTATION
+   ───────────────────────────────────────── */
+
+.spotify-top-rotation {
+  margin: 0 18px 16px;
+  padding: 15px;
+  border-radius: 26px;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--wine) 12%, transparent),
+      color-mix(in oklab, var(--rose) 15%, transparent)
+    ),
+    var(--paper);
+  box-shadow: 0 14px 32px rgb(48 25 22 / 11%);
+}
+
+.spotify-top-rotation header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.spotify-top-rotation header span {
+  display: block;
+  font: 9px var(--font-body);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--cherry);
+}
+
+.spotify-top-rotation header strong {
+  display: block;
+  margin-top: 3px;
+  font: 22px/.95 var(--font-display);
+  color: var(--wine);
+}
+
+.spotify-top-range-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--wine) 8%, transparent);
+}
+
+.spotify-top-range-tabs button {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: color-mix(in oklab, var(--ink) 58%, transparent);
+  padding: 7px 8px;
+  font: 10px var(--font-body);
+}
+
+.spotify-top-range-tabs button.active {
+  background: var(--paper);
+  color: var(--wine);
+  box-shadow: 0 6px 14px rgb(48 25 22 / 9%);
+}
+
+.spotify-top-rotation > p {
+  margin: 0;
+  font: 13px/1.45 var(--font-body);
+  color: color-mix(in oklab, var(--ink) 65%, transparent);
+}
+
+.spotify-top-list {
+  display: grid;
+  gap: 8px;
+}
+
+.spotify-top-track {
+  display: grid;
+  grid-template-columns: 22px 42px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--paper) 72%, white 28%);
+}
+
+.spotify-top-rank {
+  font: 12px var(--font-body);
+  color: color-mix(in oklab, var(--ink) 50%, transparent);
+  text-align: center;
+}
+
+.spotify-top-cover {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--wine) 9%, white);
+  color: var(--wine);
+}
+
+.spotify-top-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.spotify-top-copy {
+  min-width: 0;
+}
+
+.spotify-top-copy strong {
+  display: block;
+  font: 14px/1.05 var(--font-display);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotify-top-copy span {
+  display: block;
+  margin-top: 3px;
+  font: 11px var(--font-body);
+  color: color-mix(in oklab, var(--ink) 58%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotify-top-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.spotify-top-actions button {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--wine) 12%, transparent);
+  color: var(--wine);
+  min-height: 30px;
+  padding: 0 10px;
+  font: 10px var(--font-body);
+}
+
+.spotify-top-actions button:first-child {
+  width: 32px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.spotify-top-actions button:disabled {
+  opacity: .55;
+}
