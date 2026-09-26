@@ -247,8 +247,50 @@ const photoInputRef =
   const [stickersOpen, setStickersOpen] =
     useState(false);
 
-  const [activeListeningTrack] =
+ const [activeListeningTrack, setActiveListeningTrack] =
   useState<ActiveListeningTrack | null>(null);
+
+useEffect(() => {
+  const loadActiveListeningTrack = () => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const saved = window.localStorage.getItem(
+        "diario-active-listening-track-v1"
+      );
+
+      setActiveListeningTrack(
+        saved ? JSON.parse(saved) : null
+      );
+    } catch {
+      setActiveListeningTrack(null);
+    }
+  };
+
+  loadActiveListeningTrack();
+
+  window.addEventListener(
+    "diario-active-listening-track",
+    loadActiveListeningTrack
+  );
+
+  window.addEventListener(
+    "storage",
+    loadActiveListeningTrack
+  );
+
+  return () => {
+    window.removeEventListener(
+      "diario-active-listening-track",
+      loadActiveListeningTrack
+    );
+
+    window.removeEventListener(
+      "storage",
+      loadActiveListeningTrack
+    );
+  };
+}, []);
 
 const activeListeningLabel =
   activeListeningTrack?.owner === "together"
