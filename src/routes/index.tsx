@@ -1402,20 +1402,23 @@ const displayY =
                     </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="home-object-store"
-                    onClick={() => storeObject(item)}
-                  >
-                    Store
-                    <button
-  type="button"
-  className="home-object-delete"
-  onClick={() => removeObject(item)}
->
-  Delete
-</button>
-                  </button>
+              <div className="home-object-action-row">
+  <button
+    type="button"
+    className="home-object-store"
+    onClick={() => storeObject(item)}
+  >
+    Store
+  </button>
+
+  <button
+    type="button"
+    className="home-object-delete"
+    onClick={() => removeObject(item)}
+  >
+    Delete
+  </button>
+</div>
                 </div>
               )}
             </div>
