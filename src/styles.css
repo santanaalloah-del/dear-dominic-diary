@@ -7893,3 +7893,326 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   font-size: 13px;
   line-height: 1.45;
 }
+
+/* ─────────────────────────────────────────
+   GALLERY · POLISH
+   ───────────────────────────────────────── */
+
+.gallery-screen.gallery-live {
+  min-height: max-content;
+  padding-bottom: 160px;
+}
+
+.gallery-live .screen-intro {
+  padding: 32px 24px 12px;
+}
+
+.gallery-live .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 54px/.84 var(--font-display);
+}
+
+.gallery-live .intro-copy {
+  max-width: 290px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+.gallery-live-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 16px 24px 0;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.gallery-live-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.gallery-live-tabs button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.gallery-library {
+  margin: 18px 22px 0;
+  padding: 18px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 94%, white 6%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  box-shadow: var(--paper-shadow);
+}
+
+.gallery-library > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 15px;
+}
+
+.gallery-library > header span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.gallery-library > header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 29px/.95 var(--font-display);
+}
+
+.gallery-library > header small,
+.gallery-library > header button {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 36%, transparent);
+  color: var(--wine);
+  padding: 7px 10px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.gallery-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 11px;
+}
+
+.gallery-photo-item {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--divider);
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--paper) 82%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.gallery-photo-media {
+  position: relative;
+  aspect-ratio: 1 / 1.18;
+  overflow: hidden;
+}
+
+.gallery-photo-item img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.gallery-photo-item figcaption {
+  padding: 8px 10px 10px;
+}
+
+.gallery-photo-item figcaption small {
+  color: var(--brown-soft);
+  font-size: 10px;
+}
+
+.gallery-favorite-button {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--paper) 82%, white 12%);
+  color: var(--wine);
+  box-shadow: 0 8px 18px oklch(0.22 0.04 35 / 16%);
+  backdrop-filter: blur(8px);
+}
+
+.gallery-favorite-button.active {
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.gallery-empty-stage {
+  margin: 18px 22px 0;
+  padding: 24px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background: color-mix(in oklab, var(--paper) 88%, white 8%);
+  box-shadow: var(--paper-shadow);
+  text-align: center;
+}
+
+.gallery-empty-icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--blush) 42%, transparent);
+  color: var(--cherry);
+}
+
+.gallery-empty-copy small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.gallery-empty-copy h2 {
+  margin: 8px 0;
+  color: var(--wine-deep);
+  font: 400 31px/.95 var(--font-display);
+}
+
+.gallery-empty-copy p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.gallery-live > .gallery-add-button,
+.gallery-library .gallery-add-button,
+.gallery-empty-stage .gallery-add-button {
+  min-height: 42px;
+  margin-top: 16px;
+  padding: 11px 17px;
+}
+
+.gallery-live > .gallery-add-button {
+  width: calc(100% - 44px);
+  margin: 18px 22px 0;
+}
+
+.gallery-album-list {
+  display: grid;
+  gap: 10px;
+}
+
+.gallery-album-item {
+  min-height: 68px;
+  border: 1px solid var(--divider);
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+  padding: 14px;
+  text-align: left;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.gallery-album-item small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.gallery-album-item strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--wine-deep);
+  font: 400 24px/.95 var(--font-display);
+}
+
+.gallery-photo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: oklch(0.15 0.04 25 / 62%);
+  backdrop-filter: blur(10px);
+}
+
+.gallery-photo-modal-card {
+  position: relative;
+  width: min(100%, 360px);
+  overflow: hidden;
+  border-radius: 30px;
+  background: var(--paper);
+  box-shadow: 0 26px 80px oklch(0.1 0.03 30 / 34%);
+}
+
+.gallery-photo-modal-card > img {
+  width: 100%;
+  max-height: 520px;
+  display: block;
+  object-fit: contain;
+  background: var(--brown);
+}
+
+.gallery-photo-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--paper) 86%, white 10%);
+  color: var(--wine);
+  font-size: 22px;
+  box-shadow: 0 8px 18px oklch(0.22 0.04 35 / 18%);
+}
+
+.gallery-photo-modal-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px 16px;
+}
+
+.gallery-photo-modal-info strong {
+  color: var(--wine-deep);
+  font: 400 24px/.95 var(--font-display);
+}
+
+.gallery-photo-modal-info small {
+  display: block;
+  margin-top: 5px;
+  color: var(--brown-soft);
+  font-size: 10px;
+}
+
+.gallery-modal-favorite {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 38%, transparent);
+  color: var(--wine);
+  padding: 9px 12px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.gallery-modal-favorite.active {
+  background: var(--wine);
+  color: var(--cream);
+}
