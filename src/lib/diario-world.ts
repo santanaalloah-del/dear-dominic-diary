@@ -2263,3 +2263,22 @@ export async function restoreHomeObject({
 
   return data as DiarioItem;
 }
+
+export async function deleteHomeObject({
+  userId,
+  objectId,
+}: {
+  userId: string;
+  objectId: string;
+}) {
+  const { error } = await diarioSupabase
+    .from("diario_items")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", objectId)
+    .eq("kind", "home_object");
+
+  if (error) {
+    throw error;
+  }
+}
