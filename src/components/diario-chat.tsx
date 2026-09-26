@@ -42,6 +42,10 @@ import {
   type DominicState,
 } from "@/lib/dominic-state";
 import { useTimeMood } from "@/lib/time-mood";
+import {
+  getDates,
+  type DiarioItem,
+} from "@/lib/diario-world";
 import dominic from "@/assets/dominic-candid.jpg";
 
 type MessageKind = "text" | "voice" | "photo";
@@ -238,6 +242,17 @@ const photoInputRef =
   const [dominicState, setDominicState] =
   useState<DominicState | null>(null);
 
+  const [nearbyCommitments, setNearbyCommitments] =
+  useState<
+    {
+      kind: DiarioItem["kind"];
+      title: string | null;
+      note: string | null;
+      plannedFor: string | null;
+      place: string | null;
+    }[]
+  >([]);
+
 useEffect(() => {
   let cancelled = false;
 
@@ -264,6 +279,57 @@ useEffect(() => {
   return () => {
     cancelled = true;
     window.clearInterval(timer);
+  };
+}, [session.user.id]);
+
+  useEffect(() => {
+  let cancelled = false;
+
+  const loadNearbyCommitments = async () => {
+    const dates =
+      await getDates(session.user.id);
+
+    const now = Date.now();
+    const pastWindow =
+      now - 3 * 60 * 60_000;
+    const futureWindow =
+      now + 48 * 60 * 60_000;
+
+    const nearby = dates
+      .filter((item) => {
+        if (!item.planned_for) {
+          return false;
+        }
+
+        const time =
+          new Date(item.planned_for).getTime();
+
+        return (
+          time >= pastWindow &&
+          time <= futureWindow
+        );
+      })
+      .slice(0, 5)
+      .map((item) => ({
+        kind: item.kind,
+        title: item.title,
+        note: item.body,
+        plannedFor: item.planned_for,
+        place:
+          typeof item.data?.place === "string"
+            ? item.data.place
+            : null,
+      }));
+
+    if (!cancelled) {
+      setNearbyCommitments(nearby);
+    }
+  };
+
+  void loadNearbyCommitments();
+
+  return () => {
+    cancelled = true;
   };
 }, [session.user.id]);
 
@@ -672,6 +738,7 @@ async function flushPendingMessages() {
         nextChangeAt: dominicState.nextChangeAt,
       }
     : null,
+  nearbyCommitments,
 },
         }
       );
