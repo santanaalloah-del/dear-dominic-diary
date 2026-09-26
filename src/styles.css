@@ -7371,3 +7371,159 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   font-size: 11px;
   font-weight: 800;
 }
+/* ─────────────────────────────────────────
+   CHAT · POLISH
+   ───────────────────────────────────────── */
+
+.chat-screen,
+.diario-chat {
+  min-height: calc(100dvh - 34px);
+  padding-bottom: 110px;
+}
+
+.diario-chat {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header,
+.diario-chat-header {
+  margin: 18px 22px 0;
+  padding: 16px 17px;
+  border: 1px solid var(--divider);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 88%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.chat-header small,
+.diario-chat-header small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.chat-header strong,
+.diario-chat-header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 28px/.95 var(--font-display);
+}
+
+.chat-header p,
+.diario-chat-header p {
+  margin: 8px 0 0;
+  color: var(--brown-soft);
+  font: italic 13px/1.35 var(--font-display);
+}
+
+.chat-messages,
+.diario-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 18px 22px 18px;
+}
+
+.chat-message,
+.diario-message {
+  max-width: 82%;
+  padding: 12px 14px;
+  border-radius: 22px;
+  font-size: 13px;
+  line-height: 1.42;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.chat-message.mine,
+.diario-message.mine,
+.chat-message.user,
+.diario-message.user {
+  align-self: flex-end;
+  border-bottom-right-radius: 8px;
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.chat-message.dominic,
+.diario-message.dominic,
+.chat-message.assistant,
+.diario-message.assistant {
+  align-self: flex-start;
+  border-bottom-left-radius: 8px;
+  background: color-mix(in oklab, var(--paper) 88%, white 8%);
+  color: var(--brown);
+  border: 1px solid var(--divider);
+}
+
+.chat-message time,
+.diario-message time {
+  display: block;
+  margin-top: 6px;
+  opacity: .6;
+  font-size: 9px;
+}
+
+.chat-composer,
+.diario-chat-composer {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: auto;
+  padding: 12px 18px 18px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--cream) 0%, transparent),
+      color-mix(in oklab, var(--cream) 94%, white 4%) 28%,
+      color-mix(in oklab, var(--paper) 96%, white 2%)
+    );
+  border-top: 1px solid var(--divider);
+  backdrop-filter: blur(12px);
+}
+
+.chat-composer textarea,
+.diario-chat-composer textarea,
+.chat-composer input,
+.diario-chat-composer input {
+  flex: 1;
+  min-height: 44px;
+  max-height: 120px;
+  border: 1px solid var(--divider);
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--paper) 88%, white 10%);
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+  color: var(--brown);
+  font-size: 13px;
+  line-height: 1.35;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 45%, transparent);
+}
+
+.chat-composer button,
+.diario-chat-composer button {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 24px oklch(0.22 0.06 20 / 16%);
+}
+
+.chat-composer button:disabled,
+.diario-chat-composer button:disabled {
+  opacity: .45;
+}
