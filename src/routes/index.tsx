@@ -42,6 +42,17 @@ import {
   type SpotifyTrack,
 } from "@/lib/spotify";
 import {
+  addSpotifyUriToQueue,
+  initializeSpotifyPlayer,
+  nextSpotifyTrack,
+  pauseSpotifyPlayback,
+  playSpotifyUri,
+  previousSpotifyTrack,
+  resumeSpotifyPlayback,
+  subscribeSpotifyPlayer,
+  type DiarioSpotifyState,
+} from "@/lib/spotify-player";
+import {
   useTimeMood,
   type TimeMoodState,
 } from "@/lib/time-mood";
@@ -6603,6 +6614,12 @@ function MusicScreen({
   const [musicError, setMusicError] =
     useState<string | null>(null);
 
+  const [spotifyPlayerState, setSpotifyPlayerState] =
+  useState<DiarioSpotifyState | null>(null);
+
+const [spotifyPlayerLoading, setSpotifyPlayerLoading] =
+  useState(false);
+
   const [addingSong, setAddingSong] =
     useState(false);
 
@@ -6669,6 +6686,15 @@ const searchSpotify = async () => {
   setSpotifyResults([]);
   setSpotifyQuery(track.name);
 };
+
+  useEffect(() => {
+  const unsubscribe =
+    subscribeSpotifyPlayer((state) => {
+      setSpotifyPlayerState(state);
+    });
+
+  return unsubscribe;
+}, []);
   
   useEffect(() => {
     let active = true;
@@ -6722,17 +6748,19 @@ const searchSpotify = async () => {
         ownerForView
     );
 
-  const startListeningToSong = ({
+ const startListeningToSong = async ({
   song,
   artist,
   coverUrl,
   spotifyUrl,
+  spotifyUri,
   owner,
 }: {
   song: DiarioItem;
   artist: string;
   coverUrl: string | null;
   spotifyUrl: string | null;
+  spotifyUri: string | null;
   owner: "alloah" | "dominic" | "together";
 }) => {
   if (typeof window === "undefined") return;
@@ -6752,12 +6780,34 @@ const searchSpotify = async () => {
     new Event("diario-active-listening-track")
   );
 
-  if (spotifyUrl) {
-    window.open(
-      spotifyUrl,
-      "_blank",
-      "noopener,noreferrer"
+  if (!spotifyUri) {
+    if (spotifyUrl) {
+      window.open(
+        spotifyUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    }
+
+    return;
+  }
+
+  setSpotifyPlayerLoading(true);
+  setMusicError(null);
+
+  try {
+    await initializeSpotifyPlayer();
+    await playSpotifyUri(spotifyUri);
+  } catch (error) {
+    console.error(error);
+
+    setMusicError(
+      error instanceof Error
+        ? error.message
+        : "Spotify player could not start."
     );
+  } finally {
+    setSpotifyPlayerLoading(false);
   }
 };
   
@@ -7128,6 +7178,12 @@ const spotifyUrl =
     ? song.data.spotifyUrl
     : null;
                 
+                const spotifyUri =
+  typeof song.data?.spotifyUri ===
+  "string"
+    ? song.data.spotifyUri
+    : null;
+                
                 return (
                   <article
                     key={song.id}
@@ -7203,6 +7259,7 @@ const spotifyUrl =
       artist,
       coverUrl,
       spotifyUrl,
+      spotifyUri,
       owner:
         musicView === "mine"
           ? "alloah"
@@ -7212,10 +7269,14 @@ const spotifyUrl =
     })
   }
 >
+ {spotifyPlayerLoading ? (
+  "…"
+) : (
   <Play
     size={16}
     fill="currentColor"
   />
+)}
 </button>
                   </article>
                 );
