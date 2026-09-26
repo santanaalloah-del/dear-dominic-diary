@@ -6382,17 +6382,6 @@ const markAsLived = async (
             after they actually happen.
           </p>
 
-          {dateView !== "lived" && (
-            <button
-              type="button"
-              className="gallery-add-button"
-              onClick={() =>
-                setPlanningDate(true)
-              }
-            >
-              ＋ Plan a date
-            </button>
-          )}
         </section>
       ) : (
         <>
@@ -6497,15 +6486,6 @@ const markAsLived = async (
             )}
           </div>
 
-          <button
-            type="button"
-            className="gallery-add-button"
-            onClick={() =>
-              setPlanningDate(true)
-            }
-          >
-            ＋ Plan another date
-          </button>
         </>
       )}
 
