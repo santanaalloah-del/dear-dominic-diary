@@ -439,6 +439,55 @@ export async function recordDominicAction(
   if (error) throw error;
 }
 
+export type DominicRecentAction = {
+  activity: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  status: string;
+  payload: unknown;
+};
+
+export async function loadRecentDominicActions(
+  userId: string
+): Promise<DominicRecentAction[]> {
+  const since =
+    new Date(
+      Date.now() -
+        24 * 60 * 60 * 1000
+    ).toISOString();
+
+  const { data, error } =
+    await supabase
+      .from("character_actions")
+      .select(
+        "action_type,executed_at,completed_at,status,payload,created_at"
+      )
+      .eq("user_id", userId)
+      .eq("character_name", "Dominic")
+      .eq(
+        "source_type",
+        "autonomy_engine"
+      )
+      .eq("source_id", "dominic")
+      .gte("created_at", since)
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(40);
+
+  if (error) throw error;
+
+  return (data ?? []).map(
+    (item) => ({
+      activity: item.action_type,
+      startedAt: item.executed_at,
+      completedAt: item.completed_at,
+      status: item.status,
+      payload: item.payload,
+    })
+  );
+}
+
 type DominicCandidate = {
   activity: DominicActivity;
   location: DominicLocation;
