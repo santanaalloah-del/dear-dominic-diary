@@ -26,6 +26,15 @@ import {
   Menu,
   Music2,
   Play,
+    ListPlus,
+  Music2,
+  Pause,
+  Play,
+  Send,
+  Settings,
+  Shirt,
+  SkipBack,
+  SkipForward,
   Send,
   Settings,
   Shirt,
@@ -7221,7 +7230,8 @@ setAddingSong(false);
     void refreshSpotifyQueue();
   }}
 >
-  queue
+  <ListPlus size={13} />
+  <span>play next</span>
 </button>
 
       <button
