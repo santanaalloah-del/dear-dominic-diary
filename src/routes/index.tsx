@@ -773,6 +773,25 @@ const addFurniture = async () => {
     await loadObjects();
   };
 
+  const moveObjectHere = async (item: DiarioItem) => {
+  if (!session?.user?.id) return;
+
+  await updateHomeObjectPlacement({
+    userId: session.user.id,
+    objectId: item.id,
+    room: roomId,
+    x: Number(item.data?.x ?? 50),
+    y: Number(item.data?.y ?? 70),
+    scale: Number(item.data?.scale ?? 1),
+  });
+
+  setShowThings(false);
+  setArranging(true);
+
+  await loadObjects();
+};
+  
+
   const removeObject = async (item: DiarioItem) => {
   if (!session?.user?.id) return;
 
@@ -929,6 +948,9 @@ placeholder="Object name"
                 const stored =
                   item.data?.location === "stored";
 
+              const currentRoom =
+  item.data?.room === roomId;
+
                 return (
                   <div
                     className="our-things-item"
@@ -958,17 +980,28 @@ placeholder="Object name"
                     {stored ? (
                       <button
                         type="button"
-                        onClick={() => restoreObject(item)}
-                      >
-                        Place here
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => storeObject(item)}
-                      >
-                        Store
-                      </button>
+{stored ? (
+  <button
+    type="button"
+    onClick={() => restoreObject(item)}
+  >
+    Place here
+  </button>
+) : currentRoom ? (
+  <button
+    type="button"
+    onClick={() => storeObject(item)}
+  >
+    Store
+  </button>
+) : (
+  <button
+    type="button"
+    onClick={() => moveObjectHere(item)}
+  >
+    Move here
+  </button>
+)}
                     )}
                   </div>
                 );
