@@ -44,7 +44,8 @@ export type DominicState = {
   location: DominicLocation;
   activity: DominicActivity;
   detail?: string;
-  mood?: string;
+  mood?: DominicMood;
+energy?: number;
 
   recent?: Array<{
   activity: DominicActivity;
