@@ -2,7 +2,7 @@ const SPOTIFY_CLIENT_ID =
   "39401033dc1a4636a9e49e37674c8967";
 
 const SPOTIFY_REDIRECT_URI =
-  "https://e90b5e86-41ae-492f-a282-0a1dd34a6e61.lovableproject.com/";
+  "https://dear-dominic-diary.vercel.app/";
 
 const SPOTIFY_TOKEN_KEY =
   "diario_spotify_token";
