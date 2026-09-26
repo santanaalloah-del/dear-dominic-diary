@@ -11855,3 +11855,40 @@ select {
   object-fit: cover;
   border-radius: inherit;
 }
+
+/* ─────────────────────────────────────────
+   MUSIC · LISTENING INVITE IN CHAT
+   ───────────────────────────────────────── */
+
+.chat-now-playing {
+  display: grid;
+  gap: 8px;
+}
+
+.chat-now-playing-main {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 0;
+}
+
+.chat-now-playing-actions {
+  display: flex;
+  gap: 8px;
+  padding-left: 46px;
+}
+
+.chat-now-playing-actions button {
+  border: 1px solid color-mix(in oklab, var(--chat-ink) 16%, transparent);
+  background: color-mix(in oklab, var(--chat-panel) 82%, white 18%);
+  color: var(--chat-ink);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font: 10px var(--font-body);
+  text-transform: lowercase;
+}
