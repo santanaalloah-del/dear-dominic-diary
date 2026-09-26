@@ -9501,3 +9501,436 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   font-size: 12px;
   line-height: 1.45;
 }
+
+/* ─────────────────────────────────────────
+   PLACES + KEEPSAKES · POLISH
+   ───────────────────────────────────────── */
+
+.places-screen.places-live,
+.keepsakes-screen.keepsakes-live {
+  min-height: max-content;
+  padding-bottom: 165px;
+}
+
+.places-live .screen-intro,
+.keepsakes-live .screen-intro {
+  padding: 32px 24px 12px;
+}
+
+.places-live .screen-intro h1,
+.keepsakes-live .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 52px/.84 var(--font-display);
+}
+
+.places-live .intro-copy,
+.keepsakes-live .intro-copy {
+  max-width: 290px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+/* Places */
+
+.places-live .dates-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 16px 24px 0;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.places-live .dates-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.places-live .dates-tabs button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.places-live .dates-empty,
+.places-live .date-life-cycle {
+  margin: 18px 22px 0;
+  padding: 22px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 90%, white 8%);
+  box-shadow: var(--paper-shadow);
+}
+
+.places-live .dates-empty small,
+.places-live .date-life-cycle header span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.places-live .dates-empty h2,
+.places-live .date-life-cycle header strong {
+  display: block;
+  margin: 8px 0;
+  color: var(--wine-deep);
+  font: 400 32px/.95 var(--font-display);
+}
+
+.places-live .dates-empty p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.places-live .dates-empty input,
+.places-live .dates-empty textarea,
+.places-live .dates-empty select {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  padding: 13px 14px;
+  color: var(--brown);
+  outline: none;
+}
+
+.places-live .dates-empty input + input,
+.places-live .dates-empty input + select,
+.places-live .dates-empty select + select,
+.places-live .dates-empty select + textarea,
+.places-live .dates-empty textarea {
+  margin-top: 10px;
+}
+
+.places-live .dates-list {
+  display: grid;
+  gap: 13px;
+  margin: 20px 22px 0;
+}
+
+.places-live .date-card {
+  border-radius: 28px;
+}
+
+.places-live .date-card header strong {
+  font-size: 27px;
+}
+
+.places-live .date-place {
+  margin-top: 12px;
+}
+
+.places-live > .gallery-add-button {
+  width: calc(100% - 44px);
+  min-height: 42px;
+  margin: 18px 22px 0;
+  padding: 11px 17px;
+}
+
+.places-live .date-life-cycle > div {
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.places-live .date-life-cycle article {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+}
+
+.places-live .date-life-cycle article svg {
+  color: var(--cherry);
+}
+
+.places-live .date-life-cycle article strong {
+  display: block;
+  color: var(--wine);
+  font-size: 12px;
+}
+
+.places-live .date-life-cycle article small {
+  display: block;
+  margin-top: 2px;
+  color: var(--brown-soft);
+  font-size: 10px;
+}
+
+/* Keepsakes */
+
+.keepsakes-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 16px 24px 0;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.keepsakes-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.keepsakes-tabs button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.keepsakes-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 11px;
+  margin: 18px 22px 0;
+}
+
+.keepsakes-summary div {
+  padding: 16px;
+  border: 1px solid var(--divider);
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--paper) 88%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.keepsakes-summary span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.keepsakes-summary strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 34px/.9 var(--font-display);
+}
+
+.keepsakes-empty,
+.keepsake-life,
+.keepsakes-rule {
+  margin: 18px 22px 0;
+  padding: 22px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 90%, white 8%);
+  box-shadow: var(--paper-shadow);
+}
+
+.keepsakes-empty-icon {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--blush) 42%, transparent);
+  color: var(--cherry);
+}
+
+.keepsakes-empty small,
+.keepsake-card header span,
+.keepsake-life header span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.keepsakes-empty h2,
+.keepsake-life header strong {
+  display: block;
+  margin: 8px 0;
+  color: var(--wine-deep);
+  font: 400 32px/.95 var(--font-display);
+}
+
+.keepsakes-empty p,
+.keepsakes-rule p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.keepsakes-empty input,
+.keepsakes-empty textarea,
+.keepsakes-empty select {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  padding: 13px 14px;
+  color: var(--brown);
+  outline: none;
+}
+
+.keepsakes-empty input + input,
+.keepsakes-empty input + select,
+.keepsakes-empty select + select,
+.keepsakes-empty select + input,
+.keepsakes-empty input + textarea,
+.keepsakes-empty textarea {
+  margin-top: 10px;
+}
+
+.keepsakes-list {
+  display: grid;
+  gap: 13px;
+  margin: 20px 22px 0;
+}
+
+.keepsake-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--divider);
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--paper) 92%, white 8%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  box-shadow: var(--paper-shadow-soft);
+  padding: 17px;
+}
+
+.keepsake-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--cherry);
+  opacity: .7;
+}
+
+.keepsake-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.keepsake-card header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 27px/.95 var(--font-display);
+}
+
+.keepsake-card header svg {
+  color: var(--brown-soft);
+}
+
+.keepsake-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 13px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 34%, transparent);
+  color: var(--wine);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.keepsake-card time {
+  display: block;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font-size: 11px;
+}
+
+.keepsake-card p {
+  margin: 12px 0 0;
+  color: var(--brown);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.keepsake-card > small {
+  display: block;
+  margin-top: 9px;
+  color: var(--brown-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.keepsake-card .gallery-add-button,
+.keepsakes-live > .gallery-add-button {
+  min-height: 42px;
+  margin-top: 15px;
+  padding: 11px 17px;
+}
+
+.keepsakes-live > .gallery-add-button {
+  width: calc(100% - 44px);
+  margin: 18px 22px 0;
+}
+
+.keepsake-life > div {
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.keepsake-life article {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+}
+
+.keepsake-life article svg {
+  color: var(--cherry);
+}
+
+.keepsake-life article strong {
+  display: block;
+  color: var(--wine);
+  font-size: 12px;
+}
+
+.keepsake-life article small {
+  display: block;
+  margin-top: 2px;
+  color: var(--brown-soft);
+  font-size: 10px;
+}
