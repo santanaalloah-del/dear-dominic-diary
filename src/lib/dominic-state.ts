@@ -277,6 +277,57 @@ export async function saveDominicState(
   if (insertError) throw insertError;
 }
 
+export async function syncDominicActiveContext(
+  userId: string,
+  state: DominicState
+) {
+  const { data: existing } =
+    await supabase
+      .from("active_context")
+      .select("id")
+      .eq("user_id", userId)
+      .eq(
+        "context_type",
+        "dominic_live_state"
+      )
+      .eq("source_id", "dominic")
+      .limit(1)
+      .maybeSingle();
+
+  const payload = {
+    activity: state.activity,
+    place: state.location,
+    state,
+    status: "active",
+    started_at: state.startedAt,
+    last_activity_at:
+      new Date().toISOString(),
+    context_type:
+      "dominic_live_state",
+    source_type:
+      "autonomy_engine",
+    source_id: "dominic",
+    title: "Dominic",
+  };
+
+  if (existing) {
+    await supabase
+      .from("active_context")
+      .update(payload)
+      .eq("id", existing.id)
+      .eq("user_id", userId);
+
+    return;
+  }
+
+  await supabase
+    .from("active_context")
+    .insert({
+      user_id: userId,
+      ...payload,
+    });
+}
+
 type DominicCandidate = {
   activity: DominicActivity;
   location: DominicLocation;
