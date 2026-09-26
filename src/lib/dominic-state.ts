@@ -617,6 +617,74 @@ function applyInternalStateBias(
   });
 }
 
+function applyWorldContextBias(
+  candidates: DominicCandidate[],
+  worldContext: DominicWorldContext[]
+): DominicCandidate[] {
+  if (worldContext.length === 0) {
+    return candidates;
+  }
+
+  const togetherContext =
+    worldContext.find(
+      (item) => item.togetherNow === true
+    );
+
+  const sharedPlace =
+    togetherContext?.place;
+
+  const sharedActivity =
+    togetherContext?.activity;
+
+  return candidates.map((candidate) => {
+    let weight = candidate.weight;
+
+    if (togetherContext) {
+      if (
+        candidate.activity ===
+        sharedActivity
+      ) {
+        weight *= 2.2;
+      }
+
+      if (
+        candidate.location ===
+        sharedPlace
+      ) {
+        weight *= 1.8;
+      }
+
+      if (
+        [
+          "relaxing",
+          "eating",
+          "listening_to_music",
+          "watching_something",
+          "playing_guitar",
+        ].includes(candidate.activity)
+      ) {
+        weight *= 1.25;
+      }
+
+      if (
+        [
+          "leaving_home",
+          "working",
+          "shopping",
+          "with_friends",
+        ].includes(candidate.activity)
+      ) {
+        weight *= 0.45;
+      }
+    }
+
+    return {
+      ...candidate,
+      weight,
+    };
+  });
+}
+
 function evolveInternalState(
   previous: DominicState | null,
   activity: DominicActivity,
