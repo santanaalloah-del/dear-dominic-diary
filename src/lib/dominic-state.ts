@@ -997,6 +997,23 @@ const isOutCommitment =
     let weight = candidate.weight;
 
     if (
+  isHomeCommitment &&
+  nearby.minutesUntil <= 45 &&
+  nearby.minutesUntil >= -30
+) {
+  if (candidate.location !== "out") {
+    weight *= 1.6;
+  }
+
+  if (
+    candidate.activity ===
+    "leaving_home"
+  ) {
+    weight *= 0.2;
+  }
+}
+
+    if (
 isOutCommitment &&
       nearby.minutesUntil <= 45 &&
   nearby.minutesUntil >= -30 &&
