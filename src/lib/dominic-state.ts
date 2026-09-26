@@ -488,6 +488,154 @@ export async function loadRecentDominicActions(
   );
 }
 
+export type DominicCommitment = {
+  id: string;
+  kind: string;
+  owner: string;
+  title: string | null;
+  plannedFor: string;
+  data: unknown;
+};
+
+export async function loadDominicCommitments(
+  userId: string,
+  at = new Date()
+): Promise<DominicCommitment[]> {
+  const windowStart =
+    new Date(
+      at.getTime() -
+        48 * 60 * 60 * 1000
+    ).toISOString();
+
+  const windowEnd =
+    new Date(
+      at.getTime() +
+        48 * 60 * 60 * 1000
+    ).toISOString();
+
+  const { data, error } =
+    await supabase
+      .from("diario_items")
+      .select(
+        "id,kind,owner,title,planned_for,data"
+      )
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .in("kind", [
+        "date",
+        "plan",
+      ])
+      .in("owner", [
+        "dominic",
+        "shared",
+      ])
+      .not(
+        "planned_for",
+        "is",
+        null
+      )
+      .gte(
+        "planned_for",
+        windowStart
+      )
+      .lte(
+        "planned_for",
+        windowEnd
+      )
+      .order("planned_for", {
+        ascending: true,
+      })
+      .limit(30);
+
+  if (error) throw error;
+
+  return (data ?? []).map(
+    (item) => ({
+      id: item.id,
+      kind: item.kind,
+      owner: item.owner,
+      title: item.title,
+      plannedFor:
+        item.planned_for as string,
+      data: item.data,
+    })
+  );
+}
+
+export type DominicCommitment = {
+  id: string;
+  kind: string;
+  owner: string;
+  title: string | null;
+  plannedFor: string;
+  data: unknown;
+};
+
+export async function loadDominicCommitments(
+  userId: string,
+  at = new Date()
+): Promise<DominicCommitment[]> {
+  const windowStart =
+    new Date(
+      at.getTime() -
+        48 * 60 * 60 * 1000
+    ).toISOString();
+
+  const windowEnd =
+    new Date(
+      at.getTime() +
+        48 * 60 * 60 * 1000
+    ).toISOString();
+
+  const { data, error } =
+    await supabase
+      .from("diario_items")
+      .select(
+        "id,kind,owner,title,planned_for,data"
+      )
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .in("kind", [
+        "date",
+        "plan",
+      ])
+      .in("owner", [
+        "dominic",
+        "shared",
+      ])
+      .not(
+        "planned_for",
+        "is",
+        null
+      )
+      .gte(
+        "planned_for",
+        windowStart
+      )
+      .lte(
+        "planned_for",
+        windowEnd
+      )
+      .order("planned_for", {
+        ascending: true,
+      })
+      .limit(30);
+
+  if (error) throw error;
+
+  return (data ?? []).map(
+    (item) => ({
+      id: item.id,
+      kind: item.kind,
+      owner: item.owner,
+      title: item.title,
+      plannedFor:
+        item.planned_for as string,
+      data: item.data,
+    })
+  );
+}
+
 type DominicCandidate = {
   activity: DominicActivity;
   location: DominicLocation;
