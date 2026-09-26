@@ -8514,3 +8514,273 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   margin-top: 16px;
   padding: 11px 17px;
 }
+
+/* ─────────────────────────────────────────
+   LETTERS · ENVELOPE DRAWER POLISH
+   ───────────────────────────────────────── */
+
+.letters-screen.letters-live {
+  min-height: max-content;
+  padding-bottom: 165px;
+}
+
+.letters-live .screen-intro {
+  padding: 32px 24px 12px;
+}
+
+.letters-live .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 52px/.84 var(--font-display);
+}
+
+.letters-live .intro-copy {
+  max-width: 285px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+.letters-filter {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 16px 24px 0;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.letters-filter button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.letters-filter button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.letters-empty-stage,
+.letters-drawer {
+  margin: 18px 22px 0;
+  padding: 22px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 90%, white 8%);
+  box-shadow: var(--paper-shadow);
+}
+
+.letters-empty-envelope {
+  position: relative;
+  width: 112px;
+  height: 76px;
+  margin: 0 auto 18px;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  border: 1px solid color-mix(in oklab, var(--wine) 16%, var(--divider));
+  box-shadow: 0 14px 26px oklch(0.22 0.04 35 / 11%);
+}
+
+.letters-envelope-flap,
+.letter-envelope-flap {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(0 0, 50% 55%, 100% 0);
+  background: color-mix(in oklab, var(--blush) 38%, var(--paper));
+  border-radius: inherit;
+}
+
+.letters-envelope-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--cherry);
+}
+
+.letters-empty-copy small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.letters-empty-copy h2,
+.letters-empty-stage h2 {
+  margin: 8px 0;
+  color: var(--wine-deep);
+  font: 400 32px/.95 var(--font-display);
+}
+
+.letters-empty-copy p,
+.letters-empty-stage p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.letters-editor input,
+.letters-editor textarea {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  padding: 13px 14px;
+  color: var(--brown);
+  outline: none;
+}
+
+.letters-editor textarea {
+  margin-top: 10px;
+  resize: vertical;
+}
+
+.letters-write-button {
+  min-height: 42px;
+  margin-top: 16px;
+  padding: 11px 17px;
+}
+
+.letters-drawer > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.letters-drawer > header span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.letters-drawer > header strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 29px/.95 var(--font-display);
+}
+
+.letters-drawer > header small {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 36%, transparent);
+  color: var(--wine);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.letters-saved-list {
+  display: grid;
+  gap: 12px;
+}
+
+.letters-saved-item {
+  overflow: hidden;
+  border: 1px solid var(--divider);
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--cream) 60%, transparent);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.letter-envelope-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  align-items: center;
+  gap: 13px;
+  padding: 14px;
+  text-align: left;
+}
+
+.letter-envelope-visual {
+  position: relative;
+  width: 58px;
+  height: 42px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--paper) 82%, white 8%);
+  border: 1px solid color-mix(in oklab, var(--wine) 14%, var(--divider));
+  color: var(--cherry);
+}
+
+.letter-envelope-copy small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.letter-envelope-copy strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--wine-deep);
+  font: 400 23px/.95 var(--font-display);
+}
+
+.letter-envelope-copy span {
+  display: block;
+  margin-top: 5px;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.letters-saved-item.is-opened {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 92%, white 6%),
+      color-mix(in oklab, var(--cream) 86%, white 4%)
+    );
+}
+
+.letter-open-content {
+  margin: 0 14px 14px;
+  padding: 16px;
+  border-radius: 20px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0,
+      transparent 30px,
+      color-mix(in oklab, var(--brown-soft) 12%, transparent) 31px
+    ),
+    color-mix(in oklab, var(--paper) 88%, white 8%);
+  border: 1px solid var(--divider);
+}
+
+.letter-open-content p {
+  margin: 0;
+  color: var(--brown);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.letter-open-content time {
+  display: block;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font-size: 10px;
+}
