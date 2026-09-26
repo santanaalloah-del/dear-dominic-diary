@@ -1163,6 +1163,11 @@ function homeCandidates(
       location: "living",
       weight: 0.7,
     },
+    {
+  activity: "getting_ready",
+  location: "bedroom",
+  weight: 0.35,
+},
   ];
 
   if (hour >= 5 && hour < 11) {
