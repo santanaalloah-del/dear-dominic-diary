@@ -204,6 +204,12 @@ const roomSepia =
   daylight *
   Math.abs(daylightProgress - 0.5) *
   0.8;
+
+  const nightOpacity =
+  (1 - daylight) * 0.34;
+
+const homePlanBrightness =
+  0.68 + daylight * 0.32;
   
   const detail = !primaryScreens.includes(screen);
   useEffect(() => {
