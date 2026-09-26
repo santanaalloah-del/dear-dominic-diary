@@ -9934,3 +9934,307 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   color: var(--brown-soft);
   font-size: 10px;
 }
+
+/* ─────────────────────────────────────────
+   WARDROBE · CLOSET + LOOKS POLISH
+   ───────────────────────────────────────── */
+
+.wardrobe-screen.wardrobe-live {
+  min-height: max-content;
+  padding-bottom: 165px;
+}
+
+.wardrobe-live .screen-intro {
+  padding: 32px 24px 12px;
+}
+
+.wardrobe-live .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 52px/.84 var(--font-display);
+}
+
+.wardrobe-live .intro-copy {
+  max-width: 292px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+.wardrobe-owner-tabs,
+.wardrobe-view-tabs {
+  display: grid;
+  gap: 4px;
+  margin: 16px 24px 0;
+  padding: 4px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.wardrobe-owner-tabs {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.wardrobe-view-tabs {
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: 10px;
+}
+
+.wardrobe-owner-tabs button,
+.wardrobe-view-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.wardrobe-owner-tabs button.active,
+.wardrobe-view-tabs button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.wardrobe-closet,
+.wardrobe-looks,
+.wardrobe-date-link,
+.wardrobe-rule {
+  margin: 18px 22px 0;
+  padding: 18px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 94%, white 6%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  box-shadow: var(--paper-shadow);
+}
+
+.wardrobe-closet > header,
+.wardrobe-looks > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 15px;
+}
+
+.wardrobe-closet > header span,
+.wardrobe-looks > header span,
+.wardrobe-empty small,
+.wardrobe-look-empty small,
+.wardrobe-look span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.wardrobe-closet > header strong,
+.wardrobe-looks > header strong,
+.wardrobe-empty h2,
+.wardrobe-look-empty h2 {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 31px/.95 var(--font-display);
+}
+
+.wardrobe-closet > header small,
+.wardrobe-looks > header small {
+  align-self: flex-start;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 36%, transparent);
+  color: var(--wine);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.wardrobe-empty,
+.wardrobe-look-empty {
+  padding: 20px;
+  border: 1px solid var(--divider);
+  border-radius: 25px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 88%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.wardrobe-empty-icon {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--blush) 42%, transparent);
+  color: var(--cherry);
+}
+
+.wardrobe-empty p,
+.wardrobe-look-empty p,
+.wardrobe-rule p,
+.wardrobe-date-link p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.wardrobe-empty input,
+.wardrobe-empty textarea,
+.wardrobe-empty select,
+.wardrobe-look-empty input,
+.wardrobe-look-empty textarea,
+.wardrobe-look-empty select {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  padding: 13px 14px;
+  color: var(--brown);
+  outline: none;
+}
+
+.wardrobe-empty input + select,
+.wardrobe-empty select + textarea,
+.wardrobe-empty textarea,
+.wardrobe-look-empty input + textarea,
+.wardrobe-look-empty textarea {
+  margin-top: 10px;
+}
+
+.wardrobe-add-button,
+.wardrobe-create-look {
+  min-height: 42px;
+  margin-top: 15px;
+  padding: 11px 17px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  font-weight: 800;
+  box-shadow: 0 10px 24px oklch(0.22 0.06 20 / 16%);
+}
+
+.wardrobe-item-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 11px;
+}
+
+.wardrobe-item {
+  min-height: 122px;
+  border: 1px solid var(--divider);
+  border-radius: 23px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 88%, white 8%),
+      color-mix(in oklab, var(--cream) 84%, white 5%)
+    );
+  padding: 13px;
+  text-align: left;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.wardrobe-item.active {
+  border-color: color-mix(in oklab, var(--cherry) 55%, var(--divider));
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 50%, transparent), transparent 54%),
+    color-mix(in oklab, var(--paper) 88%, white 8%);
+}
+
+.wardrobe-item-image {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--blush) 40%, transparent);
+  color: var(--cherry);
+}
+
+.wardrobe-item strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 22px/.95 var(--font-display);
+}
+
+.wardrobe-item small {
+  display: block;
+  margin-top: 4px;
+  color: var(--brown-soft);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.wardrobe-look-list {
+  display: grid;
+  gap: 12px;
+}
+
+.wardrobe-look {
+  border: 1px solid var(--divider);
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--paper) 92%, white 8%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  box-shadow: var(--paper-shadow-soft);
+  padding: 16px;
+}
+
+.wardrobe-look strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--wine-deep);
+  font: 400 27px/.95 var(--font-display);
+}
+
+.wardrobe-look small {
+  display: block;
+  margin-top: 8px;
+  color: var(--brown-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.wardrobe-date-link {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+
+.wardrobe-date-link svg {
+  flex: 0 0 auto;
+  color: var(--cherry);
+  margin-top: 2px;
+}
+
+.wardrobe-date-link strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--wine-deep);
+  font: 400 23px/.95 var(--font-display);
+}
+
+.wardrobe-rule {
+  padding: 16px;
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+}
