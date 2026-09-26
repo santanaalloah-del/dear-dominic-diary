@@ -6547,3 +6547,19 @@ opacity: var(--sun-opacity, 0.8);
   transition:
     filter 0.8s linear;
 }
+
+/* ROOM OBJECTS · DRAG */
+
+.apartment-screen
+.room-view-stage.is-arranging
+.home-object-layer {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.apartment-screen
+.room-view-stage.is-arranging
+.home-object-layer.is-dragging {
+  cursor: grabbing;
+}
