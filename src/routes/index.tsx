@@ -219,6 +219,9 @@ const roomSepia =
 
 const nightOpacity =
   nightDepth * 0.38;
+  
+  const lampOpacity =
+  nightDepth * 0.55;
 
 const homePlanBrightness =
   1 - nightDepth * 0.32;
@@ -286,6 +289,7 @@ const openScreen = (nextScreen: Screen) => {
 "--room-saturation": roomSaturation,
 "--room-sepia": roomSepia,
     "--night-opacity": nightOpacity,
+    "--lamp-opacity": lampOpacity,
 "--home-plan-brightness": homePlanBrightness,
   } as React.CSSProperties
 }
@@ -1047,6 +1051,11 @@ placeholder="Object name"
           src={room.image}
           alt={`Empty ${room.label}`}
         />
+
+        <div
+  className="room-lamp-glow"
+  aria-hidden="true"
+/>
 
         {displayedObjects.map((item) => {
           const x = Number(item.data?.x ?? 50);
