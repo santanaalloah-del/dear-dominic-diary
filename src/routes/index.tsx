@@ -77,7 +77,8 @@ import {
    createMemory,
   createPlace,
   createSong,
-  getCalendarItems,
+setSongFavorite,
+getCalendarItems,
   getDates,
   markDateAsLived,
   getDiaryPages,
@@ -6614,6 +6615,11 @@ function MusicScreen({
       "mine" | "dominic" | "ours"
     >("ours");
 
+  const [musicSection, setMusicSection] =
+  useState<
+    "library" | "playlists" | "queue" | "favorites"
+  >("library");
+
   const [songs, setSongs] =
     useState<DiarioItem[]>([]);
 
@@ -6780,6 +6786,24 @@ const searchSpotify = async () => {
         ownerForView
     );
 
+  const favoriteSongs =
+  visibleSongs.filter(
+    (song) =>
+      song.data?.favorite === true
+  );
+
+const displayedSongs =
+  musicSection === "favorites"
+    ? favoriteSongs
+    : visibleSongs;
+
+const playlistTitle =
+  musicView === "mine"
+    ? "My library"
+    : musicView === "dominic"
+      ? "Dominic's library"
+      : "Our playlist";
+
   const refreshSpotifyQueue = async () => {
   setSpotifyQueueLoading(true);
 
@@ -6902,6 +6926,39 @@ if (spotifyUrl) {
    
   } finally {
     setSpotifyPlayerLoading(false);
+  }
+};
+
+  const toggleSongFavorite = async (
+  song: DiarioItem
+) => {
+  setMusicError(null);
+
+  try {
+    const updatedSong =
+      await setSongFavorite({
+        userId: session.user.id,
+        song,
+        favorite:
+          song.data?.favorite !== true,
+      });
+
+    setSongs((currentSongs) =>
+      currentSongs.map((currentSong) =>
+        currentSong.id === updatedSong.id
+          ? updatedSong
+          : currentSong
+      )
+    );
+  } catch (favoriteError) {
+    console.error(
+      "Could not favorite song:",
+      favoriteError
+    );
+
+    setMusicError(
+      "This song could not be favorited."
+    );
   }
 };
   
@@ -7198,6 +7255,182 @@ setAddingSong(false);
         </button>
       </div>
 
+      <div
+  className="music-section-tabs"
+  role="tablist"
+  aria-label="Music section"
+>
+  {[
+    ["library", "Library"],
+    ["playlists", "Playlists"],
+    ["queue", "Queue"],
+    ["favorites", "Favorites"],
+  ].map(([id, label]) => (
+    <button
+      key={id}
+      type="button"
+      role="tab"
+      aria-selected={
+        musicSection === id
+      }
+      className={
+        musicSection === id
+          ? "active"
+          : ""
+      }
+      onClick={() => {
+        setMusicSection(
+          id as
+            | "library"
+            | "playlists"
+            | "queue"
+            | "favorites"
+        );
+
+        if (id === "queue") {
+          void refreshSpotifyQueue();
+        }
+      }}
+    >
+      {label}
+    </button>
+  ))}
+</div>
+
+{musicSection === "playlists" && (
+  <section className="music-playlist-board">
+    <header>
+      <div>
+        <span>
+          playlist
+        </span>
+
+        <strong>
+          {playlistTitle}
+        </strong>
+      </div>
+
+      <small>
+        {visibleSongs.length} songs
+      </small>
+    </header>
+
+    <div className="music-playlist-cover">
+      {visibleSongs
+        .slice(0, 4)
+        .map((song) => {
+          const coverUrl =
+            typeof song.data?.coverUrl ===
+            "string"
+              ? song.data.coverUrl
+              : null;
+
+          return coverUrl ? (
+            <img
+              key={song.id}
+              src={coverUrl}
+              alt=""
+            />
+          ) : (
+            <div key={song.id}>
+              <Disc3
+                size={20}
+                strokeWidth={1.25}
+              />
+            </div>
+          );
+        })}
+
+      {visibleSongs.length === 0 && (
+        <div>
+          <Disc3
+            size={28}
+            strokeWidth={1.25}
+          />
+        </div>
+      )}
+    </div>
+
+    <p>
+      {musicView === "ours"
+        ? "Songs added to both of you collect here like a shared playlist."
+        : musicView === "dominic"
+          ? "Dominic's saved songs, favorites and future playlists live here."
+          : "Your saved songs from Spotify and the Diário library live here."}
+    </p>
+
+    <button
+      type="button"
+      className="gallery-add-button"
+      onClick={() =>
+        setAddingSong(true)
+      }
+    >
+      ＋ Add song
+    </button>
+  </section>
+)}
+
+{musicSection === "queue" && (
+  <section className="spotify-queue-panel music-section-panel">
+    <header>
+      <span>
+        up next
+      </span>
+
+      <button
+        type="button"
+        onClick={() =>
+          void refreshSpotifyQueue()
+        }
+      >
+        {spotifyQueueLoading
+          ? "refreshing…"
+          : "refresh"}
+      </button>
+    </header>
+
+    {spotifyQueue.length === 0 ? (
+      <p>
+        Nothing in the queue yet.
+      </p>
+    ) : (
+      <div className="spotify-queue-list">
+        {spotifyQueue.map(
+          (track, index) => (
+            <article
+              key={`${track.uri}-${index}`}
+              className="spotify-queue-item"
+            >
+              {track.coverUrl ? (
+                <img
+                  src={track.coverUrl}
+                  alt=""
+                />
+              ) : (
+                <Disc3
+                  size={18}
+                  strokeWidth={1.25}
+                />
+              )}
+
+              <div>
+                <strong>
+                  {track.name}
+                </strong>
+
+                <span>
+                  {track.artist}
+                </span>
+              </div>
+            </article>
+          )
+        )}
+      </div>
+    )}
+  </section>
+)}
+      
       {addingSong ? (
         <section className="music-empty">
           <small>
@@ -7356,7 +7589,7 @@ setSpotifyResults([]);
             Opening the record shelf…
           </p>
         </section>
-      ) : visibleSongs.length ===
+     ) : displayedSongs.length ===
         0 ? (
         <section className="music-empty">
           <div
@@ -7401,8 +7634,8 @@ setSpotifyResults([]);
       ) : (
         <>
           <div className="music-library">
-            {visibleSongs.map(
-              (song) => {
+{displayedSongs.map(
+  (song) => {
                 const artist =
                   typeof song.data
                     ?.artist ===
@@ -7504,6 +7737,35 @@ const spotifyUri =
   </button>
 )}
 
+                    <button
+  type="button"
+  className={
+    song.data?.favorite === true
+      ? "music-favorite-button active"
+      : "music-favorite-button"
+  }
+  aria-label={
+    song.data?.favorite === true
+      ? "Remove from favorites"
+      : "Add to favorites"
+  }
+  aria-pressed={
+    song.data?.favorite === true
+  }
+  onClick={() =>
+    void toggleSongFavorite(song)
+  }
+>
+  <Heart
+    size={16}
+    fill={
+      song.data?.favorite === true
+        ? "currentColor"
+        : "none"
+    }
+  />
+</button>
+                    
 <button
   type="button"
   aria-label="Listen now"
