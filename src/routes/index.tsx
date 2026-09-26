@@ -7184,10 +7184,6 @@ const spotifyUrl =
   <button
     type="button"
     onClick={() =>
-{onShareToChat && (
-  <button
-    type="button"
-    onClick={() =>
       onShareToChat(
         `I sent you a song: "${song.title ?? "Untitled song"}" by ${artist}.`
       )
