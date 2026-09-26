@@ -6968,15 +6968,15 @@ setAddingSong(false);
 
   return (
     <section className="music-screen music-live">
-      <ScreenIntro
-        eyebrow="Mine · Dominic · Ours"
-        title="Music"
-      >
-        <p className="intro-copy">
-          songs can belong to either of you,
-          or become part of the shared soundtrack.
-        </p>
-      </ScreenIntro>
+    <ScreenIntro
+  eyebrow="Diário Player · shared soundtrack"
+  title="Player"
+>
+  <p className="intro-copy">
+    play what belongs to you, to him,
+    or to both of you.
+  </p>
+</ScreenIntro>
 
       {spotifyPlayerState?.track && (
   <section className="spotify-live-player">
