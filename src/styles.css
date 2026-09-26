@@ -6615,3 +6615,21 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   transition:
     opacity 0.8s linear;
 }
+
+/* LIGHTING OBJECTS · BULB GLOW */
+
+.apartment-screen
+.home-object-layer[data-object-type="lighting"]
+.home-object-image {
+  filter:
+    brightness(calc(var(--room-brightness, 1) + 0.12))
+    saturate(var(--room-saturation, 1))
+    sepia(var(--room-sepia, 0))
+    drop-shadow(
+      0 0 12px
+      rgb(255 190 105 / var(--lamp-opacity, 0))
+    );
+
+  transition:
+    filter 0.8s linear;
+}
