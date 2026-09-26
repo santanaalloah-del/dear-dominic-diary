@@ -65,6 +65,13 @@ type ChatMessage = {
   createdAt: string;
   kind?: MessageKind | undefined;
   mediaUrl?: string | undefined;
+  
+type ActiveListeningTrack = {
+  title: string;
+  artist?: string | null;
+  coverUrl?: string | null;
+  spotifyUrl?: string | null;
+  owner: "alloah" | "dominic" | "together";
 };
 
 type ChatTheme = "diary" | "cherry" | "old-letter" | "soft-rose" | "midnight";
@@ -238,6 +245,16 @@ const photoInputRef =
 
   const [stickersOpen, setStickersOpen] =
     useState(false);
+
+  const [activeListeningTrack] =
+  useState<ActiveListeningTrack | null>(null);
+
+const activeListeningLabel =
+  activeListeningTrack?.owner === "together"
+    ? "LISTENING TOGETHER"
+    : activeListeningTrack?.owner === "dominic"
+      ? "DOMINIC IS LISTENING"
+      : "ALLOAH IS LISTENING";
 
   const [dominicState, setDominicState] =
   useState<DominicState | null>(null);
@@ -1244,11 +1261,48 @@ return "checking where he is";
         </div>
       </header>
 
-      <button className="chat-now-playing" type="button">
-        <div className="mini-album-art"><Music2 /></div>
-        <span><small>NOW PLAYING</small><strong>your shared music will live here</strong></span>
-        <ChevronRight />
-      </button>
+  {activeListeningTrack && (
+  <button
+    className="chat-now-playing"
+    type="button"
+    onClick={() => {
+      if (activeListeningTrack.spotifyUrl) {
+        window.open(
+          activeListeningTrack.spotifyUrl,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+        return;
+      }
+
+      onOpen("music");
+    }}
+  >
+    <div className="mini-album-art">
+      {activeListeningTrack.coverUrl ? (
+        <img
+          src={activeListeningTrack.coverUrl}
+          alt=""
+          aria-hidden="true"
+        />
+      ) : (
+        <Music2 />
+      )}
+    </div>
+
+    <span>
+      <small>{activeListeningLabel}</small>
+      <strong>
+        {activeListeningTrack.artist
+          ? `${activeListeningTrack.title} · ${activeListeningTrack.artist}`
+          : activeListeningTrack.title}
+      </strong>
+    </span>
+
+    <ChevronRight />
+  </button>
+)}
 
       <Conversation className="live-conversation messenger-conversation">
         <ConversationContent className="live-messages messenger-messages">
