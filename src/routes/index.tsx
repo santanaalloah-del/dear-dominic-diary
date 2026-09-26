@@ -1057,6 +1057,11 @@ placeholder="Object name"
         />
 
         <div
+  className="room-night-wash"
+  aria-hidden="true"
+/>
+        
+        <div
   className="room-lamp-glow"
   aria-hidden="true"
 />
