@@ -44,6 +44,10 @@ import {
 import {
   useTimeMood,
   type TimeMoodState,
+  import {
+  getCurrentDominicState,
+  type DominicState,
+} from "@/lib/dominic-state";
 } from "@/lib/time-mood";
 import {
   addItemToMemory,
@@ -409,6 +413,39 @@ function HomeScreen({
   time: TimeMoodState;
   onOpenRoom: (roomId: string) => void;
 }) {
+
+  const { session } = usePrivateDiario();
+
+const [dominicState, setDominicState] =
+  useState<DominicState | null>(null);
+
+useEffect(() => {
+  let cancelled = false;
+
+  const refresh = async () => {
+    const state =
+      await getCurrentDominicState(
+        session.user.id
+      );
+
+    if (!cancelled) {
+      setDominicState(state);
+    }
+  };
+
+  void refresh();
+
+  const timer = window.setInterval(
+    refresh,
+    60_000
+  );
+
+  return () => {
+    cancelled = true;
+    window.clearInterval(timer);
+  };
+}, [session.user.id]);
+  
   return (
 <section
   className="home-screen home-live home-house"
@@ -440,6 +477,25 @@ function HomeScreen({
         </div>
       </header>
 
+  {dominicState && (
+  <section className="home-dominic-now">
+    <small>DOMINIC NOW</small>
+
+    <strong>
+      {dominicState.activity.replaceAll(
+        "_",
+        " "
+      )}
+    </strong>
+
+    <span>
+      {dominicState.location === "living"
+        ? "living room"
+        : dominicState.location}
+    </span>
+  </section>
+)}
+  
       <section className="home-plan-stage">
         <div className="floor-plan-heading">
           <small>
