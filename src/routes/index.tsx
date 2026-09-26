@@ -43,6 +43,7 @@ import {
 } from "@/lib/spotify";
 import {
   addSpotifyUriToQueue,
+  getSpotifyQueue,
   initializeSpotifyPlayer,
   nextSpotifyTrack,
   pauseSpotifyPlayback,
@@ -51,6 +52,7 @@ import {
   resumeSpotifyPlayback,
   subscribeSpotifyPlayer,
   type DiarioSpotifyState,
+  type DiarioSpotifyTrack,
 } from "@/lib/spotify-player";
 import {
   useTimeMood,
@@ -6620,6 +6622,15 @@ function MusicScreen({
 const [spotifyPlayerLoading, setSpotifyPlayerLoading] =
   useState(false);
 
+  const [spotifyQueue, setSpotifyQueue] =
+  useState<DiarioSpotifyTrack[]>([]);
+
+const [spotifyQueueOpen, setSpotifyQueueOpen] =
+  useState(false);
+
+const [spotifyQueueLoading, setSpotifyQueueLoading] =
+  useState(false);
+
   const [addingSong, setAddingSong] =
     useState(false);
 
@@ -6748,6 +6759,28 @@ const searchSpotify = async () => {
         ownerForView
     );
 
+  const refreshSpotifyQueue = async () => {
+  setSpotifyQueueLoading(true);
+
+  try {
+    const queue = await getSpotifyQueue();
+
+    setSpotifyQueue(
+      queue.queue as DiarioSpotifyTrack[]
+    );
+  } catch (error) {
+    console.error(error);
+
+    setMusicError(
+      error instanceof Error
+        ? error.message
+        : "Could not load Spotify queue."
+    );
+  } finally {
+    setSpotifyQueueLoading(false);
+  }
+};
+  
  const startListeningToSong = async ({
   song,
   artist,
@@ -6797,7 +6830,8 @@ const searchSpotify = async () => {
 
   try {
     await initializeSpotifyPlayer();
-    await playSpotifyUri(spotifyUri);
+await playSpotifyUri(spotifyUri);
+await refreshSpotifyQueue();
   } catch (error) {
     console.error(error);
 
@@ -6884,6 +6918,163 @@ setAddingSong(false);
         </p>
       </ScreenIntro>
 
+      {spotifyPlayerState?.track && (
+  <section className="spotify-live-player">
+    <div className="spotify-live-cover">
+      {spotifyPlayerState.track.coverUrl ? (
+        <img
+          src={spotifyPlayerState.track.coverUrl}
+          alt=""
+        />
+      ) : (
+        <Disc3
+          size={30}
+          strokeWidth={1.25}
+        />
+      )}
+    </div>
+
+    <div className="spotify-live-info">
+      <small>
+        DIÁRIO PLAYER
+      </small>
+
+      <strong>
+        {spotifyPlayerState.track.name}
+      </strong>
+
+      <span>
+        {spotifyPlayerState.track.artist}
+      </span>
+
+      <div className="spotify-live-progress">
+        <span
+          style={{
+            width: `${
+              spotifyPlayerState.durationMs > 0
+                ? Math.min(
+                    100,
+                    (spotifyPlayerState.positionMs /
+                      spotifyPlayerState.durationMs) *
+                      100
+                  )
+                : 0
+            }%`,
+          }}
+        />
+      </div>
+    </div>
+
+    <div className="spotify-live-controls">
+      <button
+        type="button"
+        onClick={() =>
+          void previousSpotifyTrack()
+        }
+      >
+        ‹
+      </button>
+
+      <button
+  type="button"
+  onClick={() => {
+    setSpotifyQueueOpen(
+      (current) => !current
+    );
+
+    void refreshSpotifyQueue();
+  }}
+>
+  queue
+</button>
+
+      <button
+        type="button"
+        onClick={() =>
+          void (
+            spotifyPlayerState.paused
+              ? resumeSpotifyPlayback()
+              : pauseSpotifyPlayback()
+          )
+        }
+      >
+        {spotifyPlayerState.paused
+          ? "play"
+          : "pause"}
+      </button>
+
+      <button
+        type="button"
+        onClick={() =>
+          void nextSpotifyTrack()
+        }
+      >
+        ›
+      </button>
+    </div>
+  </section>
+)}
+
+      {spotifyQueueOpen && (
+  <section className="spotify-queue-panel">
+    <header>
+      <span>
+        up next
+      </span>
+
+      <button
+        type="button"
+        onClick={() =>
+          void refreshSpotifyQueue()
+        }
+      >
+        {spotifyQueueLoading
+          ? "refreshing…"
+          : "refresh"}
+      </button>
+    </header>
+
+    {spotifyQueue.length === 0 ? (
+      <p>
+        Nothing in the queue yet.
+      </p>
+    ) : (
+      <div className="spotify-queue-list">
+        {spotifyQueue.map(
+          (track, index) => (
+            <article
+              key={`${track.uri}-${index}`}
+              className="spotify-queue-item"
+            >
+              {track.coverUrl ? (
+                <img
+                  src={track.coverUrl}
+                  alt=""
+                />
+              ) : (
+                <Disc3
+                  size={18}
+                  strokeWidth={1.25}
+                />
+              )}
+
+              <div>
+                <strong>
+                  {track.name}
+                </strong>
+
+                <span>
+                  {track.artist}
+                </span>
+              </div>
+            </article>
+          )
+        )}
+      </div>
+    )}
+  </section>
+)}
+      
       <div
         className="music-tabs"
         role="tablist"
