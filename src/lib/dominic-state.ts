@@ -992,6 +992,29 @@ function applyCommitmentBias(
       }
 
       if (
+  nearby.minutesUntil >= 0 &&
+  candidate.activity ===
+    "leaving_home"
+) {
+  weight *= 3.2;
+}
+
+if (
+  nearby.minutesUntil < 0 &&
+  candidate.location === "out"
+) {
+  weight *= 2.2;
+}
+
+if (
+  nearby.minutesUntil < 0 &&
+  candidate.activity ===
+    "coming_home"
+) {
+  weight *= 0.35;
+}
+      
+      if (
         [
           "sleeping",
           "napping",
