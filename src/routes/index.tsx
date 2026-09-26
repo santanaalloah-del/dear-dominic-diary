@@ -7184,13 +7184,20 @@ const spotifyUrl =
   <button
     type="button"
     onClick={() =>
+{onShareToChat && (
+  <button
+    type="button"
+    onClick={() =>
       onShareToChat(
         `I sent you a song: "${song.title ?? "Untitled song"}" by ${artist}.`
       )
     }
   >
     Send to chat
- <button
+  </button>
+)}
+
+<button
   type="button"
   aria-label="Listen now"
   disabled={!spotifyUrl}
