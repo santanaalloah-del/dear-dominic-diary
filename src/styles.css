@@ -11634,9 +11634,10 @@ select {
 }
 
 /* ─────────────────────────────────────────
-   FINE TUNE · CHAT + MORE BREATHING ROOM
+   CLEAN RESET · CHAT NORMAL FLEX LAYOUT
    ───────────────────────────────────────── */
 
+/* mantém a More com respiro sem mexer no Chat */
 .more-screen {
   padding-bottom: 175px;
 }
@@ -11645,255 +11646,87 @@ select {
   padding-bottom: 130px !important;
 }
 
-.screen-chat .chat-messages,
-.screen-chat .diario-chat-messages {
-  padding-bottom: 220px;
-}
-
-.screen-chat .chat-composer,
-.screen-chat .diario-chat-composer {
-  bottom: 82px;
-  min-height: 118px;
-  padding: 14px 16px;
-  border-radius: 28px;
-}
-
-.screen-chat .chat-composer textarea,
-.screen-chat .diario-chat-composer textarea,
-.screen-chat .chat-composer input,
-.screen-chat .diario-chat-composer input {
-  font-size: 17px;
-}
-
-.screen-chat .chat-message,
-.screen-chat .diario-message {
-  max-width: 86%;
-}
-
-.screen-chat .chat-message p,
-.screen-chat .diario-message p {
-  font-size: 17px;
-  line-height: 1.32;
-}
-
-.screen-chat .chat-message.from-dominic,
-.screen-chat .diario-message.from-dominic {
-  border-radius: 30px 30px 30px 12px;
-}
-
-.screen-chat .chat-message.from-user,
-.screen-chat .diario-message.from-user {
-  border-radius: 26px 26px 10px 26px;
-}
-
-/* ─────────────────────────────────────────
-   FINE TUNE · CHAT TRUE MOBILE SCALE
-   ───────────────────────────────────────── */
-
-.live-chat-screen.messenger-chat {
-  padding-bottom: 158px;
-}
-
-.messenger-header {
-  min-height: 82px;
-  padding: 13px 18px;
-}
-
-.messenger-avatar {
-  width: 52px;
-  height: 52px;
-}
-
-.messenger-person h1 {
-  font-size: 30px;
-  line-height: .95;
-}
-
-.messenger-person p {
-  font-size: 13px;
-}
-
-.messenger-header-actions {
-  gap: 10px;
-}
-
-.messenger-header-actions button {
-  width: 30px;
-  height: 30px;
-}
-
-.messenger-header-actions svg {
-  width: 20px;
-  height: 20px;
-}
-
-.chat-now-playing {
-  min-height: 58px;
-  margin: 12px 20px 10px;
-  padding: 10px 12px;
-  border-radius: 19px;
-  position: relative;
-  z-index: 2;
-}
-
-.chat-now-playing .mini-album-art,
-.mini-album-art {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-}
-
-.chat-now-playing small {
-  font-size: 9px;
-  letter-spacing: .12em;
-}
-
-.chat-now-playing strong {
-  font-size: 14px;
-  line-height: 1.15;
-}
-
-.messenger-conversation,
-.live-conversation {
-  min-height: 0;
-}
-
-.messenger-messages,
-.live-messages {
-  padding: 10px 18px 250px !important;
-}
-
-.messenger-day-divider {
-  margin: 6px 0 12px;
-}
-
-.diario-message.messenger-message {
-  margin-bottom: 13px;
-}
-
-.diario-message.messenger-message[data-role="assistant"],
-.diario-message.messenger-message[from="assistant"] {
-  max-width: 83%;
-}
-
-.diario-message.messenger-message[data-role="user"],
-.diario-message.messenger-message[from="user"] {
-  max-width: 80%;
-}
-
-.messenger-bubble,
-.diario-message-content {
-  padding: 13px 15px !important;
-  border-radius: 23px !important;
-}
-
-.messenger-bubble p,
-.messenger-bubble div,
-.messenger-bubble span,
-.diario-message-content p,
-.diario-message-content div,
-.diario-message-content span {
-  font-size: 16px !important;
-  line-height: 1.28 !important;
-}
-
-.message-avatar {
-  width: 31px;
-  height: 31px;
-}
-
-.messenger-composer-wrap,
-.live-composer-wrap {
-  left: 16px;
-  right: 16px;
-  bottom: 78px;
-  z-index: 72;
-}
-
-.messenger-composer,
-.live-composer {
-  min-height: 100px !important;
-  border-radius: 26px !important;
-  padding: 12px 14px !important;
-}
-
-.messenger-composer textarea,
-.live-composer textarea {
-  min-height: 34px !important;
-  font-size: 16px !important;
-  line-height: 1.3 !important;
-}
-
-.messenger-composer [data-slot="prompt-input-footer"],
-.live-composer [data-slot="prompt-input-footer"] {
-  min-height: 40px;
-}
-
-.composer-plus {
-  width: 40px !important;
-  height: 40px !important;
-}
-
-.messenger-composer button,
-.live-composer button {
-  width: 36px;
-  height: 36px;
-}
-
-.messenger-composer [type="submit"],
-.live-composer [type="submit"] {
-  width: 42px !important;
-  height: 42px !important;
-}
-
-.conversation-scroll {
-  bottom: 198px !important;
-}
-
-.bottom-nav {
-  bottom: 12px;
-}
-
-/* ─────────────────────────────────────────
-   FIX · CHAT COMPOSER STICK TO BOTTOM
-   ───────────────────────────────────────── */
-
-.screen-scroll.screen-chat {
+/* Chat volta a ser uma tela fechada: header + música + mensagens + composer */
+.screen-scroll:has(.messenger-chat) {
   overflow: hidden !important;
-  padding-bottom: 0 !important;
+  padding-bottom: 72px !important;
 }
 
-.screen-chat .live-chat-screen.messenger-chat {
-  position: relative !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  overflow: hidden !important;
+.screen-chat .live-chat-screen.messenger-chat,
+.screen-chat .messenger-chat {
+  height: calc(100dvh - 106px) !important;
+  max-height: calc(100dvh - 106px) !important;
+  min-height: 0 !important;
   display: flex !important;
   flex-direction: column !important;
+  overflow: hidden !important;
   padding-bottom: 0 !important;
 }
 
+/* header */
 .screen-chat .messenger-header {
-  flex: 0 0 auto;
+  flex: 0 0 76px !important;
+  min-height: 76px !important;
+  padding: 10px 14px !important;
 }
 
+.screen-chat .messenger-avatar {
+  width: 46px !important;
+  height: 46px !important;
+}
+
+.screen-chat .messenger-person h1 {
+  font-size: 24px !important;
+  line-height: .95 !important;
+}
+
+.screen-chat .messenger-person p {
+  font-size: 10px !important;
+}
+
+/* now playing menor */
 .screen-chat .chat-now-playing {
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
+  min-height: 54px !important;
   margin: 10px 20px 8px !important;
+  padding: 8px 10px !important;
+  border-radius: 18px !important;
 }
 
+.screen-chat .chat-now-playing .mini-album-art,
+.screen-chat .mini-album-art {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 11px !important;
+}
+
+.screen-chat .chat-now-playing small {
+  font-size: 7px !important;
+}
+
+.screen-chat .chat-now-playing strong {
+  font-size: 13px !important;
+}
+
+/* mensagens: só essa área rola */
 .screen-chat .messenger-conversation,
 .screen-chat .live-conversation {
   flex: 1 1 auto !important;
   min-height: 0 !important;
+  height: auto !important;
   overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 .screen-chat .messenger-messages,
 .screen-chat .live-messages {
+  flex: 1 1 auto !important;
   height: 100% !important;
+  min-height: 0 !important;
   overflow-y: auto !important;
-  padding: 10px 18px 205px !important;
+  overflow-x: hidden !important;
+  padding: 12px 18px 18px !important;
   scrollbar-width: none;
 }
 
@@ -11902,78 +11735,51 @@ select {
   display: none;
 }
 
+/* bolhas em escala normal */
+.screen-chat .diario-message.messenger-message {
+  margin-bottom: 10px !important;
+}
+
+.screen-chat .messenger-bubble,
+.screen-chat .diario-message-content {
+  padding: 10px 12px !important;
+  border-radius: 18px !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+}
+
+.screen-chat .message-avatar {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+/* composer volta pro fluxo normal, sem overlay */
 .screen-chat .messenger-composer-wrap,
 .screen-chat .live-composer-wrap {
-  position: absolute !important;
-  left: 16px !important;
-  right: 16px !important;
-  bottom: 88px !important;
-  z-index: 80 !important;
-}
-
-.screen-chat .messenger-composer,
-.screen-chat .live-composer {
-  min-height: 92px !important;
-  border-radius: 25px !important;
-}
-
-.screen-chat .conversation-scroll {
-  display: none !important;
-}
-
-.screen-chat .bottom-nav {
-  z-index: 85;
-}
-
-/* ─────────────────────────────────────────
-   REVERT · CHAT BACK TO NORMAL FLOW
-   ───────────────────────────────────────── */
-
-.screen-scroll.screen-chat {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding-bottom: 118px !important;
-}
-
-.screen-chat .live-chat-screen.messenger-chat {
   position: relative !important;
-  height: auto !important;
-  min-height: max-content !important;
-  overflow: visible !important;
-  display: block !important;
-  padding-bottom: 150px !important;
-}
-
-.screen-chat .messenger-conversation,
-.screen-chat .live-conversation {
-  display: block !important;
-  height: auto !important;
-  min-height: auto !important;
-  overflow: visible !important;
-}
-
-.screen-chat .messenger-messages,
-.screen-chat .live-messages {
-  height: auto !important;
-  min-height: auto !important;
-  overflow: visible !important;
-  padding: 14px 18px 26px !important;
-}
-
-.screen-chat .messenger-composer-wrap,
-.screen-chat .live-composer-wrap {
-  position: sticky !important;
+  inset: auto !important;
   left: auto !important;
   right: auto !important;
-  bottom: 92px !important;
-  z-index: 80 !important;
-  margin: 0 16px 14px !important;
+  bottom: auto !important;
+  transform: none !important;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
+  z-index: 10 !important;
 }
 
 .screen-chat .messenger-composer,
 .screen-chat .live-composer {
-  min-height: 92px !important;
-  border-radius: 25px !important;
+  min-height: 82px !important;
+  border-radius: 24px !important;
+  padding: 10px 12px !important;
+}
+
+.screen-chat .messenger-composer textarea,
+.screen-chat .live-composer textarea {
+  min-height: 34px !important;
+  font-size: 15px !important;
+  line-height: 1.3 !important;
 }
 
 .screen-chat .conversation-scroll {
