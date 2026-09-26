@@ -6261,16 +6261,15 @@ const markAsLived = async (
         </button>
       </div>
 
-      {!addingDate && (
+{!planningDate && (
   <button
     type="button"
     className="dates-sticky-add"
-    onClick={() => setAddingDate(true)}
+    onClick={() => setPlanningDate(true)}
   >
     ＋ Plan another date
   </button>
 )}
-
       {planningDate ? (
         <section className="dates-empty">
           <small>
