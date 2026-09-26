@@ -118,7 +118,18 @@ html[data-diario-appearance="dark"] .settings-static-row {
 .phone-shell:before {   content: "";   position: absolute;   inset: 0;   pointer-events: none;   z-index: 20;   opacity: var(--grain-opacity);   background-image:     url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.34'/%3E%3C/svg%3E");   background-size: 180px 180px;   mix-blend-mode: multiply; }
 .statusbar { height: 34px; padding: 13px 22px 0; display:flex; justify-content:space-between; align-items:center; font-size:9px; letter-spacing:.08em; position:relative; z-index:21; }
 .brand-mark { font-family:var(--font-display); font-style:italic; font-size:14px; letter-spacing:.04em; }
-.screen-scroll { height: calc(100dvh - 34px); overflow-y:auto; padding-bottom:84px; animation: page-in .35s ease both; scrollbar-width:none; }
+.screen-scroll {
+  height: calc(100dvh - 34px);
+  max-height: calc(100dvh - 34px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 120px;
+  animation: page-in .35s ease both;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
 .screen-scroll::-webkit-scrollbar { display:none; } .screen-intro { padding: 30px 27px 4px; } .eyebrow { text-transform:uppercase; font-size:9px; letter-spacing:.16em; margin:0 0 12px; color:var(--cherry); }
 .screen-intro h1 { font: 400 48px/.82 var(--font-display); margin:0; letter-spacing:0; } .intro-copy { font:italic 15px/1.45 var(--font-display); color:var(--muted-foreground); max-width:220px; margin:16px 0 0; }
 .bottom-nav {   position: absolute;   z-index: 30;   bottom: 0;   left: 0;   right: 0;   height: 74px;   display: grid;   grid-template-columns: repeat(4, 1fr);   background:     linear-gradient(       180deg,       color-mix(in oklab, var(--cream) 92%, transparent),       color-mix(in oklab, var(--paper) 97%, transparent)     );   border-top: 1px solid var(--divider);   backdrop-filter: blur(12px);   box-shadow: 0 -10px 30px oklch(0.28 0.035 35 / 6%);   padding-bottom: 8px; }
@@ -6632,4 +6643,29 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
 
   transition:
     filter 0.8s linear;
+}
+
+.screen-dates {
+  padding-bottom: 180px;
+}
+
+.dates-screen {
+  min-height: max-content;
+  padding-bottom: 180px;
+}
+
+.dates-sticky-add {
+  position: sticky;
+  top: 10px;
+  z-index: 12;
+  width: calc(100% - 48px);
+  margin: 16px 24px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  padding: 13px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 12px 28px oklch(0.24 0.06 20 / 18%);
 }
