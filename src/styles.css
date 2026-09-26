@@ -11829,3 +11829,18 @@ select {
   width: 100%;
   height: 1px;
 }
+
+/* ─────────────────────────────────────────
+   FIX · CHAT INPUT ABOVE NAV
+   ───────────────────────────────────────── */
+
+.screen-chat .messenger-composer-wrap,
+.screen-chat .live-composer-wrap {
+  padding-bottom: 0 !important;
+  margin-bottom: 82px !important;
+}
+
+.screen-chat .messenger-messages,
+.screen-chat .live-messages {
+  padding-bottom: 14px !important;
+}
