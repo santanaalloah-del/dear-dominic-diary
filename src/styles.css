@@ -10953,3 +10953,375 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   font-size: 10px;
   line-height: 1.25;
 }
+
+/* ─────────────────────────────────────────
+   ROOM / APARTMENT ROOM · POLISH
+   ───────────────────────────────────────── */
+
+.room-screen.apartment-screen {
+  min-height: max-content;
+  padding-bottom: 165px;
+}
+
+.room-screen .screen-intro {
+  padding: 32px 24px 12px 56px;
+}
+
+.room-screen .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 50px/.84 var(--font-display);
+}
+
+.room-toolbar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin: 16px 22px 0;
+}
+
+.room-toolbar button {
+  min-height: 38px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 86%, white 8%);
+  color: var(--wine);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.room-toolbar button.active {
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.home-add-panel,
+.our-things-panel {
+  margin: 16px 22px 0;
+  padding: 18px;
+  border: 1px solid var(--divider);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 90%, white 8%);
+  box-shadow: var(--paper-shadow);
+}
+
+.home-add-panel input,
+.home-add-panel select {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  padding: 13px 14px;
+  color: var(--brown);
+  outline: none;
+}
+
+.home-add-panel select,
+.furniture-photo-picker,
+.furniture-image-preview,
+.home-add-panel > button {
+  margin-top: 10px;
+}
+
+.furniture-photo-picker {
+  min-height: 42px;
+  border: 1px dashed color-mix(in oklab, var(--cherry) 40%, var(--divider));
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--blush) 28%, transparent);
+  color: var(--wine);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.furniture-photo-picker input {
+  display: none;
+}
+
+.furniture-image-preview {
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid var(--divider);
+}
+
+.furniture-image-preview img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.home-add-panel > button {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--cream);
+  font-weight: 800;
+}
+
+.our-things-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.our-things-heading strong {
+  color: var(--wine-deep);
+  font: 400 27px/.95 var(--font-display);
+}
+
+.our-things-heading small {
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.our-things-list {
+  display: grid;
+  gap: 10px;
+}
+
+.our-things-item {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  gap: 11px;
+  align-items: center;
+  position: relative;
+  padding: 12px;
+  border: 1px solid var(--divider);
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+}
+
+.our-things-item img {
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+.our-things-item strong {
+  color: var(--wine-deep);
+  font-size: 13px;
+}
+
+.our-things-item small {
+  display: block;
+  margin-top: 3px;
+  color: var(--brown-soft);
+  font-size: 10px;
+}
+
+.our-things-item button {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 38%, transparent);
+  color: var(--wine);
+  padding: 7px 10px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.our-things-delete {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.room-view-stage {
+  position: relative;
+  overflow: hidden;
+  margin: 18px 22px 0;
+  border: 1px solid var(--divider);
+  border-radius: 32px;
+  background: var(--brown);
+  box-shadow: var(--paper-shadow);
+}
+
+.room-view-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.22;
+  object-fit: cover;
+  filter:
+    brightness(var(--room-brightness, 1))
+    saturate(var(--room-saturation, .95))
+    sepia(var(--room-sepia, 0));
+}
+
+.room-night-wash {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.16 0.05 270 / var(--night-opacity, 0));
+  pointer-events: none;
+}
+
+.room-lamp-glow {
+  position: absolute;
+  left: var(--lamp-x);
+  top: var(--lamp-y);
+  width: 34%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--butter) 45%, transparent),
+    transparent 68%
+  );
+  opacity: var(--lamp-opacity, 0);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.room-dominic-presence {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  z-index: 4;
+  max-width: 190px;
+  padding: 11px 13px;
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--paper) 84%, white 10%);
+  border: 1px solid var(--divider);
+  box-shadow: 0 10px 24px oklch(0.2 0.04 30 / 18%);
+  backdrop-filter: blur(10px);
+}
+
+.room-dominic-presence small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+
+.room-dominic-presence strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--wine-deep);
+  font: 400 21px/.95 var(--font-display);
+}
+
+.home-object-layer {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+}
+
+.home-object-layer.is-dragging {
+  z-index: 20;
+}
+
+.home-object-image {
+  width: 100%;
+  display: block;
+  filter: drop-shadow(0 12px 18px oklch(0.18 0.04 25 / 24%));
+}
+
+.home-object-controls {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 156px;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--paper) 90%, white 8%);
+  box-shadow: 0 12px 28px oklch(0.2 0.04 30 / 18%);
+}
+
+.home-object-controls strong {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--wine-deep);
+  font-size: 11px;
+}
+
+.home-object-move-controls,
+.home-object-size-controls,
+.home-object-action-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-object-size-controls,
+.home-object-action-row {
+  margin-top: 7px;
+}
+
+.home-object-controls button {
+  min-width: 28px;
+  min-height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 38%, transparent);
+  color: var(--wine);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.home-object-size-controls span {
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.home-object-delete {
+  background: color-mix(in oklab, var(--cherry) 24%, transparent) !important;
+  color: var(--cherry) !important;
+}
+
+.room-no-objects {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 82%, white 10%);
+  color: var(--brown-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.room-navigation {
+  display: flex;
+  gap: 8px;
+  margin: 16px 22px 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.room-navigation button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 86%, white 8%);
+  color: var(--wine);
+  padding: 0 13px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.room-navigation button.active {
+  background: var(--wine);
+  color: var(--cream);
+}
