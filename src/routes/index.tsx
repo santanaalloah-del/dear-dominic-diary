@@ -20,13 +20,11 @@ import {
   Home,
   Image as ImageIcon,
   LampDesk,
+  ListPlus,
   LogOut,
   Mail,
   MapPin,
   Menu,
-  Music2,
-  Play,
-    ListPlus,
   Music2,
   Pause,
   Play,
@@ -35,9 +33,6 @@ import {
   Shirt,
   SkipBack,
   SkipForward,
-  Send,
-  Settings,
-  Shirt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DiarioChat } from "@/components/diario-chat";
