@@ -250,6 +250,7 @@ const photoInputRef =
       note: string | null;
       plannedFor: string | null;
       place: string | null;
+      timeKnown: boolean;
     }[]
   >([]);
 
@@ -290,8 +291,8 @@ useEffect(() => {
       await getDates(session.user.id);
 
     const now = Date.now();
-    const pastWindow =
-      now - 3 * 60 * 60_000;
+ const pastWindow =
+  now - 24 * 60 * 60_000;
     const futureWindow =
       now + 48 * 60 * 60_000;
 
@@ -315,10 +316,11 @@ useEffect(() => {
         title: item.title,
         note: item.body,
         plannedFor: item.planned_for,
-        place:
-          typeof item.data?.place === "string"
-            ? item.data.place
-            : null,
+     place:
+  typeof item.data?.place === "string"
+    ? item.data.place
+    : null,
+timeKnown: false,
       }));
 
     if (!cancelled) {
