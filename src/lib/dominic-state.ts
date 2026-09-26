@@ -1425,6 +1425,21 @@ await recordDominicAction(
   state
 );
 
+recentActions.unshift({
+  activity: state.activity,
+  startedAt: state.startedAt,
+  completedAt: null,
+  status: "active",
+  payload: {
+    location: state.location,
+    mood: state.mood ?? null,
+    energy: state.energy ?? null,
+    nextChangeAt: state.nextChangeAt,
+  },
+});
+
+recentActions.splice(40);
+
 changes += 1;
   }
 
