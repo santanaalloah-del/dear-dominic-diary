@@ -670,6 +670,18 @@ const [dragPositions, setDragPositions] =
       item.data?.location === "displayed"
   );
 
+  const activeLight =
+  displayedObjects.find(
+    (item) =>
+      item.data?.objectType === "lighting"
+  );
+
+const lampX =
+  Number(activeLight?.data?.x ?? 72);
+
+const lampY =
+  Number(activeLight?.data?.y ?? 48);
+
   const storedObjects = homeObjects.filter(
     (item) => item.data?.location === "stored"
   );
@@ -1061,10 +1073,18 @@ placeholder="Object name"
   aria-hidden="true"
 />
         
-        <div
-  className="room-lamp-glow"
-  aria-hidden="true"
-/>
+{activeLight && (
+  <div
+    className="room-lamp-glow"
+    aria-hidden="true"
+    style={
+      {
+        "--lamp-x": `${lampX}%`,
+        "--lamp-y": `${lampY}%`,
+      } as React.CSSProperties
+    }
+  />
+)}
 
         {displayedObjects.map((item) => {
           const x = Number(item.data?.x ?? 50);
