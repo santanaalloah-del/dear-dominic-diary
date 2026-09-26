@@ -8216,3 +8216,301 @@ circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
   background: var(--wine);
   color: var(--cream);
 }
+
+/* ─────────────────────────────────────────
+   MEMORIES · SCRAPBOOK TIMELINE POLISH
+   ───────────────────────────────────────── */
+
+.memories-screen.memories-live {
+  min-height: max-content;
+  padding-bottom: 165px;
+}
+
+.memories-live .screen-intro {
+  padding: 32px 24px 12px;
+}
+
+.memories-live .screen-intro h1 {
+  color: var(--wine-deep);
+  font: 400 52px/.84 var(--font-display);
+}
+
+.memories-live .intro-copy {
+  max-width: 285px;
+  margin-top: 12px;
+  color: var(--brown-soft);
+  font: italic 14px/1.38 var(--font-display);
+}
+
+.memories-filter {
+  display: flex;
+  gap: 7px;
+  margin: 16px 22px 0;
+  padding: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+  scrollbar-width: none;
+}
+
+.memories-filter button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brown-soft);
+  padding: 0 13px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.memories-filter button.active {
+  background: var(--wine);
+  color: var(--cream);
+  box-shadow: 0 7px 18px oklch(0.22 0.06 20 / 16%);
+}
+
+.memories-empty {
+  margin: 18px 22px 0;
+  padding: 22px 20px;
+  border: 1px solid var(--divider);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in oklab, var(--blush) 42%, transparent), transparent 48%),
+    color-mix(in oklab, var(--paper) 90%, white 8%);
+  box-shadow: var(--paper-shadow);
+}
+
+.memories-empty > button:first-child {
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--blush) 38%, transparent);
+  color: var(--wine);
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.memories-empty-mark {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--blush) 42%, transparent);
+  color: var(--cherry);
+}
+
+.memories-empty small,
+.memory-connected-item small,
+.memory-source-list span,
+.memories-rule span {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.memories-empty h2 {
+  margin: 7px 0 9px;
+  color: var(--wine-deep);
+  font: 400 32px/.95 var(--font-display);
+}
+
+.memories-empty p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.memories-empty input,
+.memories-empty textarea {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--cream) 78%, white 10%);
+  padding: 13px 14px;
+  color: var(--brown);
+  outline: none;
+}
+
+.memories-empty textarea {
+  margin-top: 10px;
+  resize: vertical;
+}
+
+.memory-source-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.memory-source-list > div,
+.memory-source-list > button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 19px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+  padding: 12px;
+  color: var(--wine);
+  text-align: left;
+}
+
+.memory-source-list strong {
+  display: block;
+  color: var(--wine-deep);
+  font-size: 12px;
+}
+
+.memory-source-list small {
+  display: block;
+  margin-top: 2px;
+  color: var(--brown-soft);
+  font-size: 10px;
+}
+
+.memories-timeline {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  margin: 22px 22px 0;
+  padding-left: 24px;
+}
+
+.memories-timeline::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 8px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--cherry),
+    color-mix(in oklab, var(--wine) 70%, var(--cherry)),
+    transparent
+  );
+  opacity: .72;
+}
+
+.memory-entry {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 27px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--paper) 92%, white 8%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  box-shadow: var(--paper-shadow-soft);
+  padding: 16px 17px 17px;
+  text-align: left;
+}
+
+.memory-timeline-dot {
+  position: absolute;
+  left: -24px;
+  top: 22px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--cherry);
+  box-shadow:
+    0 0 0 5px color-mix(in oklab, var(--blush) 46%, transparent),
+    0 0 20px color-mix(in oklab, var(--cherry) 26%, transparent);
+}
+
+.memory-entry time {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--cherry);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.memory-entry strong {
+  display: block;
+  color: var(--wine-deep);
+  font: 400 28px/.95 var(--font-display);
+}
+
+.memory-entry p {
+  margin: 9px 0 0;
+  color: var(--brown-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.memory-connected-items {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.memory-connected-item {
+  border: 1px solid var(--divider);
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--cream) 58%, transparent);
+  padding: 13px;
+}
+
+.memory-connected-item strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--wine-deep);
+  font: 400 21px/.95 var(--font-display);
+}
+
+.memory-connected-item p {
+  margin-top: 7px;
+}
+
+.memory-connected-item time {
+  display: block;
+  margin-top: 8px;
+  color: var(--brown-soft);
+  font-size: 10px;
+}
+
+.memories-rule {
+  display: flex;
+  gap: 12px;
+  margin: 22px 22px 0;
+  padding: 16px;
+  border: 1px solid var(--divider);
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--paper) 84%, white 8%);
+  box-shadow: var(--paper-shadow-soft);
+  color: var(--wine);
+}
+
+.memories-rule p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.memories-live .gallery-add-button {
+  min-height: 42px;
+  margin-top: 16px;
+  padding: 11px 17px;
+}
