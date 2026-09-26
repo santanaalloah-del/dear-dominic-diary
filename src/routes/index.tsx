@@ -1073,23 +1073,32 @@ placeholder="Object name"
   aria-hidden="true"
 />
         
-{activeLights.map((light) => (
-  <div
-    key={`light-${light.id}`}
-    className="room-lamp-glow"
-    aria-hidden="true"
-    style={
-      {
-        "--lamp-x": `${Number(
-          light.data?.x ?? 72
-        )}%`,
-        "--lamp-y": `${Number(
-          light.data?.y ?? 48
-        )}%`,
-      } as React.CSSProperties
-    }
-  />
-))}
+{activeLights.map((light) => {
+  const liveLightPosition =
+    dragPositions[light.id];
+
+  const lightX =
+    liveLightPosition?.x ??
+    Number(light.data?.x ?? 72);
+
+  const lightY =
+    liveLightPosition?.y ??
+    Number(light.data?.y ?? 48);
+
+  return (
+    <div
+      key={`light-${light.id}`}
+      className="room-lamp-glow"
+      aria-hidden="true"
+      style={
+        {
+          "--lamp-x": `${lightX}%`,
+          "--lamp-y": `${lightY}%`,
+        } as React.CSSProperties
+      }
+    />
+  );
+})}
         {displayedObjects.map((item) => {
           const x = Number(item.data?.x ?? 50);
           const y = Number(item.data?.y ?? 70);
