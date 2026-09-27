@@ -1,0 +1,720 @@
+/* Dominic Photo Engine — Create Photo */
+
+.photo-engine-screen {
+  display: grid;
+  gap: 16px;
+  padding-bottom: 28px;
+}
+
+.photo-engine-intro {
+  display: grid;
+  gap: 6px;
+}
+
+.photo-engine-intro small,
+.photo-engine-block-heading small,
+.photo-engine-ready-card > small,
+.photo-engine-advanced-toggle small {
+  color: var(--wine);
+  font: 9px var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.photo-engine-intro h1 {
+  margin: 0;
+  font: 38px var(--font-display);
+  font-weight: 400;
+}
+
+.photo-engine-intro p,
+.photo-engine-ready-card > p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font: 12px/1.6 var(--font-body);
+}
+
+.photo-engine-block,
+.photo-engine-ready-card {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--paper) 94%, transparent);
+}
+
+.photo-engine-block-heading {
+  display: grid;
+  gap: 2px;
+}
+
+.photo-engine-block-heading strong,
+.photo-engine-advanced-toggle strong {
+  font: 18px var(--font-display);
+  font-weight: 500;
+}
+
+.photo-engine-subject-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.photo-engine-subject-grid button {
+  min-height: 86px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  padding: 9px 6px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.photo-engine-subject-grid button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.photo-engine-subject-grid button strong {
+  color: var(--foreground);
+  font: 13px var(--font-body);
+}
+
+.photo-engine-subject-grid button small {
+  font: 9px var(--font-body);
+}
+
+.photo-engine-subject-grid button.active {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--wine) 8%, var(--cream));
+  color: var(--wine);
+}
+
+.photo-engine-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.photo-engine-mode-grid button {
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  text-align: left;
+  cursor: pointer;
+}
+
+.photo-engine-mode-grid button > span {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--paper-deep);
+  color: var(--wine);
+}
+
+.photo-engine-mode-grid button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.photo-engine-mode-grid button div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.photo-engine-mode-grid button strong {
+  color: var(--foreground);
+  font: 11px var(--font-body);
+}
+
+.photo-engine-mode-grid button small {
+  color: var(--muted-foreground);
+  font: 9px/1.35 var(--font-body);
+}
+
+.photo-engine-mode-grid button.active {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--blush) 22%, var(--cream));
+}
+
+.photo-engine-scene-block label,
+.photo-engine-advanced label {
+  display: grid;
+  gap: 5px;
+}
+
+.photo-engine-scene-block label > span,
+.photo-engine-advanced label > span,
+.photo-engine-count-row > span {
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.photo-engine-scene-block textarea,
+.photo-engine-scene-block input,
+.photo-engine-advanced select {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--foreground);
+  font: 12px/1.45 var(--font-body);
+  outline: none;
+}
+
+.photo-engine-scene-block textarea {
+  resize: vertical;
+  min-height: 92px;
+  padding: 10px;
+}
+
+.photo-engine-scene-block input,
+.photo-engine-advanced select {
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.photo-engine-scene-block textarea:focus,
+.photo-engine-scene-block input:focus,
+.photo-engine-advanced select:focus {
+  border-color: var(--wine);
+}
+
+.photo-engine-context-chip {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in oklab, var(--wine) 35%, var(--border));
+  background: color-mix(in oklab, var(--blush) 24%, transparent);
+  color: var(--wine);
+  font: 10px var(--font-body);
+}
+
+.photo-engine-context-chip svg {
+  width: 13px;
+  height: 13px;
+}
+
+.photo-engine-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.photo-engine-count-row > div {
+  display: flex;
+  gap: 5px;
+}
+
+.photo-engine-count-row button {
+  width: 36px;
+  height: 32px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--muted-foreground);
+  font: 11px var(--font-body);
+  cursor: pointer;
+}
+
+.photo-engine-count-row button.active {
+  border-color: var(--wine);
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.photo-engine-advanced-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+}
+
+.photo-engine-advanced-toggle > span {
+  display: grid;
+  gap: 2px;
+}
+
+.photo-engine-advanced-toggle > svg {
+  width: 17px;
+  transition: transform 160ms ease;
+}
+
+.photo-engine-advanced-toggle > svg.open {
+  transform: rotate(180deg);
+}
+
+.photo-engine-advanced {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.photo-engine-switch-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px !important;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.photo-engine-switch-row > span {
+  display: grid;
+  gap: 2px;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+.photo-engine-switch-row strong {
+  color: var(--foreground);
+  font: 11px var(--font-body);
+}
+
+.photo-engine-switch-row small {
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+}
+
+.photo-engine-switch-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--wine);
+}
+
+.photo-engine-rule-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.photo-engine-rule-list span {
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+}
+
+.photo-engine-create-button {
+  width: 100%;
+  min-height: 46px;
+}
+
+.photo-engine-create-button svg,
+.photo-engine-ready-card button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.photo-engine-spin {
+  animation: photo-engine-spin 0.9s linear infinite;
+}
+
+.photo-engine-footer-note {
+  margin: -6px 0 0;
+  color: var(--muted-foreground);
+  font: 9px/1.4 var(--font-body);
+  text-align: center;
+}
+
+.photo-engine-error {
+  margin: 0;
+  padding: 9px 10px;
+  border-left: 2px solid var(--wine);
+  background: color-mix(in oklab, var(--blush) 30%, transparent);
+  color: var(--wine);
+  font: 10px/1.45 var(--font-body);
+}
+
+.photo-engine-ready-card {
+  justify-items: stretch;
+}
+
+.photo-engine-ready-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.photo-engine-ready-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.photo-engine-ready-card h2 {
+  margin: 0;
+  font: 26px var(--font-display);
+  font-weight: 400;
+}
+
+.photo-engine-request-list {
+  display: grid;
+  gap: 6px;
+}
+
+.photo-engine-request-list article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 8px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+}
+
+.photo-engine-request-list article > span {
+  grid-row: 1 / span 2;
+  align-self: center;
+  min-width: 34px;
+  color: var(--wine);
+  font: 9px var(--font-body);
+  text-transform: uppercase;
+}
+
+.photo-engine-request-list article strong {
+  font: 11px var(--font-body);
+  text-transform: capitalize;
+}
+
+.photo-engine-request-list article small {
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+}
+
+.photo-engine-foundation-note {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  padding: 10px;
+  border: 1px dashed color-mix(in oklab, var(--wine) 35%, var(--border));
+  background: color-mix(in oklab, var(--blush) 20%, transparent);
+}
+
+.photo-engine-foundation-note svg {
+  width: 18px;
+  color: var(--wine);
+}
+
+.photo-engine-foundation-note div {
+  display: grid;
+  gap: 2px;
+}
+
+.photo-engine-foundation-note strong {
+  font: 10px var(--font-body);
+}
+
+.photo-engine-foundation-note span {
+  color: var(--muted-foreground);
+  font: 9px/1.4 var(--font-body);
+}
+
+@keyframes photo-engine-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 520px) {
+  .photo-engine-intro h1 {
+    font-size: 34px;
+  }
+
+  .photo-engine-mode-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Provider preview stage */
+.photo-engine-preview-stage {
+  display: grid;
+  gap: 14px;
+}
+
+.photo-engine-preview-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.photo-engine-preview-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.photo-engine-preview-heading small,
+.photo-engine-preview-copy small {
+  color: var(--wine);
+  font: 9px var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.photo-engine-preview-heading h2 {
+  margin: 0;
+  font: 26px var(--font-display);
+  font-weight: 400;
+}
+
+.photo-engine-preview-heading button svg,
+.photo-engine-preview-footer button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.photo-engine-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.photo-engine-preview-grid.single {
+  grid-template-columns: 1fr;
+}
+
+.photo-engine-preview-card {
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--paper) 95%, transparent);
+}
+
+.photo-engine-preview-media {
+  position: relative;
+  overflow: hidden;
+  min-height: 220px;
+  aspect-ratio: 3 / 4;
+  background: var(--paper-deep);
+}
+
+.photo-engine-preview-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.photo-engine-preview-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: var(--muted-foreground);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--blush) 28%, transparent),
+      color-mix(in oklab, var(--paper-deep) 84%, transparent)
+    );
+  font: 10px var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.photo-engine-preview-placeholder svg {
+  width: 22px;
+  height: 22px;
+  animation: photo-engine-spin 1s linear infinite;
+}
+
+.photo-engine-preview-placeholder svg.lucide-x {
+  animation: none;
+}
+
+.photo-engine-preview-status {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 7px;
+  background: color-mix(in oklab, var(--foreground) 72%, transparent);
+  color: var(--cream);
+  font: 8px var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.photo-engine-preview-status.saved {
+  background: var(--wine);
+}
+
+.photo-engine-preview-status.error {
+  background: color-mix(in oklab, var(--wine) 85%, black);
+}
+
+.photo-engine-preview-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.photo-engine-preview-copy strong {
+  font: 17px var(--font-display);
+  font-weight: 500;
+}
+
+.photo-engine-preview-copy span {
+  color: var(--muted-foreground);
+  font: 9px/1.4 var(--font-body);
+  text-transform: capitalize;
+}
+
+.photo-engine-preview-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.photo-engine-preview-actions button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 6px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--foreground);
+  font: 9px var(--font-body);
+  cursor: pointer;
+}
+
+.photo-engine-preview-actions button svg {
+  width: 13px;
+  height: 13px;
+}
+
+.photo-engine-preview-actions button.keep {
+  border-color: var(--wine);
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.photo-engine-preview-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.photo-engine-adjust-box {
+  display: grid;
+  gap: 7px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.photo-engine-adjust-box textarea {
+  width: 100%;
+  min-height: 74px;
+  resize: vertical;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--foreground);
+  font: 10px/1.45 var(--font-body);
+  outline: none;
+}
+
+.photo-engine-adjust-box textarea:focus {
+  border-color: var(--wine);
+}
+
+.photo-engine-adjust-box > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.photo-engine-adjust-box button {
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+  cursor: pointer;
+}
+
+.photo-engine-adjust-box button.apply {
+  border-color: var(--wine);
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.photo-engine-adjust-box button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.photo-engine-preview-error {
+  margin: 0;
+  padding: 7px 8px;
+  border-left: 2px solid var(--wine);
+  background: color-mix(in oklab, var(--blush) 28%, transparent);
+  color: var(--wine);
+  font: 9px/1.45 var(--font-body);
+}
+
+.photo-engine-preview-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.photo-engine-preview-footer p {
+  margin: 0;
+  max-width: 470px;
+  color: var(--muted-foreground);
+  font: 9px/1.5 var(--font-body);
+}
+
+.photo-engine-preview-footer strong {
+  color: var(--foreground);
+}
+
+@media (max-width: 640px) {
+  .photo-engine-preview-grid,
+  .photo-engine-preview-grid.single {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-engine-preview-heading,
+  .photo-engine-preview-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .photo-engine-preview-media,
+  .photo-engine-preview-placeholder {
+    min-height: 320px;
+  }
+}
