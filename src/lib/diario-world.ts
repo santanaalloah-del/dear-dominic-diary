@@ -21,6 +21,7 @@ export type DiarioItemKind =
   | "story_memory"
   | "note"
   | "plan"
+  | "chat_media"
   | "home_object"
   | "home_change";
 
@@ -61,18 +62,79 @@ export type VisualReferenceSubject =
   | "wardrobe"
   | "mood";
 
+export type VisualReferenceKind =
+  | "identity"
+  | "current_look"
+  | "scene"
+  | "pose"
+  | "style"
+  | "detail";
+
+export type VisualReferenceStrength =
+  | "primary"
+  | "supporting"
+  | "detail_only";
+
+export type VisualReferencePurpose =
+  | "face"
+  | "body"
+  | "hair"
+  | "tattoos"
+  | "hands"
+  | "nails"
+  | "makeup"
+  | "jewelry"
+  | "phone_case"
+  | "clothing"
+  | "pose"
+  | "expression"
+  | "place"
+  | "mood"
+  | "detail";
+
+export type CurrentLookType =
+  | "hair"
+  | "nails"
+  | "makeup"
+  | "jewelry"
+  | "phone_case"
+  | "clothing"
+  | "style"
+  | "accessories";
+
 export type VisualReference = {
   id: string;
   user_id: string;
   subject: VisualReferenceSubject;
   title: string | null;
   description: string | null;
+
   storage_bucket: string;
   storage_path: string;
+
   source: string;
   tags: string[];
+
   is_favorite: boolean;
   is_active: boolean;
+
+  reference_kind: VisualReferenceKind;
+
+  reference_purposes: VisualReferencePurpose[];
+
+  reference_strength: VisualReferenceStrength;
+
+  look_type: CurrentLookType | null;
+
+  look_group_id: string | null;
+
+  is_current: boolean;
+
+  active_from: string | null;
+  active_until: string | null;
+
+  metadata: Record<string, unknown>;
+
   created_at: string;
   updated_at: string;
 };
