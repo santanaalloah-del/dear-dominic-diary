@@ -102,6 +102,46 @@ export type CurrentLookType =
   | "style"
   | "accessories";
 
+export type VisualReferenceKind =
+  | "identity"
+  | "current_look"
+  | "scene"
+  | "pose"
+  | "style"
+  | "detail";
+
+export type VisualReferenceStrength =
+  | "primary"
+  | "supporting"
+  | "detail_only";
+
+export type VisualReferencePurpose =
+  | "face"
+  | "body"
+  | "hair"
+  | "tattoos"
+  | "hands"
+  | "nails"
+  | "makeup"
+  | "jewelry"
+  | "phone_case"
+  | "clothing"
+  | "pose"
+  | "expression"
+  | "place"
+  | "mood"
+  | "detail";
+
+export type CurrentLookType =
+  | "hair"
+  | "nails"
+  | "makeup"
+  | "jewelry"
+  | "phone_case"
+  | "clothing"
+  | "style"
+  | "accessories";
+
 export type VisualReference = {
   id: string;
   user_id: string;
@@ -138,7 +178,6 @@ export type VisualReference = {
   created_at: string;
   updated_at: string;
 };
-
 export type VisualReferenceWithUrl = {
   reference: VisualReference;
   url: string;
