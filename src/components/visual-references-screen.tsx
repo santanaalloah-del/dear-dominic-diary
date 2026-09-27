@@ -27,7 +27,7 @@ import {
   setCurrentLook,
   updatePhotoReference,
 } from "@/lib/photo-engine";
-import "@/photo-references.css";
+import "../photo-references.css";
 
 type ReferenceMode = "identity" | "current-look";
 type CurrentLookSubject = "alloah" | "dominic";
