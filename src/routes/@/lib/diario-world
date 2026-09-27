@@ -124,16 +124,18 @@ restoreHomeObject,
   createVisualReference,
   getVisualReferences,
   setVisualReferenceFavorite,
-type CurrentLookType,
-type VisualReferencePurpose,
-type VisualReferenceStrength,
-type VisualReferenceSubject,
-type VisualReferenceWithUrl,import {
+  type CurrentLookType,
+  type VisualReferencePurpose,
+  type VisualReferenceStrength,
+  type VisualReferenceSubject,
+  type VisualReferenceWithUrl,
+} from "@/lib/diario-world";
+
+import {
   getCurrentLook,
   setCurrentLook,
   updatePhotoReference,
 } from "@/lib/photo-engine";
-} from "@/lib/diario-world";
 import room from "@/assets/dominic-room.jpg";
 import livingRoomEmpty from "@/assets/living-room-empty.jpeg";
 import bedroomEmpty from "@/assets/bedroom-empty.jpeg";
