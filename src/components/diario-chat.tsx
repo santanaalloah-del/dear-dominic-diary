@@ -16,6 +16,8 @@ import {
   SendHorizontal,
   Smile,
   Video,
+  MessageCircle,
+Sparkles,
 } from "lucide-react";
 import {
   Conversation,
@@ -186,12 +188,13 @@ function voiceDuration(content: string) {
 export function DiarioChat({
   onOpen,
 }: {
-  onOpen: (
-    screen:
-      | "letters"
-      | "music"
-      | "dates"
-  ) => void;
+onOpen: (
+  screen:
+    | "letters"
+    | "music"
+    | "dates"
+    | "photo-engine"
+) => void;
 }) {
   const { session, preferredName } = usePrivateDiario();
   const time = useTimeMood();
@@ -1298,6 +1301,34 @@ const inviteToListenTogether = () => {
       : `Listen to this with me: ${songText}.`
   );
 };
+
+  const openPhotoEngine = (
+  draft: {
+    mode?: "request" | "surprise" | "chat_context" | "chat_photo" | "memory" | "daily_life" | "spontaneous" | "adjust";
+    subjectType?: "me" | "dominic" | "both";
+    scene?: string;
+    mood?: string;
+    conversationSummary?: string;
+  }
+) => {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(
+      "diario-photo-engine-draft-v1",
+      JSON.stringify(draft)
+    );
+  }
+
+  onOpen("photo-engine");
+};
+
+const recentConversationForPhoto = () =>
+  messages
+    .slice(-12)
+    .map((message) =>
+      `${message.role === "user" ? preferredName : "Dominic"}: ${message.content}`
+    )
+    .filter((line) => line.trim().length > 0)
+    .join("\n");
   
   const chatClassName = [
     "live-chat-screen messenger-chat",
@@ -1548,6 +1579,37 @@ message.mediaUrl ? (
   onSearch={() =>
     setSearchOpen(true)
   }
+  onPhotoDominic={() =>
+  openPhotoEngine({
+    mode: "chat_photo",
+    subjectType: "dominic",
+  })
+}
+onPhotoMe={() =>
+  openPhotoEngine({
+    mode: "chat_photo",
+    subjectType: "me",
+  })
+}
+onPhotoUs={() =>
+  openPhotoEngine({
+    mode: "chat_photo",
+    subjectType: "both",
+  })
+}
+onPhotoSurprise={() =>
+  openPhotoEngine({
+    mode: "surprise",
+    subjectType: "both",
+  })
+}
+onPhotoFromConversation={() =>
+  openPhotoEngine({
+    mode: "chat_context",
+    subjectType: "both",
+    conversationSummary: recentConversationForPhoto(),
+  })
+}
 />
               </Sheet>
 <Button
@@ -1797,6 +1859,11 @@ function ChatActionsSheet({
   onLetter,
   onDate,
   onSearch,
+  onPhotoDominic,
+  onPhotoMe,
+  onPhotoUs,
+  onPhotoSurprise,
+  onPhotoFromConversation,
 }: {
   onPhotos: () => void;
   onCamera: () => void;
@@ -1805,6 +1872,11 @@ function ChatActionsSheet({
   onLetter: () => void;
   onDate: () => void;
   onSearch: () => void;
+  onPhotoDominic: () => void;
+onPhotoMe: () => void;
+onPhotoUs: () => void;
+onPhotoSurprise: () => void;
+onPhotoFromConversation: () => void;
 }) {
 const actions = [
   {
@@ -1843,13 +1915,36 @@ const actions = [
     icon: <Heart />,
     action: onDate,
   },
-  {
-    label:
-      "Ask Dominic for a Photo",
-    note:
-      "generated → keep or discard",
-    icon: <Camera />,
-  },
+{
+  label: "Photo · From conversation",
+  note: "uses what you were just talking about",
+  icon: <MessageCircle />,
+  action: onPhotoFromConversation,
+},
+{
+  label: "Photo · Dominic",
+  note: "ask him for a photo",
+  icon: <Camera />,
+  action: onPhotoDominic,
+},
+{
+  label: "Photo · Me",
+  note: "generate Alloah",
+  icon: <Image />,
+  action: onPhotoMe,
+},
+{
+  label: "Photo · Us",
+  note: "a shared moment",
+  icon: <Heart />,
+  action: onPhotoUs,
+},
+{
+  label: "Photo · Surprise",
+  note: "let the moment choose itself",
+  icon: <Sparkles />,
+  action: onPhotoSurprise,
+},
   {
     label: "Search",
     note:
