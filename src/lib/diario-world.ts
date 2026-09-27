@@ -92,15 +92,6 @@ export type VisualReferencePurpose =
   | "mood"
   | "detail";
 
-export type CurrentLookType =
-  | "hair"
-  | "nails"
-  | "makeup"
-  | "jewelry"
-  | "phone_case"
-  | "clothing"
-  | "style"
-  | "accessories";
 
 export type CurrentLookType =
   | "hair"
