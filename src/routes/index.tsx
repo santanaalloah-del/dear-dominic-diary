@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { VisualReferencesScreen } from "@/components/visual-references-screen";
+import { PhotoEngineScreen } from "@/components/photo-engine-screen";
 import {
   connectSpotify,
   disconnectSpotify,
@@ -151,8 +152,9 @@ type Screen =
   | "places"
   | "keepsakes"
   | "wardrobe"
-  | "references"
-  | "night"
+| "references"
+| "photo-engine"
+| "night"
   | "settings";
 
 export const Route = createFileRoute("/")({
@@ -405,6 +407,7 @@ const openScreen = (nextScreen: Screen) => {
 {screen === "keepsakes" && <KeepsakesScreen />}
 {screen === "wardrobe" && <WardrobeScreen />}
 {screen === "references" && <VisualReferencesScreen />}
+          {screen === "photo-engine" && <PhotoEngineScreen />}
           {screen === "settings" && <SettingsScreen />}
         </div>
 
@@ -1491,6 +1494,7 @@ function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
   const entries: { name: string; note: string; target: Screen; icon: ReactNode }[] = [
     { name: "Memories", note: "the moments that stay", target: "memories", icon: <Heart /> },
     { name: "Gallery", note: "photos, videos & context", target: "gallery", icon: <ImageIcon /> },
+    { name: "Photo Engine", note: "me, Dominic, us & daily life", target: "photo-engine", icon: <ImageIcon /> },
     { name: "References", note: "faces, poses, places & visual canon", target: "references", icon: <ImageIcon /> },
     { name: "Letters", note: "letters, notes & envelopes", target: "letters", icon: <Mail /> },
     { name: "Calendar", note: "days, plans & what happened", target: "calendar", icon: <CalendarIcon /> },
