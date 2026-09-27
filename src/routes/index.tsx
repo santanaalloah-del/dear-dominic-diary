@@ -37,6 +37,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
+import { VisualReferencesScreen } from "@/components/visual-references-screen";
 import {
   connectSpotify,
   disconnectSpotify,
@@ -403,8 +404,8 @@ const openScreen = (nextScreen: Screen) => {
 {screen === "places" && <PlacesScreen />}
 {screen === "keepsakes" && <KeepsakesScreen />}
 {screen === "wardrobe" && <WardrobeScreen />}
-{screen === "references" && <ReferencesScreen />}
-{screen === "settings" && <SettingsScreen />}
+{screen === "references" && <VisualReferencesScreen />}
+          {screen === "settings" && <SettingsScreen />}
         </div>
 
         {!detail && (
