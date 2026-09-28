@@ -291,14 +291,41 @@ const openScreen = (nextScreen: Screen) => {
   setPreviousScreen(screen);
   setScreen(nextScreen);
 };
-  const shareToChat = (text: string) => {
+ const shareToChat = (
+  text: string,
+  item?: DiarioItem,
+  subtitle?: string
+) => {
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(
-      "diario-pending-chat-message",
-      text
-    );
-  }
+    if (item) {
+      window.localStorage.setItem(
+        "diario-pending-chat-share-v1",
+        JSON.stringify({
+          text,
+          itemId: item.id,
+          kind: item.kind,
+          title:
+            item.title ??
+            "Shared item",
+          subtitle:
+            subtitle ?? null,
+        })
+      );
 
+      window.localStorage.removeItem(
+        "diario-pending-chat-message"
+      );
+    } else {
+      window.localStorage.setItem(
+        "diario-pending-chat-message",
+        text
+      );
+
+      window.localStorage.removeItem(
+        "diario-pending-chat-share-v1"
+      );
+    }
+  }
 
   openScreen("chat");
 };
@@ -6653,7 +6680,11 @@ const markAsLived = async (
 function MusicScreen({
   onShareToChat,
 }: {
-  onShareToChat?: (text: string) => void;
+  onShareToChat?: (
+    text: string,
+    item?: DiarioItem,
+    subtitle?: string
+  ) => void;
 }) {
   const { session } = usePrivateDiario();
 
@@ -8160,7 +8191,9 @@ const spotifyUri =
     type="button"
     onClick={() =>
       onShareToChat(
-        `I sent you a song: "${song.title ?? "Untitled song"}" by ${artist}.`
+        `I sent you a song: "${song.title ?? "Untitled song"}" by ${artist}.`,
+        song,
+        artist
       )
     }
   >
