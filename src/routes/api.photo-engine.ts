@@ -261,8 +261,9 @@ function buildPrompt(
       ? "Image 1 is an existing generated preview being adjusted. Preserve scene continuity while correcting the person toward the identity references."
       : null,
     canonBlock(canons),
-    "",
-    "SCENE",
+buildPhotoContextPrompt(request),
+"",
+"SCENE",
     request.scene || "Create a believable everyday moment.",
     request.mood ? `Mood: ${request.mood}.` : null,
     request.adjustment_instruction
