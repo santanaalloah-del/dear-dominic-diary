@@ -1547,6 +1547,11 @@ function DiaryScreen() {
   const [pages, setPages] =
     useState<DiarioItem[]>([]);
 
+  const [
+  selectedDiaryPageId,
+  setSelectedDiaryPageId,
+] = useState<string | null>(null);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -1658,10 +1663,22 @@ function DiaryScreen() {
       setError(
         "Your page could not be saved. Try again."
       );
-    } finally {
+  } finally {
       setSaving(false);
     }
   };
+
+  if (selectedDiaryPageId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={selectedDiaryPageId}
+        onOpenRelated={setSelectedDiaryPageId}
+        onBack={() =>
+          setSelectedDiaryPageId(null)
+        }
+      />
+    );
+  }
 
   return (
     <section className="diary-screen diary-live">
@@ -1800,6 +1817,19 @@ function DiaryScreen() {
                 Edit today's page
               </button>
             )}
+
+            <button
+  type="button"
+  className="letter-connected-button"
+  onClick={() =>
+    setSelectedDiaryPageId(
+      todayPage.id
+    )
+  }
+>
+  View connections
+</button>
+            
           </div>
         ) : (
           <div className="diary-empty-page">
@@ -1889,10 +1919,23 @@ function DiaryScreen() {
                     : "Past page"}
                 </small>
 
-                <p>
-                  {page.body}
-                </p>
-              </article>
+               <p>
+  {page.body}
+</p>
+
+<button
+  type="button"
+  className="letter-connected-button"
+  onClick={() =>
+    setSelectedDiaryPageId(
+      page.id
+    )
+  }
+>
+  View connections
+</button>
+
+</article>
             ))}
           </div>
         )}
@@ -6627,6 +6670,9 @@ function MusicScreen({
   const [songs, setSongs] =
     useState<DiarioItem[]>([]);
 
+  const [selectedSongId, setSelectedSongId] =
+  useState<string | null>(null);
+
   const [loadingSongs, setLoadingSongs] =
     useState(true);
 
@@ -7221,6 +7267,16 @@ setAddingSong(false);
       );
     }
   };
+
+  if (selectedSongId) {
+  return (
+    <ConnectedObjectDetailScreen
+      itemId={selectedSongId}
+      onOpenRelated={setSelectedSongId}
+      onBack={() => setSelectedSongId(null)}
+    />
+  );
+}
 
   return (
     <section className="music-screen music-live">
@@ -8198,6 +8254,16 @@ const spotifyUri =
   }}
 >
   queue
+</button>
+
+                    <button
+  type="button"
+  className="letter-connected-button"
+  onClick={() =>
+    setSelectedSongId(song.id)
+  }
+>
+  View connections
 </button>
                     
                   </article>
