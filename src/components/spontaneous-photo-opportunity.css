@@ -1,0 +1,104 @@
+.spontaneous-photo-opportunity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin: 8px 12px;
+  padding: 10px 11px;
+  border: 1px solid color-mix(in oklab, var(--wine) 27%, var(--border));
+  background: color-mix(in oklab, var(--blush) 13%, var(--paper));
+}
+
+.spontaneous-photo-opportunity-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in oklab, var(--wine) 28%, var(--border));
+  border-radius: 50%;
+  color: var(--wine);
+  background: var(--paper);
+}
+
+.spontaneous-photo-opportunity-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.spontaneous-photo-opportunity-copy small {
+  color: var(--wine);
+  font: 8px var(--font-body);
+  letter-spacing: 0.11em;
+}
+
+.spontaneous-photo-opportunity-copy strong {
+  font: 14px var(--font-display);
+  font-weight: 500;
+}
+
+.spontaneous-photo-opportunity-copy span {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spontaneous-photo-opportunity-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.spontaneous-photo-opportunity-actions button {
+  cursor: pointer;
+}
+
+.spontaneous-photo-dismiss {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+.spontaneous-photo-open {
+  min-height: 30px;
+  padding: 6px 9px;
+  border: 1px solid var(--wine);
+  background: var(--wine);
+  color: var(--paper);
+  font: 9px var(--font-body);
+  white-space: nowrap;
+}
+
+.spontaneous-photo-opportunity-actions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.spontaneous-photo-opportunity > p {
+  grid-column: 2 / -1;
+  margin: -4px 0 0;
+  color: var(--muted-foreground);
+  font: 8px/1.35 var(--font-body);
+}
+
+@media (max-width: 520px) {
+  .spontaneous-photo-opportunity {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .spontaneous-photo-opportunity-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .spontaneous-photo-opportunity > p {
+    grid-column: 2;
+  }
+}
