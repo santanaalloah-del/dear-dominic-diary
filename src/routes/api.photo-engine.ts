@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { buildPhotoContextPrompt } from "@/lib/photo-prompt-context";
+import {
+  buildPhotoVariationPlan,
+  photoVariationInstruction,
+  type PhotoVariationPlan,
+} from "@/lib/photo-variation-plan";
 
 const IMAGE_MODEL = "openai/gpt-image-2.5-sunburst";
 const MAX_REFERENCES = 16;
@@ -232,7 +237,8 @@ function buildPrompt(
   request: RequestShape,
   references: ProviderReference[],
   canons: VisualCanonPayload[],
-  hasSourceImage: boolean
+  hasSourceImage: boolean,
+  variationPlan: PhotoVariationPlan
 ) {
   const referenceGuide = references.map((reference, index) => {
     const purposes = reference.purposes?.length
@@ -269,6 +275,9 @@ buildPhotoContextPrompt(request),
     request.adjustment_instruction
       ? `Requested adjustment: ${request.adjustment_instruction}`
       : null,
+
+    photoVariationInstruction(variationPlan),
+    
     "",
     "CAMERA / REALISM",
     `Photo style: ${styleDescription(request.photo_style)}.`,
@@ -364,12 +373,15 @@ export const Route = createFileRoute("/api/photo-engine")({
           } => Boolean(item.dataUrl)
         );
 
-        const prompt = buildPrompt(
-          body.request,
-          attachedReferences.map((item) => item.reference),
-          canons,
-          Boolean(sourceDataUrl)
-        );
+       const variationPlan = buildPhotoVariationPlan(body.request);
+
+const prompt = buildPrompt(
+  body.request,
+  attachedReferences.map((item) => item.reference),
+  canons,
+  Boolean(sourceDataUrl),
+  variationPlan
+);
 
         const inputReferences = [
           ...(sourceDataUrl
@@ -461,18 +473,18 @@ export const Route = createFileRoute("/api/photo-engine")({
           provider: "openrouter",
           model: IMAGE_MODEL,
           prompt,
-          feature: {
-            poseType: null,
-            cameraAngle: null,
-            framing: null,
-            expression: null,
-            lightingType: null,
+         feature: {
+  poseType: variationPlan.poseType,
+  cameraAngle: variationPlan.cameraAngle,
+  framing: variationPlan.framing,
+  expression: variationPlan.expression,
+  lightingType: variationPlan.lightingType,
             locationCategory:
               typeof body.request.context_snapshot?.location === "string"
                 ? String(body.request.context_snapshot.location)
                 : null,
-            compositionType: null,
-            featureData: {
+compositionType: variationPlan.compositionType,
+           featureData: {
               openRouterImageApi: true,
               identityProvider: "openai-via-openrouter",
               imageModel: IMAGE_MODEL,
