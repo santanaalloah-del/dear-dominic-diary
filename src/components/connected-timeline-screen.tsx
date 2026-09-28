@@ -1,31 +1,110 @@
-import { useEffect, useMemo, useState } from "react";
-import { Clock } from "lucide-react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import { usePrivateDiario } from "@/components/private-diario";
-import { ConnectedDiaryObject } from "@/components/connected-diary-object";
-import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
-import { getTimelineItems } from "@/lib/diario-world";
+import {
+  Clock,
+} from "lucide-react";
+
+import {
+  usePrivateDiario,
+} from "@/components/private-diario";
+
+import {
+  ConnectedDiaryObject,
+} from "@/components/connected-diary-object";
+
+import {
+  ConnectedObjectDetailScreen,
+} from "@/components/connected-object-detail-screen";
+
+import {
+  getTimelineItems,
+} from "@/lib/diario-world";
+
 import {
   connectedKindLabel,
   connectedMoment,
+  getMemoryConnectionMap,
   hydrateDiaryItems,
   type ConnectedDiaryView,
+  type MemoryConnectionMap,
 } from "@/lib/connected-diary";
 
 import "./connected-diary.css";
 
-type TimelineView = "all" | "lived" | "planned";
+type TimelineView =
+  | "all"
+  | "lived"
+  | "planned";
 
 export function ConnectedTimelineScreen() {
-  const { session } = usePrivateDiario();
-  const [selectedObjectId, setSelectedObjectId] =
-    useState<string | null>(null);
+  const {
+    session,
+  } =
+    usePrivateDiario();
 
-  const [view, setView] = useState<TimelineView>("all");
-  const [items, setItems] = useState<ConnectedDiaryView[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [
+    selectedObjectId,
+    setSelectedObjectId,
+  ] =
+    useState<
+      string | null
+    >(null);
+
+  const [
+    refreshKey,
+    setRefreshKey,
+  ] =
+    useState(0);
+
+  const [
+    view,
+    setView,
+  ] =
+    useState<
+      TimelineView
+    >("all");
+
+  const [
+    items,
+    setItems,
+  ] =
+    useState<
+      ConnectedDiaryView[]
+    >([]);
+
+  const [
+    connectionMap,
+    setConnectionMap,
+  ] =
+    useState<
+      MemoryConnectionMap
+    >({});
+
+  const [
+    expandedId,
+    setExpandedId,
+  ] =
+    useState<
+      string | null
+    >(null);
+
+  const [
+    loading,
+    setLoading,
+  ] =
+    useState(true);
+
+  const [
+    error,
+    setError,
+  ] =
+    useState<
+      string | null
+    >(null);
 
   useEffect(() => {
     let active = true;
@@ -33,46 +112,173 @@ export function ConnectedTimelineScreen() {
     setLoading(true);
     setError(null);
 
-    void getTimelineItems(session.user.id)
-      .then((loaded) => hydrateDiaryItems(loaded))
-      .then((hydrated) => {
-        if (active) setItems(hydrated);
-      })
-      .catch((nextError) => {
-        console.error("Could not open connected Timeline:", nextError);
-        if (active) setError("The timeline could not be opened.");
-      })
+    void getTimelineItems(
+      session.user.id
+    )
+      .then(
+        async (
+          loaded
+        ) => {
+          const hydrated =
+            await hydrateDiaryItems(
+              loaded
+            );
+
+          const containerIds =
+            hydrated
+              .filter(
+                (entry) =>
+                  entry.item.kind ===
+                    "date" ||
+                  entry.item.kind ===
+                    "story_memory"
+              )
+              .map(
+                (entry) =>
+                  entry.item.id
+              );
+
+          const connections =
+            await getMemoryConnectionMap({
+              userId:
+                session.user.id,
+
+              memoryIds:
+                containerIds,
+            });
+
+          return {
+            hydrated,
+            connections,
+          };
+        }
+      )
+      .then(
+        ({
+          hydrated,
+          connections,
+        }) => {
+          if (!active) {
+            return;
+          }
+
+          setItems(
+            hydrated
+          );
+
+          setConnectionMap(
+            connections
+          );
+        }
+      )
+      .catch(
+        (nextError) => {
+          console.error(
+            "Could not open connected Timeline:",
+            nextError
+          );
+
+          if (active) {
+            setError(
+              "The timeline could not be opened."
+            );
+          }
+        }
+      )
       .finally(() => {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(
+            false
+          );
+        }
       });
 
     return () => {
       active = false;
     };
-  }, [session.user.id]);
+  }, [
+    session.user.id,
+    refreshKey,
+  ]);
 
-  const visible = useMemo(() => {
-    const filtered = items.filter(({ item }) => {
-      const planned = !item.event_at && Boolean(item.planned_for);
+  const visible =
+    useMemo(
+      () => {
+        const filtered =
+          items.filter(
+            ({
+              item,
+            }) => {
+              const planned =
+                !item.event_at &&
+                Boolean(
+                  item.planned_for
+                );
 
-      if (view === "planned") return planned;
-      if (view === "lived") return !planned;
-      return true;
-    });
+              if (
+                view ===
+                "planned"
+              ) {
+                return planned;
+              }
 
-    return [...filtered].sort(
-      (a, b) =>
-        new Date(connectedMoment(b.item)).getTime() -
-        new Date(connectedMoment(a.item)).getTime()
+              if (
+                view ===
+                "lived"
+              ) {
+                return !planned;
+              }
+
+              return true;
+            }
+          );
+
+        return [
+          ...filtered,
+        ].sort(
+          (
+            a,
+            b
+          ) =>
+            new Date(
+              connectedMoment(
+                b.item
+              )
+            ).getTime() -
+            new Date(
+              connectedMoment(
+                a.item
+              )
+            ).getTime()
+        );
+      },
+      [
+        items,
+        view,
+      ]
     );
-  }, [items, view]);
 
-  if (selectedObjectId) {
+  if (
+    selectedObjectId
+  ) {
     return (
       <ConnectedObjectDetailScreen
-        itemId={selectedObjectId}
-        onOpenRelated={setSelectedObjectId}
-        onBack={() => setSelectedObjectId(null)}
+        itemId={
+          selectedObjectId
+        }
+        onOpenRelated={
+          setSelectedObjectId
+        }
+        onBack={() => {
+          setSelectedObjectId(
+            null
+          );
+
+          setRefreshKey(
+            (current) =>
+              current + 1
+          );
+        }}
       />
     );
   }
@@ -80,99 +286,264 @@ export function ConnectedTimelineScreen() {
   return (
     <section className="connected-timeline-screen">
       <header className="connected-screen-intro">
-        <small>THE CONTINUOUS STORY</small>
-        <h1>Timeline</h1>
+        <small>
+          THE CONTINUOUS STORY
+        </small>
+
+        <h1>
+          Timeline
+        </h1>
+
         <p>
-          The same diary objects, arranged by when they entered your
-          life instead of being recreated as timeline entries.
+          The same original objects,
+          arranged by when they
+          entered your life. Dates
+          and Memories can reveal the
+          real objects that belong to
+          them.
         </p>
       </header>
 
-      <div className="connected-timeline-tabs" role="tablist">
-        {(["all", "lived", "planned"] as TimelineView[]).map((option) => (
-          <button
-            key={option}
-            type="button"
-            role="tab"
-            aria-selected={view === option}
-            className={view === option ? "active" : ""}
-            onClick={() => setView(option)}
-          >
-            {option[0].toUpperCase() + option.slice(1)}
-          </button>
-        ))}
+      <div
+        className="connected-timeline-tabs"
+        role="tablist"
+      >
+        {(
+          [
+            "all",
+            "lived",
+            "planned",
+          ] as TimelineView[]
+        ).map(
+          (
+            option
+          ) => (
+            <button
+              key={
+                option
+              }
+              type="button"
+              role="tab"
+              aria-selected={
+                view ===
+                option
+              }
+              className={
+                view ===
+                option
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setView(
+                  option
+                )
+              }
+            >
+              {option[0].toUpperCase() +
+                option.slice(
+                  1
+                )}
+            </button>
+          )
+        )}
       </div>
 
       {loading ? (
-        <div className="connected-empty">Opening Timeline…</div>
-      ) : visible.length === 0 ? (
         <div className="connected-empty">
-          <Clock size={25} strokeWidth={1.3} />
-          <strong>The timeline begins here.</strong>
+          Opening Timeline…
+        </div>
+      ) : visible.length ===
+        0 ? (
+        <div className="connected-empty">
+          <Clock
+            size={25}
+            strokeWidth={
+              1.3
+            }
+          />
+
+          <strong>
+            The timeline begins here.
+          </strong>
         </div>
       ) : (
         <div className="connected-timeline-stream">
-          {visible.map((entry) => {
-            const expanded = expandedId === entry.item.id;
-            const planned =
-              !entry.item.event_at && Boolean(entry.item.planned_for);
+          {visible.map(
+            (
+              entry
+            ) => {
+              const expanded =
+                expandedId ===
+                entry.item.id;
 
-            return (
-              <article
-                className="connected-timeline-entry"
-                key={entry.item.id}
-              >
-                <span className="connected-timeline-dot" />
+              const planned =
+                !entry
+                  .item
+                  .event_at &&
+                Boolean(
+                  entry
+                    .item
+                    .planned_for
+                );
 
-                <time>
-                  {new Intl.DateTimeFormat("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  }).format(new Date(connectedMoment(entry.item)))}
-                </time>
+              const contained =
+                connectionMap[
+                  entry.item.id
+                ] ?? [];
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setExpandedId(expanded ? null : entry.item.id)
+              return (
+                <article
+                  className="connected-timeline-entry"
+                  key={
+                    entry
+                      .item
+                      .id
                   }
                 >
-                  <small>
-                    {planned
-                      ? `planned · ${connectedKindLabel(entry.item.kind)}`
-                      : connectedKindLabel(entry.item.kind)}
-                  </small>
+                  <span className="connected-timeline-dot" />
 
-                  <strong>
-                    {entry.item.title ??
-                      (entry.item.kind === "diary"
-                        ? "Diary entry"
-                        : connectedKindLabel(entry.item.kind))}
-                  </strong>
-
-                  {!expanded && entry.item.body && (
-                    <p>{entry.item.body}</p>
-                  )}
-                </button>
-
-                {expanded && (
-                  <div className="connected-timeline-expanded">
-                    <ConnectedDiaryObject
-                      view={entry}
-                      onOpen={() =>
-                        setSelectedObjectId(entry.item.id)
+                  <time>
+                    {new Intl.DateTimeFormat(
+                      "en-US",
+                      {
+                        month:
+                          "short",
+                        day:
+                          "numeric",
+                        year:
+                          "numeric",
                       }
-                    />
-                  </div>
-                )}
-              </article>
-            );
-          })}
+                    ).format(
+                      new Date(
+                        connectedMoment(
+                          entry.item
+                        )
+                      )
+                    )}
+                  </time>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedId(
+                        expanded
+                          ? null
+                          : entry
+                              .item
+                              .id
+                      )
+                    }
+                  >
+                    <small>
+                      {planned
+                        ? `planned · ${connectedKindLabel(
+                            entry
+                              .item
+                              .kind
+                          )}`
+                        : connectedKindLabel(
+                            entry
+                              .item
+                              .kind
+                          )}
+                    </small>
+
+                    <strong>
+                      {entry.item
+                        .title ??
+                        (
+                          entry
+                            .item
+                            .kind ===
+                          "diary"
+                            ? "Diary entry"
+                            : connectedKindLabel(
+                                entry
+                                  .item
+                                  .kind
+                              )
+                        )}
+                    </strong>
+
+                    {!expanded &&
+                      entry.item
+                        .body && (
+                        <p>
+                          {
+                            entry
+                              .item
+                              .body
+                          }
+                        </p>
+                      )}
+
+                    {contained.length >
+                      0 && (
+                      <small>
+                        {
+                          contained.length
+                        } connected{" "}
+                        {contained.length ===
+                        1
+                          ? "object"
+                          : "objects"}
+                      </small>
+                    )}
+                  </button>
+
+                  {expanded && (
+                    <div className="connected-timeline-expanded">
+                      <ConnectedDiaryObject
+                        view={
+                          entry
+                        }
+                        onOpen={() =>
+                          setSelectedObjectId(
+                            entry
+                              .item
+                              .id
+                          )
+                        }
+                      />
+
+                      {contained.map(
+                        (
+                          child
+                        ) => (
+                          <ConnectedDiaryObject
+                            key={
+                              child
+                                .item
+                                .id
+                            }
+                            view={
+                              child
+                            }
+                            onOpen={() =>
+                              setSelectedObjectId(
+                                child
+                                  .item
+                                  .id
+                              )
+                            }
+                          />
+                        )
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            }
+          )}
         </div>
       )}
 
-      {error && <p className="connected-error">{error}</p>}
+      {error && (
+        <p className="connected-error">
+          {error}
+        </p>
+      )}
     </section>
   );
 }
