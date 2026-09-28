@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PhotoIdentityFeedback } from "@/components/photo-identity-feedback";
 import {
   Camera,
   Check,
@@ -700,6 +701,15 @@ export function PhotoEngineScreen() {
                   </Button>
                 )}
 
+                {item.preview &&
+  (item.status === "ready" || item.status === "saved") && (
+    <PhotoIdentityFeedback
+      userId={session.user.id}
+      request={item.request}
+      preview={item.preview}
+    />
+  )}
+                
                 {(item.status === "ready" || item.status === "saved") && (
                   <div className="photo-engine-preview-actions">
                     <button
