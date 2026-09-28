@@ -52,16 +52,36 @@ import {
 } from "@/lib/diario-world";
 import dominic from "@/assets/dominic-candid.jpg";
 
-type MessageKind = "text" | "voice" | "photo";
+type MessageKind =
+  | "text"
+  | "voice"
+  | "photo"
+  | "shared_item";
+
+type PendingChatShare = {
+  text: string;
+  itemId: string;
+  kind: DiarioItem["kind"];
+  title: string;
+  subtitle?: string | null;
+};
 
 type ChatMedia = {
   id: string;
-  type: "photo" | "voice";
-  url: string;
+  type:
+    | "photo"
+    | "voice"
+    | "shared_item";
+  url?: string;
   transcript?: string;
   createdAt: string;
   sender?: "user" | "assistant";
   generated?: boolean;
+
+  sharedItemId?: string;
+  sharedTitle?: string;
+  sharedSubtitle?: string | null;
+  sharedKind?: DiarioItem["kind"];
 };
 
 type ChatMessage = {
@@ -69,9 +89,13 @@ type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
-  kind?: MessageKind | undefined;
-  mediaUrl?: string | undefined;
-  diaryItemId?: string | undefined;
+  kind?: MessageKind;
+  mediaUrl?: string;
+  diaryItemId?: string;
+
+  sharedTitle?: string;
+  sharedSubtitle?: string | null;
+  sharedKind?: DiarioItem["kind"];
 };
 
 type ActiveListeningTrack = {
@@ -518,97 +542,280 @@ useEffect(() => {
     };
   }
 
-  async function loadChatMedia(): Promise<ChatMedia[]> {
-    const { data, error } =
-      await supabase
-        .from("diario_items")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .in("kind", ["chat_media", "photo"])
-        .eq("status", "active")
-        .order("event_at", {
-          ascending: true,
-        });
+  async function createChatSharedItem(
+  share: PendingChatShare
+) {
+  const now =
+    new Date().toISOString();
 
-    if (error) {
-      throw error;
-    }
+  const {
+    data: chatShare,
+    error: itemError,
+  } = await supabase
+    .from("diario_items")
+    .insert({
+      user_id:
+        session.user.id,
+      kind: "chat_media",
+      owner: "alloah",
+      status: "active",
 
-    const media =
-      await Promise.all(
-        (data ?? []).map(
-          async (item): Promise<ChatMedia | null> => {
-            const itemData = (item.data ?? {}) as any;
-            const generatedChatPhoto =
-              item.kind === "photo" &&
-              itemData.generated === true &&
-              itemData.source_context === "chat";
+      title: `Shared ${
+        share.kind === "song"
+          ? "song"
+          : "item"
+      }`,
 
-            if (item.kind !== "chat_media" && !generatedChatPhoto) {
+      body: share.text,
+
+      event_at: now,
+      planned_for: null,
+
+      data: {
+        media_type:
+          "shared_item",
+
+        shared_item_id:
+          share.itemId,
+
+        shared_kind:
+          share.kind,
+
+        shared_title:
+          share.title,
+
+        shared_subtitle:
+          share.subtitle ?? null,
+      },
+    })
+    .select("id")
+    .single();
+
+  if (itemError) {
+    throw itemError;
+  }
+
+  const { error: linkError } =
+    await supabase
+      .from("diario_links")
+      .upsert(
+        {
+          user_id:
+            session.user.id,
+
+          source_item_id:
+            chatShare.id,
+
+          target_item_id:
+            share.itemId,
+
+          relation: "shared",
+
+          data: {},
+        },
+        {
+          onConflict:
+            "user_id,source_item_id,target_item_id,relation",
+        }
+      );
+
+  if (linkError) {
+    await supabase
+      .from("diario_items")
+      .delete()
+      .eq(
+        "user_id",
+        session.user.id
+      )
+      .eq(
+        "id",
+        chatShare.id
+      );
+
+    throw linkError;
+  }
+
+  return chatShare.id;
+}
+
+async function loadChatMedia(): Promise<
+  ChatMedia[]
+> {
+  const { data, error } =
+    await supabase
+      .from("diario_items")
+      .select("*")
+      .eq(
+        "user_id",
+        session.user.id
+      )
+      .in("kind", [
+        "chat_media",
+        "photo",
+      ])
+      .eq("status", "active")
+      .order("event_at", {
+        ascending: true,
+      });
+
+  if (error) {
+    throw error;
+  }
+
+  const media =
+    await Promise.all(
+      (data ?? []).map(
+        async (
+          item
+        ): Promise<ChatMedia | null> => {
+          const itemData =
+            (item.data ?? {}) as any;
+
+          const generatedChatPhoto =
+            item.kind === "photo" &&
+            itemData.generated === true &&
+            itemData.source_context ===
+              "chat";
+
+          if (
+            item.kind !== "chat_media" &&
+            !generatedChatPhoto
+          ) {
+            return null;
+          }
+
+          const mediaType =
+            generatedChatPhoto
+              ? "photo"
+              : itemData.media_type;
+
+          const sender =
+            generatedChatPhoto &&
+            itemData.chat_sender ===
+              "dominic"
+              ? "assistant"
+              : item.owner === "dominic"
+                ? "assistant"
+                : "user";
+
+          if (
+            mediaType === "shared_item"
+          ) {
+            const sharedItemId =
+              typeof itemData
+                .shared_item_id ===
+              "string"
+                ? itemData.shared_item_id
+                : null;
+
+            if (!sharedItemId) {
               return null;
             }
 
-            const storagePath = itemData.storage_path;
-            const storageBucket =
-              typeof itemData.storage_bucket === "string"
-                ? itemData.storage_bucket
-                : "diario-media";
-            const mediaType =
-              generatedChatPhoto ? "photo" : itemData.media_type;
+            return {
+              id: item.id,
+              type: "shared_item",
+              transcript:
+                item.body ??
+                undefined,
+              createdAt:
+                item.event_at ??
+                item.created_at,
+              sender,
 
-            if (
-              typeof storagePath !== "string" ||
-              (mediaType !== "photo" && mediaType !== "voice")
-            ) {
-              return null;
-            }
+              sharedItemId,
 
-            const {
-              data: signedData,
-              error: signedError,
-            } = await supabase.storage
+              sharedTitle:
+                typeof itemData
+                  .shared_title ===
+                "string"
+                  ? itemData
+                      .shared_title
+                  : "Shared item",
+
+              sharedSubtitle:
+                typeof itemData
+                  .shared_subtitle ===
+                "string"
+                  ? itemData
+                      .shared_subtitle
+                  : null,
+
+              sharedKind:
+                typeof itemData
+                  .shared_kind ===
+                "string"
+                  ? itemData
+                      .shared_kind
+                  : undefined,
+            };
+          }
+
+          const storagePath =
+            itemData.storage_path;
+
+          const storageBucket =
+            typeof itemData
+              .storage_bucket ===
+            "string"
+              ? itemData
+                  .storage_bucket
+              : "diario-media";
+
+          if (
+            typeof storagePath !==
+              "string" ||
+            (mediaType !== "photo" &&
+              mediaType !== "voice")
+          ) {
+            return null;
+          }
+
+          const {
+            data: signedData,
+            error: signedError,
+          } =
+            await supabase.storage
               .from(storageBucket)
               .createSignedUrl(
                 storagePath,
                 60 * 60
               );
 
-            if (signedError) {
-              return null;
-            }
-
-            const sender =
-              generatedChatPhoto && itemData.chat_sender === "dominic"
-                ? "assistant"
-                : item.owner === "dominic"
-                  ? "assistant"
-                  : "user";
-
-            return {
-              id: item.id,
-              type: mediaType,
-              url: signedData.signedUrl,
-              transcript:
-                typeof itemData.transcript === "string"
-                  ? itemData.transcript
-                  : undefined,
-              createdAt:
-                item.event_at ??
-                item.created_at,
-              sender,
-              generated: generatedChatPhoto,
-            };
+          if (signedError) {
+            return null;
           }
-        )
-      );
 
-    return media.filter(
-      (
-        item
-      ): item is ChatMedia =>
-        item !== null
+          return {
+            id: item.id,
+            type: mediaType,
+            url:
+              signedData.signedUrl,
+            transcript:
+              typeof itemData
+                .transcript ===
+              "string"
+                ? itemData
+                    .transcript
+                : undefined,
+            createdAt:
+              item.event_at ??
+              item.created_at,
+            sender,
+            generated:
+              generatedChatPhoto,
+          };
+        }
+      )
     );
-  }
+
+  return media.filter(
+    (
+      item
+    ): item is ChatMedia =>
+      item !== null
+  );
+}
   
  const loadHistory = useCallback(
     async (showLoading = true) => {
@@ -641,31 +848,59 @@ useEffect(() => {
       const chatMedia =
         await loadChatMedia();
 
-      if (!conversation) {
-        const photos =
-          chatMedia
-            .filter(
-              (media) =>
-                media.type === "photo"
-            )
-            .map(
-              (media): ChatMessage => ({
-               id: media.id,
-diaryItemId: media.id,
-role: media.sender ?? "user",
-                content: "",
-                createdAt:
-                  media.createdAt,
-                kind: "photo",
-                mediaUrl: media.url,
-              })
-            );
+    if (!conversation) {
+  const standaloneMedia =
+    chatMedia.map(
+      (
+        media
+      ): ChatMessage => ({
+        id:
+          media.id,
 
-        setMessages(photos);
-        setLoading(false);
-        return;
-      }
+        role:
+          media.sender ??
+          "user",
 
+        content:
+          media.transcript ??
+          "",
+
+        createdAt:
+          media.createdAt,
+
+        kind:
+          media.type,
+
+        mediaUrl:
+          media.url,
+
+        diaryItemId:
+          media.type ===
+          "shared_item"
+            ? media
+                .sharedItemId
+            : media.id,
+
+        sharedTitle:
+          media.sharedTitle,
+
+        sharedSubtitle:
+          media.sharedSubtitle,
+
+        sharedKind:
+          media.sharedKind,
+      })
+    );
+
+  setMessages(
+    standaloneMedia
+  );
+
+  setLoading(false);
+
+  return;
+}
+      
       const { data } =
         await supabase
           .from("messages")
@@ -688,100 +923,206 @@ role: media.sender ?? "user",
             ascending: true,
           });
 
-      const normalMessages =
-        (data ?? []).map(
-          (message): ChatMessage => {
-            const matchingVoice =
-              chatMedia.find(
-                (media) => {
-                  if (
-                    media.type !==
-                    "voice"
-                  ) {
-                    return false;
-                  }
+    const matchedSharedMediaIds =
+  new Set<string>();
 
-                  if (
-                    media.transcript?.trim() !==
-                    message.content.trim()
-                  ) {
-                    return false;
-                  }
+const normalMessages =
+  (data ?? []).map(
+    (
+      message
+    ): ChatMessage => {
+      const matchingVoice =
+        chatMedia.find(
+          (media) => {
+            if (
+              media.type !==
+              "voice"
+            ) {
+              return false;
+            }
 
-                  const difference =
-                    Math.abs(
-                      new Date(
-                        media.createdAt
-                      ).getTime() -
-                        new Date(
-                          message.created_at
-                        ).getTime()
-                    );
+            if (
+              media.transcript
+                ?.trim() !==
+              message.content.trim()
+            ) {
+              return false;
+            }
 
-                  return (
-                    difference <
-                    5 * 60_000
-                  );
-                }
+            const difference =
+              Math.abs(
+                new Date(
+                  media.createdAt
+                ).getTime() -
+                  new Date(
+                    message.created_at
+                  ).getTime()
               );
 
-            return {
-              id: String(
-                message.id
-              ),
-              role:
-                message.role ===
-                "user"
-                  ? "user"
-                  : "assistant",
-              content:
-                message.content,
-              createdAt:
-                message.created_at,
-              kind:
-                matchingVoice
-                  ? "voice"
-                  : "text",
-              mediaUrl:
-                matchingVoice?.url,
-              diaryItemId:
-  matchingVoice?.id,
-            };
+            return (
+              difference <
+              5 * 60_000
+            );
           }
         );
 
-      const photos =
-        chatMedia
-          .filter(
-            (media) =>
-              media.type === "photo"
-          )
-          .map(
-            (media): ChatMessage => ({
-            id: media.id,
-diaryItemId: media.id,
-role: media.sender ?? "user",
-              content: "",
-              createdAt:
-                media.createdAt,
-              kind: "photo",
-              mediaUrl: media.url,
-            })
-          );
+      const matchingSharedItem =
+        chatMedia.find(
+          (media) => {
+            if (
+              media.type !==
+              "shared_item"
+            ) {
+              return false;
+            }
 
-      const combined = [
-        ...normalMessages,
-        ...photos,
-      ].sort(
-        (a, b) =>
-          new Date(
-            a.createdAt
-          ).getTime() -
-          new Date(
-            b.createdAt
-          ).getTime()
-      );
+            if (
+              media.transcript
+                ?.trim() !==
+              message.content.trim()
+            ) {
+              return false;
+            }
 
+            const difference =
+              Math.abs(
+                new Date(
+                  media.createdAt
+                ).getTime() -
+                  new Date(
+                    message.created_at
+                  ).getTime()
+              );
+
+            return (
+              difference <
+              5 * 60_000
+            );
+          }
+        );
+
+      if (
+        matchingSharedItem
+      ) {
+        matchedSharedMediaIds.add(
+          matchingSharedItem.id
+        );
+      }
+
+      return {
+        id: String(
+          message.id
+        ),
+
+        role:
+          message.role ===
+          "user"
+            ? "user"
+            : "assistant",
+
+        content:
+          message.content,
+
+        createdAt:
+          message.created_at,
+
+        kind:
+          matchingVoice
+            ? "voice"
+            : matchingSharedItem
+              ? "shared_item"
+              : "text",
+
+        mediaUrl:
+          matchingVoice?.url,
+
+        diaryItemId:
+          matchingVoice?.id ??
+          matchingSharedItem
+            ?.sharedItemId,
+
+        sharedTitle:
+          matchingSharedItem
+            ?.sharedTitle,
+
+        sharedSubtitle:
+          matchingSharedItem
+            ?.sharedSubtitle,
+
+        sharedKind:
+          matchingSharedItem
+            ?.sharedKind,
+      };
+    }
+  );
+
+const standaloneMedia =
+  chatMedia
+    .filter(
+      (media) =>
+        media.type ===
+          "photo" ||
+        (media.type ===
+          "shared_item" &&
+          !matchedSharedMediaIds.has(
+            media.id
+          ))
+    )
+    .map(
+      (
+        media
+      ): ChatMessage => ({
+        id:
+          media.id,
+
+        role:
+          media.sender ??
+          "user",
+
+        content:
+          media.transcript ??
+          "",
+
+        createdAt:
+          media.createdAt,
+
+        kind:
+          media.type,
+
+        mediaUrl:
+          media.url,
+
+        diaryItemId:
+          media.type ===
+          "shared_item"
+            ? media
+                .sharedItemId
+            : media.id,
+
+        sharedTitle:
+          media.sharedTitle,
+
+        sharedSubtitle:
+          media.sharedSubtitle,
+
+        sharedKind:
+          media.sharedKind,
+      })
+    );
+
+const combined = [
+  ...normalMessages,
+  ...standaloneMedia,
+].sort(
+  (a, b) =>
+    new Date(
+      a.createdAt
+    ).getTime() -
+    new Date(
+      b.createdAt
+    ).getTime()
+);
+      
       setMessages(combined);
       setLoading(false);
     },
@@ -810,25 +1151,100 @@ role: media.sender ?? "user",
     };
   }, [loadHistory]);
 useEffect(() => {
-  if (typeof window === "undefined") return;
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return;
+  }
+
+  const rawShare =
+    window.localStorage.getItem(
+      "diario-pending-chat-share-v1"
+    );
 
   const pendingMessage =
     window.localStorage.getItem(
       "diario-pending-chat-message"
     );
 
-  if (!pendingMessage) return;
+  window.localStorage.removeItem(
+    "diario-pending-chat-share-v1"
+  );
 
   window.localStorage.removeItem(
     "diario-pending-chat-message"
   );
 
+  let pendingShare:
+    | PendingChatShare
+    | null = null;
+
+  if (rawShare) {
+    try {
+      const parsed =
+        JSON.parse(rawShare);
+
+      if (
+        typeof parsed?.text ===
+          "string" &&
+        typeof parsed?.itemId ===
+          "string" &&
+        typeof parsed?.kind ===
+          "string" &&
+        typeof parsed?.title ===
+          "string"
+      ) {
+        pendingShare =
+          parsed as PendingChatShare;
+      }
+    } catch (error) {
+      console.error(
+        "Could not read pending chat share:",
+        error
+      );
+    }
+  }
+
+  if (
+    !pendingShare &&
+    !pendingMessage
+  ) {
+    return;
+  }
+
   window.setTimeout(() => {
-    void sendMessage(pendingMessage);
+    if (pendingShare) {
+      void (async () => {
+        try {
+          await createChatSharedItem(
+            pendingShare
+          );
+
+          await sendMessage(
+            pendingShare.text,
+            "text",
+            pendingShare
+          );
+        } catch (error) {
+          console.error(
+            "Could not share diary item to chat:",
+            error
+          );
+        }
+      })();
+
+      return;
+    }
+
+    if (pendingMessage) {
+      void sendMessage(
+        pendingMessage
+      );
+    }
   }, 400);
 }, []);
   
-
   useEffect(
     () => () => {
       recognitionRef.current?.abort();
@@ -957,46 +1373,91 @@ try {
 
 async function sendMessage(
   text: string,
-  kind: MessageKind = "text"
+  kind: MessageKind = "text",
+  sharedItem?: PendingChatShare
 ) {
-  const clean = text.trim();
+  const clean =
+    text.trim();
 
   if (!clean) return;
 
-  const now = new Date().toISOString();
+  const now =
+    new Date().toISOString();
 
   if (kind === "voice") {
-    rememberVoice(clean, now);
+    rememberVoice(
+      clean,
+      now
+    );
   }
 
-  setMessages((current) => [
-    ...current,
+  setMessages(
+    (current) => [
+      ...current,
+      {
+        id: `local-${crypto.randomUUID()}`,
+
+        role:
+          "user",
+
+        content:
+          clean,
+
+        createdAt:
+          now,
+
+        kind:
+          sharedItem
+            ? "shared_item"
+            : kind,
+
+        diaryItemId:
+          sharedItem
+            ?.itemId,
+
+        sharedTitle:
+          sharedItem
+            ?.title,
+
+        sharedSubtitle:
+          sharedItem
+            ?.subtitle,
+
+        sharedKind:
+          sharedItem
+            ?.kind,
+      },
+    ]
+  );
+
+  pendingMessagesRef.current.push(
     {
-      id: `local-${crypto.randomUUID()}`,
-      role: "user",
-      content: clean,
-      createdAt: now,
+      text: clean,
       kind,
-    },
-  ]);
+    }
+  );
 
-  pendingMessagesRef.current.push({
-    text: clean,
-    kind,
-  });
-
-  if (queueTimerRef.current) {
-    window.clearTimeout(queueTimerRef.current);
+  if (
+    queueTimerRef.current
+  ) {
+    window.clearTimeout(
+      queueTimerRef.current
+    );
   }
 
   setSending(true);
   setFailedMessage(null);
 
-queueTimerRef.current =
-  window.setTimeout(() => {
-    queueTimerRef.current = null;
-    void flushPendingMessages();
-  }, 4500);
+  queueTimerRef.current =
+    window.setTimeout(
+      () => {
+        queueTimerRef.current =
+          null;
+
+        void flushPendingMessages();
+      },
+      4500
+    );
 }
   
   function handleSubmit(message: PromptInputMessage) {
@@ -1518,15 +1979,48 @@ const recentConversationForPhoto = () =>
                 {message.role === "assistant" && preferences.showDominicAvatar && (
                   <img className="message-avatar" src={dominic} alt="" aria-hidden="true" />
                 )}
-{message.kind === "photo" &&
-message.mediaUrl ? (
+{message.kind ===
+"shared_item" ? (
+  <button
+    type="button"
+    className="letter-connected-button"
+    onClick={() => {
+      if (
+        !message.diaryItemId
+      ) {
+        return;
+      }
+
+      setSelectedChatObjectId(
+        message.diaryItemId
+      );
+    }}
+  >
+    {message.sharedKind ===
+    "song"
+      ? "Shared song"
+      : "Shared item"}
+
+    {" · "}
+
+    {message.sharedTitle ??
+      "Open"}
+
+    {message.sharedSubtitle
+      ? ` · ${message.sharedSubtitle}`
+      : ""}
+  </button>
+) : message.kind ===
+    "photo" &&
+  message.mediaUrl ? (
   <div className="chat-photo-message">
     <img
       src={message.mediaUrl}
       alt="Photo sent in chat"
     />
   </div>
-) : message.kind === "voice" ? (
+) : message.kind ===
+  "voice" ? (
   <div className="voice-note-real">
     {message.mediaUrl && (
       <audio
@@ -1535,7 +2029,7 @@ message.mediaUrl ? (
         src={message.mediaUrl}
       />
     )}
-    
+
     {message.content && (
       <button
         type="button"
@@ -1569,19 +2063,22 @@ message.mediaUrl ? (
   </MessageContent>
 )}
 
-                {message.diaryItemId && (
-  <button
-    type="button"
-    className="letter-connected-button"
-    onClick={() =>
-      setSelectedChatObjectId(
-        message.diaryItemId ?? null
-      )
-    }
-  >
-    View connections
-  </button>
-)}
+{message.diaryItemId &&
+  message.kind !==
+    "shared_item" && (
+    <button
+      type="button"
+      className="letter-connected-button"
+      onClick={() =>
+        setSelectedChatObjectId(
+          message.diaryItemId ??
+            null
+        )
+      }
+    >
+      View connections
+    </button>
+  )}
                 
                 {preferences.showTimestamps && (
                   <time>{formatTime(message.createdAt)}{message.role === "user" ? "  ✓✓" : ""}</time>
