@@ -164,6 +164,41 @@ const BATCH_SCHEMA = {
   },
 } as const;
 
+const TATTOO_REGION_VALUES = [
+  "face",
+  "neck",
+  "chest",
+  "abdomen",
+  "back",
+  "left_arm",
+  "right_arm",
+  "left_hand",
+  "right_hand",
+  "left_leg",
+  "right_leg",
+  "other",
+] as const;
+
+const TATTOO_REGION_ENTRY_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["region", "anchor_ids", "visible_details"],
+  properties: {
+    region: {
+      type: "string",
+      enum: TATTOO_REGION_VALUES,
+    },
+    anchor_ids: {
+      type: "array",
+      items: { type: "string" },
+    },
+    visible_details: {
+      type: "array",
+      items: { type: "string" },
+    },
+  },
+} as const;
+
 const GLOBAL_REVIEW_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -172,6 +207,7 @@ const GLOBAL_REVIEW_SCHEMA = {
     "best_profile_anchor_ids",
     "best_body_anchor_ids",
     "best_tattoo_anchor_ids",
+    "tattoo_region_anchors",
     "best_couple_anchor_ids",
     "stable_face_observations",
     "distinctive_identity_details",
@@ -194,6 +230,10 @@ const GLOBAL_REVIEW_SCHEMA = {
     best_tattoo_anchor_ids: {
       type: "array",
       items: { type: "string" },
+    },
+    tattoo_region_anchors: {
+      type: "array",
+      items: TATTOO_REGION_ENTRY_SCHEMA,
     },
     best_couple_anchor_ids: {
       type: "array",
@@ -228,6 +268,7 @@ const FINAL_SCHEMA = {
     "changeable_traits",
     "distinctive_details",
     "tattoos_or_marks",
+    "tattoo_regions",
     "generation_rules",
     "avoid_mistakes",
     "anchor_reference_ids",
@@ -279,6 +320,10 @@ const FINAL_SCHEMA = {
     tattoos_or_marks: {
       type: "array",
       items: { type: "string" },
+    },
+    tattoo_regions: {
+      type: "array",
+      items: TATTOO_REGION_ENTRY_SCHEMA,
     },
     generation_rules: {
       type: "array",
@@ -616,6 +661,10 @@ Your job is to compare these top references against each other and identify the 
 Rules:
 - Favor clear identity anchors over merely aesthetic photos.
 - A tattoo closeup can be a tattoo anchor without being a face anchor.
+- For tattoos/marks, map the strongest references to the exact visible body region when evidence is clear: face, neck, chest, abdomen, back, left/right arm, left/right hand, left/right leg, or other.
+- Preserve left/right placement only when the image evidence is reliable. Do not guess or mirror a side from an ambiguous selfie.
+- A reference can anchor more than one tattoo region only if those regions are genuinely visible and useful.
+- If there is no reliable tattoo evidence for a region, omit that region instead of inventing it.
 - A body/pose image can be a body anchor without being a face anchor.
 - Pick only IDs from the provided candidate images.
 - Return conservative, useful anchor sets. It is okay to return a short list.
@@ -660,6 +709,8 @@ RULES:
 - "current_or_preferred" may only claim a current state when explicit current-look metadata supports it. Otherwise use null.
 - Anchor references should be the clearest/highest-confidence identity images, not simply the newest uploads.
 - A tattoo/detail image should not become a face anchor just because it is high quality.
+- tattoo_regions must preserve exact placement and side only when supported by evidence. Each region must contain only reference IDs that actually help reproduce that region.
+- Keep tattoo-region evidence separate so a face tattoo reference is not used as the best evidence for a chest/hand tattoo and vice versa.
 - generation_rules must be concrete instructions that help preserve identity.
 - avoid_mistakes must describe likely failure modes suggested by conflicting/weak references.
 - reference_roles must include the useful assessments from the batch analyses, deduplicated by id.
@@ -842,20 +893,99 @@ function scoreCandidate(assessment: ReferenceAssessment) {
   return score;
 }
 
+function assessmentsFromExistingProfile(
+  existingProfile: Record<string, unknown> | null
+) {
+  const byId = new Map<string, ReferenceAssessment>();
+
+  if (!existingProfile || !Array.isArray(existingProfile.reference_roles)) {
+    return byId;
+  }
+
+  for (const raw of existingProfile.reference_roles) {
+    if (!raw || typeof raw !== "object") continue;
+
+    const item = raw as Record<string, unknown>;
+    const id = typeof item.id === "string" ? item.id : null;
+    if (!id) continue;
+
+    const temporal_role =
+      item.temporal_role === "current" ||
+      item.temporal_role === "historical" ||
+      item.temporal_role === "unknown"
+        ? item.temporal_role
+        : "unknown";
+
+    byId.set(id, {
+      id,
+      quality_score:
+        typeof item.quality_score === "number" ? item.quality_score : 0,
+      identity_score:
+        typeof item.identity_score === "number" ? item.identity_score : 0,
+      best_for: cleanArray(item.best_for),
+      temporal_role,
+      visible_facts: cleanArray(item.visible_facts),
+      conflicts_or_uncertainties: cleanArray(
+        item.conflicts_or_uncertainties
+      ),
+    });
+  }
+
+  return byId;
+}
+
+function existingAnchorIds(existingProfile: Record<string, unknown> | null) {
+  if (!existingProfile) return [];
+
+  const ids = cleanArray(existingProfile.anchor_reference_ids);
+  const groups =
+    existingProfile.anchor_groups &&
+    typeof existingProfile.anchor_groups === "object" &&
+    !Array.isArray(existingProfile.anchor_groups)
+      ? (existingProfile.anchor_groups as Record<string, unknown>)
+      : {};
+
+  return uniqueStrings([
+    ...ids,
+    ...cleanArray(groups.face),
+    ...cleanArray(groups.profile),
+    ...cleanArray(groups.body),
+    ...cleanArray(groups.tattoos),
+    ...cleanArray(groups.couple),
+  ]);
+}
+
 function selectGlobalReviewCandidates({
   subject,
   incoming,
   batchResults,
+  existingProfile,
 }: {
   subject: CanonSubject;
   incoming: CanonReferenceInput[];
   batchResults: Record<string, unknown>[];
+  existingProfile: Record<string, unknown> | null;
 }) {
-  const assessments = parseAssessments(batchResults);
-  const incomingById = new Map(incoming.map((reference) => [reference.id, reference]));
+  const newAssessments = parseAssessments(batchResults);
+  const previousAssessments = assessmentsFromExistingProfile(existingProfile);
+  const incomingById = new Map(
+    incoming.map((reference) => [reference.id, reference])
+  );
 
-  const scored: AnchorCandidate[] = Array.from(assessments.values())
-    .map((assessment) => ({
+  // Incremental updates stay inexpensive: only NEW references are batch-analyzed,
+  // but the second visual pass compares them directly with the strongest OLD
+  // anchors that are still present in the library.
+  const assessments = new Map(previousAssessments);
+  for (const [id, assessment] of newAssessments) {
+    assessments.set(id, assessment);
+  }
+
+  const scoredById = new Map<string, AnchorCandidate>();
+
+  for (const assessment of assessments.values()) {
+    if (!incomingById.has(assessment.id)) continue;
+
+    scoredById.set(assessment.id, {
       id: assessment.id,
       score: scoreCandidate(assessment),
       qualityScore: assessment.quality_score,
@@ -864,8 +994,41 @@ function selectGlobalReviewCandidates({
       temporalRole: assessment.temporal_role,
       visibleFacts: assessment.visible_facts,
       conflicts: assessment.conflicts_or_uncertainties,
-    }))
-    .filter((candidate) => incomingById.has(candidate.id));
+    });
+  }
+
+  const fallbackGroups =
+    existingProfile?.anchor_groups &&
+    typeof existingProfile.anchor_groups === "object" &&
+    !Array.isArray(existingProfile.anchor_groups)
+      ? (existingProfile.anchor_groups as Record<string, unknown>)
+      : {};
+
+  // Older canons may have anchor IDs but incomplete reference_roles. Keep those
+  // anchors eligible for the direct visual comparison instead of silently losing them.
+  for (const id of existingAnchorIds(existingProfile)) {
+    if (!incomingById.has(id) || scoredById.has(id)) continue;
+
+    const bestFor: string[] = [];
+    if (cleanArray(fallbackGroups.face).includes(id)) bestFor.push("face");
+    if (cleanArray(fallbackGroups.profile).includes(id)) bestFor.push("profile");
+    if (cleanArray(fallbackGroups.body).includes(id)) bestFor.push("body");
+    if (cleanArray(fallbackGroups.tattoos).includes(id)) bestFor.push("tattoos");
+    if (cleanArray(fallbackGroups.couple).includes(id)) bestFor.push("couple");
+
+    scoredById.set(id, {
+      id,
+      score: 165,
+      qualityScore: 70,
+      identityScore: 80,
+      bestFor,
+      temporalRole: "unknown",
+      visibleFacts: [],
+      conflicts: [],
+    });
+  }
+
+  const scored = Array.from(scoredById.values());
 
   const addTop = (
     bucket: Map<string, AnchorCandidate>,
@@ -881,10 +1044,18 @@ function selectGlobalReviewCandidates({
 
   const selected = new Map<string, AnchorCandidate>();
 
+  // Keep a few proven anchors in every incremental global review so a newly
+  // uploaded photo has to compete against the current canon instead of being
+  // accepted in isolation.
+  for (const id of existingAnchorIds(existingProfile).slice(0, 6)) {
+    const candidate = scoredById.get(id);
+    if (candidate) selected.set(id, candidate);
+  }
+
   addTop(selected, (candidate) => candidate.bestFor.includes("face"), 6);
   addTop(selected, (candidate) => candidate.bestFor.includes("profile"), 4);
   addTop(selected, (candidate) => candidate.bestFor.includes("body"), 4);
-  addTop(selected, (candidate) => candidate.bestFor.includes("tattoos"), 4);
+  addTop(selected, (candidate) => candidate.bestFor.includes("tattoos"), 6);
 
   if (subject === "couple") {
     addTop(selected, (candidate) => candidate.bestFor.includes("couple"), 4);
@@ -1013,6 +1184,38 @@ function normalizeFinalCanonProfile(
     couple: normalizeIds(anchorGroupsRaw.couple),
   };
 
+  const allowedTattooRegions = new Set<string>(TATTOO_REGION_VALUES);
+  const tattooRegions = Array.isArray(profile.tattoo_regions)
+    ? profile.tattoo_regions
+        .map((raw) => {
+          if (!raw || typeof raw !== "object") return null;
+
+          const item = raw as Record<string, unknown>;
+          const region = typeof item.region === "string" ? item.region : null;
+          if (!region || !allowedTattooRegions.has(region)) return null;
+
+          const anchorIds = normalizeIds(item.anchor_ids);
+          const visibleDetails = uniqueStrings(cleanArray(item.visible_details));
+
+          if (!anchorIds.length && !visibleDetails.length) return null;
+
+          return {
+            region,
+            anchor_ids: anchorIds,
+            visible_details: visibleDetails,
+          };
+        })
+        .filter(
+          (
+            item
+          ): item is {
+            region: string;
+            anchor_ids: string[];
+            visible_details: string[];
+          } => Boolean(item)
+        )
+    : [];
+
   const mergedAnchorIds = uniqueStrings([
     ...normalizeIds(profile.anchor_reference_ids),
     ...anchorGroups.face,
@@ -1020,12 +1223,14 @@ function normalizeFinalCanonProfile(
     ...anchorGroups.body,
     ...anchorGroups.tattoos,
     ...anchorGroups.couple,
+    ...tattooRegions.flatMap((region) => region.anchor_ids),
   ]);
 
   return {
     ...profile,
     anchor_reference_ids: mergedAnchorIds,
     anchor_groups: anchorGroups,
+    tattoo_regions: tattooRegions,
   };
 }
 
@@ -1166,6 +1371,8 @@ export const Route = createFileRoute("/api/visual-canon")({
             subject: body.subject,
             incoming,
             batchResults,
+            existingProfile:
+              requiresFullAnalysis || !existing ? null : existing.profile,
           });
 
           const globalReviewResponse = await runGlobalReview({
