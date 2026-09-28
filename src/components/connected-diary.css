@@ -1,0 +1,681 @@
+.connected-screen-intro,
+.connected-detail-header {
+  display: grid;
+  gap: 6px;
+  padding: 18px 16px 12px;
+}
+
+.connected-screen-intro > small,
+.connected-detail-header > small {
+  color: var(--wine);
+  font: 8px var(--font-body);
+  letter-spacing: 0.14em;
+}
+
+.connected-screen-intro h1,
+.connected-detail-header h1 {
+  margin: 0;
+  font: 34px/1 var(--font-display);
+  font-weight: 500;
+}
+
+.connected-screen-intro p,
+.connected-detail-header p {
+  margin: 2px 0 0;
+  max-width: 34rem;
+  color: var(--muted-foreground);
+  font: 11px/1.5 var(--font-body);
+}
+
+.connected-detail-header > button {
+  justify-self: start;
+  margin-bottom: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--wine);
+  font: 10px var(--font-body);
+  cursor: pointer;
+}
+
+.connected-detail-header time {
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+}
+
+.connected-memory-toolbar,
+.connected-timeline-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 16px 12px;
+}
+
+.connected-memory-toolbar > div,
+.connected-timeline-tabs {
+  overflow-x: auto;
+}
+
+.connected-memory-toolbar > div {
+  display: flex;
+  gap: 5px;
+}
+
+.connected-memory-toolbar button,
+.connected-timeline-tabs button {
+  min-height: 29px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.connected-memory-toolbar button.active,
+.connected-timeline-tabs button.active {
+  border-color: var(--wine);
+  color: var(--wine);
+}
+
+.connected-new-memory {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--wine) !important;
+}
+
+.connected-memory-create {
+  display: grid;
+  gap: 8px;
+  margin: 0 16px 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.connected-memory-create header,
+.connected-object-picker > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.connected-memory-create header > div,
+.connected-object-picker > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.connected-memory-create header small,
+.connected-object-picker header small {
+  color: var(--wine);
+  font: 8px var(--font-body);
+  letter-spacing: 0.12em;
+}
+
+.connected-memory-create header strong,
+.connected-object-picker header strong {
+  font: 15px var(--font-display);
+  font-weight: 500;
+}
+
+.connected-memory-create header button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.connected-memory-create input,
+.connected-memory-create textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px;
+  border: 1px solid var(--border);
+  outline: 0;
+  background: color-mix(in oklab, var(--paper) 93%, var(--blush));
+  color: inherit;
+  font: 11px var(--font-body);
+}
+
+.connected-memory-create > button,
+.connected-add-objects {
+  min-height: 34px;
+  border: 1px solid var(--wine);
+  background: var(--wine);
+  color: var(--paper);
+  font: 10px var(--font-body);
+  cursor: pointer;
+}
+
+.connected-memory-timeline {
+  position: relative;
+  display: grid;
+  gap: 20px;
+  padding: 4px 16px 28px;
+}
+
+.connected-memory-timeline::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 28px;
+  width: 1px;
+  background: color-mix(in oklab, var(--wine) 55%, transparent);
+}
+
+.connected-memory-month {
+  position: relative;
+  display: grid;
+  gap: 11px;
+}
+
+.connected-memory-month > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 4px;
+}
+
+.connected-memory-month > header span {
+  z-index: 1;
+  width: 17px;
+  height: 17px;
+  border: 1px solid var(--wine);
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.connected-memory-month > header strong {
+  color: var(--wine);
+  font: 11px var(--font-body);
+  letter-spacing: 0.04em;
+}
+
+.connected-memory-node {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  width: calc(100% - 31px);
+  margin-left: 31px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transform: rotate(-0.35deg);
+}
+
+.connected-memory-node.memory-node-right {
+  width: calc(92% - 31px);
+  margin-left: 46px;
+  transform: rotate(0.45deg);
+}
+
+.connected-memory-node.memory-node-important {
+  padding: 14px;
+  border-color: color-mix(in oklab, var(--wine) 28%, var(--border));
+}
+
+.connected-memory-node time,
+.connected-memory-node > small {
+  color: var(--muted-foreground);
+  font: 8px var(--font-body);
+}
+
+.connected-memory-node > strong {
+  font: 17px var(--font-display);
+  font-weight: 500;
+}
+
+.connected-memory-node > p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--muted-foreground);
+  font: 10px/1.45 var(--font-body);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.connected-memory-previews {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 42px;
+  margin: 3px 0;
+}
+
+.connected-memory-previews img {
+  width: 47px;
+  height: 47px;
+  object-fit: cover;
+  border: 3px solid var(--paper);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+}
+
+.connected-memory-previews img:nth-child(2) {
+  transform: rotate(3deg);
+}
+
+.connected-memory-previews img:nth-child(3) {
+  transform: rotate(-2deg);
+}
+
+.connected-memory-previews span {
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--blush) 15%, var(--paper));
+  color: var(--wine);
+  font: 8px var(--font-body);
+}
+
+.connected-memory-objects,
+.connected-day-objects {
+  display: grid;
+  gap: 10px;
+  padding: 4px 16px 24px;
+}
+
+.connected-add-objects {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.connected-object-picker {
+  display: grid;
+  gap: 10px;
+  margin: 0 16px 20px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.connected-object-picker header > button {
+  padding: 5px 8px;
+  border: 1px solid var(--wine);
+  background: transparent;
+  color: var(--wine);
+  font: 9px var(--font-body);
+  cursor: pointer;
+}
+
+.connected-picker-list {
+  display: grid;
+  gap: 5px;
+  max-height: 54vh;
+  overflow-y: auto;
+}
+
+.connected-picker-list > button {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.connected-picker-list > button.connected {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--blush) 15%, var(--paper));
+}
+
+.connected-picker-list > button > span {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--wine);
+  font: 10px var(--font-body);
+}
+
+.connected-picker-list > button > div {
+  display: grid;
+  gap: 2px;
+}
+
+.connected-picker-list small {
+  color: var(--muted-foreground);
+  font: 8px var(--font-body);
+}
+
+.connected-picker-list strong {
+  overflow: hidden;
+  font: 10px var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connected-diary-object {
+  display: grid;
+  grid-template-columns: minmax(0, 108px) minmax(0, 1fr);
+  gap: 10px;
+  overflow: hidden;
+  padding: 9px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.connected-diary-object:not(:has(.connected-object-photo)):not(:has(.connected-object-cover)) {
+  grid-template-columns: 1fr;
+}
+
+.connected-object-photo,
+.connected-object-cover {
+  min-height: 94px;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--blush) 18%, var(--paper));
+}
+
+.connected-object-photo img,
+.connected-object-cover img {
+  width: 100%;
+  height: 100%;
+  min-height: 94px;
+  object-fit: cover;
+}
+
+.connected-object-cover {
+  aspect-ratio: 1;
+}
+
+.connected-object-copy {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+}
+
+.connected-object-copy header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.connected-object-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--wine);
+  font: 8px var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.connected-object-copy time,
+.connected-object-copy small {
+  color: var(--muted-foreground);
+  font: 8px var(--font-body);
+}
+
+.connected-object-copy > strong {
+  font: 15px var(--font-display);
+  font-weight: 500;
+}
+
+.connected-object-body,
+.connected-object-transcript,
+.connected-object-sealed {
+  margin: 0;
+  color: var(--muted-foreground);
+  font: 10px/1.45 var(--font-body);
+  white-space: pre-wrap;
+}
+
+.connected-object-sealed {
+  font-style: italic;
+}
+
+.connected-object-compact {
+  grid-template-columns: 58px minmax(0, 1fr);
+}
+
+.connected-object-compact .connected-object-photo,
+.connected-object-compact .connected-object-cover,
+.connected-object-compact .connected-object-photo img,
+.connected-object-compact .connected-object-cover img {
+  min-height: 55px;
+}
+
+.connected-empty {
+  display: grid;
+  place-items: center;
+  gap: 7px;
+  min-height: 110px;
+  padding: 18px;
+  color: var(--muted-foreground);
+  text-align: center;
+  font: 10px/1.45 var(--font-body);
+}
+
+.connected-empty strong {
+  color: inherit;
+  font: 15px var(--font-display);
+  font-weight: 500;
+}
+
+.connected-empty p {
+  max-width: 25rem;
+  margin: 0;
+}
+
+.connected-error {
+  margin: 8px 16px 16px;
+  color: var(--destructive, #8a2f38);
+  font: 10px var(--font-body);
+}
+
+.connected-calendar-month {
+  margin: 0 16px 14px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.connected-calendar-month > header {
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.connected-calendar-month > header button {
+  border: 0;
+  background: transparent;
+  color: var(--wine);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.connected-calendar-month > header strong {
+  font: 13px var(--font-display);
+  font-weight: 500;
+}
+
+.connected-calendar-weekdays,
+.connected-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.connected-calendar-weekdays {
+  padding: 7px 5px 3px;
+  color: var(--muted-foreground);
+  text-align: center;
+  font: 8px var(--font-body);
+}
+
+.connected-calendar-grid {
+  gap: 2px;
+  padding: 4px 6px 8px;
+}
+
+.connected-calendar-grid > button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 37px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: 10px var(--font-body);
+  cursor: pointer;
+}
+
+.connected-calendar-grid > button.selected {
+  border-color: var(--wine);
+}
+
+.connected-calendar-grid > button.today span {
+  color: var(--wine);
+  font-weight: 600;
+}
+
+.connected-calendar-grid > button i {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  display: grid;
+  place-items: center;
+  min-width: 13px;
+  height: 13px;
+  padding: 0 2px;
+  border-radius: 8px;
+  background: var(--wine);
+  color: var(--paper);
+  font: 7px var(--font-body);
+  font-style: normal;
+}
+
+.connected-calendar-day {
+  display: grid;
+  gap: 8px;
+}
+
+.connected-calendar-day > header {
+  display: grid;
+  gap: 2px;
+  padding: 0 16px;
+}
+
+.connected-calendar-day > header small {
+  color: var(--wine);
+  font: 8px var(--font-body);
+  letter-spacing: 0.1em;
+}
+
+.connected-calendar-day > header strong {
+  font: 16px var(--font-display);
+  font-weight: 500;
+}
+
+.connected-timeline-tabs {
+  justify-content: flex-start;
+}
+
+.connected-timeline-stream {
+  position: relative;
+  display: grid;
+  gap: 0;
+  padding: 2px 16px 28px 42px;
+}
+
+.connected-timeline-stream::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 16px;
+  left: 26px;
+  width: 1px;
+  background: color-mix(in oklab, var(--wine) 46%, var(--border));
+}
+
+.connected-timeline-entry {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  padding: 0 0 17px;
+}
+
+.connected-timeline-dot {
+  position: absolute;
+  top: 4px;
+  left: -21px;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--wine);
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.connected-timeline-entry > time {
+  color: var(--muted-foreground);
+  font: 8px var(--font-body);
+}
+
+.connected-timeline-entry > button {
+  display: grid;
+  gap: 3px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.connected-timeline-entry > button small {
+  color: var(--wine);
+  font: 8px var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.connected-timeline-entry > button strong {
+  font: 14px var(--font-display);
+  font-weight: 500;
+}
+
+.connected-timeline-entry > button p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--muted-foreground);
+  font: 9px/1.4 var(--font-body);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.connected-timeline-expanded {
+  margin-top: 5px;
+}
+
+@media (max-width: 460px) {
+  .connected-diary-object {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .connected-memory-node.memory-node-right {
+    width: calc(100% - 40px);
+    margin-left: 40px;
+  }
+}
