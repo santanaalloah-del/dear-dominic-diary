@@ -46,6 +46,26 @@ type AnchorGroups = {
   couple: string[];
 };
 
+type TattooRegion =
+  | "face"
+  | "neck"
+  | "chest"
+  | "abdomen"
+  | "back"
+  | "left_arm"
+  | "right_arm"
+  | "left_hand"
+  | "right_hand"
+  | "left_leg"
+  | "right_leg"
+  | "other";
+
+type TattooRegionEntry = {
+  region: TattooRegion;
+  anchorIds: string[];
+  visibleDetails: string[];
+};
+
 type VisualCanonRow = {
   subject: "alloah" | "dominic" | "couple";
   status: string;
@@ -114,6 +134,104 @@ function anchorGroupsFromProfile(profile: Record<string, unknown>): AnchorGroups
     tattoos: stringArray(raw.tattoos),
     couple: stringArray(raw.couple),
   };
+}
+
+function tattooRegionsFromProfile(
+  profile: Record<string, unknown>
+): TattooRegionEntry[] {
+  const allowed = new Set<TattooRegion>([
+    "face",
+    "neck",
+    "chest",
+    "abdomen",
+    "back",
+    "left_arm",
+    "right_arm",
+    "left_hand",
+    "right_hand",
+    "left_leg",
+    "right_leg",
+    "other",
+  ]);
+
+  if (!Array.isArray(profile.tattoo_regions)) return [];
+
+  return profile.tattoo_regions
+    .map((raw) => {
+      if (!raw || typeof raw !== "object") return null;
+
+      const item = raw as Record<string, unknown>;
+      const region =
+        typeof item.region === "string" &&
+        allowed.has(item.region as TattooRegion)
+          ? (item.region as TattooRegion)
+          : null;
+
+      if (!region) return null;
+
+      return {
+        region,
+        anchorIds: stringArray(item.anchor_ids),
+        visibleDetails: stringArray(item.visible_details),
+      };
+    })
+    .filter((item): item is TattooRegionEntry => Boolean(item));
+}
+
+function requestedTattooRegions(
+  request: PhotoGenerationRequest
+): TattooRegion[] {
+  const text = requestText(request);
+  const regions = new Set<TattooRegion>();
+
+  const has = (...terms: string[]) => terms.some((term) => text.includes(term));
+
+  if (has("face tattoo", "face tattoos", "cheek tattoo", "under eye", "under-eye")) {
+    regions.add("face");
+  }
+  if (has("neck", "throat")) regions.add("neck");
+  if (has("chest", "pectoral", "pec", "shirtless", "topless")) {
+    regions.add("chest");
+  }
+  if (has("abdomen", "stomach", "belly", "upper abdomen", "shirtless", "topless")) {
+    regions.add("abdomen");
+  }
+  if (has("back tattoo", "back tattoos", "bare back")) regions.add("back");
+
+  if (has("left arm")) regions.add("left_arm");
+  if (has("right arm")) regions.add("right_arm");
+  if (has("left hand")) regions.add("left_hand");
+  if (has("right hand")) regions.add("right_hand");
+  if (has("left leg", "left thigh", "left calf")) regions.add("left_leg");
+  if (has("right leg", "right thigh", "right calf")) regions.add("right_leg");
+
+  if (has("arm", "arms", "sleeveless", "tank top")) {
+    regions.add("left_arm");
+    regions.add("right_arm");
+  }
+  if (has("hand", "hands")) {
+    regions.add("left_hand");
+    regions.add("right_hand");
+  }
+  if (has("leg", "legs", "shorts", "swim", "beach")) {
+    regions.add("left_leg");
+    regions.add("right_leg");
+  }
+
+  return Array.from(regions);
+}
+
+function tattooRegionAnchorIds(
+  canon: VisualCanonRow | undefined,
+  requestedRegions: TattooRegion[]
+) {
+  if (!canon || !requestedRegions.length) return [];
+
+  const requested = new Set(requestedRegions);
+
+  return tattooRegionsFromProfile(canon.profile ?? {}).flatMap((entry) =>
+    requested.has(entry.region) ? entry.anchorIds : []
+  );
 }
 
 function canonSubjectsForRequest(
@@ -322,6 +440,7 @@ function chooseProviderReferences(
   const wantsProfile = requestNeedsProfile(request);
   const wantsBody = requestNeedsBody(request);
   const wantsTattoos = requestNeedsTattoos(request);
+  const requestedRegions = requestedTattooRegions(request);
 
   if (request.subject_type === "both") {
     const alloahGroups = groupsFor("alloah");
@@ -346,6 +465,15 @@ function chooseProviderReferences(
     }
 
     if (wantsTattoos) {
+      const dominicCanon = canonFor("dominic");
+      const regionalTattooIds = tattooRegionAnchorIds(
+        dominicCanon,
+        requestedRegions
+      );
+
+      // Prefer the exact visible body-region evidence. Generic tattoo anchors
+      // are only the fallback when no region-specific anchor exists yet.
+      takeIds("dominic", regionalTattooIds, 2);
       takeIds("dominic", dominicGroups.tattoos, 1);
     }
 
@@ -386,6 +514,13 @@ function chooseProviderReferences(
     }
 
     if (subject === "dominic" && wantsTattoos) {
+      const dominicCanon = canonFor("dominic");
+      const regionalTattooIds = tattooRegionAnchorIds(
+        dominicCanon,
+        requestedRegions
+      );
+
+      takeIds(subject, regionalTattooIds, 3);
       takeIds(subject, groups.tattoos, 2);
     }
 
@@ -416,6 +551,45 @@ function chooseProviderReferences(
   take(() => true, MAX_PROVIDER_REFERENCES - chosen.length);
 
   return chosen.slice(0, MAX_PROVIDER_REFERENCES);
+}
+
+function tattooRegionInstruction(
+  request: PhotoGenerationRequest,
+  canons: VisualCanonRow[]
+) {
+  if (
+    request.subject_type !== "dominic" &&
+    request.subject_type !== "both"
+  ) {
+    return null;
+  }
+
+  const regions = requestedTattooRegions(request);
+  if (!regions.length) return null;
+
+  const canon = canons.find((item) => item.subject === "dominic");
+  if (!canon) return null;
+
+  const requested = new Set(regions);
+  const entries = tattooRegionsFromProfile(canon.profile ?? {}).filter((entry) =>
+    requested.has(entry.region)
+  );
+
+  if (!entries.length) return null;
+
+  const details = entries.flatMap((entry) =>
+    entry.visibleDetails.map(
+      (detail) => `${entry.region.replaceAll("_", " ")}: ${detail}`
+    )
+  );
+
+  return [
+    "DOMINIC TATTOO REGION MATCHING:",
+    "Use the attached tattoo references that correspond to the body regions visible in this scene. Preserve placement and side; do not mirror, move, merge, or invent tattoos.",
+    details.length ? details.join(" | ") : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
 
 function wardrobeOwnersForRequest(
@@ -541,6 +715,7 @@ export async function generatePhotoProviderPreview({
         adjustment_instruction: [
           request.adjustment_instruction,
           currentOverrideInstruction(request, canons),
+          tattooRegionInstruction(request, canons),
           wardrobeInstruction(request, wardrobeContexts),
         ]
           .filter((value): value is string => Boolean(value))
