@@ -4662,6 +4662,9 @@ function PlacesScreen() {
   const [places, setPlaces] =
     useState<DiarioItem[]>([]);
 
+  const [selectedPlaceId, setSelectedPlaceId] =
+  useState<string | null>(null);
+
   const [loadingPlaces, setLoadingPlaces] =
     useState(true);
 
@@ -4821,6 +4824,16 @@ function PlacesScreen() {
     );
   }
 };
+
+  if (selectedPlaceId) {
+  return (
+    <ConnectedObjectDetailScreen
+      itemId={selectedPlaceId}
+      onOpenRelated={setSelectedPlaceId}
+      onBack={() => setSelectedPlaceId(null)}
+    />
+  );
+}
   
   return (
     <section className="places-screen places-live">
@@ -5166,6 +5179,16 @@ function PlacesScreen() {
     Mark as visited
   </button>
 )}
+
+                    <button
+  type="button"
+  className="letter-connected-button"
+  onClick={() =>
+    setSelectedPlaceId(place.id)
+  }
+>
+  View connections
+</button>
                     
                   </article>
                 );
@@ -5268,6 +5291,9 @@ function KeepsakesScreen() {
 
   const [keepsakes, setKeepsakes] =
     useState<DiarioItem[]>([]);
+
+  const [selectedKeepsakeId, setSelectedKeepsakeId] =
+  useState<string | null>(null);
 
   const [loadingKeepsakes, setLoadingKeepsakes] =
     useState(true);
@@ -5452,6 +5478,18 @@ function KeepsakesScreen() {
     );
   }
 };
+
+  if (selectedKeepsakeId) {
+  return (
+    <ConnectedObjectDetailScreen
+      itemId={selectedKeepsakeId}
+      onOpenRelated={setSelectedKeepsakeId}
+      onBack={() =>
+        setSelectedKeepsakeId(null)
+      }
+    />
+  );
+}
   
   return (
     <section className="keepsakes-screen keepsakes-live">
@@ -5853,6 +5891,16 @@ function KeepsakesScreen() {
     ? "Store away"
     : "Bring home"}
 </button>
+
+                    <button
+  type="button"
+  className="letter-connected-button"
+  onClick={() =>
+    setSelectedKeepsakeId(item.id)
+  }
+>
+  View connections
+</button>
                   
                   </article>
                 );
@@ -5979,6 +6027,9 @@ function DatesScreen() {
 
   const [dates, setDates] =
     useState<DiarioItem[]>([]);
+
+  const [selectedDateId, setSelectedDateId] =
+  useState<string | null>(null);
 
   const [loadingDates, setLoadingDates] =
     useState(true);
@@ -6145,6 +6196,17 @@ const markAsLived = async (
     );
   }
 };
+
+  if (selectedDateId) {
+  return (
+    <ConnectedObjectDetailScreen
+      itemId={selectedDateId}
+      onOpenRelated={setSelectedDateId}
+      onBack={() => setSelectedDateId(null)}
+    />
+  );
+}
+  
   return (
     <section className="dates-screen dates-live">
       <ScreenIntro
@@ -6435,6 +6497,16 @@ const markAsLived = async (
     Mark as lived
   </button>
 )}
+
+                    <button
+  type="button"
+  className="letter-connected-button"
+  onClick={() =>
+    setSelectedDateId(date.id)
+  }
+>
+  View connections
+</button>
                     
                   </article>
                 );
