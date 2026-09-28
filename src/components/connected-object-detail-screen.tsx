@@ -1018,13 +1018,21 @@ export function ConnectedObjectDetailScreen({
     );
   }
 
+ const isStructuralOnly =
+    view.item.kind ===
+      "story_memory" ||
+    view.item.kind ===
+      "album" ||
+    view.item.kind ===
+      "home_object";
+
   const canConnectToMemory =
-    view.item.kind !==
-    "story_memory";
+    !isStructuralOnly;
 
   const canConnectToDate =
+    !isStructuralOnly &&
     view.item.kind !==
-    "date";
+      "date";
 
   const canManageContents =
     view.item.kind ===
