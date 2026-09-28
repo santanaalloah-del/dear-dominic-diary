@@ -314,3 +314,47 @@
     grid-template-columns: 96px minmax(0, 1fr);
   }
 }
+
+
+.makeup-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.makeup-mode-switch button {
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.makeup-mode-switch button.active {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--wine) 9%, var(--paper));
+  color: var(--wine);
+}
+
+.makeup-mode-switch button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.current-look-status {
+  display: grid;
+  gap: 2px;
+}
+
+.current-look-status strong {
+  font: 15px var(--font-display);
+  font-weight: 500;
+}
+
+.current-look-status span {
+  color: var(--muted-foreground);
+  font: 10px/1.4 var(--font-body);
+}
