@@ -1,5 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import {
+  getWardrobePhotoContexts,
+  type WardrobePhotoContext,
+  type WardrobeOwner,
+} from "@/lib/wardrobe-context";
+import {
   getPhotoReferenceBundle,
   type PhotoFeatureInput,
   type PhotoGenerationRequest,
@@ -413,6 +418,42 @@ function chooseProviderReferences(
   return chosen.slice(0, MAX_PROVIDER_REFERENCES);
 }
 
+function wardrobeOwnersForRequest(
+  subjectType: PhotoGenerationRequest["subject_type"]
+): WardrobeOwner[] {
+  if (subjectType === "me") return ["alloah"];
+  if (subjectType === "dominic") return ["dominic"];
+  return ["alloah", "dominic"];
+}
+
+function wardrobeInstruction(
+  request: PhotoGenerationRequest,
+  contexts: WardrobePhotoContext[]
+) {
+  if (!request.use_current_look || !contexts.length) return null;
+
+  const blocks = contexts.map((context) => {
+    const label = context.owner === "alloah" ? "Alloah" : "Dominic";
+    const pieces = context.clothing.map((item) => {
+      const note = item.note ? ` — ${item.note}` : "";
+      return `${item.title} (${item.category})${note}`;
+    });
+
+    return [
+      `${label} CURRENT WARDROBE STATE:`,
+      context.lookTitle ? `Saved look: ${context.lookTitle}.` : null,
+      context.lookNote ? `Look note: ${context.lookNote}.` : null,
+      pieces.length ? `Pieces: ${pieces.join(" | ")}.` : null,
+      "Treat this as the active outfit. Do not replace it with historical clothing from identity references.",
+      "Only infer visual details that are actually described here; do not invent logos, prints, colors, fabrics, or cuts that are not specified yet.",
+    ]
+      .filter(Boolean)
+      .join(" ");
+  });
+
+  return blocks.join(" ");
+}
+
 function currentOverrideInstruction(
   request: PhotoGenerationRequest,
   canons: VisualCanonRow[]
@@ -457,18 +498,23 @@ export async function generatePhotoProviderPreview({
   request,
   sourceImageDataUrl,
 }: GeneratePreviewInput): Promise<PhotoProviderPreview> {
-  const [{ data: sessionData }, bundle, canons] = await Promise.all([
-    supabase.auth.getSession(),
-    getPhotoReferenceBundle({
-      userId,
-      subjectType: request.subject_type,
-      useCurrentLook: request.use_current_look,
-    }),
-    getReadyCanons({
-      userId,
-      request,
-    }),
-  ]);
+  const [{ data: sessionData }, bundle, canons, wardrobeContexts] =
+    await Promise.all([
+      supabase.auth.getSession(),
+      getPhotoReferenceBundle({
+        userId,
+        subjectType: request.subject_type,
+        useCurrentLook: request.use_current_look,
+      }),
+      getReadyCanons({
+        userId,
+        request,
+      }),
+      getWardrobePhotoContexts({
+        userId,
+        owners: wardrobeOwnersForRequest(request.subject_type),
+      }),
+    ]);
 
   const accessToken = sessionData.session?.access_token;
 
@@ -495,6 +541,7 @@ export async function generatePhotoProviderPreview({
         adjustment_instruction: [
           request.adjustment_instruction,
           currentOverrideInstruction(request, canons),
+          wardrobeInstruction(request, wardrobeContexts),
         ]
           .filter((value): value is string => Boolean(value))
           .join(" ") || null,
