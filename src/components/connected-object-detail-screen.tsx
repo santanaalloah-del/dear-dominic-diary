@@ -22,6 +22,7 @@ import {
 
 import {
   connectedKindLabel,
+  getConnectableDiaryItems,
   hydrateDiaryItems,
   type ConnectedDiaryView,
 } from "@/lib/connected-diary";
@@ -54,65 +55,52 @@ function relationLabel(
     relation.view.item.kind;
 
   if (
-    relation.direction ===
-      "incoming" &&
-    relatedKind ===
-      "story_memory"
+    relation.direction === "incoming" &&
+    relatedKind === "story_memory"
   ) {
     return "In Memory";
   }
 
   if (
-    relation.direction ===
-      "incoming" &&
+    relation.direction === "incoming" &&
     relatedKind === "date"
   ) {
     return "From Date";
   }
 
   if (
-    relation.direction ===
-      "incoming" &&
+    relation.direction === "incoming" &&
     relatedKind === "place"
   ) {
     return "At";
   }
 
   if (
-    relation.direction ===
-      "incoming" &&
-    relatedKind ===
-      "chat_media"
+    relation.direction === "incoming" &&
+    relatedKind === "chat_media"
   ) {
     return "From Chat";
   }
 
   if (
-    relation.direction ===
-      "incoming" &&
+    relation.direction === "incoming" &&
     (
       relatedKind === "look" ||
-      relatedKind ===
-        "clothing"
+      relatedKind === "clothing"
     )
   ) {
     return "Wearing";
   }
 
   if (
-    relation.direction ===
-      "outgoing" &&
-    relation.relation ===
-      "contains"
+    relation.direction === "outgoing" &&
+    relation.relation === "contains"
   ) {
     return "Contains";
   }
 
   return relation.relation
-    .replaceAll(
-      "_",
-      " "
-    )
+    .replaceAll("_", " ")
     .replace(
       /\b\w/g,
       (character) =>
@@ -123,8 +111,7 @@ function relationLabel(
 function targetKindLabel(
   kind: ConnectionTargetKind
 ) {
-  return kind ===
-    "story_memory"
+  return kind === "story_memory"
     ? "Memory"
     : "Date";
 }
@@ -181,18 +168,9 @@ async function loadObject({
   } = await db
     .from("diario_items")
     .select("*")
-    .eq(
-      "user_id",
-      userId
-    )
-    .eq(
-      "id",
-      itemId
-    )
-    .eq(
-      "status",
-      "active"
-    )
+    .eq("user_id", userId)
+    .eq("id", itemId)
+    .eq("status", "active")
     .maybeSingle();
 
   if (error) {
@@ -208,10 +186,7 @@ async function loadObject({
       [data]
     );
 
-  return (
-    hydrated[0] ??
-    null
-  );
+  return hydrated[0] ?? null;
 }
 
 async function loadRelations({
@@ -231,10 +206,7 @@ async function loadRelations({
     .select(
       "source_item_id,target_item_id,relation"
     )
-    .eq(
-      "user_id",
-      userId
-    )
+    .eq("user_id", userId)
     .or(
       `source_item_id.eq.${itemId},target_item_id.eq.${itemId}`
     );
@@ -245,12 +217,9 @@ async function loadRelations({
 
   const rows =
     (data ?? []) as Array<{
-      source_item_id:
-        string;
-      target_item_id:
-        string;
-      relation:
-        string;
+      source_item_id: string;
+      target_item_id: string;
+      relation: string;
     }>;
 
   const relatedIds =
@@ -260,10 +229,8 @@ async function loadRelations({
           .map((row) =>
             row.source_item_id ===
             itemId
-              ? row
-                  .target_item_id
-              : row
-                  .source_item_id
+              ? row.target_item_id
+              : row.source_item_id
           )
           .filter(Boolean)
       )
@@ -281,18 +248,9 @@ async function loadRelations({
   } = await db
     .from("diario_items")
     .select("*")
-    .eq(
-      "user_id",
-      userId
-    )
-    .eq(
-      "status",
-      "active"
-    )
-    .in(
-      "id",
-      relatedIds
-    );
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .in("id", relatedIds);
 
   if (itemError) {
     throw itemError;
@@ -324,10 +282,8 @@ async function loadRelations({
 
         const relatedId =
           outgoing
-            ? row
-                .target_item_id
-            : row
-                .source_item_id;
+            ? row.target_item_id
+            : row.source_item_id;
 
         const view =
           viewById.get(
@@ -526,17 +482,34 @@ export function ConnectedObjectDetailScreen({
       string | null
     >(null);
 
+  const [
+    contentPickerOpen,
+    setContentPickerOpen,
+  ] =
+    useState(false);
+
+  const [
+    contentTargets,
+    setContentTargets,
+  ] =
+    useState<
+      DiarioItem[]
+    >([]);
+
   useEffect(() => {
     let active = true;
 
     setLoading(true);
     setError(null);
 
-    setPickerKind(
-      null
+    setPickerKind(null);
+    setTargets([]);
+
+    setContentPickerOpen(
+      false
     );
 
-    setTargets([]);
+    setContentTargets([]);
 
     void Promise.all([
       loadObject({
@@ -593,9 +566,7 @@ export function ConnectedObjectDetailScreen({
       )
       .finally(() => {
         if (active) {
-          setLoading(
-            false
-          );
+          setLoading(false);
         }
       });
 
@@ -616,32 +587,25 @@ export function ConnectedObjectDetailScreen({
         pickerKind ===
         kind
       ) {
-        setPickerKind(
-          null
-        );
-
-        setTargets(
-          []
-        );
-
+        setPickerKind(null);
+        setTargets([]);
         return;
       }
 
-      setPickerKind(
-        kind
+      setContentPickerOpen(
+        false
       );
+
+      setContentTargets([]);
+
+      setPickerKind(kind);
 
       setLoadingTargets(
         true
       );
 
-      setTargets(
-        []
-      );
-
-      setError(
-        null
-      );
+      setTargets([]);
+      setError(null);
 
       try {
         const nextTargets =
@@ -673,6 +637,86 @@ export function ConnectedObjectDetailScreen({
       }
     };
 
+  const openContentPicker =
+    async () => {
+      if (!view) {
+        return;
+      }
+
+      if (
+        contentPickerOpen
+      ) {
+        setContentPickerOpen(
+          false
+        );
+
+        setContentTargets(
+          []
+        );
+
+        return;
+      }
+
+      setPickerKind(null);
+      setTargets([]);
+
+      setContentPickerOpen(
+        true
+      );
+
+      setLoadingTargets(
+        true
+      );
+
+      setContentTargets([]);
+      setError(null);
+
+      try {
+        const connectable =
+          await getConnectableDiaryItems(
+            session.user.id
+          );
+
+        const nextTargets =
+          connectable
+            .map(
+              (candidate) =>
+                candidate.item
+            )
+            .filter(
+              (candidate) =>
+                candidate.id !==
+                itemId
+            )
+            .filter(
+              (candidate) =>
+                view.item.kind !==
+                  "date" ||
+                candidate.kind !==
+                  "date"
+            );
+
+        setContentTargets(
+          nextTargets
+        );
+      } catch (
+        nextError
+      ) {
+        console.error(
+          "Could not load diary contents:",
+          nextError
+        );
+
+        setError(
+          "Diary objects could not be loaded."
+        );
+      } finally {
+        setLoadingTargets(
+          false
+        );
+      }
+    };
+
   const isConnectedTo =
     (
       targetId:
@@ -684,8 +728,7 @@ export function ConnectedObjectDetailScreen({
             "incoming" &&
           relation.relation ===
             "contains" &&
-          relation.view.item
-            .id ===
+          relation.view.item.id ===
             targetId
       );
 
@@ -703,14 +746,10 @@ export function ConnectedObjectDetailScreen({
         target.id
       );
 
-      setError(
-        null
-      );
+      setError(null);
 
       try {
-        if (
-          connected
-        ) {
+        if (connected) {
           const {
             error:
               deleteError,
@@ -806,20 +845,144 @@ export function ConnectedObjectDetailScreen({
       }
     };
 
+  const isContainedObject =
+    (
+      targetId:
+        string
+    ) =>
+      relations.some(
+        (relation) =>
+          relation.direction ===
+            "outgoing" &&
+          relation.relation ===
+            "contains" &&
+          relation.view.item.id ===
+            targetId
+      );
+
+  const toggleContainedObject =
+    async (
+      target:
+        DiarioItem
+    ) => {
+      const connected =
+        isContainedObject(
+          target.id
+        );
+
+      setSavingTargetId(
+        target.id
+      );
+
+      setError(null);
+
+      try {
+        if (connected) {
+          const {
+            error:
+              deleteError,
+          } = await db
+            .from(
+              "diario_links"
+            )
+            .delete()
+            .eq(
+              "user_id",
+              session.user.id
+            )
+            .eq(
+              "source_item_id",
+              itemId
+            )
+            .eq(
+              "target_item_id",
+              target.id
+            )
+            .eq(
+              "relation",
+              "contains"
+            );
+
+          if (
+            deleteError
+          ) {
+            throw deleteError;
+          }
+        } else {
+          const {
+            error:
+              linkError,
+          } = await db
+            .from(
+              "diario_links"
+            )
+            .upsert(
+              {
+                user_id:
+                  session.user.id,
+
+                source_item_id:
+                  itemId,
+
+                target_item_id:
+                  target.id,
+
+                relation:
+                  "contains",
+
+                data: {},
+              },
+              {
+                onConflict:
+                  "user_id,source_item_id,target_item_id,relation",
+              }
+            );
+
+          if (
+            linkError
+          ) {
+            throw linkError;
+          }
+        }
+
+        const nextRelations =
+          await loadRelations({
+            userId:
+              session.user.id,
+            itemId,
+          });
+
+        setRelations(
+          nextRelations
+        );
+      } catch (
+        nextError
+      ) {
+        console.error(
+          "Could not update diary contents:",
+          nextError
+        );
+
+        setError(
+          "The diary contents could not be updated."
+        );
+      } finally {
+        setSavingTargetId(
+          null
+        );
+      }
+    };
+
   if (loading) {
     return (
       <section className="connected-object-detail-screen">
         <button
           type="button"
           className="connected-object-back"
-          onClick={
-            onBack
-          }
+          onClick={onBack}
         >
           <ArrowLeft
-            size={
-              14
-            }
+            size={14}
           />
 
           Back
@@ -838,14 +1001,10 @@ export function ConnectedObjectDetailScreen({
         <button
           type="button"
           className="connected-object-back"
-          onClick={
-            onBack
-          }
+          onClick={onBack}
         >
           <ArrowLeft
-            size={
-              14
-            }
+            size={14}
           />
 
           Back
@@ -867,13 +1026,33 @@ export function ConnectedObjectDetailScreen({
     view.item.kind !==
     "date";
 
+  const canManageContents =
+    view.item.kind ===
+      "date" ||
+    view.item.kind ===
+      "story_memory";
+
+  const containerLabel =
+    view.item.kind ===
+    "date"
+      ? "Date"
+      : "Memory";
+
+  const containedObjectCount =
+    relations.filter(
+      (relation) =>
+        relation.direction ===
+          "outgoing" &&
+        relation.relation ===
+          "contains"
+    ).length;
+
   const memoryConnections =
     relations.filter(
       (relation) =>
         relation.direction ===
           "incoming" &&
-        relation.view.item
-          .kind ===
+        relation.view.item.kind ===
           "story_memory"
     ).length;
 
@@ -882,8 +1061,7 @@ export function ConnectedObjectDetailScreen({
       (relation) =>
         relation.direction ===
           "incoming" &&
-        relation.view.item
-          .kind ===
+        relation.view.item.kind ===
           "date"
     ).length;
 
@@ -892,9 +1070,7 @@ export function ConnectedObjectDetailScreen({
       <button
         type="button"
         className="connected-object-back"
-        onClick={
-          onBack
-        }
+        onClick={onBack}
       >
         <ArrowLeft
           size={14}
@@ -1023,6 +1199,195 @@ export function ConnectedObjectDetailScreen({
           </div>
         )}
       </section>
+
+      {canManageContents && (
+        <section className="connected-object-relations">
+          <header>
+            <span>
+              <Link2
+                size={14}
+              />
+            </span>
+
+            <div>
+              <small>
+                CONTENTS
+              </small>
+
+              <strong>
+                {containedObjectCount ===
+                0
+                  ? `Nothing in this ${containerLabel} yet`
+                  : `${
+                      containedObjectCount
+                    } ${
+                      containedObjectCount ===
+                      1
+                        ? "object"
+                        : "objects"
+                    } in this ${containerLabel}`}
+              </strong>
+            </div>
+          </header>
+
+          <div className="connected-picker-list">
+            <button
+              type="button"
+              className={
+                contentPickerOpen
+                  ? "connected"
+                  : undefined
+              }
+              onClick={() =>
+                void openContentPicker()
+              }
+            >
+              <span>
+                +
+              </span>
+
+              <div>
+                <small>
+                  {containerLabel.toUpperCase()}
+                </small>
+
+                <strong>
+                  Manage {containerLabel} contents
+                </strong>
+
+                <small>
+                  Add or remove original diary objects
+                </small>
+              </div>
+            </button>
+          </div>
+        </section>
+      )}
+
+      {contentPickerOpen && (
+        <section className="connected-object-picker">
+          <header>
+            <div>
+              <small>
+                {containerLabel.toUpperCase()} CONTENTS
+              </small>
+
+              <strong>
+                Choose diary objects
+              </strong>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setContentPickerOpen(
+                  false
+                );
+
+                setContentTargets(
+                  []
+                );
+              }}
+            >
+              Close
+            </button>
+          </header>
+
+          {loadingTargets ? (
+            <div className="connected-empty">
+              Finding diary objects…
+            </div>
+          ) : contentTargets.length ===
+            0 ? (
+            <div className="connected-empty">
+              <strong>
+                Nothing to add yet.
+              </strong>
+
+              <p>
+                Photos, songs,
+                letters, places,
+                outfits, diary pages
+                and other real
+                objects will appear
+                here.
+              </p>
+            </div>
+          ) : (
+            <div className="connected-picker-list">
+              {contentTargets.map(
+                (
+                  target
+                ) => {
+                  const connected =
+                    isContainedObject(
+                      target.id
+                    );
+
+                  const saving =
+                    savingTargetId ===
+                    target.id;
+
+                  return (
+                    <button
+                      key={
+                        target.id
+                      }
+                      type="button"
+                      className={
+                        connected
+                          ? "connected"
+                          : undefined
+                      }
+                      aria-pressed={
+                        connected
+                      }
+                      disabled={
+                        savingTargetId !==
+                        null
+                      }
+                      onClick={() =>
+                        void toggleContainedObject(
+                          target
+                        )
+                      }
+                    >
+                      <span>
+                        {saving
+                          ? "…"
+                          : connected
+                            ? "✓"
+                            : "+"}
+                      </span>
+
+                      <div>
+                        <small>
+                          {connectedKindLabel(
+                            target.kind
+                          )}
+                        </small>
+
+                        <strong>
+                          {target.title ??
+                            connectedKindLabel(
+                              target.kind
+                            )}
+                        </strong>
+
+                        <small>
+                          {targetMomentLabel(
+                            target
+                          )}
+                        </small>
+                      </div>
+                    </button>
+                  );
+                }
+              )}
+            </div>
+          )}
+        </section>
+      )}
 
       {(canConnectToMemory ||
         canConnectToDate) && (
