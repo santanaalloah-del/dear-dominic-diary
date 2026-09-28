@@ -62,9 +62,21 @@ type VerifiedUser = {
   id: string;
 };
 
+const nullableStringSchema = {
+  anyOf: [
+    {
+      type: "string",
+    },
+    {
+      type: "null",
+    },
+  ],
+} as const;
+
 const ACTION_ITEM_SCHEMA = {
   type: "object",
   additionalProperties: false,
+
   required: [
     "type",
     "title",
@@ -79,9 +91,11 @@ const ACTION_ITEM_SCHEMA = {
     "note",
     "eventAt",
   ],
+
   properties: {
     type: {
       type: "string",
+
       enum: [
         "create_date",
         "create_letter",
@@ -91,144 +105,70 @@ const ACTION_ITEM_SCHEMA = {
       ],
     },
 
-    title: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    title:
+      nullableStringSchema,
 
-    body: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    body:
+      nullableStringSchema,
 
-    place: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    place:
+      nullableStringSchema,
 
-    plannedFor: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    plannedFor:
+      nullableStringSchema,
 
-    neighborhood: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    neighborhood:
+      nullableStringSchema,
 
-    placeType: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    placeType:
+      nullableStringSchema,
 
     placeStatus: {
       anyOf: [
         {
           type: "string",
+
           enum: [
             "saved",
             "visited",
           ],
         },
+
         {
           type: "null",
         },
       ],
     },
 
-    artist: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    artist:
+      nullableStringSchema,
 
-    album: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    album:
+      nullableStringSchema,
 
-    note: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    note:
+      nullableStringSchema,
 
-    eventAt: {
-      anyOf: [
-        {
-          type: "string",
-        },
-        {
-          type: "null",
-        },
-      ],
-    },
+    eventAt:
+      nullableStringSchema,
   },
 } as const;
 
 const RESPONSE_SCHEMA = {
   type: "object",
   additionalProperties: false,
+
   required: [
     "actions",
   ],
+
   properties: {
     actions: {
       type: "array",
+
       maxItems:
         MAX_ACTIONS,
+
       items:
         ACTION_ITEM_SCHEMA,
     },
@@ -281,6 +221,67 @@ function validDate(
   );
 }
 
+function cleanJsonText(
+  value: string
+) {
+  return value
+    .trim()
+    .replace(
+      /^```json\s*/i,
+      ""
+    )
+    .replace(
+      /^```\s*/i,
+      ""
+    )
+    .replace(
+      /\s*```$/i,
+      ""
+    )
+    .trim();
+}
+
+function parseJsonObject(
+  text: string
+): Record<
+  string,
+  unknown
+> {
+  const cleaned =
+    cleanJsonText(
+      text
+    );
+
+  if (!cleaned) {
+    throw new Error(
+      "Action interpreter returned an empty response."
+    );
+  }
+
+  const parsed =
+    JSON.parse(
+      cleaned
+    );
+
+  if (
+    !parsed ||
+    typeof parsed !==
+      "object" ||
+    Array.isArray(
+      parsed
+    )
+  ) {
+    throw new Error(
+      "Action interpreter returned invalid JSON."
+    );
+  }
+
+  return parsed as Record<
+    string,
+    unknown
+  >;
+}
+
 function parseModelContent(
   value: unknown
 ): Record<
@@ -291,25 +292,9 @@ function parseModelContent(
     typeof value ===
     "string"
   ) {
-    const parsed =
-      JSON.parse(
-        value
-      );
-
-    if (
-      !parsed ||
-      typeof parsed !==
-        "object" ||
-      Array.isArray(
-        parsed
-      )
-    ) {
-      throw new Error(
-        "Action interpreter returned invalid JSON."
-      );
-    }
-
-    return parsed;
+    return parseJsonObject(
+      value
+    );
   }
 
   if (
@@ -327,8 +312,7 @@ function parseModelContent(
               part &&
               typeof part ===
                 "object" &&
-              "text" in
-                part &&
+              "text" in part &&
               typeof (
                 part as {
                   text?: unknown;
@@ -349,31 +333,9 @@ function parseModelContent(
         .join("")
         .trim();
 
-    if (!text) {
-      throw new Error(
-        "Action interpreter returned an empty response."
-      );
-    }
-
-    const parsed =
-      JSON.parse(
-        text
-      );
-
-    if (
-      !parsed ||
-      typeof parsed !==
-        "object" ||
-      Array.isArray(
-        parsed
-      )
-    ) {
-      throw new Error(
-        "Action interpreter returned invalid JSON."
-      );
-    }
-
-    return parsed;
+    return parseJsonObject(
+      text
+    );
   }
 
   throw new Error(
@@ -727,6 +689,12 @@ async function interpretActions({
 
           "Content-Type":
             "application/json",
+
+          "HTTP-Referer":
+            "https://dear-dominic-diary.vercel.app",
+
+          "X-Title":
+            "Dear Dominic Diary",
         },
 
         body:
@@ -736,8 +704,13 @@ async function interpretActions({
             temperature:
               0.1,
 
+            reasoning: {
+              effort:
+                "low",
+            },
+
             max_tokens:
-              900,
+              2500,
 
             messages: [
               {
@@ -747,11 +720,26 @@ async function interpretActions({
                 content:
                   `You are the world-action interpreter for a private relationship diary app.
 
-You do NOT reply to the user. You inspect the user's actual message and Dominic's actual reply, then decide whether Dominic clearly chose to make something real in the shared diary world.
+You do NOT reply to the user.
 
-Be conservative. Usually return zero actions.
+You inspect:
+1. the user's actual message;
+2. Dominic's actual reply;
+3. nearby existing commitments.
 
-An action is valid when Dominic explicitly commits to it, does it, sends it, saves it, or clearly accepts the user's direct request to do it.
+Then decide whether Dominic clearly made something real in their shared diary world.
+
+Be conservative.
+Most ordinary conversations should return zero actions.
+
+An action is valid when Dominic explicitly:
+- does something,
+- writes something,
+- sends something,
+- saves something,
+- chooses something,
+- commits to something concrete,
+- or clearly accepts a direct request and actually fulfills it in his reply.
 
 Do not create an action merely because:
 - the user mentioned something,
@@ -764,29 +752,63 @@ Do not create an action merely because:
 Allowed actions:
 
 create_date
-Use only for a concrete shared plan with a usable place and a specific enough date/time.
-Resolve relative language such as tomorrow using the current São Paulo/Rio time supplied below.
+
+Use only for a concrete shared future plan with:
+- a usable place;
+- and a specific enough date or date/time.
+
+Resolve relative language such as "tomorrow" using the current São Paulo/Rio time supplied below.
+
 plannedFor must be a valid ISO date-time.
 
 create_letter
-Use when Dominic actually writes/leaves/sends a meaningful letter.
-The body must contain the letter itself, not merely "I'll write you one."
+
+Use when Dominic actually writes, leaves, or sends a meaningful letter in his reply.
+
+If the user explicitly asks Dominic to write a letter and Dominic actually writes it, create_letter SHOULD be returned.
+
+The body must be the actual letter Dominic wrote.
+
+Preserve the meaning, wording, paragraphs, tone, and sign-off of the letter as faithfully as possible.
+
+If Dominic gave the letter a heading or title, use it as title.
+
+Do not return merely "I'll write you one."
 
 create_memory
-Use for something that already happened or is happening and Dominic clearly wants preserved as a memory.
-Never use for future plans.
+
+Use only for something that already happened or is happening and Dominic clearly chooses to preserve it as a memory.
+
+Never use create_memory for future plans.
 
 create_place
-Use when Dominic clearly saves, chooses, or marks a real place as somewhere to go or somewhere visited.
-Use placeStatus "saved" for future interest and "visited" only when the conversation establishes it was visited.
+
+Use when Dominic clearly saves, chooses, or marks a real place as:
+- somewhere they want to go;
+- or somewhere they actually visited.
+
+Use placeStatus "saved" for future interest.
+
+Use placeStatus "visited" only when the conversation establishes that it was visited.
 
 create_song
-Use when Dominic actually sends/recommends/adds a concrete song.
-Both song title and artist must be known.
 
-Do not invent factual events, places, song metadata, or promises that are absent from the conversation.
-You may lightly clean titles and notes.
-Return at most ${MAX_ACTIONS} actions.
+Use when Dominic actually sends, recommends, chooses, or adds a concrete song.
+
+Both the song title and artist must be known from the conversation.
+
+General rules:
+
+- Do not invent events.
+- Do not invent dates.
+- Do not invent places.
+- Do not invent song metadata.
+- Do not invent promises.
+- Do not create diary objects for casual mentions.
+- You may lightly clean titles and notes.
+- Return at most ${MAX_ACTIONS} actions.
+- When an actual letter is present, do not replace its body with a summary.
+- When no valid action happened, return {"actions":[]}.
 
 Current São Paulo/Rio local time:
 ${currentTime}`,
@@ -800,6 +822,7 @@ ${currentTime}`,
                   JSON.stringify(
                     {
                       userMessage,
+
                       dominicReplies:
                         replies,
 
@@ -828,7 +851,7 @@ ${currentTime}`,
 
         signal:
           AbortSignal.timeout(
-            25_000
+            40_000
           ),
       }
     );
@@ -843,6 +866,17 @@ ${currentTime}`,
           () => ""
         );
 
+    console.error(
+      "OpenRouter action interpreter request failed:",
+      {
+        status:
+          response.status,
+
+        body:
+          text,
+      }
+    );
+
     throw new Error(
       text ||
         `OpenRouter action interpretation failed (${response.status}).`
@@ -852,16 +886,44 @@ ${currentTime}`,
   const result =
     (await response.json()) as {
       choices?: Array<{
+        finish_reason?:
+          string | null;
+
         message?: {
           content?: unknown;
         };
       }>;
+
+      usage?: unknown;
     };
+
+  const choice =
+    result
+      .choices?.[0];
+
+  const finishReason =
+    choice
+      ?.finish_reason ??
+    null;
+
+  if (
+    finishReason ===
+    "length"
+  ) {
+    console.warn(
+      "Dominic action interpreter reached the generation limit.",
+      {
+        finishReason,
+        usage:
+          result.usage ??
+          null,
+      }
+    );
+  }
 
   const parsed =
     parseModelContent(
-      result
-        .choices?.[0]
+      choice
         ?.message
         ?.content
     );
@@ -873,20 +935,41 @@ ${currentTime}`,
       ? parsed.actions
       : [];
 
-  return rawActions
-    .map(
-      normalizeAction
-    )
-    .filter(
-      (
-        action
-      ): action is DominicWorldAction =>
-        action !== null
-    )
-    .slice(
-      0,
-      MAX_ACTIONS
-    );
+  const actions =
+    rawActions
+      .map(
+        normalizeAction
+      )
+      .filter(
+        (
+          action
+        ): action is DominicWorldAction =>
+          action !== null
+      )
+      .slice(
+        0,
+        MAX_ACTIONS
+      );
+
+  console.log(
+    "Dominic world actions interpreted:",
+    {
+      finishReason,
+
+      actionCount:
+        actions.length,
+
+      actionTypes:
+        actions.map(
+          (
+            action
+          ) =>
+            action.type
+        ),
+    }
+  );
+
+  return actions;
 }
 
 export const Route =
@@ -1012,7 +1095,10 @@ export const Route =
               );
 
               return jsonError(
-                "Dominic's world actions could not be interpreted.",
+                error instanceof
+                  Error
+                  ? error.message
+                  : "Dominic's world actions could not be interpreted.",
                 500
               );
             }
