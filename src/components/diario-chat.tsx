@@ -2060,37 +2060,9 @@ useEffect(() => {
     [],
   );
 
-async function flushPendingMessages() {
-  if (processingQueueRef.current) {
-    return;
-  }
-
-  const queuedMessages = [
-    ...pendingMessagesRef.current,
-  ];
-
-  pendingMessagesRef.current = [];
-
-  if (queuedMessages.length === 0) {
-    setSending(false);
-    return;
-  }
-
-  processingQueueRef.current = true;
-  setSending(true);
-  setFailedMessage(null);
-
- const combinedMessage =
-  queuedMessages.length === 1
-    ? queuedMessages[0].text
-    : queuedMessages
-        .map(
-          (item, index) =>
-            `Alloah message ${index + 1}: ${item.text}`
-        )
-        .join("\n");
-
-try {
+async function requestDominicReply(
+  combinedMessage: string
+) {
   const liveNearbyCommitments =
     await loadNearbyCommitmentsNow()
       .catch((error) => {
@@ -2102,56 +2074,98 @@ try {
         return nearbyCommitments;
       });
 
-  setNearbyCommitments(liveNearbyCommitments);
+  setNearbyCommitments(
+    liveNearbyCommitments
+  );
 
-  const { data, error } =
+  const {
+    data,
+    error,
+  } =
     await supabase.functions.invoke(
       "clever-service",
       {
         body: {
-  message: combinedMessage,
-  dominicContext: dominicState
-    ? {
-        activity: dominicState.activity,
-        location: dominicState.location,
-        mood: dominicState.mood ?? null,
-        energy: dominicState.energy ?? null,
-        startedAt: dominicState.startedAt,
-        nextChangeAt: dominicState.nextChangeAt,
+          message:
+            combinedMessage,
+
+          dominicContext:
+            dominicState
+              ? {
+                  activity:
+                    dominicState.activity,
+
+                  location:
+                    dominicState.location,
+
+                  mood:
+                    dominicState.mood ??
+                    null,
+
+                  energy:
+                    dominicState.energy ??
+                    null,
+
+                  startedAt:
+                    dominicState.startedAt,
+
+                  nextChangeAt:
+                    dominicState.nextChangeAt,
+                }
+              : null,
+
+          nearbyCommitments:
+            liveNearbyCommitments,
+        },
       }
-       : null,
-  nearbyCommitments: liveNearbyCommitments,
-},
-        }
-      );
+    );
 
-    const replies =
-      Array.isArray(data?.replies)
-        ? data.replies
-            .filter(
-              (item: unknown): item is string =>
-                typeof item === "string"
-            )
-            .map((item) => item.trim())
-            .filter(Boolean)
-        : typeof data?.reply === "string"
-          ? [data.reply.trim()].filter(Boolean)
-          : [];
+  const replies =
+    Array.isArray(
+      data?.replies
+    )
+      ? data.replies
+          .filter(
+            (
+              item: unknown
+            ): item is string =>
+              typeof item ===
+              "string"
+          )
+          .map(
+            (item) =>
+              item.trim()
+          )
+          .filter(
+            Boolean
+          )
+      : typeof data?.reply ===
+          "string"
+        ? [
+            data.reply.trim(),
+          ].filter(
+            Boolean
+          )
+        : [];
 
-    if (error || replies.length === 0) {
-      throw (
-        error ??
-        new Error("Missing reply")
-      );
-    }
+  if (
+    error ||
+    replies.length === 0
+  ) {
+    throw (
+      error ??
+      new Error(
+        "Missing reply"
+      )
+    );
+  }
 
- setMessages((current) => [
+  setMessages(
+    (current) => [
       ...current,
 
       ...replies.map(
-        (
-          reply
-        ) => ({
+        (reply) => ({
           id:
             `reply-${crypto.randomUUID()}`,
 
@@ -2169,69 +2183,223 @@ try {
             "text" as const,
         })
       ),
-    ]);
+    ]
+  );
 
-    const worldActions =
-      await extractDominicActions({
-        userMessage:
-          combinedMessage,
+  const worldActions =
+    await extractDominicActions({
+      userMessage:
+        combinedMessage,
 
-        replies,
-      });
+      replies,
+    });
+
+  if (
+    worldActions.length >
+    0
+  ) {
+    await runDominicActions(
+      worldActions
+    );
+  }
+
+  window.setTimeout(
+    () => {
+      void loadHistory(
+        false
+      );
+    },
+    worldActions.length >
+      0
+      ? 250
+      : 800
+  );
+}
+
+async function flushPendingMessages() {
+  if (
+    processingQueueRef.current
+  ) {
+    return;
+  }
+
+  const queuedMessages = [
+    ...pendingMessagesRef.current,
+  ];
+
+  pendingMessagesRef.current =
+    [];
+
+  if (
+    queuedMessages.length ===
+    0
+  ) {
+    setSending(
+      false
+    );
+
+    return;
+  }
+
+  processingQueueRef.current =
+    true;
+
+  setSending(
+    true
+  );
+
+  setFailedMessage(
+    null
+  );
+
+  const combinedMessage =
+    queuedMessages.length ===
+    1
+      ? queuedMessages[0].text
+      : queuedMessages
+          .map(
+            (
+              item,
+              index
+            ) =>
+              `Alloah message ${
+                index + 1
+              }: ${item.text}`
+          )
+          .join(
+            "\n"
+          );
+
+  try {
+    await requestDominicReply(
+      combinedMessage
+    );
+  } catch (
+    error
+  ) {
+    console.error(
+      "Could not reach Dominic:",
+      error
+    );
+
+    setFailedMessage(
+      combinedMessage
+    );
+  } finally {
+    processingQueueRef.current =
+      false;
 
     if (
-      worldActions.length >
-      0
+      pendingMessagesRef.current
+        .length > 0
     ) {
-      await runDominicActions(
-        worldActions
-      );
-    }
-
-    window.setTimeout(
-      () => {
-        void loadHistory(
-          false
-        );
-      },
-      worldActions.length >
-        0
-        ? 250
-        : 800
-    );
-  } catch {
-    setFailedMessage(combinedMessage);
-  } finally {
-    processingQueueRef.current = false;
-
-    if (pendingMessagesRef.current.length > 0) {
       queueTimerRef.current =
-        window.setTimeout(() => {
-          queueTimerRef.current = null;
-          void flushPendingMessages();
-        }, 1200);
+        window.setTimeout(
+          () => {
+            queueTimerRef.current =
+              null;
+
+            void flushPendingMessages();
+          },
+          1200
+        );
 
       return;
     }
 
-    setSending(false);
+    setSending(
+      false
+    );
+  }
+}
+
+async function retryFailedMessage() {
+  const clean =
+    failedMessage?.trim();
+
+  if (
+    !clean ||
+    processingQueueRef.current
+  ) {
+    return;
+  }
+
+  processingQueueRef.current =
+    true;
+
+  setSending(
+    true
+  );
+
+  setFailedMessage(
+    null
+  );
+
+  try {
+    await requestDominicReply(
+      clean
+    );
+  } catch (
+    error
+  ) {
+    console.error(
+      "Could not retry Dominic message:",
+      error
+    );
+
+    setFailedMessage(
+      clean
+    );
+  } finally {
+    processingQueueRef.current =
+      false;
+
+    if (
+      pendingMessagesRef.current
+        .length > 0
+    ) {
+      queueTimerRef.current =
+        window.setTimeout(
+          () => {
+            queueTimerRef.current =
+              null;
+
+            void flushPendingMessages();
+          },
+          1200
+        );
+
+      return;
+    }
+
+    setSending(
+      false
+    );
   }
 }
 
 async function sendMessage(
   text: string,
-  kind: MessageKind = "text",
-  sharedItem?: PendingChatShare
+  kind: MessageKind =
+    "text",
+  sharedItem?:
+    PendingChatShare
 ) {
   const clean =
     text.trim();
 
-  if (!clean) return;
+  if (!clean) {
+    return;
+  }
 
   const now =
-    new Date().toISOString();
+    new Date()
+      .toISOString();
 
-  if (kind === "voice") {
+  if (
+    kind ===
+    "voice"
+  ) {
     rememberVoice(
       clean,
       now
@@ -2242,7 +2410,8 @@ async function sendMessage(
     (current) => [
       ...current,
       {
-        id: `local-${crypto.randomUUID()}`,
+        id:
+          `local-${crypto.randomUUID()}`,
 
         role:
           "user",
@@ -2279,7 +2448,9 @@ async function sendMessage(
 
   pendingMessagesRef.current.push(
     {
-      text: clean,
+      text:
+        clean,
+
       kind,
     }
   );
@@ -2292,8 +2463,13 @@ async function sendMessage(
     );
   }
 
-  setSending(true);
-  setFailedMessage(null);
+  setSending(
+    true
+  );
+
+  setFailedMessage(
+    null
+  );
 
   queueTimerRef.current =
     window.setTimeout(
@@ -2306,10 +2482,16 @@ async function sendMessage(
       4500
     );
 }
+
+function handleSubmit(
+  message:
+    PromptInputMessage
+) {
+  return sendMessage(
+    message.text
+  );
+}
   
-  function handleSubmit(message: PromptInputMessage) {
-    return sendMessage(message.text);
-  }
 async function sendPhoto(file: File) {
   if (!file.type.startsWith("image/")) {
     return;
@@ -2975,14 +3157,33 @@ const recentConversationForPhoto = () =>
       </Conversation>
 
       <div className="live-composer-wrap messenger-composer-wrap">
-        {failedMessage && (
-          <div className="send-error" role="status">
-            <span>couldn’t reach him. try again.</span>
-            <Button type="button" variant="ghost" size="sm" onClick={() => sendMessage(failedMessage)} disabled={sending}>
-              <RotateCcw /> Retry
-            </Button>
-          </div>
-        )}
+     {failedMessage && (
+  <div
+    className="send-error"
+    role="status"
+  >
+    <span>
+      couldn’t reach him.
+      try again.
+    </span>
+
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={() =>
+        void retryFailedMessage()
+      }
+      disabled={
+        sending
+      }
+    >
+      <RotateCcw />
+
+      Retry
+    </Button>
+  </div>
+)}
         {voiceNotice && <div className={`voice-transcription-status ${voiceStatus}`}>{voiceNotice}</div>}
 
         <SpontaneousPhotoOpportunity
