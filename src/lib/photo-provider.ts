@@ -1,5 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import {
+  identityFeedbackBoost,
+  type IdentityReferenceUsage,
+} from "@/lib/photo-identity-feedback";
+import {
   getWardrobePhotoContexts,
   type WardrobePhotoContext,
   type WardrobeOwner,
@@ -359,9 +363,17 @@ function chooseProviderReferences(
   canons: VisualCanonRow[]
 ) {
   const requestedIds = new Set(request.reference_ids ?? []);
-  const pool = selected.filter(
-    (item) => requestedIds.size === 0 || requestedIds.has(item.reference.id)
-  );
+  const pool = selected
+    .filter(
+      (item) =>
+        requestedIds.size === 0 ||
+        requestedIds.has(item.reference.id)
+    )
+    .sort(
+      (first, second) =>
+        identityFeedbackBoost(second.reference.metadata) -
+        identityFeedbackBoost(first.reference.metadata)
+    );
 
   const chosen: typeof pool = [];
   const used = new Set<string>();
@@ -696,11 +708,23 @@ export async function generatePhotoProviderPreview({
     throw new Error("Your session expired. Please sign in again.");
   }
 
-  const references = chooseProviderReferences(
+  const selectedReferences = chooseProviderReferences(
     request,
     bundle.selected,
     canons
-  ).map(cleanReferencePayload);
+  );
+
+  const references = selectedReferences.map(cleanReferencePayload);
+
+  const identityReferenceUsage: IdentityReferenceUsage[] =
+    selectedReferences.map((item) => ({
+      id: item.reference.id,
+      subject: item.reference.subject,
+      purposes: item.reference.reference_purposes ?? [],
+      strength: item.reference.reference_strength ?? "supporting",
+      referenceKind: item.reference.reference_kind ?? "identity",
+      isCurrent: Boolean(item.reference.is_current),
+    }));
 
   const response = await fetch("/api/photo-engine", {
     method: "POST",
@@ -741,7 +765,17 @@ export async function generatePhotoProviderPreview({
     throw new Error("The image provider returned no image.");
   }
 
-  return body;
+  return {
+    ...body,
+    feature: {
+      ...(body.feature ?? {}),
+      featureData: {
+        ...(body.feature?.featureData ?? {}),
+        identityReferenceUsage,
+        identityFeedbackVersion: 1,
+      },
+    },
+  };
 }
 
 export function dataUrlToBlob(dataUrl: string): Blob {
