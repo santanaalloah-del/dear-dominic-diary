@@ -769,6 +769,10 @@ function scoreReference(
     score += 25;
   }
 
+  if ((ref.reference_kind ?? "identity") === "identity") {
+  score += identityFeedbackBoost(ref.metadata);
+}
+  
   if (ref.is_current) {
     score += 150;
   }
