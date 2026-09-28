@@ -39,6 +39,7 @@ import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { VisualReferencesScreen } from "@/components/visual-references-screen";
 import { PhotoEngineScreen } from "@/components/photo-engine-screen";
+import { WardrobeExperienceScreen } from "@/components/wardrobe-screen";
 import {
   connectSpotify,
   disconnectSpotify,
@@ -405,8 +406,8 @@ const openScreen = (nextScreen: Screen) => {
 {screen === "dates" && <DatesScreen />}
 {screen === "places" && <PlacesScreen />}
 {screen === "keepsakes" && <KeepsakesScreen />}
-{screen === "wardrobe" && <WardrobeScreen />}
-{screen === "references" && <VisualReferencesScreen />}
+{screen === "wardrobe" && <WardrobeExperienceScreen />}
+          {screen === "references" && <VisualReferencesScreen />}
           {screen === "photo-engine" && <PhotoEngineScreen />}
           {screen === "settings" && <SettingsScreen />}
         </div>
