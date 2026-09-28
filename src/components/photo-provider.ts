@@ -413,6 +413,45 @@ function chooseProviderReferences(
   return chosen.slice(0, MAX_PROVIDER_REFERENCES);
 }
 
+function currentOverrideInstruction(
+  request: PhotoGenerationRequest,
+  canons: VisualCanonRow[]
+) {
+  if (!request.use_current_look) return null;
+
+  const relevantSubjects = canonSubjectsForRequest(request.subject_type);
+  const instructions: string[] = [];
+
+  for (const subject of relevantSubjects) {
+    if (subject === "couple") continue;
+
+    const canon = canons.find((item) => item.subject === subject);
+    const profile = canon?.profile ?? {};
+    const overrides =
+      profile.current_overrides &&
+      typeof profile.current_overrides === "object" &&
+      !Array.isArray(profile.current_overrides)
+        ? (profile.current_overrides as Record<string, unknown>)
+        : {};
+
+    if (overrides.makeup === "none") {
+      const label = subject === "alloah" ? "Alloah" : "Dominic";
+      instructions.push(
+        `${label} is currently wearing NO makeup. Keep a natural bare face and do not add eyeliner, eyeshadow, lipstick, false lashes, contour, or visible cosmetic styling.`
+      );
+    }
+
+    if (overrides.makeup === "reference") {
+      const label = subject === "alloah" ? "Alloah" : "Dominic";
+      instructions.push(
+        `${label}'s current makeup is defined by the attached current-look makeup references. Historical makeup must not override the current references.`
+      );
+    }
+  }
+
+  return instructions.length ? instructions.join(" ") : null;
+}
+
 export async function generatePhotoProviderPreview({
   userId,
   request,
@@ -451,7 +490,15 @@ export async function generatePhotoProviderPreview({
     },
     body: JSON.stringify({
       userId,
-      request,
+      request: {
+        ...request,
+        adjustment_instruction: [
+          request.adjustment_instruction,
+          currentOverrideInstruction(request, canons),
+        ]
+          .filter((value): value is string => Boolean(value))
+          .join(" ") || null,
+      },
       references,
       canons: canonPayload(canons),
       sourceImageDataUrl: sourceImageDataUrl ?? null,

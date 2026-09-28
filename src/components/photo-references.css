@@ -1,0 +1,360 @@
+/* Dominic Photo Engine — Visual Canon + Current Look */
+
+.photo-reference-screen {
+  display: grid;
+  gap: 16px;
+}
+
+.photo-reference-intro {
+  display: grid;
+  gap: 6px;
+}
+
+.photo-reference-intro small,
+.current-look-upload-card small,
+.current-look-summary small {
+  color: var(--wine);
+  font: 9px var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.photo-reference-intro h1 {
+  margin: 0;
+  font: 36px var(--font-display);
+  font-weight: 400;
+}
+
+.photo-reference-intro p {
+  margin: 0;
+  max-width: 600px;
+  color: var(--muted-foreground);
+  font: 13px/1.55 var(--font-body);
+}
+
+.reference-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 2px 0;
+  padding: 4px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--paper) 82%, transparent);
+}
+
+.reference-mode-switch button {
+  min-height: 38px;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+  font: 11px var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.reference-mode-switch button.active {
+  background: var(--wine);
+  color: var(--cream);
+}
+
+.reference-mode-switch.compact {
+  margin: 0;
+}
+
+.photo-canon-card {
+  display: grid;
+  gap: 12px;
+}
+
+.reference-field-label {
+  display: block;
+  margin: 4px 0 2px;
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.reference-purpose-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.reference-purpose-grid.compact {
+  margin-top: 8px;
+}
+
+.reference-purpose-chip {
+  min-height: 29px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  cursor: pointer;
+}
+
+.reference-purpose-chip.active {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--wine) 10%, var(--paper));
+  color: var(--wine);
+}
+
+.reference-purpose-chip:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.reference-strength-select {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: var(--cream);
+  color: var(--foreground);
+  font: 12px var(--font-body);
+}
+
+.reference-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 7px 0 8px;
+}
+
+.reference-tag {
+  padding: 3px 6px;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.reference-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.reference-card-actions button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  cursor: pointer;
+}
+
+.reference-card-actions button.active {
+  color: var(--wine);
+  border-color: var(--wine);
+}
+
+.reference-card-actions button.danger {
+  color: var(--muted-foreground);
+}
+
+.reference-card-actions button.danger:hover {
+  border-color: var(--wine);
+  color: var(--wine);
+}
+
+.reference-card-actions button:disabled,
+.current-look-remove:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+.reference-edit-details {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.reference-edit-details summary {
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  cursor: pointer;
+}
+
+.current-look-toolbar {
+  display: grid;
+  gap: 11px;
+}
+
+.current-look-type-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 1px 0 5px;
+  scrollbar-width: none;
+}
+
+.current-look-type-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.current-look-type-strip button {
+  flex: 0 0 auto;
+  min-height: 31px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.current-look-type-strip button.active {
+  border-color: var(--wine);
+  color: var(--wine);
+}
+
+.current-look-upload-card {
+  display: grid;
+  gap: 13px;
+  margin: 2px 0;
+  padding: 17px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.current-look-upload-card h2 {
+  margin: 3px 0;
+  font: 25px var(--font-display);
+  font-weight: 400;
+}
+
+.current-look-upload-card p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font: 12px/1.5 var(--font-body);
+}
+
+.current-look-status {
+  padding: 9px 10px;
+  border-left: 2px solid var(--rose);
+  background: color-mix(in oklab, var(--blush) 26%, transparent);
+}
+
+.current-look-preview-grid {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+}
+
+.current-look-reference {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
+}
+
+.current-look-preview-grid img {
+  width: 76px;
+  height: 76px;
+  display: block;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.current-look-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--paper) 88%, transparent);
+  color: var(--wine);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+.current-look-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.current-look-summary strong {
+  font: 16px var(--font-display);
+  font-weight: 500;
+}
+
+.current-look-summary span {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+}
+
+@media (max-width: 640px) {
+  .photo-reference-intro h1 {
+    font-size: 31px;
+  }
+
+  .reference-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+}
+
+
+.makeup-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.makeup-mode-switch button {
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.makeup-mode-switch button.active {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--wine) 9%, var(--paper));
+  color: var(--wine);
+}
+
+.makeup-mode-switch button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.current-look-status {
+  display: grid;
+  gap: 2px;
+}
+
+.current-look-status strong {
+  font: 15px var(--font-display);
+  font-weight: 500;
+}
+
+.current-look-status span {
+  color: var(--muted-foreground);
+  font: 10px/1.4 var(--font-body);
+}
