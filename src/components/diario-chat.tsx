@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SpontaneousPhotoOpportunity } from "@/components/spontaneous-photo-opportunity";
 import {
   Camera,
   ChevronRight,
@@ -1582,6 +1583,13 @@ message.mediaUrl ? (
         )}
         {voiceNotice && <div className={`voice-transcription-status ${voiceStatus}`}>{voiceNotice}</div>}
 
+        <SpontaneousPhotoOpportunity
+  userId={session.user.id}
+  dominicState={dominicState}
+  conversationSummary={recentConversationForPhoto()}
+  onOpenPhoto={openPhotoEngine}
+/>
+        
         <PromptInput onSubmit={handleSubmit} className="live-composer messenger-composer">
         <PromptInputTextarea
   placeholder="Message Dominic…"
