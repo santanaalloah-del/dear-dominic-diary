@@ -273,7 +273,21 @@ export function ConnectedMemoriesScreen() {
       <ConnectedObjectDetailScreen
         itemId={selectedObjectId}
         onOpenRelated={setSelectedObjectId}
-        onBack={() => setSelectedObjectId(null)}
+        onBack={() => {
+          setSelectedObjectId(
+            null
+          );
+
+          if (
+            selectedMemory
+          ) {
+            void openMemory(
+              selectedMemory
+            );
+          }
+
+          void loadMemories();
+        }}
       />
     );
   }
