@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { buildPhotoContextPrompt } from "@/lib/photo-prompt-context";
 
 const IMAGE_MODEL = "openai/gpt-image-2.5-sunburst";
 const MAX_REFERENCES = 16;
