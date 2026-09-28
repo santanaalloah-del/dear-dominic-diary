@@ -43,6 +43,7 @@ import { WardrobeExperienceScreen } from "@/components/wardrobe-screen";
 import { ConnectedMemoriesScreen } from "@/components/connected-memories-screen";
 import { ConnectedCalendarScreen } from "@/components/connected-calendar-screen";
 import { ConnectedTimelineScreen } from "@/components/connected-timeline-screen";
+import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 
 import {
   connectSpotify,
@@ -2431,8 +2432,8 @@ function GalleryScreen() {
   const [error, setError] =
     useState<string | null>(null);
   
-const [selectedPhoto, setSelectedPhoto] =
-  useState<GalleryPhoto | null>(null);
+const [selectedPhotoId, setSelectedPhotoId] =
+  useState<string | null>(null);
   
   const fileInputRef =
     useRef<HTMLInputElement>(null);
@@ -2667,6 +2668,16 @@ const [selectedPhoto, setSelectedPhoto] =
       }
     };
 
+  if (selectedPhotoId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={selectedPhotoId}
+        onOpenRelated={setSelectedPhotoId}
+        onBack={() => setSelectedPhotoId(null)}
+      />
+    );
+  }
+
   return (
     <section className="gallery-screen gallery-live">
       <ScreenIntro
@@ -2798,9 +2809,9 @@ const [selectedPhoto, setSelectedPhoto] =
     photo.item.id
   }
   className="gallery-photo-item"
-  onClick={() =>
-    setSelectedPhoto(photo)
-  }
+onClick={() =>
+  setSelectedPhotoId(photo.item.id)
+}
 >
                         <img
                           src={photo.url}
@@ -3184,8 +3195,8 @@ const [selectedPhoto, setSelectedPhoto] =
   key={photo.item.id}
   className="gallery-photo-item"
   onClick={() =>
-    setSelectedPhoto(photo)
-  }
+  setSelectedPhotoId(photo.item.id)
+}
 >
   <div className="gallery-photo-media">
                       <img
