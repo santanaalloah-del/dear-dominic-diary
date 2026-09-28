@@ -40,6 +40,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { usePrivateDiario } from "@/components/private-diario";
+import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import {
   getCurrentDominicState,
   type DominicState,
@@ -70,6 +71,7 @@ type ChatMessage = {
   createdAt: string;
   kind?: MessageKind | undefined;
   mediaUrl?: string | undefined;
+  diaryItemId?: string | undefined;
 };
 
 type ActiveListeningTrack = {
@@ -209,6 +211,10 @@ onOpen: (
   const [voiceStatus, setVoiceStatus] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [openTranscript, setOpenTranscript] = useState<string | null>(null);
+  const [
+  selectedChatObjectId,
+  setSelectedChatObjectId,
+] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const pendingMessagesRef =
   useRef<
@@ -644,8 +650,9 @@ useEffect(() => {
             )
             .map(
               (media): ChatMessage => ({
-                id: media.id,
-                role: media.sender ?? "user",
+               id: media.id,
+diaryItemId: media.id,
+role: media.sender ?? "user",
                 content: "",
                 createdAt:
                   media.createdAt,
@@ -737,6 +744,8 @@ useEffect(() => {
                   : "text",
               mediaUrl:
                 matchingVoice?.url,
+              diaryItemId:
+  matchingVoice?.id,
             };
           }
         );
@@ -749,8 +758,9 @@ useEffect(() => {
           )
           .map(
             (media): ChatMessage => ({
-              id: media.id,
-              role: media.sender ?? "user",
+            id: media.id,
+diaryItemId: media.id,
+role: media.sender ?? "user",
               content: "",
               createdAt:
                 media.createdAt,
@@ -989,24 +999,6 @@ queueTimerRef.current =
   }, 4500);
 }
   
-useEffect(() => {
-  if (typeof window === "undefined") return;
-
-  const pendingMessage =
-    window.localStorage.getItem(
-      "diario-pending-chat-message"
-    );
-
-  if (!pendingMessage) return;
-
-  window.localStorage.removeItem(
-    "diario-pending-chat-message"
-  );
-
-  window.setTimeout(() => {
-    void sendMessage(pendingMessage);
-  }, 400);
-}, []);
   function handleSubmit(message: PromptInputMessage) {
     return sendMessage(message.text);
   }
@@ -1015,8 +1007,13 @@ async function sendPhoto(file: File) {
     return;
   }
 
-  const photoUrl = URL.createObjectURL(file);
-  const now = new Date().toISOString();
+  const photoUrl =
+    URL.createObjectURL(file);
+
+  const now =
+    new Date().toISOString();
+
+  setUploadingMedia(true);
 
   setMessages((current) => [
     ...current,
@@ -1030,9 +1027,29 @@ async function sendPhoto(file: File) {
     },
   ]);
 
-  await sendMessage(
-    "I sent you a photo, but the app can't show it to you yet."
-  );
+  try {
+    await uploadChatMedia({
+      file,
+      type: "photo",
+    });
+
+    await loadHistory(false);
+
+    await sendMessage(
+      "I sent you a photo."
+    );
+  } catch (error) {
+    console.error(
+      "Could not send chat photo:",
+      error
+    );
+  } finally {
+    setUploadingMedia(false);
+
+    URL.revokeObjectURL(
+      photoUrl
+    );
+  }
 }
  function handlePhotoInput(
   event: React.ChangeEvent<HTMLInputElement>
@@ -1375,9 +1392,23 @@ const recentConversationForPhoto = () =>
     `chat-theme-${preferences.theme}`,
     `chat-bubbles-${preferences.bubbles}`,
     preferences.adaptToTime ? `chat-adapt-time chat-time-${time.mood}` : "",
-  ]
+]
     .filter(Boolean)
     .join(" ");
+
+  if (selectedChatObjectId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={selectedChatObjectId}
+        onOpenRelated={
+          setSelectedChatObjectId
+        }
+        onBack={() =>
+          setSelectedChatObjectId(null)
+        }
+      />
+    );
+  }
 
   return (
     <section className={chatClassName}>
@@ -1505,22 +1536,6 @@ message.mediaUrl ? (
       />
     )}
     
-{(message.kind as MessageKind) === "photo" && message.mediaUrl ? (
-  <img
-    src={message.mediaUrl}
-    alt="Sent photo"
-    className="chat-photo-message"
-  />
-) : null}
-
-{message.kind === "voice" && message.mediaUrl ? (
-  <audio
-    controls
-    src={message.mediaUrl}
-    className="chat-voice-message"
-  />
-) : null}
-    
     {message.content && (
       <button
         type="button"
@@ -1553,6 +1568,21 @@ message.mediaUrl ? (
     </MessageResponse>
   </MessageContent>
 )}
+
+                {message.diaryItemId && (
+  <button
+    type="button"
+    className="letter-connected-button"
+    onClick={() =>
+      setSelectedChatObjectId(
+        message.diaryItemId ?? null
+      )
+    }
+  >
+    View connections
+  </button>
+)}
+                
                 {preferences.showTimestamps && (
                   <time>{formatTime(message.createdAt)}{message.role === "user" ? "  ✓✓" : ""}</time>
                 )}
