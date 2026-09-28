@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
 
+import { identityFeedbackBoost } from "@/lib/photo-identity-feedback";
+
 import type {
   CurrentLookType,
   DiarioItem,
