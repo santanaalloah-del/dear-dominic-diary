@@ -10,6 +10,27 @@ export type ConnectedDiaryView = {
 
 export type MemoryConnectionMap = Record<string, ConnectedDiaryView[]>;
 
+
+export type ConnectedDiaryRelation = {
+  relation: string;
+  direction: "outgoing" | "incoming";
+  view: ConnectedDiaryView;
+};
+
+export type ConnectedSourceScreen =
+  | "gallery"
+  | "letters"
+  | "music"
+  | "dates"
+  | "places"
+  | "keepsakes"
+  | "wardrobe"
+  | "diary"
+  | "memories"
+  | "chat"
+  | "home"
+  | "calendar";
+
 function safeObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -101,6 +122,88 @@ async function loadItemsByIds({
   return uniqueIds
     .map((id) => byId.get(id) ?? null)
     .filter((item): item is DiarioItem => item !== null);
+}
+
+
+export async function getConnectedDiaryItem({
+  userId,
+  itemId,
+}: {
+  userId: string;
+  itemId: string;
+}): Promise<ConnectedDiaryView | null> {
+  const items = await loadItemsByIds({
+    userId,
+    ids: [itemId],
+  });
+
+  const hydrated = await hydrateDiaryItems(items);
+
+  return hydrated[0] ?? null;
+}
+
+export async function getConnectedDiaryRelations({
+  userId,
+  itemId,
+}: {
+  userId: string;
+  itemId: string;
+}): Promise<ConnectedDiaryRelation[]> {
+  const { data, error } = await db
+    .from("diario_links")
+    .select("source_item_id,target_item_id,relation")
+    .eq("user_id", userId)
+    .or(`source_item_id.eq.${itemId},target_item_id.eq.${itemId}`);
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as Array<{
+    source_item_id: string;
+    target_item_id: string;
+    relation: string;
+  }>;
+
+  const relatedIds = Array.from(
+    new Set(
+      rows
+        .map((row) =>
+          row.source_item_id === itemId
+            ? row.target_item_id
+            : row.source_item_id
+        )
+        .filter(Boolean)
+    )
+  );
+
+  const relatedItems = await loadItemsByIds({
+    userId,
+    ids: relatedIds,
+  });
+  const hydrated = await hydrateDiaryItems(relatedItems);
+  const viewById = new Map(
+    hydrated.map((view) => [view.item.id, view])
+  );
+
+  return rows
+    .map((row): ConnectedDiaryRelation | null => {
+      const outgoing = row.source_item_id === itemId;
+      const relatedId = outgoing
+        ? row.target_item_id
+        : row.source_item_id;
+      const view = viewById.get(relatedId);
+
+      if (!view) return null;
+
+      return {
+        relation: row.relation,
+        direction: outgoing ? "outgoing" : "incoming",
+        view,
+      };
+    })
+    .filter(
+      (item): item is ConnectedDiaryRelation =>
+        item !== null
+    );
 }
 
 export async function getMemoryConnectedItems({
@@ -287,4 +390,109 @@ export function connectedKindLabel(kind: DiarioItemKind) {
 
 export function connectedMoment(item: DiarioItem) {
   return itemMoment(item);
+}
+
+
+export function connectedSourceScreen(
+  kind: DiarioItemKind
+): ConnectedSourceScreen | null {
+  switch (kind) {
+    case "photo":
+    case "video":
+    case "album":
+      return "gallery";
+
+    case "letter":
+      return "letters";
+
+    case "song":
+      return "music";
+
+    case "date":
+      return "dates";
+
+    case "place":
+      return "places";
+
+    case "keepsake":
+      return "keepsakes";
+
+    case "clothing":
+    case "look":
+      return "wardrobe";
+
+    case "diary":
+      return "diary";
+
+    case "story_memory":
+      return "memories";
+
+    case "chat_media":
+      return "chat";
+
+    case "home_object":
+    case "home_change":
+      return "home";
+
+    case "plan":
+      return "calendar";
+
+    default:
+      return null;
+  }
+}
+
+export function connectedRelationLabel(
+  relation: ConnectedDiaryRelation
+) {
+  const relatedKind = relation.view.item.kind;
+
+  if (
+    relation.direction === "incoming" &&
+    relatedKind === "story_memory"
+  ) {
+    return "In Memory";
+  }
+
+  if (
+    relation.direction === "incoming" &&
+    relatedKind === "date"
+  ) {
+    return "From Date";
+  }
+
+  if (
+    relation.direction === "incoming" &&
+    relatedKind === "place"
+  ) {
+    return "At";
+  }
+
+  if (
+    relation.direction === "incoming" &&
+    relatedKind === "chat_media"
+  ) {
+    return "From Chat";
+  }
+
+  if (
+    relation.direction === "incoming" &&
+    (relatedKind === "look" ||
+      relatedKind === "clothing")
+  ) {
+    return "Wearing";
+  }
+
+  if (
+    relation.direction === "outgoing" &&
+    relation.relation === "contains"
+  ) {
+    return "Contains";
+  }
+
+  return relation.relation
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (character) =>
+      character.toUpperCase()
+    );
 }
