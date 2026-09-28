@@ -40,6 +40,9 @@ import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { VisualReferencesScreen } from "@/components/visual-references-screen";
 import { PhotoEngineScreen } from "@/components/photo-engine-screen";
 import { WardrobeExperienceScreen } from "@/components/wardrobe-screen";
+import { ConnectedMemoriesScreen } from "@/components/connected-memories-screen";
+import { ConnectedCalendarScreen } from "@/components/connected-calendar-screen";
+import { ConnectedTimelineScreen } from "@/components/connected-timeline-screen";
 import {
   connectSpotify,
   disconnectSpotify,
@@ -390,15 +393,11 @@ const openScreen = (nextScreen: Screen) => {
   />
 )}
 
-{screen === "memories" && <MemoriesScreen />}
+{screen === "memories" && <ConnectedMemoriesScreen />}
+          
+{screen === "calendar" && <ConnectedCalendarScreen />}
 
-{screen === "calendar" && (
-  <CalendarScreen onOpen={openScreen} />
-)}
-
-{screen === "timeline" && (
-  <TimelineScreen onOpen={openScreen} />
-)}
+{screen === "timeline" && <ConnectedTimelineScreen />}
 
 {screen === "music" && (
   <MusicScreen onShareToChat={shareToChat} />
