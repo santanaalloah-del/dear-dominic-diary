@@ -1,0 +1,211 @@
+
+/* Wardrobe -> Photo Engine bridge UI.
+   The full Whering-like visual redesign comes later. */
+
+.wardrobe-three-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wardrobe-current-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.wardrobe-current-summary > div {
+  display: grid;
+  gap: 3px;
+}
+
+.wardrobe-current-summary small {
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+  letter-spacing: 0.11em;
+}
+
+.wardrobe-current-summary strong {
+  font: 17px var(--font-display);
+  font-weight: 500;
+}
+
+.wardrobe-current-summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+}
+
+.wardrobe-current-summary.active {
+  border-color: color-mix(in oklab, var(--wine) 42%, var(--border));
+  background: color-mix(in oklab, var(--blush) 18%, var(--paper));
+}
+
+.wardrobe-current-summary.active > span {
+  color: var(--wine);
+}
+
+.wardrobe-wearing-panel {
+  display: grid;
+  gap: 13px;
+}
+
+.wardrobe-wearing-panel > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.wardrobe-wearing-panel > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.wardrobe-wearing-panel > header span,
+.wardrobe-wearing-look > small {
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.wardrobe-wearing-panel > header strong {
+  font: 21px var(--font-display);
+  font-weight: 500;
+}
+
+.wardrobe-clear-wearing,
+.wardrobe-wear-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-foreground);
+  font: 10px var(--font-body);
+  cursor: pointer;
+}
+
+.wardrobe-clear-wearing:hover,
+.wardrobe-wear-button:hover {
+  border-color: var(--wine);
+  color: var(--wine);
+}
+
+.wardrobe-wear-button.active {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--wine) 8%, var(--paper));
+  color: var(--wine);
+}
+
+.wardrobe-wear-button:disabled,
+.wardrobe-clear-wearing:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.wardrobe-wearing-look {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  border-left: 2px solid var(--wine);
+  background: color-mix(in oklab, var(--blush) 22%, transparent);
+}
+
+.wardrobe-wearing-look strong {
+  font: 19px var(--font-display);
+  font-weight: 500;
+}
+
+.wardrobe-wearing-look p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font: 11px/1.45 var(--font-body);
+}
+
+.wardrobe-wearing-list {
+  display: grid;
+  gap: 7px;
+}
+
+.wardrobe-wearing-piece {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+
+.wardrobe-wearing-piece span {
+  display: grid;
+  gap: 2px;
+}
+
+.wardrobe-wearing-piece strong {
+  font: 12px var(--font-body);
+  font-weight: 600;
+}
+
+.wardrobe-wearing-piece small {
+  color: var(--muted-foreground);
+  font: 9px var(--font-body);
+  text-transform: lowercase;
+}
+
+.wardrobe-photo-engine-note {
+  margin: 0;
+  padding: 10px 11px;
+  border: 1px dashed color-mix(in oklab, var(--wine) 36%, var(--border));
+  color: var(--muted-foreground);
+  font: 10px/1.5 var(--font-body);
+}
+
+.wardrobe-item-with-action {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.wardrobe-item-with-action > .wardrobe-wear-button {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.wardrobe-item-with-action.wearing,
+.wardrobe-look.wearing {
+  border-color: color-mix(in oklab, var(--wine) 44%, var(--border));
+}
+
+.wardrobe-look {
+  gap: 10px;
+}
+
+.wardrobe-look > .wardrobe-wear-button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .wardrobe-current-summary {
+    align-items: flex-start;
+  }
+
+  .wardrobe-current-summary > span {
+    max-width: 105px;
+    text-align: right;
+  }
+
+  .wardrobe-wearing-panel > header {
+    align-items: flex-start;
+  }
+}
