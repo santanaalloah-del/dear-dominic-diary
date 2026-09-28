@@ -3,6 +3,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 
 import { usePrivateDiario } from "@/components/private-diario";
 import { ConnectedDiaryObject } from "@/components/connected-diary-object";
+import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import { getCalendarItems, type DiarioItem } from "@/lib/diario-world";
 import {
   hydrateDiaryItems,
@@ -26,6 +27,8 @@ function itemDateKey(item: DiarioItem) {
 
 export function ConnectedCalendarScreen() {
   const { session } = usePrivateDiario();
+  const [selectedObjectId, setSelectedObjectId] =
+    useState<string | null>(null);
   const today = new Date();
 
   const [viewDate, setViewDate] = useState(
@@ -103,6 +106,16 @@ export function ConnectedCalendarScreen() {
     month: "long",
     day: "numeric",
   }).format(selectedDate);
+
+  if (selectedObjectId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={selectedObjectId}
+        onOpenRelated={setSelectedObjectId}
+        onBack={() => setSelectedObjectId(null)}
+      />
+    );
+  }
 
   return (
     <section className="connected-calendar-screen">
@@ -206,6 +219,9 @@ export function ConnectedCalendarScreen() {
               <ConnectedDiaryObject
                 key={view.item.id}
                 view={view}
+                onOpen={() =>
+                  setSelectedObjectId(view.item.id)
+                }
               />
             ))}
           </div>

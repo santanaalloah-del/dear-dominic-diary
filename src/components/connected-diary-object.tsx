@@ -70,9 +70,11 @@ function dateLabel(value: string | null | undefined) {
 export function ConnectedDiaryObject({
   view,
   compact = false,
+  onOpen,
 }: {
   view: ConnectedDiaryView;
   compact?: boolean;
+  onOpen?: () => void;
 }) {
   const { item, mediaUrl } = view;
   const Icon = iconFor(item.kind);
@@ -97,6 +99,26 @@ export function ConnectedDiaryObject({
   const transcript =
     typeof data.transcript === "string" ? data.transcript : null;
 
+  const sourceContext =
+    typeof data.source_context === "string"
+      ? data.source_context
+      : null;
+
+  const chatSender =
+    typeof data.chat_sender === "string"
+      ? data.chat_sender
+      : null;
+
+  const contextLocation =
+    typeof data.context_location === "string"
+      ? data.context_location
+      : null;
+
+  const contextActivity =
+    typeof data.context_activity === "string"
+      ? data.context_activity
+      : null;
+
   const sealedLetter =
     item.kind === "letter" &&
     data.opened === false &&
@@ -112,11 +134,25 @@ export function ConnectedDiaryObject({
     <article
       className={[
         "connected-diary-object",
+        onOpen ? "connected-object-clickable" : "",
         `connected-kind-${item.kind}`,
         compact ? "connected-object-compact" : "",
       ]
         .filter(Boolean)
         .join(" ")}
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={onOpen}
+      onKeyDown={
+        onOpen
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen();
+              }
+            }
+          : undefined
+      }
     >
       {isImageMedia && mediaUrl && (
         <div className="connected-object-photo">
@@ -167,6 +203,25 @@ export function ConnectedDiaryObject({
 
         {(item.kind === "clothing" || item.kind === "look") &&
           category && <small>{category}</small>}
+
+        {item.kind === "photo" && sourceContext === "chat" && (
+          <small>
+            From Chat
+            {chatSender === "dominic" ? " with Dominic" : ""}
+          </small>
+        )}
+
+        {item.kind === "photo" && contextLocation && (
+          <small>
+            At: {contextLocation.replaceAll("_", " ")}
+          </small>
+        )}
+
+        {item.kind === "photo" && contextActivity && (
+          <small>
+            Moment: {contextActivity.replaceAll("_", " ")}
+          </small>
+        )}
 
         {sealedLetter ? (
           <p className="connected-object-sealed">

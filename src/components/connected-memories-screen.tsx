@@ -3,6 +3,7 @@ import { Image as ImageIcon, Plus, X } from "lucide-react";
 
 import { usePrivateDiario } from "@/components/private-diario";
 import { ConnectedDiaryObject } from "@/components/connected-diary-object";
+import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import {
   addItemToMemory,
   createMemory,
@@ -54,6 +55,8 @@ function monthKey(memory: DiarioItem) {
 
 export function ConnectedMemoriesScreen() {
   const { session } = usePrivateDiario();
+  const [selectedObjectId, setSelectedObjectId] =
+    useState<string | null>(null);
 
   const [memories, setMemories] = useState<DiarioItem[]>([]);
   const [connectionMap, setConnectionMap] =
@@ -265,6 +268,16 @@ export function ConnectedMemoriesScreen() {
     }
   }
 
+  if (selectedObjectId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={selectedObjectId}
+        onOpenRelated={setSelectedObjectId}
+        onBack={() => setSelectedObjectId(null)}
+      />
+    );
+  }
+
   if (selectedMemory) {
     return (
       <section className="connected-memories-screen">
@@ -363,6 +376,9 @@ export function ConnectedMemoriesScreen() {
                 <ConnectedDiaryObject
                   key={view.item.id}
                   view={view}
+                  onOpen={() =>
+                    setSelectedObjectId(view.item.id)
+                  }
                 />
               ))
             )}

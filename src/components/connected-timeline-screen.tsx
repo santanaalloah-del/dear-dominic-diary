@@ -3,6 +3,7 @@ import { Clock } from "lucide-react";
 
 import { usePrivateDiario } from "@/components/private-diario";
 import { ConnectedDiaryObject } from "@/components/connected-diary-object";
+import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import { getTimelineItems } from "@/lib/diario-world";
 import {
   connectedKindLabel,
@@ -17,6 +18,8 @@ type TimelineView = "all" | "lived" | "planned";
 
 export function ConnectedTimelineScreen() {
   const { session } = usePrivateDiario();
+  const [selectedObjectId, setSelectedObjectId] =
+    useState<string | null>(null);
 
   const [view, setView] = useState<TimelineView>("all");
   const [items, setItems] = useState<ConnectedDiaryView[]>([]);
@@ -63,6 +66,16 @@ export function ConnectedTimelineScreen() {
         new Date(connectedMoment(a.item)).getTime()
     );
   }, [items, view]);
+
+  if (selectedObjectId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={selectedObjectId}
+        onOpenRelated={setSelectedObjectId}
+        onBack={() => setSelectedObjectId(null)}
+      />
+    );
+  }
 
   return (
     <section className="connected-timeline-screen">
@@ -145,7 +158,12 @@ export function ConnectedTimelineScreen() {
 
                 {expanded && (
                   <div className="connected-timeline-expanded">
-                    <ConnectedDiaryObject view={entry} />
+                    <ConnectedDiaryObject
+                      view={entry}
+                      onOpen={() =>
+                        setSelectedObjectId(entry.item.id)
+                      }
+                    />
                   </div>
                 )}
               </article>
