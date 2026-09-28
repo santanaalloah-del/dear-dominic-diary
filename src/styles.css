@@ -12511,3 +12511,24 @@ select {
 }
 
 /* trigger vercel redeploy */
+
+.letter-connected-button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+
+  border: 1px solid var(--wine);
+  background: transparent;
+
+  color: var(--wine);
+
+  font: 9px var(--font-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+}
+
+.letter-connected-button:active {
+  opacity: 0.65;
+}
