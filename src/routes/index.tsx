@@ -1929,6 +1929,9 @@ function LettersScreen() {
   
 const [activeLetterId, setActiveLetterId] =
   useState<string | null>(null);
+
+  const [selectedLetterId, setSelectedLetterId] =
+  useState<string | null>(null);
   
   useEffect(() => {
     let active = true;
@@ -2057,6 +2060,16 @@ const handleOpenLetter = async (
     );
   }
 };
+
+  if (selectedLetterId) {
+  return (
+    <ConnectedObjectDetailScreen
+      itemId={selectedLetterId}
+      onOpenRelated={setSelectedLetterId}
+      onBack={() => setSelectedLetterId(null)}
+    />
+  );
+}
   
   return (
     <section className="letters-screen letters-live">
@@ -2329,37 +2342,47 @@ const handleOpenLetter = async (
             </div>
           </button>
 
-          {opened &&
-            expanded && (
-              <div className="letter-open-content">
-                <p>
-                  {letter.body}
-                </p>
+{opened &&
+  expanded && (
+    <div className="letter-open-content">
+      <p>
+        {letter.body}
+      </p>
 
-                {letter.event_at && (
-                  <time
-                    dateTime={
-                      letter.event_at
-                    }
-                  >
-                    {new Intl.DateTimeFormat(
-                      "en",
-                      {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                        timeZone:
-                          "America/Sao_Paulo",
-                      }
-                    ).format(
-                      new Date(
-                        letter.event_at
-                      )
-                    )}
-                  </time>
-                )}
-              </div>
-            )}
+      {letter.event_at && (
+        <time
+          dateTime={letter.event_at}
+        >
+          {new Intl.DateTimeFormat(
+            "en",
+            {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+              timeZone:
+                "America/Sao_Paulo",
+            }
+          ).format(
+            new Date(
+              letter.event_at
+            )
+          )}
+        </time>
+      )}
+
+      <button
+        type="button"
+        className="letter-connected-button"
+        onClick={() =>
+          setSelectedLetterId(
+            letter.id
+          )
+        }
+      >
+        View connections
+      </button>
+    </div>
+  )}
         </article>
       );
     }
