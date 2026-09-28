@@ -1192,6 +1192,18 @@ export const Route = createFileRoute("/api/visual-canon")({
             incoming.map((reference) => reference.id)
           );
 
+          const existingOverrides =
+            existing?.profile &&
+            typeof existing.profile.current_overrides === "object" &&
+            existing.profile.current_overrides
+              ? (existing.profile.current_overrides as Record<string, unknown>)
+              : {};
+
+          const profileWithOverrides = {
+            ...normalizedProfile,
+            current_overrides: existingOverrides,
+          };
+
           const totalCost = [
             ...batchResponses.map((result) => result.cost),
             globalReviewResponse?.cost ?? null,
@@ -1205,7 +1217,7 @@ export const Route = createFileRoute("/api/visual-canon")({
             user_id: verified.id,
             subject: body.subject,
             status: "ready",
-            profile: normalizedProfile,
+            profile: profileWithOverrides,
             reference_ids: incoming.map((reference) => reference.id),
             provider: "openrouter",
             model,
