@@ -47,56 +47,275 @@ import {
 } from "@/lib/dominic-state";
 import { useTimeMood } from "@/lib/time-mood";
 import {
+  createDate,
+  createLetter,
+  createMemory,
+  createPlace,
+  createSong,
   getDates,
   type DiarioItem,
 } from "@/lib/diario-world";
 import dominic from "@/assets/dominic-candid.jpg";
 
+type DominicActionType =
+  | "create_date"
+  | "create_letter"
+  | "create_memory"
+  | "create_place"
+  | "create_song";
+
+type DominicWorldAction =
+  | {
+      type:
+        "create_date";
+
+      title:
+        string;
+
+      place:
+        string;
+
+      plannedFor:
+        string;
+
+      note?:
+        string;
+    }
+  | {
+      type:
+        "create_letter";
+
+      title:
+        string;
+
+      body:
+        string;
+    }
+  | {
+      type:
+        "create_memory";
+
+      title:
+        string;
+
+      body?:
+        string;
+
+      eventAt?:
+        string;
+    }
+  | {
+      type:
+        "create_place";
+
+      title:
+        string;
+
+      neighborhood?:
+        string;
+
+      placeType?:
+        string;
+
+      placeStatus:
+        | "saved"
+        | "visited";
+
+      note?:
+        string;
+    }
+  | {
+      type:
+        "create_song";
+
+      title:
+        string;
+
+      artist:
+        string;
+
+      album?:
+        string;
+
+      note?:
+        string;
+    };
+
 type MessageKind =
   | "text"
   | "voice"
   | "photo"
-  | "shared_item";
+  | "shared_item"
+  | "agent_action";
 
 type PendingChatShare = {
-  text: string;
-  itemId: string;
-  kind: DiarioItem["kind"];
-  title: string;
-  subtitle?: string | null;
+  text:
+    string;
+
+  itemId:
+    string;
+
+  kind:
+    DiarioItem[
+      "kind"
+    ];
+
+  title:
+    string;
+
+  subtitle?:
+    string | null;
 };
 
 type ChatMedia = {
-  id: string;
+  id:
+    string;
+
   type:
     | "photo"
     | "voice"
-    | "shared_item";
-  url?: string;
-  transcript?: string;
-  createdAt: string;
-  sender?: "user" | "assistant";
-  generated?: boolean;
+    | "shared_item"
+    | "agent_action";
 
-  sharedItemId?: string;
-  sharedTitle?: string;
-  sharedSubtitle?: string | null;
-  sharedKind?: DiarioItem["kind"];
+  url?:
+    string;
+
+  transcript?:
+    string;
+
+  createdAt:
+    string;
+
+  sender?:
+    | "user"
+    | "assistant";
+
+  generated?:
+    boolean;
+
+  sharedItemId?:
+    string;
+
+  sharedTitle?:
+    string;
+
+  sharedSubtitle?:
+    string | null;
+
+  sharedKind?:
+    DiarioItem[
+      "kind"
+    ];
+
+  actionTargetItemId?:
+    string;
+
+  actionTitle?:
+    string;
+
+  actionType?:
+    DominicActionType;
 };
 
 type ChatMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  createdAt: string;
-  kind?: MessageKind;
-  mediaUrl?: string;
-  diaryItemId?: string;
+  id:
+    string;
 
-  sharedTitle?: string;
-  sharedSubtitle?: string | null;
-  sharedKind?: DiarioItem["kind"];
+  role:
+    | "user"
+    | "assistant";
+
+  content:
+    string;
+
+  createdAt:
+    string;
+
+  kind?:
+    MessageKind;
+
+  mediaUrl?:
+    string;
+
+  diaryItemId?:
+    string;
+
+  sharedTitle?:
+    string;
+
+  sharedSubtitle?:
+    string | null;
+
+  sharedKind?:
+    DiarioItem[
+      "kind"
+    ];
+
+  actionTitle?:
+    string;
+
+  actionType?:
+    DominicActionType;
 };
+
+function isDominicActionType(
+  value: unknown
+): value is DominicActionType {
+  return (
+    value ===
+      "create_date" ||
+    value ===
+      "create_letter" ||
+    value ===
+      "create_memory" ||
+    value ===
+      "create_place" ||
+    value ===
+      "create_song"
+  );
+}
+
+function dominicActionLabel(
+  type?:
+    DominicActionType
+) {
+  if (
+    type ===
+    "create_date"
+  ) {
+    return "Dominic planned a Date";
+  }
+
+  if (
+    type ===
+    "create_letter"
+  ) {
+    return "Dominic left a Letter";
+  }
+
+  if (
+    type ===
+    "create_memory"
+  ) {
+    return "Dominic saved a Memory";
+  }
+
+  if (
+    type ===
+    "create_place"
+  ) {
+    return "Dominic saved a Place";
+  }
+
+  if (
+    type ===
+    "create_song"
+  ) {
+    return "Dominic added a Song";
+  }
+
+  return "Dominic added something";
+}
 
 type ActiveListeningTrack = {
   title: string;
@@ -638,6 +857,509 @@ useEffect(() => {
   return chatShare.id;
 }
 
+async function extractDominicActions({
+  userMessage,
+  replies,
+}: {
+  userMessage:
+    string;
+
+  replies:
+    string[];
+}): Promise<
+  DominicWorldAction[]
+> {
+  try {
+    const response =
+      await fetch(
+        "/api/dominic-actions",
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${session.access_token}`,
+          },
+
+          body:
+            JSON.stringify({
+              userId:
+                session.user.id,
+
+              userMessage,
+
+              replies,
+
+              nearbyCommitments,
+            }),
+        }
+      );
+
+    if (
+      !response.ok
+    ) {
+      throw new Error(
+        `Action interpreter returned ${response.status}.`
+      );
+    }
+
+    const result =
+      (await response.json()) as {
+        actions?:
+          unknown[];
+      };
+
+    if (
+      !Array.isArray(
+        result.actions
+      )
+    ) {
+      return [];
+    }
+
+    return result.actions
+      .filter(
+        (
+          value
+        ): value is DominicWorldAction => {
+          if (
+            !value ||
+            typeof value !==
+              "object"
+          ) {
+            return false;
+          }
+
+          const type =
+            (
+              value as {
+                type?: unknown;
+              }
+            ).type;
+
+          return isDominicActionType(
+            type
+          );
+        }
+      )
+      .slice(
+        0,
+        2
+      );
+  } catch (
+    error
+  ) {
+    console.error(
+      "Could not interpret Dominic world actions:",
+      error
+    );
+
+    return [];
+  }
+}
+
+async function hasExistingDominicAction(
+  action:
+    DominicWorldAction
+) {
+  const actionKey =
+    JSON.stringify(
+      action
+    );
+
+  const {
+    data,
+    error,
+  } =
+    await supabase
+      .from(
+        "diario_items"
+      )
+      .select(
+        "id"
+      )
+      .eq(
+        "user_id",
+        session.user.id
+      )
+      .eq(
+        "kind",
+        "chat_media"
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .contains(
+        "data",
+        {
+          media_type:
+            "agent_action",
+
+          action_key:
+            actionKey,
+        }
+      )
+      .limit(1);
+
+  if (error) {
+    console.error(
+      "Could not check Dominic action history:",
+      error
+    );
+
+    return false;
+  }
+
+  return (
+    data?.length ??
+    0
+  ) > 0;
+}
+
+async function createDominicActionChatItem({
+  action,
+  item,
+}: {
+  action:
+    DominicWorldAction;
+
+  item:
+    DiarioItem;
+}) {
+  const now =
+    new Date()
+      .toISOString();
+
+  const actionKey =
+    JSON.stringify(
+      action
+    );
+
+  const {
+    data:
+      chatAction,
+    error:
+      itemError,
+  } =
+    await supabase
+      .from(
+        "diario_items"
+      )
+      .insert({
+        user_id:
+          session.user.id,
+
+        kind:
+          "chat_media",
+
+        owner:
+          "dominic",
+
+        status:
+          "active",
+
+        title:
+          dominicActionLabel(
+            action.type
+          ),
+
+        body:
+          item.title ??
+          null,
+
+        event_at:
+          now,
+
+        planned_for:
+          null,
+
+        data: {
+          media_type:
+            "agent_action",
+
+          chat_sender:
+            "dominic",
+
+          action_type:
+            action.type,
+
+          action_key:
+            actionKey,
+
+          target_item_id:
+            item.id,
+
+          target_kind:
+            item.kind,
+
+          target_title:
+            item.title,
+        },
+      })
+      .select(
+        "id"
+      )
+      .single();
+
+  if (
+    itemError
+  ) {
+    throw itemError;
+  }
+
+  const {
+    error:
+      linkError,
+  } =
+    await supabase
+      .from(
+        "diario_links"
+      )
+      .upsert(
+        {
+          user_id:
+            session.user.id,
+
+          source_item_id:
+            chatAction.id,
+
+          target_item_id:
+            item.id,
+
+          relation:
+            "created_from_chat",
+
+          data: {},
+        },
+        {
+          onConflict:
+            "user_id,source_item_id,target_item_id,relation",
+        }
+      );
+
+  if (
+    linkError
+  ) {
+    await supabase
+      .from(
+        "diario_items"
+      )
+      .delete()
+      .eq(
+        "user_id",
+        session.user.id
+      )
+      .eq(
+        "id",
+        chatAction.id
+      );
+
+    throw linkError;
+  }
+}
+
+async function applyDominicAction(
+  action:
+    DominicWorldAction
+): Promise<
+  DiarioItem | null
+> {
+  const duplicate =
+    await hasExistingDominicAction(
+      action
+    );
+
+  if (
+    duplicate
+  ) {
+    return null;
+  }
+
+  let created:
+    DiarioItem;
+
+  if (
+    action.type ===
+    "create_date"
+  ) {
+    created =
+      await createDate({
+        userId:
+          session.user.id,
+
+        title:
+          action.title,
+
+        place:
+          action.place,
+
+        plannedFor:
+          action.plannedFor,
+
+        note:
+          action.note,
+      });
+  } else if (
+    action.type ===
+    "create_letter"
+  ) {
+    created =
+      await createLetter({
+        userId:
+          session.user.id,
+
+        owner:
+          "dominic",
+
+        title:
+          action.title,
+
+        body:
+          action.body,
+      });
+  } else if (
+    action.type ===
+    "create_memory"
+  ) {
+    created =
+      await createMemory({
+        userId:
+          session.user.id,
+
+        title:
+          action.title,
+
+        body:
+          action.body,
+
+        eventAt:
+          action.eventAt,
+      });
+  } else if (
+    action.type ===
+    "create_place"
+  ) {
+    created =
+      await createPlace({
+        userId:
+          session.user.id,
+
+        title:
+          action.title,
+
+        neighborhood:
+          action.neighborhood,
+
+        placeType:
+          action.placeType,
+
+        placeStatus:
+          action.placeStatus,
+
+        note:
+          action.note,
+      });
+  } else {
+    created =
+      await createSong({
+        userId:
+          session.user.id,
+
+        owner:
+          "dominic",
+
+        title:
+          action.title,
+
+        artist:
+          action.artist,
+
+        album:
+          action.album,
+
+        note:
+          action.note,
+      });
+  }
+
+  try {
+    await createDominicActionChatItem({
+      action,
+      item:
+        created,
+    });
+  } catch (
+    error
+  ) {
+    console.error(
+      "Dominic created the diary object, but its Chat connection failed:",
+      error
+    );
+  }
+
+  return created;
+}
+
+async function runDominicActions(
+  actions:
+    DominicWorldAction[]
+) {
+  let createdSomething =
+    false;
+
+  for (
+    const action of
+    actions
+  ) {
+    try {
+      const created =
+        await applyDominicAction(
+          action
+        );
+
+      if (
+        created
+      ) {
+        createdSomething =
+          true;
+      }
+    } catch (
+      error
+    ) {
+      console.error(
+        "Could not apply Dominic world action:",
+        action,
+        error
+      );
+    }
+  }
+
+  if (
+    createdSomething
+  ) {
+    try {
+      const nearby =
+        await loadNearbyCommitmentsNow();
+
+      setNearbyCommitments(
+        nearby
+      );
+    } catch (
+      error
+    ) {
+      console.error(
+        "Could not refresh commitments after Dominic action:",
+        error
+      );
+    }
+  }
+}
+
 async function loadChatMedia(): Promise<
   ChatMedia[]
 > {
@@ -698,29 +1420,39 @@ async function loadChatMedia(): Promise<
                 ? "assistant"
                 : "user";
 
-          if (
-            mediaType === "shared_item"
+if (
+            mediaType ===
+            "shared_item"
           ) {
             const sharedItemId =
               typeof itemData
                 .shared_item_id ===
               "string"
-                ? itemData.shared_item_id
+                ? itemData
+                    .shared_item_id
                 : null;
 
-            if (!sharedItemId) {
+            if (
+              !sharedItemId
+            ) {
               return null;
             }
 
             return {
-              id: item.id,
-              type: "shared_item",
+              id:
+                item.id,
+
+              type:
+                "shared_item",
+
               transcript:
                 item.body ??
                 undefined,
+
               createdAt:
                 item.event_at ??
                 item.created_at,
+
               sender,
 
               sharedItemId,
@@ -748,6 +1480,60 @@ async function loadChatMedia(): Promise<
                   ? itemData
                       .shared_kind
                   : undefined,
+            };
+          }
+
+          if (
+            mediaType ===
+            "agent_action"
+          ) {
+            const targetItemId =
+              typeof itemData
+                .target_item_id ===
+              "string"
+                ? itemData
+                    .target_item_id
+                : null;
+
+            const actionType =
+              itemData
+                .action_type;
+
+            if (
+              !targetItemId ||
+              !isDominicActionType(
+                actionType
+              )
+            ) {
+              return null;
+            }
+
+            return {
+              id:
+                item.id,
+
+              type:
+                "agent_action",
+
+              createdAt:
+                item.event_at ??
+                item.created_at,
+
+              sender:
+                "assistant",
+
+              actionTargetItemId:
+                targetItemId,
+
+              actionType,
+
+              actionTitle:
+                typeof itemData
+                  .target_title ===
+                "string"
+                  ? itemData
+                      .target_title
+                  : "Open",
             };
           }
 
@@ -874,12 +1660,16 @@ async function loadChatMedia(): Promise<
         mediaUrl:
           media.url,
 
-        diaryItemId:
+    diaryItemId:
           media.type ===
           "shared_item"
             ? media
                 .sharedItemId
-            : media.id,
+            : media.type ===
+                "agent_action"
+              ? media
+                  .actionTargetItemId
+              : media.id,
 
         sharedTitle:
           media.sharedTitle,
@@ -889,6 +1679,12 @@ async function loadChatMedia(): Promise<
 
         sharedKind:
           media.sharedKind,
+
+        actionTitle:
+          media.actionTitle,
+
+        actionType:
+          media.actionType,
       })
     );
 
@@ -1058,10 +1854,12 @@ const normalMessages =
 
 const standaloneMedia =
   chatMedia
-    .filter(
+   .filter(
       (media) =>
         media.type ===
           "photo" ||
+        media.type ===
+          "agent_action" ||
         (media.type ===
           "shared_item" &&
           !matchedSharedMediaIds.has(
@@ -1092,12 +1890,16 @@ const standaloneMedia =
         mediaUrl:
           media.url,
 
-        diaryItemId:
+      diaryItemId:
           media.type ===
           "shared_item"
             ? media
                 .sharedItemId
-            : media.id,
+            : media.type ===
+                "agent_action"
+              ? media
+                  .actionTargetItemId
+              : media.id,
 
         sharedTitle:
           media.sharedTitle,
@@ -1107,6 +1909,12 @@ const standaloneMedia =
 
         sharedKind:
           media.sharedKind,
+
+        actionTitle:
+          media.actionTitle,
+
+        actionType:
+          media.actionType,
       })
     );
 
@@ -1337,21 +2145,60 @@ try {
       );
     }
 
-    setMessages((current) => [
+ setMessages((current) => [
       ...current,
-      ...replies.map((reply) => ({
-        id: `reply-${crypto.randomUUID()}`,
-        role: "assistant" as const,
-        content: reply,
-        createdAt:
-          new Date().toISOString(),
-        kind: "text" as const,
-      })),
+
+      ...replies.map(
+        (
+          reply
+        ) => ({
+          id:
+            `reply-${crypto.randomUUID()}`,
+
+          role:
+            "assistant" as const,
+
+          content:
+            reply,
+
+          createdAt:
+            new Date()
+              .toISOString(),
+
+          kind:
+            "text" as const,
+        })
+      ),
     ]);
 
-    window.setTimeout(() => {
-      void loadHistory(false);
-    }, 800);
+    const worldActions =
+      await extractDominicActions({
+        userMessage:
+          combinedMessage,
+
+        replies,
+      });
+
+    if (
+      worldActions.length >
+      0
+    ) {
+      await runDominicActions(
+        worldActions
+      );
+    }
+
+    window.setTimeout(
+      () => {
+        void loadHistory(
+          false
+        );
+      },
+      worldActions.length >
+        0
+        ? 250
+        : 800
+    );
   } catch {
     setFailedMessage(combinedMessage);
   } finally {
@@ -1980,6 +2827,32 @@ const recentConversationForPhoto = () =>
                   <img className="message-avatar" src={dominic} alt="" aria-hidden="true" />
                 )}
 {message.kind ===
+"agent_action" ? (
+  <button
+    type="button"
+    className="letter-connected-button"
+    onClick={() => {
+      if (
+        !message.diaryItemId
+      ) {
+        return;
+      }
+
+      setSelectedChatObjectId(
+        message.diaryItemId
+      );
+    }}
+  >
+    {dominicActionLabel(
+      message.actionType
+    )}
+
+    {" · "}
+
+    {message.actionTitle ??
+      "Open"}
+  </button>
+) : message.kind ===
 "shared_item" ? (
   <button
     type="button"
@@ -2065,7 +2938,9 @@ const recentConversationForPhoto = () =>
 
 {message.diaryItemId &&
   message.kind !==
-    "shared_item" && (
+    "shared_item" &&
+  message.kind !==
+    "agent_action" && (
     <button
       type="button"
       className="letter-connected-button"
