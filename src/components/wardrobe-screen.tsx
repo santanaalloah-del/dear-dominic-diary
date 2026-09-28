@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 
 import { usePrivateDiario } from "@/components/private-diario";
+import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
+
 import {
   addClothingToLook,
   createClothing,
@@ -55,6 +57,11 @@ export function WardrobeExperienceScreen() {
 
   const [savedLooks, setSavedLooks] =
     useState<DiarioItem[]>([]);
+
+  const [
+  selectedWardrobeObjectId,
+  setSelectedWardrobeObjectId,
+] = useState<string | null>(null);
 
   const [loadingWardrobe, setLoadingWardrobe] =
     useState(true);
@@ -444,6 +451,20 @@ export function WardrobeExperienceScreen() {
     }
   };
 
+  if (selectedWardrobeObjectId) {
+  return (
+    <ConnectedObjectDetailScreen
+      itemId={selectedWardrobeObjectId}
+      onOpenRelated={
+        setSelectedWardrobeObjectId
+      }
+      onBack={() =>
+        setSelectedWardrobeObjectId(null)
+      }
+    />
+  );
+}
+  
   return (
     <section className="wardrobe-screen wardrobe-live">
       <header className="screen-intro">
@@ -967,6 +988,19 @@ export function WardrobeExperienceScreen() {
                             "Wear"
                           )}
                         </button>
+
+                        <button
+  type="button"
+  className="letter-connected-button"
+  onClick={() =>
+    setSelectedWardrobeObjectId(
+      item.id
+    )
+  }
+>
+  View connections
+</button>
+                        
                       </article>
                     );
                   }
@@ -1260,6 +1294,19 @@ export function WardrobeExperienceScreen() {
                             "Wear look"
                           )}
                         </button>
+
+                        <button
+  type="button"
+  className="letter-connected-button"
+  onClick={() =>
+    setSelectedWardrobeObjectId(
+      look.id
+    )
+  }
+>
+  View connections
+</button>
+                        
                       </article>
                     );
                   }
