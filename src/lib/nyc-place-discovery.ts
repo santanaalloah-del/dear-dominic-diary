@@ -468,6 +468,59 @@ function sameCoordinates(
   );
 }
 
+
+export function discoveredPlaceFromPersisted(
+  place: DiarioItem
+): DiscoveredPlace | null {
+  const latitude = Number(place.data?.latitude);
+  const longitude = Number(place.data?.longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  const categories = Array.isArray(place.data?.categories)
+    ? place.data.categories.filter(
+        (category: unknown): category is string =>
+          typeof category === "string"
+      )
+    : [];
+
+  const raw =
+    place.data && typeof place.data === "object"
+      ? { ...place.data, diarioItemId: place.id }
+      : { diarioItemId: place.id };
+
+  return {
+    placeId:
+      normalize(place.data?.geoapifyPlaceId) ||
+      `diario:${place.id}`,
+    name:
+      normalize(place.title) ||
+      "Untitled place",
+    address:
+      normalize(place.data?.address),
+    neighborhood:
+      normalize(place.data?.neighborhood),
+    latitude,
+    longitude,
+    categories,
+    placeType:
+      normalize(place.data?.placeType) ||
+      inferPlaceType(categories),
+    shortcutKey:
+      normalize(place.data?.discoveryShortcut) ||
+      null,
+    website:
+      normalize(place.data?.website) ||
+      null,
+    phone:
+      normalize(place.data?.phone) ||
+      null,
+    raw,
+  };
+}
+
 export function findSavedVersion(
   places: DiarioItem[],
   discovered: DiscoveredPlace
