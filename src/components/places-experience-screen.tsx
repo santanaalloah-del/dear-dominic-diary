@@ -6,15 +6,22 @@ import {
   type ReactNode,
 } from "react";
 import {
+  Accessibility,
   CalendarPlus,
+  Clock3,
   Compass,
+  ExternalLink,
   Heart,
   List,
   LoaderCircle,
+  Mail,
   Map,
   MapPin,
+  Phone,
   Search,
   Sparkles,
+  Utensils,
+  Wifi,
 } from "lucide-react";
 
 import { usePrivateDiario } from "@/components/private-diario";
@@ -29,6 +36,17 @@ import {
 } from "@/lib/place-flow";
 import { createContextualDate } from "@/lib/date-flow";
 import { setPersistedPlaceStatus } from "@/lib/place-status";
+import {
+  fetchGeoapifyPlaceDetails,
+  friendlyPlaceCategory,
+  getPlaceOpeningState,
+  humanizeOpeningHours,
+  persistGeoapifyPlaceDetails,
+  placeDetailsAreFresh,
+  readPersistedPlaceDetails,
+  safeExternalUrl,
+  type GeoapifyPlaceDetails,
+} from "@/lib/geoapify-place-details";
 import {
   cancelDatePlaceSelection,
   completeDatePlaceSelection,
@@ -412,6 +430,14 @@ function NycMapWorld({
   const [choosingDate, setChoosingDate] = useState(false);
   const [placeSheetOpen, setPlaceSheetOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [placeDetails, setPlaceDetails] =
+    useState<GeoapifyPlaceDetails | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] =
+    useState<string | null>(null);
+  const detailsCacheRef = useRef(
+    new Map<string, GeoapifyPlaceDetails>()
+  );
 
   const dynamicShortcuts = useMemo(
     () => getDynamicShortcuts(places),
@@ -428,6 +454,38 @@ function NycMapWorld({
     [places, selected]
   );
 
+  const placeCategory = useMemo(
+    () =>
+      selected
+        ? friendlyPlaceCategory({
+            placeType: selected.placeType,
+            details: placeDetails,
+          })
+        : "Place",
+    [selected, placeDetails]
+  );
+
+  const openingState = useMemo(
+    () =>
+      getPlaceOpeningState(
+        placeDetails?.openingHours ?? null
+      ),
+    [placeDetails?.openingHours]
+  );
+
+  const officialWebsite = useMemo(
+    () =>
+      safeExternalUrl(
+        placeDetails?.website ??
+          selected?.website ??
+          null
+      ),
+    [
+      placeDetails?.website,
+      selected?.website,
+    ]
+  );
+
   useEffect(() => {
     if (!placeSheetOpen) return;
 
@@ -438,6 +496,146 @@ function NycMapWorld({
       document.body.style.overflow = previousOverflow;
     };
   }, [placeSheetOpen]);
+
+  useEffect(() => {
+    if (
+      !placeSheetOpen ||
+      !selected ||
+      !apiKey
+    ) {
+      setPlaceDetails(null);
+      setDetailsError(null);
+      setDetailsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const persistedDetails =
+      readPersistedPlaceDetails(
+        savedSelected
+      );
+
+    if (
+      persistedDetails &&
+      placeDetailsAreFresh(
+        persistedDetails
+      )
+    ) {
+      setPlaceDetails(
+        persistedDetails
+      );
+      setDetailsError(null);
+      setDetailsLoading(false);
+      return;
+    }
+
+    const cacheKey =
+      selected.placeId;
+
+    const cached =
+      detailsCacheRef.current.get(
+        cacheKey
+      );
+
+    if (cached) {
+      setPlaceDetails(cached);
+      setDetailsError(null);
+      setDetailsLoading(false);
+      return;
+    }
+
+    setPlaceDetails(
+      persistedDetails
+    );
+    setDetailsError(null);
+    setDetailsLoading(true);
+
+    void fetchGeoapifyPlaceDetails({
+      apiKey,
+      place: selected,
+    })
+      .then(
+        async (
+          details
+        ) => {
+          if (
+            cancelled ||
+            !details
+          ) {
+            return;
+          }
+
+          detailsCacheRef.current.set(
+            cacheKey,
+            details
+          );
+
+          setPlaceDetails(
+            details
+          );
+
+          if (
+            savedSelected
+          ) {
+            const updated =
+              await persistGeoapifyPlaceDetails({
+                userId,
+                place:
+                  savedSelected,
+                details,
+              });
+
+            if (
+              !cancelled
+            ) {
+              onPlaceSaved(
+                updated
+              );
+            }
+          }
+        }
+      )
+      .catch(
+        (
+          error
+        ) => {
+          console.error(
+            "Could not load real Place details:",
+            error
+          );
+
+          if (
+            !cancelled
+          ) {
+            setDetailsError(
+              "Extra details are not available for this Place right now."
+            );
+          }
+        }
+      )
+      .finally(
+        () => {
+          if (
+            !cancelled
+          ) {
+            setDetailsLoading(
+              false
+            );
+          }
+        }
+      );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    apiKey,
+    placeSheetOpen,
+    selected?.placeId,
+    savedSelected?.id,
+    userId,
+  ]);
 
   useEffect(() => {
     if (!apiKey || !mapNodeRef.current || mapRef.current) return;
@@ -746,6 +944,29 @@ function NycMapWorld({
     await searchShortcut(fallback);
   };
 
+  const enrichCanonicalPlace = async (
+    place: DiarioItem
+  ): Promise<DiarioItem> => {
+    if (!placeDetails) {
+      onPlaceSaved(place);
+      return place;
+    }
+
+    const enriched =
+      await persistGeoapifyPlaceDetails({
+        userId,
+        place,
+        details:
+          placeDetails,
+      });
+
+    onPlaceSaved(
+      enriched
+    );
+
+    return enriched;
+  };
+
   const saveSelected = async (): Promise<DiarioItem | null> => {
     if (!selected) return null;
 
@@ -758,9 +979,13 @@ function NycMapWorld({
         place: selected,
       });
 
-      onPlaceSaved(saved);
-      setFeedback(`${saved.title ?? selected.name} is saved for later.`);
-      return saved;
+      const canonical =
+        await enrichCanonicalPlace(
+          saved
+        );
+
+      setFeedback(`${canonical.title ?? selected.name} is saved for later.`);
+      return canonical;
     } catch (error) {
       console.error("Could not save discovered place:", error);
       setMapError("That place could not be saved.");
@@ -787,12 +1012,17 @@ function NycMapWorld({
           place: selected,
         }));
 
+      const canonical =
+        await enrichCanonicalPlace(
+          saved
+        );
+
       const result =
         await setDateCanonicalPlace({
           userId,
           dateId:
             dateSelection.dateId,
-          place: saved,
+          place: canonical,
         });
 
       onPlaceSaved(
@@ -863,11 +1093,14 @@ function NycMapWorld({
           place: selected,
         }));
 
-      onPlaceSaved(saved);
+      const canonical =
+        await enrichCanonicalPlace(
+          saved
+        );
 
       const linked = await getPlaceDates({
         userId,
-        placeId: saved.id,
+        placeId: canonical.id,
       });
 
       const alreadyLinked = linked.some(
@@ -877,14 +1110,14 @@ function NycMapWorld({
       if (!alreadyLinked) {
         await toggleDatePlace({
           userId,
-          place: saved,
+          place: canonical,
           date,
         });
       }
 
       setChoosingDate(false);
       setFeedback(
-        `${saved.title ?? selected.name} is now part of ${
+        `${canonical.title ?? selected.name} is now part of ${
           date.title ?? "that Date"
         }.`
       );
@@ -911,23 +1144,26 @@ function NycMapWorld({
           place: selected,
         }));
 
-      onPlaceSaved(saved);
+      const canonical =
+        await enrichCanonicalPlace(
+          saved
+        );
 
       const created = await createContextualDate({
         userId,
-        place: saved.title ?? selected.name,
+        place: canonical.title ?? selected.name,
       });
 
       await toggleDatePlace({
         userId,
-        place: saved,
+        place: canonical,
         date: created,
       });
 
       onDateCreated(created);
       setChoosingDate(false);
       setFeedback(
-        `New Date idea created from ${saved.title ?? selected.name}.`
+        `New Date idea created from ${canonical.title ?? selected.name}.`
       );
     } catch (error) {
       console.error("Could not create Date idea from place:", error);
@@ -1127,10 +1363,12 @@ function NycMapWorld({
               <div>
                 <small>
                   {savedSelected
-                    ? savedSelected.data?.placeStatus === "visited"
-                      ? "Been there"
-                      : "Saved"
-                    : selected.placeType}
+                    ? `${
+                        savedSelected.data?.placeStatus === "visited"
+                          ? "Been there"
+                          : "Saved"
+                      } · ${placeCategory}`
+                    : placeCategory}
                 </small>
 
                 <h2 id="nyc-place-sheet-title">
@@ -1152,35 +1390,187 @@ function NycMapWorld({
             </header>
 
             {(selected.neighborhood || selected.address) && (
-              <p className="nyc-place-address">
-                {selected.neighborhood &&
-                  `${selected.neighborhood}${
-                    selected.address ? " · " : ""
-                  }`}
-                {selected.address}
+              <div className="nyc-place-address-row">
+                <MapPin size={16} />
+
+                <p className="nyc-place-address">
+                  {selected.neighborhood &&
+                    `${selected.neighborhood}${
+                      selected.address ? " · " : ""
+                    }`}
+                  {selected.address}
+                </p>
+              </div>
+            )}
+
+            {detailsLoading && (
+              <div className="nyc-place-details-loading">
+                <LoaderCircle
+                  className="spin"
+                  size={16}
+                />
+                Loading real place details…
+              </div>
+            )}
+
+            {detailsError && (
+              <p className="nyc-place-details-note">
+                {detailsError}
               </p>
             )}
 
-            {(selected.website || selected.phone) && (
+            {placeDetails && (
+              <section className="nyc-place-rich-details">
+                {placeDetails.description && (
+                  <p className="nyc-place-description">
+                    {placeDetails.description}
+                  </p>
+                )}
+
+                {placeDetails.openingHours && (
+                  <div className="nyc-place-detail-row">
+                    <Clock3 size={17} />
+
+                    <div>
+                      <strong>
+                        {openingState?.label ?? "Opening hours"}
+                      </strong>
+
+                      <span>
+                        {humanizeOpeningHours(
+                          placeDetails.openingHours
+                        )}
+                      </span>
+                    </div>
+
+                    {openingState && (
+                      <em
+                        className={
+                          openingState.isOpen
+                            ? "open"
+                            : "closed"
+                        }
+                      >
+                        {openingState.isOpen
+                          ? "Open"
+                          : "Closed"}
+                      </em>
+                    )}
+                  </div>
+                )}
+
+                {(placeDetails.cuisine ||
+                  placeDetails.diet ||
+                  placeDetails.reservation) && (
+                  <div className="nyc-place-detail-row">
+                    <Utensils size={17} />
+
+                    <div>
+                      <strong>
+                        Food & reservations
+                      </strong>
+
+                      <div className="nyc-place-detail-chips">
+                        {placeDetails.cuisine && (
+                          <span>
+                            {placeDetails.cuisine}
+                          </span>
+                        )}
+
+                        {placeDetails.diet && (
+                          <span>
+                            {placeDetails.diet}
+                          </span>
+                        )}
+
+                        {placeDetails.reservation && (
+                          <span>
+                            Reservation {placeDetails.reservation}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {(placeDetails.wheelchair === true ||
+                  placeDetails.internetAccess === true ||
+                  placeDetails.smoking !== null) && (
+                  <div className="nyc-place-facilities">
+                    {placeDetails.wheelchair === true && (
+                      <span>
+                        <Accessibility size={14} />
+                        Wheelchair accessible
+                      </span>
+                    )}
+
+                    {placeDetails.internetAccess === true && (
+                      <span>
+                        <Wifi size={14} />
+                        Wi-Fi
+                      </span>
+                    )}
+
+                    {placeDetails.smoking === false && (
+                      <span>
+                        Non-smoking
+                      </span>
+                    )}
+
+                    {placeDetails.smoking === true && (
+                      <span>
+                        Smoking permitted
+                      </span>
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {(officialWebsite ||
+              placeDetails?.phone ||
+              selected.phone ||
+              placeDetails?.email) && (
               <div className="nyc-place-contact-row">
-                {selected.website && (
+                {officialWebsite && (
                   <a
-                    href={selected.website}
+                    href={officialWebsite}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Website
+                    <ExternalLink size={14} />
+                    Official site
                   </a>
                 )}
 
-                {selected.phone && (
-                  <a href={`tel:${selected.phone}`}>
+                {(placeDetails?.phone || selected.phone) && (
+                  <a
+                    href={`tel:${
+                      placeDetails?.phone ?? selected.phone
+                    }`}
+                  >
+                    <Phone size={14} />
                     Call
+                  </a>
+                )}
+
+                {placeDetails?.email && (
+                  <a
+                    href={`mailto:${placeDetails.email}`}
+                  >
+                    <Mail size={14} />
+                    Email
                   </a>
                 )}
               </div>
             )}
 
+            {placeDetails && (
+              <p className="nyc-place-provider-note">
+                Real place details from Geoapify / OpenStreetMap.
+                Availability and hours can change.
+              </p>
+            )}
 
             {dateSelection && (
               <button

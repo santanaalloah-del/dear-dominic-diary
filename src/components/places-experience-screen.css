@@ -780,3 +780,151 @@
 .nyc-place-choose-action:disabled {
   opacity: 0.5;
 }
+
+
+/* Rich real-world Place details */
+.nyc-place-address-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 9px;
+  color: #744b5e;
+}
+
+.nyc-place-address-row svg {
+  margin-top: 3px;
+  color: #8a4561;
+}
+
+.nyc-place-address-row .nyc-place-address {
+  margin: 0;
+}
+
+.nyc-place-details-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 13px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  background: #f8efeb;
+  color: #755366;
+  font-size: 0.8rem;
+}
+
+.nyc-place-details-note {
+  margin: 11px 0 0;
+  color: #8d6a79;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.nyc-place-rich-details {
+  display: grid;
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.nyc-place-description {
+  margin: 0;
+  color: #68485a;
+  line-height: 1.5;
+  font-size: 0.86rem;
+}
+
+.nyc-place-detail-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid rgba(99, 31, 56, 0.11);
+  border-radius: 14px;
+  background: #fbf3ef;
+  color: #653149;
+}
+
+.nyc-place-detail-row > svg {
+  margin-top: 2px;
+}
+
+.nyc-place-detail-row > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.nyc-place-detail-row strong {
+  font-size: 0.82rem;
+}
+
+.nyc-place-detail-row span {
+  color: #856474;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.nyc-place-detail-row em {
+  align-self: start;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nyc-place-detail-row em.open {
+  background: #e7f0e7;
+  color: #426044;
+}
+
+.nyc-place-detail-row em.closed {
+  background: #f3e3e5;
+  color: #7a3647;
+}
+
+.nyc-place-detail-chips,
+.nyc-place-facilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nyc-place-detail-chips span,
+.nyc-place-facilities > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f2e5e7;
+  color: #6b354c;
+  font-size: 0.69rem;
+  line-height: 1.2;
+}
+
+.nyc-place-contact-row a {
+  gap: 6px;
+}
+
+.nyc-place-provider-note {
+  margin: 9px 1px 0;
+  color: #a0828e;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 560px) {
+  .nyc-place-detail-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .nyc-place-detail-row em {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
