@@ -51,6 +51,17 @@ import {
   loadDominicLiveDateContext,
   liveDateContextForPrompt,
 } from "@/lib/dominic-live-date-context";
+import {
+  getLiveDateExperience,
+  readDateExperience,
+} from "@/lib/date-experience";
+import {
+  findDateVenuePurchase,
+  recordDateVenuePurchase,
+  venueItemAction,
+} from "@/lib/date-venue-world";
+import { notifyDateVenueActionChanged } from "@/lib/date-live-events";
+import { readVenueWorldCatalog } from "@/lib/venue-world";
 import { useTimeMood } from "@/lib/time-mood";
 import {
   createDate,
@@ -292,7 +303,9 @@ function isDominicActionType(
     value ===
       "create_place" ||
     value ===
-      "create_song"
+      "create_song" ||
+    value ===
+      "date_venue_action"
   );
 }
 
@@ -333,6 +346,13 @@ function dominicActionLabel(
     "create_song"
   ) {
     return "Dominic added a Song";
+  }
+
+  if (
+    type ===
+    "date_venue_action"
+  ) {
+    return "Dominic chose something on the Date";
   }
 
   return "Dominic added something";
@@ -922,7 +942,9 @@ async function extractDominicActions({
 
               userMessage,
 
-              
+              replies,
+
+              liveDateContext,
 
               nearbyCommitments,
             }),
@@ -1199,6 +1221,123 @@ async function applyDominicAction(
 ): Promise<
   DiarioItem | null
 > {
+  if (
+    action.type ===
+    "date_venue_action"
+  ) {
+    const liveDate =
+      await getLiveDateExperience(
+        session.user.id
+      );
+
+    if (
+      !liveDate ||
+      liveDate.id !==
+        action.dateId
+    ) {
+      return null;
+    }
+
+    const experience =
+      readDateExperience(
+        liveDate
+      );
+
+    if (
+      !experience ||
+      experience.status !==
+        "live" ||
+      experience.locationMode !==
+        "place" ||
+      !experience.currentPlaceId
+    ) {
+      return null;
+    }
+
+    const {
+      data: currentPlace,
+      error: placeError,
+    } = await supabase
+      .from("diario_items")
+      .select("*")
+      .eq(
+        "user_id",
+        session.user.id
+      )
+      .eq(
+        "id",
+        experience.currentPlaceId
+      )
+      .eq(
+        "kind",
+        "place"
+      )
+      .maybeSingle();
+
+    if (
+      placeError ||
+      !currentPlace
+    ) {
+      return null;
+    }
+
+    const place =
+      currentPlace as DiarioItem;
+
+    const catalog =
+      readVenueWorldCatalog(
+        place
+      );
+
+    if (!catalog) {
+      return null;
+    }
+
+    const item =
+      catalog.items.find(
+        (candidate) =>
+          candidate.id ===
+          action.itemId
+      );
+
+    if (
+      !item ||
+      venueItemAction(item) !==
+        action.venueAction
+    ) {
+      return null;
+    }
+
+    const existing =
+      findDateVenuePurchase({
+        date: liveDate,
+        placeId: place.id,
+        itemId: item.id,
+        actor: "dominic",
+      });
+
+    if (existing) {
+      return null;
+    }
+
+    const updatedDate =
+      await recordDateVenuePurchase({
+        userId:
+          session.user.id,
+        date: liveDate,
+        place,
+        catalog,
+        item,
+        actor: "dominic",
+      });
+
+    notifyDateVenueActionChanged(
+      updatedDate.id
+    );
+
+    return updatedDate;
+  }
+
   const duplicate =
     await hasExistingDominicAction(
       action
