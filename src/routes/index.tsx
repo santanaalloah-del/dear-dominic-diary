@@ -6819,67 +6819,248 @@ function PlacesScreen() {
 }
 
 function KeepsakesScreen() {
-  const { session } = usePrivateDiario();
+  const {
+    session,
+  } =
+    usePrivateDiario();
 
-  const [keepsakeView, setKeepsakeView] =
+  const [
+    keepsakeView,
+    setKeepsakeView,
+  ] =
     useState<
-      "all" | "home" | "stored"
+      | "all"
+      | "home"
+      | "stored"
     >("all");
 
-  const [keepsakes, setKeepsakes] =
-    useState<DiarioItem[]>([]);
+  const [
+    keepsakes,
+    setKeepsakes,
+  ] =
+    useState<
+      DiarioItem[]
+    >([]);
 
-  const [selectedKeepsakeId, setSelectedKeepsakeId] =
-  useState<string | null>(null);
+  const [
+    selectedKeepsakeId,
+    setSelectedKeepsakeId,
+  ] =
+    useState<
+      string | null
+    >(null);
 
-  const [loadingKeepsakes, setLoadingKeepsakes] =
+  const [
+    connectionDetailId,
+    setConnectionDetailId,
+  ] =
+    useState<
+      string | null
+    >(null);
+
+  const [
+    loadingKeepsakes,
+    setLoadingKeepsakes,
+  ] =
     useState(true);
 
-  const [keepsakeError, setKeepsakeError] =
-    useState<string | null>(null);
+  const [
+    keepsakeError,
+    setKeepsakeError,
+  ] =
+    useState<
+      string | null
+    >(null);
 
-  const [addingKeepsake, setAddingKeepsake] =
+  const [
+    addingKeepsake,
+    setAddingKeepsake,
+  ] =
     useState(false);
 
-  const [keepsakeTitle, setKeepsakeTitle] =
+  const [
+    keepsakeTitle,
+    setKeepsakeTitle,
+  ] =
     useState("");
 
-  const [keepsakeType, setKeepsakeType] =
+  const [
+    keepsakeType,
+    setKeepsakeType,
+  ] =
     useState("object");
 
-  const [keepsakeLocation, setKeepsakeLocation] =
-    useState<"home" | "stored">("home");
+  const [
+    keepsakeLocation,
+    setKeepsakeLocation,
+  ] =
+    useState<
+      | "home"
+      | "stored"
+    >("home");
 
-  const [keepsakeRoom, setKeepsakeRoom] =
+  const [
+    keepsakeRoom,
+    setKeepsakeRoom,
+  ] =
     useState("");
 
-  const [keepsakeOrigin, setKeepsakeOrigin] =
+  const [
+    keepsakeOrigin,
+    setKeepsakeOrigin,
+  ] =
     useState("");
 
-  const [keepsakeNote, setKeepsakeNote] =
+  const [
+    keepsakeNote,
+    setKeepsakeNote,
+  ] =
     useState("");
 
-  useEffect(() => {
-    let active = true;
+  const [
+    editingKeepsake,
+    setEditingKeepsake,
+  ] =
+    useState(false);
 
-    setLoadingKeepsakes(true);
-    setKeepsakeError(null);
+  const [
+    editTitle,
+    setEditTitle,
+  ] =
+    useState("");
 
-    getKeepsakes(
-      session.user.id
-    )
-      .then((loadedKeepsakes) => {
-        if (!active) return;
+  const [
+    editType,
+    setEditType,
+  ] =
+    useState("object");
+
+  const [
+    editLocation,
+    setEditLocation,
+  ] =
+    useState<
+      | "home"
+      | "stored"
+    >("home");
+
+  const [
+    editRoom,
+    setEditRoom,
+  ] =
+    useState("");
+
+  const [
+    editOrigin,
+    setEditOrigin,
+  ] =
+    useState("");
+
+  const [
+    editNote,
+    setEditNote,
+  ] =
+    useState("");
+
+  const [
+    connections,
+    setConnections,
+  ] =
+    useState<
+      DiarioItem[]
+    >([]);
+
+  const [
+    connectionChoices,
+    setConnectionChoices,
+  ] =
+    useState<
+      DiarioItem[]
+    >([]);
+
+  const [
+    managingConnections,
+    setManagingConnections,
+  ] =
+    useState(false);
+
+  const [
+    loadingConnections,
+    setLoadingConnections,
+  ] =
+    useState(false);
+
+  const [
+    savingKeepsake,
+    setSavingKeepsake,
+  ] =
+    useState(false);
+
+  const selectedKeepsake =
+    keepsakes.find(
+      (
+        item
+      ) =>
+        item.id ===
+        selectedKeepsakeId
+    ) ??
+    null;
+
+  const locationOf = (
+    item:
+      DiarioItem
+  ):
+    | "home"
+    | "stored" => {
+    return item.data
+      ?.location ===
+      "stored"
+      ? "stored"
+      : "home";
+  };
+
+  const replaceKeepsake = (
+    updated:
+      DiarioItem
+  ) => {
+    setKeepsakes(
+      (
+        current
+      ) =>
+        current.map(
+          (
+            item
+          ) =>
+            item.id ===
+            updated.id
+              ? updated
+              : item
+        )
+    );
+  };
+
+  const refreshKeepsakes =
+    async () => {
+      setLoadingKeepsakes(
+        true
+      );
+
+      setKeepsakeError(
+        null
+      );
+
+      try {
+        const loaded =
+          await getKeepsakes(
+            session.user.id
+          );
 
         setKeepsakes(
-          loadedKeepsakes
+          loaded
         );
-
-        setLoadingKeepsakes(false);
-      })
-      .catch((loadError) => {
-        if (!active) return;
-
+      } catch (
+        loadError
+      ) {
         console.error(
           "Could not load Keepsakes:",
           loadError
@@ -6888,672 +7069,182 @@ function KeepsakesScreen() {
         setKeepsakeError(
           "Keepsakes could not be opened."
         );
-
-        setLoadingKeepsakes(false);
-      });
-
-    return () => {
-      active = false;
+      } finally {
+        setLoadingKeepsakes(
+          false
+        );
+      }
     };
-  }, [session.user.id]);
 
-  const locationOf = (
-    item: DiarioItem
-  ): "home" | "stored" => {
-    return item.data?.location ===
-      "stored"
-      ? "stored"
-      : "home";
-  };
+  const refreshConnections =
+    async (
+      keepsakeId:
+        string
+    ) => {
+      setLoadingConnections(
+        true
+      );
+
+      try {
+        const {
+          getKeepsakeConnections,
+          getKeepsakeConnectionCandidates,
+        } =
+          await import(
+            "@/lib/keepsake-flow"
+          );
+
+        const [
+          loadedConnections,
+          loadedChoices,
+        ] =
+          await Promise.all([
+            getKeepsakeConnections({
+              userId:
+                session.user.id,
+
+              keepsakeId,
+            }),
+
+            getKeepsakeConnectionCandidates(
+              session.user.id
+            ),
+          ]);
+
+        setConnections(
+          loadedConnections.map(
+            (
+              connection
+            ) =>
+              connection.item
+          )
+        );
+
+        setConnectionChoices(
+          loadedChoices
+        );
+      } catch (
+        loadError
+      ) {
+        console.error(
+          "Could not load Keepsake connections:",
+          loadError
+        );
+
+        setKeepsakeError(
+          "The keepsake history could not be opened."
+        );
+      } finally {
+        setLoadingConnections(
+          false
+        );
+      }
+    };
+
+  useEffect(() => {
+    void refreshKeepsakes();
+  }, [
+    session.user.id,
+  ]);
+
+  useEffect(() => {
+    if (
+      !selectedKeepsakeId
+    ) {
+      setConnections(
+        []
+      );
+
+      setConnectionChoices(
+        []
+      );
+
+      return;
+    }
+
+    void refreshConnections(
+      selectedKeepsakeId
+    );
+  }, [
+    selectedKeepsakeId,
+    session.user.id,
+  ]);
 
   const visibleKeepsakes =
-    keepsakeView === "all"
+    keepsakeView ===
+    "all"
       ? keepsakes
       : keepsakes.filter(
-          (item) =>
-            locationOf(item) ===
+          (
+            item
+          ) =>
+            locationOf(
+              item
+            ) ===
             keepsakeView
         );
 
   const homeKeepsakes =
     keepsakes.filter(
-      (item) =>
-        locationOf(item) ===
+      (
+        item
+      ) =>
+        locationOf(
+          item
+        ) ===
         "home"
     );
 
   const storedKeepsakes =
     keepsakes.filter(
-      (item) =>
-        locationOf(item) ===
+      (
+        item
+      ) =>
+        locationOf(
+          item
+        ) ===
         "stored"
     );
 
-  const saveKeepsake = async () => {
-    if (!keepsakeTitle.trim()) {
-      return;
-    }
-
-    setKeepsakeError(null);
-
-    try {
-      const savedKeepsake =
-        await createKeepsake({
-          userId: session.user.id,
-          title: keepsakeTitle,
-          keepsakeType,
-          location:
-            keepsakeLocation,
-          room:
-            keepsakeLocation ===
-            "home"
-              ? keepsakeRoom
-              : undefined,
-          origin:
-            keepsakeOrigin,
-          note:
-            keepsakeNote,
-        });
-
-      setKeepsakes(
-        (currentKeepsakes) => [
-          savedKeepsake,
-          ...currentKeepsakes,
-        ]
+  const resetNewKeepsake =
+    () => {
+      setAddingKeepsake(
+        false
       );
 
-      setKeepsakeTitle("");
-      setKeepsakeType("object");
-      setKeepsakeLocation("home");
-      setKeepsakeRoom("");
-      setKeepsakeOrigin("");
-      setKeepsakeNote("");
-      setAddingKeepsake(false);
-    } catch (saveError) {
-      console.error(
-        "Could not create Keepsake:",
-        saveError
+      setKeepsakeTitle(
+        ""
       );
 
-      setKeepsakeError(
-        "The keepsake could not be saved."
+      setKeepsakeType(
+        "object"
       );
-    }
-  };
 
-  const moveKeepsake = async (
-  item: DiarioItem,
-  location: "home" | "stored"
-) => {
-  setKeepsakeError(null);
+      setKeepsakeLocation(
+        "home"
+      );
 
-  try {
-    const updatedKeepsake =
-      await updateKeepsakeLocation({
-        userId: session.user.id,
-        keepsake: item,
-        location,
-      });
+      setKeepsakeRoom(
+        ""
+      );
 
-    setKeepsakes((currentKeepsakes) =>
-      currentKeepsakes.map(
-        (currentKeepsake) =>
-          currentKeepsake.id ===
-          updatedKeepsake.id
-            ? updatedKeepsake
-            : currentKeepsake
-      )
-    );
-  } catch (updateError) {
-    console.error(
-      "Could not move keepsake:",
-      updateError
-    );
+      setKeepsakeOrigin(
+        ""
+      );
 
-    setKeepsakeError(
-      "The keepsake could not be moved."
-    );
-  }
-};
+      setKeepsakeNote(
+        ""
+      );
+    };
 
-  if (selectedKeepsakeId) {
-  return (
-    <ConnectedObjectDetailScreen
-      itemId={selectedKeepsakeId}
-      onOpenRelated={setSelectedKeepsakeId}
-      onBack={() =>
-        setSelectedKeepsakeId(null)
+  const saveKeepsake =
+    async () => {
+      if (
+        !keepsakeTitle.trim()
+      ) {
+        return;
       }
-    />
-  );
-}
-  
-  return (
-    <section className="keepsakes-screen keepsakes-live">
-      <ScreenIntro
-        eyebrow="Objects that stayed"
-        title="Keepsakes"
-      >
-        <p className="intro-copy">
-          little physical things can keep their
-          place, origin and history without becoming
-          separate copies of the memory they belong to.
-        </p>
-      </ScreenIntro>
-
-      <div
-        className="keepsakes-tabs"
-        role="tablist"
-        aria-label="Keepsake location"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={
-            keepsakeView === "all"
-          }
-          className={
-            keepsakeView === "all"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setKeepsakeView("all")
-          }
-        >
-          All
-        </button>
-
-        <button
-          type="button"
-          role="tab"
-          aria-selected={
-            keepsakeView === "home"
-          }
-          className={
-            keepsakeView === "home"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setKeepsakeView("home")
-          }
-        >
-          At home
-        </button>
-
-        <button
-          type="button"
-          role="tab"
-          aria-selected={
-            keepsakeView === "stored"
-          }
-          className={
-            keepsakeView ===
-            "stored"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setKeepsakeView(
-              "stored"
-            )
-          }
-        >
-          Stored
-        </button>
-      </div>
-
-      <section className="keepsakes-summary">
-        <div>
-          <span>
-            at home
-          </span>
-
-          <strong>
-            {homeKeepsakes.length}
-          </strong>
-        </div>
-
-        <div>
-          <span>
-            stored
-          </span>
-
-          <strong>
-            {storedKeepsakes.length}
-          </strong>
-        </div>
-      </section>
-
-      {addingKeepsake ? (
-        <section className="keepsakes-empty">
-          <small>
-            new keepsake
-          </small>
-
-          <h2>
-            Keep an object
-          </h2>
-
-          <input
-            type="text"
-            value={keepsakeTitle}
-            onChange={(event) =>
-              setKeepsakeTitle(
-                event.target.value
-              )
-            }
-            placeholder="Name"
-            autoFocus
-          />
-
-          <select
-            value={keepsakeType}
-            onChange={(event) =>
-              setKeepsakeType(
-                event.target.value
-              )
-            }
-          >
-            <option value="object">
-              Object
-            </option>
-            <option value="ticket">
-              Ticket
-            </option>
-            <option value="flower">
-              Flower
-            </option>
-            <option value="photo">
-              Photo
-            </option>
-            <option value="gift">
-              Gift
-            </option>
-            <option value="note">
-              Note
-            </option>
-          </select>
-
-          <select
-            value={keepsakeLocation}
-            onChange={(event) =>
-              setKeepsakeLocation(
-                event.target.value as
-                  | "home"
-                  | "stored"
-              )
-            }
-          >
-            <option value="home">
-              At home
-            </option>
-            <option value="stored">
-              Stored away
-            </option>
-          </select>
-
-          {keepsakeLocation ===
-            "home" && (
-            <input
-              type="text"
-              value={keepsakeRoom}
-              onChange={(event) =>
-                setKeepsakeRoom(
-                  event.target.value
-                )
-              }
-              placeholder="Room"
-            />
-          )}
-
-          <input
-            type="text"
-            value={keepsakeOrigin}
-            onChange={(event) =>
-              setKeepsakeOrigin(
-                event.target.value
-              )
-            }
-            placeholder="Where did it come from?"
-          />
-
-          <textarea
-            value={keepsakeNote}
-            onChange={(event) =>
-              setKeepsakeNote(
-                event.target.value
-              )
-            }
-            placeholder="Why keep it?"
-            rows={4}
-          />
-
-          <div className="diary-editor-actions">
-            <button
-              type="button"
-              onClick={() => {
-                setAddingKeepsake(
-                  false
-                );
-                setKeepsakeTitle("");
-                setKeepsakeType(
-                  "object"
-                );
-                setKeepsakeLocation(
-                  "home"
-                );
-                setKeepsakeRoom("");
-                setKeepsakeOrigin("");
-                setKeepsakeNote("");
-              }}
-            >
-              Cancel
-            </button>
-
-            <button
-              type="button"
-              className="gallery-add-button"
-              disabled={
-                !keepsakeTitle.trim()
-              }
-              onClick={
-                saveKeepsake
-              }
-            >
-              Keep object
-            </button>
-          </div>
-        </section>
-      ) : loadingKeepsakes ? (
-        <section className="keepsakes-empty">
-          <p>
-            Opening the drawer…
-          </p>
-        </section>
-      ) : visibleKeepsakes.length ===
-        0 ? (
-        <section className="keepsakes-empty">
-          <div
-            className="keepsakes-empty-icon"
-            aria-hidden="true"
-          >
-            <BoxIcon
-              size={27}
-              strokeWidth={1.3}
-            />
-          </div>
-
-          <small>
-            empty drawer
-          </small>
-
-          <h2>
-            Nothing kept yet.
-          </h2>
-
-          <p>
-            Tickets, flowers, notes,
-            photos, gifts and small
-            objects only appear here
-            after they actually enter
-            your world.
-          </p>
-
-          <button
-            type="button"
-            className="gallery-add-button"
-            onClick={() =>
-              setAddingKeepsake(
-                true
-              )
-            }
-          >
-            ＋ Add keepsake
-          </button>
-        </section>
-      ) : (
-        <>
-          <div className="keepsakes-list">
-            {visibleKeepsakes.map(
-              (item) => {
-                const location =
-                  locationOf(item);
-
-                const kind =
-                  typeof item.data
-                    ?.keepsakeType ===
-                  "string"
-                    ? item.data
-                        .keepsakeType
-                    : "object";
-
-                const room =
-                  typeof item.data
-                    ?.room === "string"
-                    ? item.data.room
-                    : null;
-
-                const origin =
-                  typeof item.data
-                    ?.origin ===
-                  "string"
-                    ? item.data.origin
-                    : null;
-
-                return (
-                  <article
-                    key={item.id}
-                    className={`keepsake-card keepsake-${kind}`}
-                  >
-                    <header>
-                      <div>
-                        <span>
-                          {kind}
-                        </span>
-
-                        <strong>
-                          {item.title ??
-                            "Untitled keepsake"}
-                        </strong>
-                      </div>
-
-                      <ChevronRight
-                        size={17}
-                      />
-                    </header>
-
-                    <div className="keepsake-location">
-                      <Home
-                        size={15}
-                        strokeWidth={
-                          1.4
-                        }
-                      />
-
-                      <span>
-                        {location ===
-                        "home"
-                          ? room ||
-                            "Somewhere at home"
-                          : "Stored away"}
-                      </span>
-                    </div>
-
-                    {item.event_at && (
-                      <time>
-                        {new Intl.DateTimeFormat(
-                          "en-US",
-                          {
-                            month:
-                              "long",
-                            day:
-                              "numeric",
-                            year:
-                              "numeric",
-                          }
-                        ).format(
-                          new Date(
-                            item.event_at
-                          )
-                        )}
-                      </time>
-                    )}
-
-                    {origin && (
-                      <p>
-                        {origin}
-                      </p>
-                    )}
-
-                    {item.body && (
-                      <small>
-                        {item.body}
-                      </small>
-                    )}
-                    <button
-  type="button"
-  className="gallery-add-button"
-  onClick={() =>
-    void moveKeepsake(
-      item,
-      location === "home"
-        ? "stored"
-        : "home"
-    )
-  }
->
-  {location === "home"
-    ? "Store away"
-    : "Bring home"}
-</button>
-
-                    <button
-  type="button"
-  className="letter-connected-button"
-  onClick={() =>
-    setSelectedKeepsakeId(item.id)
-  }
->
-  View connections
-</button>
-                  
-                  </article>
-                );
-              }
-            )}
-          </div>
-
-          <button
-            type="button"
-            className="gallery-add-button"
-            onClick={() =>
-              setAddingKeepsake(
-                true
-              )
-            }
-          >
-            ＋ Add another keepsake
-          </button>
-        </>
-      )}
-
-      {keepsakeError && (
-        <p role="alert">
-          {keepsakeError}
-        </p>
-      )}
-
-      <section className="keepsake-life">
-        <header>
-          <span>
-            one real object
-          </span>
-
-          <strong>
-            It can move without losing its history
-          </strong>
-        </header>
-
-        <div>
-          <article>
-            <MapPin
-              size={18}
-              strokeWidth={1.35}
-            />
-
-            <span>
-              <strong>
-                Origin
-              </strong>
-              <small>
-                where it came from
-              </small>
-            </span>
-          </article>
-
-          <article>
-            <Home
-              size={18}
-              strokeWidth={1.35}
-            />
-
-            <span>
-              <strong>
-                Place
-              </strong>
-              <small>
-                where it is now
-              </small>
-            </span>
-          </article>
-
-          <article>
-            <Heart
-              size={18}
-              strokeWidth={1.35}
-            />
-
-            <span>
-              <strong>
-                Meaning
-              </strong>
-              <small>
-                memory or date attached
-              </small>
-            </span>
-          </article>
-
-          <article>
-            <BoxIcon
-              size={18}
-              strokeWidth={1.35}
-            />
-
-            <span>
-              <strong>
-                Storage
-              </strong>
-              <small>
-                kept even when not displayed
-              </small>
-            </span>
-          </article>
-        </div>
-      </section>
-
-      <section className="keepsakes-rule">
-        <p>
-          A keepsake is one object with one history.
-          Moving it from the bedroom to a drawer,
-          attaching it to a Date or showing it in a
-          Memory never creates another copy.
-        </p>
-      </section>
-    </section>
-  );
-}
+      
 function DatesScreen() {
   const { session } = usePrivateDiario();
 
