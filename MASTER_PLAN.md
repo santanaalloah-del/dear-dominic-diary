@@ -57,6 +57,7 @@ Home is a living shared apartment, not a static hero image.
 - Photos of Alloah and Dominic can be placed in frames, boards, fridge, desk, wall etc.
 - Keepsakes can be displayed in Home or stored.
 - Apartment should gradually feel more lived-in as history accumulates.
+
 ## Chat
 The chat should feel familiar like WhatsApp/iMessage, but fully customizable and visually part of Diário.
 
@@ -211,6 +212,46 @@ Dates are a flow, not one screen.
 - final Date summary
 - choose what to keep as Keepsakes
 - saved places and future Date ideas
+
+### Date experience architecture — preserve this
+- `Places` is world exploration/discovery. The map remains the place to discover new venues.
+- `Here` is the current physical context during a live Date.
+- `Chat` is the primary surface where the Date is actually lived and conversation continues.
+- The `Date` itself is the continuous shared record/state of the encounter, not the only screen where the Date happens.
+- Leaving a venue does **not** finish the Date. A single Date can continue through `venue → walking → another venue → walking → ...`.
+- `Order / Buy` is available from `Here` and can also happen contextually through Chat; both write into the same Date/Venue state.
+- Dominic has agency during a Date. He can notice, prefer, suggest, order or buy things when it fits naturally instead of requiring Alloah to manually act for him.
+- Dominic's venue actions must be grounded in the canonical Venue World inventory supplied by the current Place. Never invent item IDs, menu/shop inventory, prices, orders or purchases.
+- If reliable real venue data is unavailable, clearly labeled in-world inspired items may be used; never present generated inventory as verified real-world menu/stock.
+- The Date event history should capture the whole outing: started, arrived, left place, walking, arrived somewhere else, orders, purchases, photos, notes and later relevant events.
+- Those same real objects/events should eventually feed Date history, Calendar, Timeline, Memories, Gallery and Keepsakes through links instead of duplication.
+- Future Dates must not become live just because they exist or because Alloah opened them. Lifecycle should be time-driven: `Upcoming → approaching time → Date Mode available → live → Finish → Past`, with an optional deliberate `Start early` action.
+- A far-future Date must never appear as the current live Date automatically.
+- The intended live-Date UX is primarily `Chat ↔ Here ↔ movement/next place`, without forcing Alloah to repeatedly return to Maps or administrative Date screens.
+- `Things Here` should surface the current Place's canonical Venue World automatically. Alloah should not have to pre-pick items merely so Dominic or the Date can see the venue inventory.
+
+### Date experience implementation status — 2026-09-29
+Completed and verified:
+- Date Experience state foundation and live-Date detection.
+- Chat Date Mode bar/bridge and direct entry into the active Date.
+- Movement flow: Here → Leave → Walking → Explore nearby → arrive at another place while keeping the same Date live.
+- Live `Go here` updates the Date's canonical Place and current Date Experience location.
+- `Here` panel shows the current place and Date Venue World.
+- Immediate Date Experience / Venue action refresh events keep Chat and Here synchronized.
+- Dominic receives active Date context in Chat: Date, current location, recent events and recent venue actions.
+- Dominic receives the current canonical Venue World inventory with exact item IDs.
+- Venue World generated from Maps/Places is persisted onto the canonical Place so `Here` and Chat use the same inventory.
+- Autonomous `date_venue_action` support is end-to-end: Dominic can clearly initiate an order/purchase in Chat, the action interpreter validates it against the current canonical item ID and action kind, the client records it with `actor: "dominic"`, and `Here` reflects the recorded action with Undo.
+- End-to-end autonomous venue action was manually verified in the live Date flow.
+
+### Next Date work
+- Make `Things Here` easier to use and surface the full useful venue catalog directly, not only the old pick-oriented presentation.
+- Simplify live navigation so normal use feels like `Chat ↔ Here ↔ next place`, with Maps used mainly for discovery.
+- Present the full Date event history clearly and automatically as the outing unfolds.
+- Finish the `Finish Date → Past` experience and final Date summary.
+- Finish the time-driven lifecycle for future Dates, including the far-future auto-live bug and optional intentional early start.
+- Connect Date events/objects cleanly into Calendar, Timeline, Memories, Gallery and Keepsakes without duplicating source objects.
+- Continue polishing the Dates screen so it feels like an experience, not an administrative panel.
 
 ## Diary
 - Alloah's diary and Dominic's diary are distinct
