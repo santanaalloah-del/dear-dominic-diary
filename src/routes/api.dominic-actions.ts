@@ -872,6 +872,26 @@ Use when Dominic actually sends, recommends, chooses, or adds a concrete song.
 
 Both the song title and artist must be known from the conversation.
 
+date_venue_action
+
+Use only during an active Date when liveDateContext says locationMode is "place".
+
+Dominic's actual reply must clearly commit to ordering or buying an item now.
+
+The itemId must exactly match an item in liveDateContext.availableVenueItems.
+
+Use the exact liveDateContext.dateId.
+
+Use venueAction "ordered" for food, drink, dessert, or snack items.
+
+Use venueAction "bought" for other item kinds.
+
+Do not use date_venue_action when Dominic merely wants, likes, suggests, considers, or asks about an item.
+
+Do not invent an item, itemId, purchase, or order.
+
+If the item is not present in availableVenueItems, return no date_venue_action.
+
 General rules:
 
 - Do not invent events.
