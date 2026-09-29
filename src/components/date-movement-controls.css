@@ -1,0 +1,43 @@
+.date-movement-controls {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 18px;
+  padding: 14px;
+  border: 1px solid rgba(92, 37, 49, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.date-movement-status {
+  display: grid;
+  gap: 3px;
+}
+
+.date-movement-status small {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  opacity: 0.58;
+}
+
+.date-movement-status strong {
+  font-size: 15px;
+}
+
+.date-movement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.date-movement-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-movement-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.68;
+}
