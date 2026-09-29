@@ -22,6 +22,15 @@ import {
 } from "@/components/connected-object-detail-screen";
 
 import {
+  DateVenueWorldPanel,
+} from "@/components/date-venue-world-panel";
+
+import {
+  beginDatePlaceSelection,
+  consumeDatePlaceReturnId,
+} from "@/lib/date-place-selection";
+
+import {
   beginDatePlaceSelection,
   consumeDatePlaceReturnId,
 } from "@/lib/date-place-selection";
@@ -2150,7 +2159,7 @@ export function DatesExperienceScreen({
               </>
             )}
 
-            {state ===
+          {state ===
               "past" &&
               selectedDate
                 .data
@@ -2163,6 +2172,18 @@ export function DatesExperienceScreen({
                   }
                 </p>
               )}
+
+            <DateVenueWorldPanel
+              userId={
+                session.user.id
+              }
+              date={
+                selectedDate
+              }
+              onDateUpdated={
+                replaceDate
+              }
+            />
           </section>
         )}
 
@@ -2170,7 +2191,7 @@ export function DatesExperienceScreen({
           <small>
             Things from this Date
           </small>
-
+          
           <h2>
             What belongs here
           </h2>
