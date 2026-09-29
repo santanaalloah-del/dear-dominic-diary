@@ -68,7 +68,8 @@ type DominicActionType =
   | "create_letter"
   | "create_memory"
   | "create_place"
-  | "create_song";
+  | "create_song"
+  | "date_venue_action";
 
 type DominicWorldAction =
   | {
