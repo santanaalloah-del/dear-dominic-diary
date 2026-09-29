@@ -211,29 +211,29 @@ export function VenueContentPanel({
         null,
     });
 
-  const saveIfCanonical =
-    async (
-      nextCatalog: VenueWorldCatalog
-    ) => {
-      if (!canonicalPlace) {
-        return;
-      }
+const saveIfCanonical =
+  async (
+    nextCatalog: VenueWorldCatalog
+  ) => {
+    const canonical =
+      canonicalPlace ??
+      (await ensureCanonicalPlace());
 
-      const updated =
-        await persistVenueWorldCatalog({
-          userId,
+    const updated =
+      await persistVenueWorldCatalog({
+        userId,
 
-          place:
-            canonicalPlace,
+        place:
+          canonical,
 
-          catalog:
-            nextCatalog,
-        });
+        catalog:
+          nextCatalog,
+      });
 
-      onPlaceUpdated(
-        updated
-      );
-    };
+    onPlaceUpdated(
+      updated
+    );
+  };
 
   const generate =
     async () => {
