@@ -25,7 +25,8 @@ import {
   DateVenueWorldPanel,
 } from "@/components/date-venue-world-panel";
 
-import { DateMovementControls } from "@/components/date-movement-controls";
+import { DateHerePanel } from "@/components/date-here-panel";
+
 import "@/components/date-movement-controls.css";
 
 import {
@@ -2097,8 +2098,7 @@ export function DatesExperienceScreen({
           state ===
             "past") && (
          <section
-  data-date-here
-  className={`date-flow-section ${
+           className={`date-flow-section ${
               state ===
               "live"
                 ? "date-flow-live"
@@ -2119,13 +2119,14 @@ export function DatesExperienceScreen({
             {state ===
               "live" && (
               <>
-                <DateMovementControls
+<DateHerePanel
   userId={session.user.id}
   date={selectedDate}
   saving={saving}
   onDateUpdated={replaceDate}
   onExploreNearby={exploreNearbyDuringDate}
 />
+
 
                 <div className="date-flow-field">
                   <label>
@@ -2197,17 +2198,14 @@ export function DatesExperienceScreen({
                 </p>
               )}
 
-            <DateVenueWorldPanel
-              userId={
-                session.user.id
-              }
-              date={
-                selectedDate
-              }
-              onDateUpdated={
-                replaceDate
-              }
-            />
+           {state === "past" && (
+  <DateVenueWorldPanel
+    userId={session.user.id}
+    date={selectedDate}
+    onDateUpdated={replaceDate}
+  />
+)}
+
           </section>
         )}
 
