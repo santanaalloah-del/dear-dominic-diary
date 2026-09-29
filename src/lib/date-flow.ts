@@ -40,6 +40,168 @@ function cleanString(
     : "";
 }
 
+function firstUsefulLine(
+  value: unknown
+) {
+  return cleanString(
+    value
+  )
+    .split("\n")
+    .map(
+      (
+        line
+      ) =>
+        line.trim()
+    )
+    .find(
+      Boolean
+    ) ?? "";
+}
+
+function deriveDateTitle({
+  title,
+  place,
+  note,
+  itinerary,
+  plannedFor,
+  timeHint,
+}: {
+  title?: string;
+  place?: string;
+  note?: string;
+  itinerary?: string;
+  plannedFor?: string | null;
+  timeHint?: string | null;
+}) {
+  const cleanTitle =
+    cleanString(
+      title
+    );
+
+  if (
+    cleanTitle
+  ) {
+    return cleanTitle;
+  }
+
+  const cleanPlace =
+    cleanString(
+      place
+    );
+
+  if (
+    cleanPlace
+  ) {
+    return cleanPlace;
+  }
+
+  const noteLine =
+    firstUsefulLine(
+      note
+    );
+
+  if (
+    noteLine
+  ) {
+    return noteLine.slice(
+      0,
+      80
+    );
+  }
+
+  const itineraryLine =
+    firstUsefulLine(
+      itinerary
+    );
+
+  if (
+    itineraryLine
+  ) {
+    return itineraryLine.slice(
+      0,
+      80
+    );
+  }
+
+  if (
+    plannedFor
+  ) {
+    const date =
+      new Date(
+        plannedFor
+      );
+
+    if (
+      !Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return `Date · ${new Intl.DateTimeFormat(
+        "en-US",
+        {
+          month:
+            "short",
+
+          day:
+            "numeric",
+
+          year:
+            "numeric",
+        }
+      ).format(
+        date
+      )}`;
+    }
+  }
+
+  if (
+    cleanString(
+      timeHint
+    )
+  ) {
+    return `Date · ${cleanString(
+      timeHint
+    )}`;
+  }
+
+  return "Untitled Date";
+}
+
+function hasDateContent({
+  title,
+  place,
+  plannedFor,
+  timeHint,
+  note,
+  itinerary,
+}: {
+  title?: string;
+  place?: string;
+  plannedFor?: string | null;
+  timeHint?: string | null;
+  note?: string;
+  itinerary?: string;
+}) {
+  return Boolean(
+    cleanString(
+      title
+    ) ||
+      cleanString(
+        place
+      ) ||
+      plannedFor ||
+      cleanString(
+        timeHint
+      ) ||
+      cleanString(
+        note
+      ) ||
+      cleanString(
+        itinerary
+      )
+  );
+}
+
 async function getDateItem({
   userId,
   dateId,
@@ -70,7 +232,9 @@ async function getDateItem({
       )
       .single();
 
-  if (error) {
+  if (
+    error
+  ) {
     throw error;
   }
 
@@ -78,7 +242,8 @@ async function getDateItem({
 }
 
 export function getDateFlowState(
-  date: DiarioItem
+  date:
+    DiarioItem
 ): DateFlowState {
   const explicit =
     date.data
@@ -112,132 +277,42 @@ export function getDateFlowState(
   return "idea";
 }
 
-export async function createDateIdea({
-  userId,
-  title,
-  place,
-  note,
-  itinerary,
-}: {
-  userId: string;
-  title: string;
-  place?: string;
-  note?: string;
-  itinerary?: string;
-}): Promise<DiarioItem> {
-  const cleanTitle =
-    title.trim();
-
-  if (
-    !cleanTitle
-  ) {
-    throw new Error(
-      "A Date idea needs a title."
-    );
-  }
-
-  const {
-    data,
-    error,
-  } =
-    await db
-      .from(
-        "diario_items"
-      )
-      .insert({
-        user_id:
-          userId,
-
-        kind:
-          "date",
-
-        owner:
-          "shared",
-
-        status:
-          "active",
-
-        title:
-          cleanTitle,
-
-        body:
-          note?.trim() ||
-          null,
-
-        event_at:
-          null,
-
-        planned_for:
-          null,
-
-        data: {
-          place:
-            place?.trim() ||
-            null,
-
-          itinerary:
-            itinerary?.trim() ||
-            null,
-
-          flow_state:
-            "idea",
-
-          time_known:
-            false,
-        },
-      })
-      .select("*")
-      .single();
-
-  if (
-    error
-  ) {
-    throw error;
-  }
-
-  return data as DiarioItem;
-}
-
-export async function createPlannedDate({
+export async function createContextualDate({
   userId,
   title,
   place,
   plannedFor,
   timeKnown,
+  timeHint,
   note,
   itinerary,
 }: {
   userId: string;
-  title: string;
-  place: string;
-  plannedFor: string;
-  timeKnown: boolean;
+  title?: string;
+  place?: string;
+  plannedFor?: string | null;
+  timeKnown?: boolean;
+  timeHint?: string | null;
   note?: string;
   itinerary?: string;
 }): Promise<DiarioItem> {
-  const cleanTitle =
-    title.trim();
-
-  const cleanPlace =
-    place.trim();
-
   if (
-    !cleanTitle
+    !hasDateContent({
+      title,
+      place,
+      plannedFor,
+      timeHint,
+      note,
+      itinerary,
+    })
   ) {
     throw new Error(
-      "A Date needs a title."
+      "Add at least one detail to the Date."
     );
   }
 
   if (
-    !cleanPlace
-  ) {
-    throw new Error(
-      "A planned Date needs a place."
-    );
-  }
-
-  if (
+    plannedFor &&
     Number.isNaN(
       new Date(
         plannedFor
@@ -245,9 +320,25 @@ export async function createPlannedDate({
     )
   ) {
     throw new Error(
-      "The Date needs a valid day."
+      "The Date has an invalid day."
     );
   }
+
+  const flowState:
+    DateFlowState =
+      plannedFor
+        ? "planned"
+        : "idea";
+
+  const finalTitle =
+    deriveDateTitle({
+      title,
+      place,
+      note,
+      itinerary,
+      plannedFor,
+      timeHint,
+    });
 
   const {
     data,
@@ -271,31 +362,48 @@ export async function createPlannedDate({
           "active",
 
         title:
-          cleanTitle,
+          finalTitle,
 
         body:
-          note?.trim() ||
+          cleanString(
+            note
+          ) ||
           null,
 
         event_at:
           null,
 
         planned_for:
-          plannedFor,
+          plannedFor ??
+          null,
 
         data: {
           place:
-            cleanPlace,
+            cleanString(
+              place
+            ) ||
+            null,
 
           itinerary:
-            itinerary?.trim() ||
+            cleanString(
+              itinerary
+            ) ||
             null,
 
           flow_state:
-            "planned",
+            flowState,
 
           time_known:
-            timeKnown,
+            Boolean(
+              plannedFor &&
+              timeKnown
+            ),
+
+          time_hint:
+            cleanString(
+              timeHint
+            ) ||
+            null,
         },
       })
       .select("*")
@@ -317,18 +425,35 @@ export async function updateDateDetails({
   place,
   plannedFor,
   timeKnown,
+  timeHint,
   note,
   itinerary,
 }: {
   userId: string;
   dateId: string;
-  title: string;
+  title?: string;
   place?: string;
   plannedFor?: string | null;
   timeKnown?: boolean;
+  timeHint?: string | null;
   note?: string;
   itinerary?: string;
 }): Promise<DiarioItem> {
+  if (
+    !hasDateContent({
+      title,
+      place,
+      plannedFor,
+      timeHint,
+      note,
+      itinerary,
+    })
+  ) {
+    throw new Error(
+      "A Date cannot be completely empty."
+    );
+  }
+
   const current =
     await getDateItem({
       userId,
@@ -345,21 +470,25 @@ export async function updateDateDetails({
 
   if (
     currentState ===
-      "idea" &&
-    plannedFor
+      "idea" ||
+    currentState ===
+      "planned"
   ) {
     nextState =
-      "planned";
+      plannedFor
+        ? "planned"
+        : "idea";
   }
 
-  if (
-    currentState ===
-      "planned" &&
-    !plannedFor
-  ) {
-    nextState =
-      "idea";
-  }
+  const finalTitle =
+    deriveDateTitle({
+      title,
+      place,
+      note,
+      itinerary,
+      plannedFor,
+      timeHint,
+    });
 
   const {
     data,
@@ -371,16 +500,16 @@ export async function updateDateDetails({
       )
       .update({
         title:
-          title.trim() ||
-          current.title ||
-          "Untitled Date",
+          finalTitle,
 
         body:
-          note?.trim() ||
+          cleanString(
+            note
+          ) ||
           null,
 
         planned_for:
-          plannedFor ||
+          plannedFor ??
           null,
 
         data: {
@@ -390,22 +519,31 @@ export async function updateDateDetails({
           ),
 
           place:
-            place?.trim() ||
+            cleanString(
+              place
+            ) ||
             null,
 
           itinerary:
-            itinerary?.trim() ||
+            cleanString(
+              itinerary
+            ) ||
             null,
 
           flow_state:
             nextState,
 
           time_known:
-            plannedFor
-              ? Boolean(
-                  timeKnown
-                )
-              : false,
+            Boolean(
+              plannedFor &&
+              timeKnown
+            ),
+
+          time_hint:
+            cleanString(
+              timeHint
+            ) ||
+            null,
         },
       })
       .eq(
@@ -532,7 +670,9 @@ export async function saveDateLiveNote({
           ),
 
           live_note:
-            note.trim() ||
+            cleanString(
+              note
+            ) ||
             null,
         },
       })
@@ -607,7 +747,9 @@ export async function finishDate({
             now,
 
           summary:
-            summary?.trim() ||
+            cleanString(
+              summary
+            ) ||
             null,
         },
       })
@@ -768,7 +910,8 @@ export async function setDateLook({
 }
 
 export async function getDateCandidateItems(
-  userId: string
+  userId:
+    string
 ): Promise<DiarioItem[]> {
   const {
     data,
@@ -930,7 +1073,8 @@ export async function getDateConnectedThings({
         []
       ).map(
         (
-          item: DiarioItem
+          item:
+            DiarioItem
         ) => [
           item.id,
           item,
@@ -1235,7 +1379,7 @@ export async function createMemoryFromDate({
             date.data
               ?.place
           ) ||
-          "a place we shared"
+          "somewhere together"
         }.`,
 
       eventAt:
