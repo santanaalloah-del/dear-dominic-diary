@@ -25,8 +25,12 @@ import {
   recordDateVenuePurchase,
   removeDateVenuePurchase,
   venueItemAction,
-  type DateVenueActor,
+  type DateVenuePurchase,
 } from "@/lib/date-venue-world";
+
+import {
+  notifyDateVenueActionChanged,
+} from "@/lib/date-live-events";
 
 import {
   formatVenuePrice,
@@ -50,13 +54,10 @@ type DateVenueWorldPanelProps = {
   ) => void;
 };
 
-type PickedItem = {
-  item: VenueWorldItem;
-
-  actor: DateVenueActor;
-
-  note: string | null;
-};
+type VenueFilter =
+  | "all"
+  | "picks"
+  | string;
 
 function sourceTierLabel(
   tier:
@@ -220,36 +221,54 @@ async function loadDatePlace({
 }
 
 function actionButtonLabel(
-  item: VenueWorldItem,
-  actor: DateVenueActor
+  item: VenueWorldItem
 ) {
-  const action =
-    venueItemAction(
-      item
-    );
-
-  if (
-    actor ===
-    "dominic"
-  ) {
-    return action ===
-      "ordered"
-      ? "He ordered it"
-      : "He bought it";
-  }
-
-  return action ===
-    "ordered"
+  return venueItemAction(
+    item
+  ) === "ordered"
     ? "Order"
     : "Buy";
 }
 
-function DateVenuePickCard({
+function groupItems(
+  items: VenueWorldItem[]
+) {
+  const grouped =
+    new Map<
+      string,
+      VenueWorldItem[]
+    >();
+
+  for (
+    const item of
+    items
+  ) {
+    const current =
+      grouped.get(
+        item.section
+      ) ?? [];
+
+    current.push(
+      item
+    );
+
+    grouped.set(
+      item.section,
+      current
+    );
+  }
+
+  return Array.from(
+    grouped.entries()
+  );
+}
+
+function DateVenueItemCard({
   userId,
   date,
   place,
   catalog,
-  picked,
+  item,
   savingKey,
   onSaving,
   onDateUpdated,
@@ -263,7 +282,7 @@ function DateVenuePickCard({
 
   catalog: VenueWorldCatalog;
 
-  picked: PickedItem;
+  item: VenueWorldItem;
 
   savingKey: string | null;
 
@@ -279,14 +298,7 @@ function DateVenuePickCard({
     value: string | null
   ) => void;
 }) {
-  const {
-    item,
-    actor,
-    note,
-  } =
-    picked;
-
-  const purchase =
+  const myPurchase =
     findDateVenuePurchase({
       date,
 
@@ -296,19 +308,53 @@ function DateVenuePickCard({
       itemId:
         item.id,
 
-      actor,
+      actor:
+        "alloah",
     });
 
-  const key =
-    `${actor}:${item.id}`;
+  const dominicPurchase =
+    findDateVenuePurchase({
+      date,
+
+      placeId:
+        place.id,
+
+      itemId:
+        item.id,
+
+      actor:
+        "dominic",
+    });
+
+  const myPick =
+    catalog
+      .alloahPickIds
+      .includes(
+        item.id
+      );
+
+  const dominicPick =
+    catalog
+      .dominicPicks
+      .find(
+        (
+          pick
+        ) =>
+          pick.itemId ===
+          item.id
+      ) ??
+    null;
+
+  const myKey =
+    `alloah:${item.id}`;
 
   const busy =
     savingKey !==
     null;
 
-  async function record() {
+  async function recordMine() {
     onSaving(
-      key
+      myKey
     );
 
     onError(
@@ -328,11 +374,16 @@ function DateVenuePickCard({
 
           item,
 
-          actor,
+          actor:
+            "alloah",
         });
 
       onDateUpdated(
         updated
+      );
+
+      notifyDateVenueActionChanged(
+        updated.id
       );
     } catch (
       saveError
@@ -343,10 +394,7 @@ function DateVenuePickCard({
       );
 
       onError(
-        actor ===
-          "dominic"
-          ? "Dominic's choice could not be recorded."
-          : "That order or purchase could not be recorded."
+        "That order or purchase could not be recorded."
       );
     } finally {
       onSaving(
@@ -355,13 +403,12 @@ function DateVenuePickCard({
     }
   }
 
-  async function undo() {
-    if (
-      !purchase
-    ) {
-      return;
-    }
-
+  async function undo(
+    purchase:
+      DateVenuePurchase,
+    key:
+      string
+  ) {
     onSaving(
       key
     );
@@ -384,6 +431,10 @@ function DateVenuePickCard({
       onDateUpdated(
         updated
       );
+
+      notifyDateVenueActionChanged(
+        updated.id
+      );
     } catch (
       removeError
     ) {
@@ -404,42 +455,38 @@ function DateVenuePickCard({
 
   return (
     <article
-      className={`date-venue-pick ${
-        actor ===
-        "dominic"
-          ? "dominic"
-          : "alloah"
+      className={`date-venue-item ${
+        dominicPick
+          ? "dominic-pick"
+          : ""
       } ${
-        purchase
+        myPurchase ||
+        dominicPurchase
           ? "recorded"
           : ""
       }`}
     >
-      <div className="date-venue-pick-main">
-        <div className="date-venue-pick-title">
-          {actor ===
-          "dominic" ? (
-            <UserRound
-              size={15}
-            />
-          ) : (
-            <ShoppingBag
-              size={15}
-            />
-          )}
-
+      <div className="date-venue-item-main">
+        <div className="date-venue-item-top">
           <div>
-            <small>
-              {actor ===
-              "dominic"
-                ? "Dominic's pick"
-                : "Your pick"}
-            </small>
-
             <strong>
               {item.name}
             </strong>
+
+            <small>
+              {item.section}
+            </small>
           </div>
+
+          {formatVenuePrice(
+            item.priceUsdCents
+          ) && (
+            <span className="date-venue-item-price">
+              {formatVenuePrice(
+                item.priceUsdCents
+              )}
+            </span>
+          )}
         </div>
 
         {item.description && (
@@ -448,86 +495,139 @@ function DateVenuePickCard({
           </p>
         )}
 
-        {note && (
-          <blockquote>
-            “{note}”
-          </blockquote>
+        {(myPick ||
+          dominicPick) && (
+          <div className="date-venue-item-picks">
+            {myPick && (
+              <span>
+                <ShoppingBag
+                  size={12}
+                />
+
+                Your pick
+              </span>
+            )}
+
+            {dominicPick && (
+              <span className="dominic">
+                <UserRound
+                  size={12}
+                />
+
+                Dominic picked
+              </span>
+            )}
+          </div>
         )}
 
-        <div className="date-venue-pick-meta">
-          {formatVenuePrice(
-            item.priceUsdCents
-          ) && (
-            <span>
-              {formatVenuePrice(
-                item.priceUsdCents
-              )}
-            </span>
-          )}
-
-          <span>
-            {item.section}
-          </span>
-        </div>
+        {dominicPick
+          ?.note && (
+          <blockquote>
+            “
+            {dominicPick.note}
+            ”
+          </blockquote>
+        )}
       </div>
 
-      {purchase ? (
-        <div className="date-venue-recorded-action">
-          <span>
-            <Check
-              size={14}
-            />
+      <div className="date-venue-item-actions">
+        {myPurchase ? (
+          <div className="date-venue-recorded-action">
+            <span>
+              <Check
+                size={14}
+              />
 
-            {dateVenueActionLabel(
-              purchase
-            )}
-          </span>
+              {dateVenueActionLabel(
+                myPurchase
+              )}
+            </span>
 
+            <button
+              type="button"
+              disabled={
+                busy
+              }
+              onClick={() =>
+                void undo(
+                  myPurchase,
+                  myKey
+                )
+              }
+            >
+              {savingKey ===
+              myKey ? (
+                <LoaderCircle
+                  className="spin"
+                  size={14}
+                />
+              ) : (
+                "Undo"
+              )}
+            </button>
+          </div>
+        ) : (
           <button
             type="button"
+            className="date-venue-record-button"
             disabled={
               busy
             }
             onClick={() =>
-              void undo()
+              void recordMine()
             }
           >
             {savingKey ===
-            key ? (
+            myKey ? (
               <LoaderCircle
                 className="spin"
-                size={14}
+                size={15}
               />
             ) : (
-              "Undo"
+              actionButtonLabel(
+                item
+              )
             )}
           </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="date-venue-record-button"
-          disabled={
-            busy
-          }
-          onClick={() =>
-            void record()
-          }
-        >
-          {savingKey ===
-          key ? (
-            <LoaderCircle
-              className="spin"
-              size={15}
-            />
-          ) : (
-            actionButtonLabel(
-              item,
-              actor
-            )
-          )}
-        </button>
-      )}
+        )}
+
+        {dominicPurchase && (
+          <div className="date-venue-recorded-action dominic">
+            <span>
+              <Check
+                size={14}
+              />
+
+              {dateVenueActionLabel(
+                dominicPurchase
+              )}
+            </span>
+
+            <button
+              type="button"
+              disabled={
+                busy
+              }
+              onClick={() =>
+                void undo(
+                  dominicPurchase,
+                  `dominic:${item.id}`
+                )
+              }
+            >
+              {savingKey ===
+              `dominic:${item.id}` ? (
+                <LoaderCircle
+                  className="spin"
+                  size={14}
+                />
+              ) : (
+                "Undo"
+              )}
+            </button>
+          </div>
+        )}
+      </div>
     </article>
   );
 }
@@ -567,6 +667,14 @@ export function DateVenueWorldPanel({
       null
     );
 
+  const [
+    activeFilter,
+    setActiveFilter,
+  ] =
+    useState<VenueFilter>(
+      "all"
+    );
+
   useEffect(() => {
     let active =
       true;
@@ -592,6 +700,10 @@ export function DateVenueWorldPanel({
         ) {
           setPlace(
             loadedPlace
+          );
+
+          setActiveFilter(
+            "all"
           );
         }
       } catch (
@@ -648,77 +760,120 @@ export function DateVenueWorldPanel({
       ]
     );
 
-  const picks =
-    useMemo<
-      PickedItem[]
-    >(() => {
+  const sections =
+    useMemo(
+      () =>
+        catalog
+          ? Array.from(
+              new Set(
+                catalog.items.map(
+                  (
+                    item
+                  ) =>
+                    item.section
+                )
+              )
+            )
+          : [],
+      [
+        catalog,
+      ]
+    );
+
+  const visibleItems =
+    useMemo(() => {
       if (
         !catalog
       ) {
         return [];
       }
 
-      const result:
-        PickedItem[] =
-        [];
-
-      for (
-        const itemId of
-        catalog.alloahPickIds
+      if (
+        activeFilter ===
+        "all"
       ) {
-        const item =
-          catalog.items.find(
-            (
-              candidate
-            ) =>
-              candidate.id ===
-              itemId
-          );
-
-        if (
-          item
-        ) {
-          result.push({
-            item,
-
-            actor:
-              "alloah",
-
-            note:
-              null,
-          });
-        }
+        return catalog.items;
       }
 
-      for (
-        const dominicPick of
-        catalog.dominicPicks
+      if (
+        activeFilter ===
+        "picks"
       ) {
-        const item =
-          catalog.items.find(
-            (
-              candidate
-            ) =>
-              candidate.id ===
-              dominicPick.itemId
+        const dominicIds =
+          new Set(
+            catalog
+              .dominicPicks
+              .map(
+                (
+                  pick
+                ) =>
+                  pick.itemId
+              )
           );
 
-        if (
-          item
-        ) {
-          result.push({
-            item,
-
-            actor:
-              "dominic",
-
-            note:
-              dominicPick.note,
-          });
-        }
+        return catalog
+          .items
+          .filter(
+            (
+              item
+            ) =>
+              catalog
+                .alloahPickIds
+                .includes(
+                  item.id
+                ) ||
+              dominicIds.has(
+                item.id
+              )
+          );
       }
 
-      return result;
+      return catalog
+        .items
+        .filter(
+          (
+            item
+          ) =>
+            item.section ===
+            activeFilter
+        );
+    }, [
+      activeFilter,
+      catalog,
+    ]);
+
+  const groupedItems =
+    useMemo(
+      () =>
+        groupItems(
+          visibleItems
+        ),
+      [
+        visibleItems,
+      ]
+    );
+
+  const pickCount =
+    useMemo(() => {
+      if (
+        !catalog
+      ) {
+        return 0;
+      }
+
+      return new Set([
+        ...catalog
+          .alloahPickIds,
+
+        ...catalog
+          .dominicPicks
+          .map(
+            (
+              pick
+            ) =>
+              pick.itemId
+          ),
+      ]).size;
     }, [
       catalog,
     ]);
@@ -734,7 +889,7 @@ export function DateVenueWorldPanel({
             size={16}
           />
 
-          Opening our picks…
+          Opening what's here…
         </div>
       </section>
     );
@@ -768,7 +923,11 @@ export function DateVenueWorldPanel({
         </header>
 
         <p className="date-venue-world-empty">
-          Nothing has been picked here yet. Open this Place first to explore its menu, shop or little things.
+          There isn't a Things Here catalog for this place yet.
+        </p>
+
+        <p className="date-venue-world-hint">
+          Explore this Place once from Places to build its menu, shop or little things. After that, it will appear here automatically.
         </p>
 
         {error && (
@@ -793,9 +952,11 @@ export function DateVenueWorldPanel({
           </strong>
         </div>
 
-        <ShoppingBag
-          size={18}
-        />
+        <span className="date-venue-world-count">
+          {catalog.items.length}
+          {" "}
+          things
+        </span>
       </header>
 
       <div className="date-venue-world-source">
@@ -827,49 +988,145 @@ export function DateVenueWorldPanel({
         </p>
       )}
 
-      {picks.length >
+      <div
+        className="date-venue-filters"
+        aria-label="Filter things here"
+      >
+        <button
+          type="button"
+          className={
+            activeFilter ===
+            "all"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setActiveFilter(
+              "all"
+            )
+          }
+        >
+          All
+        </button>
+
+        {pickCount >
+          0 && (
+          <button
+            type="button"
+            className={
+              activeFilter ===
+              "picks"
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setActiveFilter(
+                "picks"
+              )
+            }
+          >
+            Our picks
+          </button>
+        )}
+
+        {sections.map(
+          (
+            section
+          ) => (
+            <button
+              key={
+                section
+              }
+              type="button"
+              className={
+                activeFilter ===
+                section
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setActiveFilter(
+                  section
+                )
+              }
+            >
+              {section}
+            </button>
+          )
+        )}
+      </div>
+
+      {groupedItems.length >
       0 ? (
-        <div className="date-venue-picks">
-          {picks.map(
-            (
-              picked
-            ) => (
-              <DateVenuePickCard
-                key={`${picked.actor}:${picked.item.id}`}
-                userId={
-                  userId
+        <div className="date-venue-sections">
+          {groupedItems.map(
+            ([
+              section,
+              items,
+            ]) => (
+              <section
+                key={
+                  section
                 }
-                date={
-                  date
-                }
-                place={
-                  place
-                }
-                catalog={
-                  catalog
-                }
-                picked={
-                  picked
-                }
-                savingKey={
-                  savingKey
-                }
-                onSaving={
-                  setSavingKey
-                }
-                onDateUpdated={
-                  onDateUpdated
-                }
-                onError={
-                  setError
-                }
-              />
+                className="date-venue-section"
+              >
+                <header>
+                  <strong>
+                    {section}
+                  </strong>
+
+                  <small>
+                    {items.length}
+                  </small>
+                </header>
+
+                <div className="date-venue-items">
+                  {items.map(
+                    (
+                      item
+                    ) => (
+                      <DateVenueItemCard
+                        key={
+                          item.id
+                        }
+                        userId={
+                          userId
+                        }
+                        date={
+                          date
+                        }
+                        place={
+                          place
+                        }
+                        catalog={
+                          catalog
+                        }
+                        item={
+                          item
+                        }
+                        savingKey={
+                          savingKey
+                        }
+                        onSaving={
+                          setSavingKey
+                        }
+                        onDateUpdated={
+                          onDateUpdated
+                        }
+                        onError={
+                          setError
+                        }
+                      />
+                    )
+                  )}
+                </div>
+              </section>
             )
           )}
         </div>
       ) : (
         <p className="date-venue-world-empty">
-          Neither of you has picked anything here yet.
+          Nothing matches this filter.
         </p>
       )}
     </section>

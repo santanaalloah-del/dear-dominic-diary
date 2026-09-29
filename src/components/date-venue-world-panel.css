@@ -29,6 +29,16 @@
   font-size: 1rem;
 }
 
+.date-venue-world-count {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(117, 54, 67, 0.07);
+  color: rgba(88, 49, 57, 0.7);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
 .date-venue-world-source {
   display: flex;
   flex-wrap: wrap;
@@ -56,15 +66,23 @@
 
 .date-venue-world-truth,
 .date-venue-world-empty,
-.date-venue-world-error {
+.date-venue-world-error,
+.date-venue-world-hint {
   margin: 0;
   font-size: 0.78rem;
   line-height: 1.5;
 }
 
 .date-venue-world-truth,
-.date-venue-world-empty {
+.date-venue-world-empty,
+.date-venue-world-hint {
   color: rgba(88, 49, 57, 0.67);
+}
+
+.date-venue-world-hint {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(117, 54, 67, 0.05);
 }
 
 .date-venue-world-error {
@@ -79,12 +97,72 @@
   font-size: 0.82rem;
 }
 
-.date-venue-picks {
+.date-venue-filters {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 1px 1px 3px;
+  scrollbar-width: none;
+}
+
+.date-venue-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.date-venue-filters button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid rgba(117, 54, 67, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(88, 49, 57, 0.72);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.date-venue-filters button.active {
+  border-color: #754555;
+  background: #754555;
+  color: #fffaf8;
+}
+
+.date-venue-sections {
+  display: grid;
+  gap: 18px;
+}
+
+.date-venue-section {
+  display: grid;
+  gap: 9px;
+}
+
+.date-venue-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px;
+}
+
+.date-venue-section > header strong {
+  color: #6d3d4b;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.date-venue-section > header small {
+  color: rgba(88, 49, 57, 0.48);
+  font-size: 0.68rem;
+}
+
+.date-venue-items {
   display: grid;
   gap: 10px;
 }
 
-.date-venue-pick {
+.date-venue-item {
   display: grid;
   gap: 12px;
   padding: 13px;
@@ -93,64 +171,90 @@
   background: rgba(255, 255, 255, 0.72);
 }
 
-.date-venue-pick.dominic {
-  background: rgba(247, 241, 239, 0.9);
+.date-venue-item.dominic-pick {
+  background: rgba(247, 241, 239, 0.92);
 }
 
-.date-venue-pick.recorded {
-  border-color: rgba(86, 115, 80, 0.2);
+.date-venue-item.recorded {
+  border-color: rgba(86, 115, 80, 0.22);
 }
 
-.date-venue-pick-main {
+.date-venue-item-main {
   display: grid;
   gap: 8px;
 }
 
-.date-venue-pick-title {
+.date-venue-item-top {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.date-venue-pick-title > div {
+.date-venue-item-top > div {
   display: grid;
   gap: 2px;
 }
 
-.date-venue-pick-title small {
-  color: rgba(88, 49, 57, 0.56);
-  font-size: 0.68rem;
-}
-
-.date-venue-pick-title strong {
+.date-venue-item-top strong {
   color: #5f3440;
   font-size: 0.9rem;
 }
 
-.date-venue-pick-main > p,
-.date-venue-pick-main blockquote {
+.date-venue-item-top small {
+  color: rgba(88, 49, 57, 0.5);
+  font-size: 0.66rem;
+}
+
+.date-venue-item-price {
+  flex: 0 0 auto;
+  color: #6f3f4d;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.date-venue-item-main > p,
+.date-venue-item-main blockquote {
   margin: 0;
   color: rgba(88, 49, 57, 0.72);
   font-size: 0.77rem;
   line-height: 1.45;
 }
 
-.date-venue-pick-main blockquote {
+.date-venue-item-main blockquote {
+  padding: 8px 10px;
+  border-left: 2px solid rgba(117, 54, 67, 0.18);
+  border-radius: 0 10px 10px 0;
+  background: rgba(117, 54, 67, 0.04);
   font-style: italic;
 }
 
-.date-venue-pick-meta {
+.date-venue-item-picks {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px;
 }
 
-.date-venue-pick-meta span {
+.date-venue-item-picks span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 7px;
   border-radius: 999px;
   background: rgba(117, 54, 67, 0.06);
   color: rgba(88, 49, 57, 0.68);
-  font-size: 0.67rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.date-venue-item-picks span.dominic {
+  background: rgba(104, 82, 91, 0.08);
+  color: #6d4a55;
+}
+
+.date-venue-item-actions {
+  display: grid;
+  gap: 8px;
 }
 
 .date-venue-record-button {
@@ -170,6 +274,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-height: 34px;
+  padding: 6px 8px;
+  border-radius: 11px;
+  background: rgba(86, 115, 80, 0.07);
+}
+
+.date-venue-recorded-action.dominic {
+  background: rgba(117, 54, 67, 0.055);
 }
 
 .date-venue-recorded-action > span {
@@ -179,6 +291,10 @@
   color: #526c4d;
   font-size: 0.75rem;
   font-weight: 700;
+}
+
+.date-venue-recorded-action.dominic > span {
+  color: #754555;
 }
 
 .date-venue-recorded-action button {
@@ -197,6 +313,16 @@
 
 .date-venue-world-panel .spin {
   animation: date-venue-spin 0.8s linear infinite;
+}
+
+@media (min-width: 720px) {
+  .date-venue-items {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
 }
 
 @keyframes date-venue-spin {
