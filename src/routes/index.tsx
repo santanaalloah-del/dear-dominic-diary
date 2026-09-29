@@ -6819,346 +6819,192 @@ function PlacesScreen() {
 }
 
 function KeepsakesScreen() {
-  const {
-    session,
-  } =
-    usePrivateDiario();
+  const { session } = usePrivateDiario();
 
-  const [
-    keepsakeView,
-    setKeepsakeView,
-  ] =
-    useState<
-      | "all"
-      | "home"
-      | "stored"
-    >("all");
+  const [keepsakeView, setKeepsakeView] =
+    useState<"all" | "home" | "stored">("all");
 
-  const [
-    keepsakes,
-    setKeepsakes,
-  ] =
-    useState<
-      DiarioItem[]
-    >([]);
+  const [keepsakes, setKeepsakes] =
+    useState<DiarioItem[]>([]);
 
-  const [
-    selectedKeepsakeId,
-    setSelectedKeepsakeId,
-  ] =
-    useState<
-      string | null
-    >(null);
+  const [selectedKeepsakeId, setSelectedKeepsakeId] =
+    useState<string | null>(null);
 
-  const [
-    connectionDetailId,
-    setConnectionDetailId,
-  ] =
-    useState<
-      string | null
-    >(null);
+  const [connectionDetailId, setConnectionDetailId] =
+    useState<string | null>(null);
 
-  const [
-    loadingKeepsakes,
-    setLoadingKeepsakes,
-  ] =
+  const [loadingKeepsakes, setLoadingKeepsakes] =
     useState(true);
 
-  const [
-    keepsakeError,
-    setKeepsakeError,
-  ] =
-    useState<
-      string | null
-    >(null);
+  const [keepsakeError, setKeepsakeError] =
+    useState<string | null>(null);
 
-  const [
-    addingKeepsake,
-    setAddingKeepsake,
-  ] =
+  const [addingKeepsake, setAddingKeepsake] =
     useState(false);
 
-  const [
-    keepsakeTitle,
-    setKeepsakeTitle,
-  ] =
+  const [savingKeepsake, setSavingKeepsake] =
+    useState(false);
+
+  const [editingKeepsake, setEditingKeepsake] =
+    useState(false);
+
+  const [managingConnections, setManagingConnections] =
+    useState(false);
+
+  const [loadingConnections, setLoadingConnections] =
+    useState(false);
+
+  const [keepsakeTitle, setKeepsakeTitle] =
     useState("");
 
-  const [
-    keepsakeType,
-    setKeepsakeType,
-  ] =
+  const [keepsakeType, setKeepsakeType] =
     useState("object");
 
-  const [
-    keepsakeLocation,
-    setKeepsakeLocation,
-  ] =
-    useState<
-      | "home"
-      | "stored"
-    >("home");
+  const [keepsakeLocation, setKeepsakeLocation] =
+    useState<"home" | "stored">("home");
 
-  const [
-    keepsakeRoom,
-    setKeepsakeRoom,
-  ] =
+  const [keepsakeRoom, setKeepsakeRoom] =
     useState("");
 
-  const [
-    keepsakeOrigin,
-    setKeepsakeOrigin,
-  ] =
+  const [keepsakeOrigin, setKeepsakeOrigin] =
     useState("");
 
-  const [
-    keepsakeNote,
-    setKeepsakeNote,
-  ] =
+  const [keepsakeNote, setKeepsakeNote] =
     useState("");
 
-  const [
-    editingKeepsake,
-    setEditingKeepsake,
-  ] =
-    useState(false);
-
-  const [
-    editTitle,
-    setEditTitle,
-  ] =
+  const [editTitle, setEditTitle] =
     useState("");
 
-  const [
-    editType,
-    setEditType,
-  ] =
+  const [editType, setEditType] =
     useState("object");
 
-  const [
-    editLocation,
-    setEditLocation,
-  ] =
-    useState<
-      | "home"
-      | "stored"
-    >("home");
+  const [editLocation, setEditLocation] =
+    useState<"home" | "stored">("home");
 
-  const [
-    editRoom,
-    setEditRoom,
-  ] =
+  const [editRoom, setEditRoom] =
     useState("");
 
-  const [
-    editOrigin,
-    setEditOrigin,
-  ] =
+  const [editOrigin, setEditOrigin] =
     useState("");
 
-  const [
-    editNote,
-    setEditNote,
-  ] =
+  const [editNote, setEditNote] =
     useState("");
 
-  const [
-    connections,
-    setConnections,
-  ] =
-    useState<
-      DiarioItem[]
-    >([]);
+  const [connections, setConnections] =
+    useState<DiarioItem[]>([]);
 
-  const [
-    connectionChoices,
-    setConnectionChoices,
-  ] =
-    useState<
-      DiarioItem[]
-    >([]);
-
-  const [
-    managingConnections,
-    setManagingConnections,
-  ] =
-    useState(false);
-
-  const [
-    loadingConnections,
-    setLoadingConnections,
-  ] =
-    useState(false);
-
-  const [
-    savingKeepsake,
-    setSavingKeepsake,
-  ] =
-    useState(false);
+  const [connectionChoices, setConnectionChoices] =
+    useState<DiarioItem[]>([]);
 
   const selectedKeepsake =
     keepsakes.find(
-      (
-        item
-      ) =>
-        item.id ===
-        selectedKeepsakeId
-    ) ??
-    null;
+      (item) =>
+        item.id === selectedKeepsakeId
+    ) ?? null;
 
   const locationOf = (
-    item:
-      DiarioItem
-  ):
-    | "home"
-    | "stored" => {
-    return item.data
-      ?.location ===
-      "stored"
+    item: DiarioItem
+  ): "home" | "stored" =>
+    item.data?.location === "stored"
       ? "stored"
       : "home";
-  };
 
   const replaceKeepsake = (
-    updated:
-      DiarioItem
+    updated: DiarioItem
   ) => {
-    setKeepsakes(
-      (
-        current
-      ) =>
-        current.map(
-          (
-            item
-          ) =>
-            item.id ===
-            updated.id
-              ? updated
-              : item
-        )
+    setKeepsakes((current) =>
+      current.map((item) =>
+        item.id === updated.id
+          ? updated
+          : item
+      )
     );
   };
 
-  const refreshKeepsakes =
-    async () => {
-      setLoadingKeepsakes(
-        true
+  const refreshKeepsakes = async () => {
+    setLoadingKeepsakes(true);
+    setKeepsakeError(null);
+
+    try {
+      const loaded =
+        await getKeepsakes(
+          session.user.id
+        );
+
+      setKeepsakes(loaded);
+    } catch (error) {
+      console.error(
+        "Could not load Keepsakes:",
+        error
       );
 
       setKeepsakeError(
-        null
+        "Keepsakes could not be opened."
+      );
+    } finally {
+      setLoadingKeepsakes(false);
+    }
+  };
+
+  const refreshConnections = async (
+    keepsakeId: string
+  ) => {
+    setLoadingConnections(true);
+
+    try {
+      const {
+        getKeepsakeConnections,
+        getKeepsakeConnectionCandidates,
+      } = await import(
+        "@/lib/keepsake-flow"
       );
 
-      try {
-        const loaded =
-          await getKeepsakes(
-            session.user.id
-          );
+      const [
+        loadedConnections,
+        loadedChoices,
+      ] = await Promise.all([
+        getKeepsakeConnections({
+          userId: session.user.id,
+          keepsakeId,
+        }),
 
-        setKeepsakes(
-          loaded
-        );
-      } catch (
-        loadError
-      ) {
-        console.error(
-          "Could not load Keepsakes:",
-          loadError
-        );
+        getKeepsakeConnectionCandidates(
+          session.user.id
+        ),
+      ]);
 
-        setKeepsakeError(
-          "Keepsakes could not be opened."
-        );
-      } finally {
-        setLoadingKeepsakes(
-          false
-        );
-      }
-    };
-
-  const refreshConnections =
-    async (
-      keepsakeId:
-        string
-    ) => {
-      setLoadingConnections(
-        true
-      );
-
-      try {
-        const {
-          getKeepsakeConnections,
-          getKeepsakeConnectionCandidates,
-        } =
-          await import(
-            "@/lib/keepsake-flow"
-          );
-
-        const [
-          loadedConnections,
-          loadedChoices,
-        ] =
-          await Promise.all([
-            getKeepsakeConnections({
-              userId:
-                session.user.id,
-
-              keepsakeId,
-            }),
-
-            getKeepsakeConnectionCandidates(
-              session.user.id
-            ),
-          ]);
-
-        setConnections(
-          loadedConnections.map(
-            (
-              connection
-            ) =>
-              connection.item
-          )
-        );
-
-        setConnectionChoices(
-          loadedChoices
-        );
-      } catch (
-        loadError
-      ) {
-        console.error(
-          "Could not load Keepsake connections:",
-          loadError
-        );
-
-        setKeepsakeError(
-          "The keepsake history could not be opened."
-        );
-      } finally {
-        setLoadingConnections(
-          false
-        );
-      }
-    };
-
-  useEffect(() => {
-    void refreshKeepsakes();
-  }, [
-    session.user.id,
-  ]);
-
-  useEffect(() => {
-    if (
-      !selectedKeepsakeId
-    ) {
       setConnections(
-        []
+        loadedConnections.map(
+          (connection) =>
+            connection.item
+        )
       );
 
       setConnectionChoices(
-        []
+        loadedChoices
+      );
+    } catch (error) {
+      console.error(
+        "Could not load Keepsake connections:",
+        error
       );
 
+      setKeepsakeError(
+        "The keepsake history could not be opened."
+      );
+    } finally {
+      setLoadingConnections(false);
+    }
+  };
+
+  useEffect(() => {
+    void refreshKeepsakes();
+  }, [session.user.id]);
+
+  useEffect(() => {
+    if (!selectedKeepsakeId) {
+      setConnections([]);
+      setConnectionChoices([]);
       return;
     }
 
@@ -7171,79 +7017,1235 @@ function KeepsakesScreen() {
   ]);
 
   const visibleKeepsakes =
-    keepsakeView ===
-    "all"
+    keepsakeView === "all"
       ? keepsakes
       : keepsakes.filter(
-          (
-            item
-          ) =>
-            locationOf(
-              item
-            ) ===
+          (item) =>
+            locationOf(item) ===
             keepsakeView
         );
 
   const homeKeepsakes =
     keepsakes.filter(
-      (
-        item
-      ) =>
-        locationOf(
-          item
-        ) ===
-        "home"
+      (item) =>
+        locationOf(item) === "home"
     );
 
   const storedKeepsakes =
     keepsakes.filter(
-      (
-        item
-      ) =>
-        locationOf(
-          item
-        ) ===
-        "stored"
+      (item) =>
+        locationOf(item) === "stored"
     );
 
-  const resetNewKeepsake =
-    () => {
-      setAddingKeepsake(
-        false
+  const resetNewKeepsake = () => {
+    setAddingKeepsake(false);
+    setKeepsakeTitle("");
+    setKeepsakeType("object");
+    setKeepsakeLocation("home");
+    setKeepsakeRoom("");
+    setKeepsakeOrigin("");
+    setKeepsakeNote("");
+  };
+
+  const saveKeepsake = async () => {
+    if (!keepsakeTitle.trim()) {
+      return;
+    }
+
+    setSavingKeepsake(true);
+    setKeepsakeError(null);
+
+    try {
+      const saved =
+        await createKeepsake({
+          userId:
+            session.user.id,
+
+          title:
+            keepsakeTitle,
+
+          keepsakeType,
+
+          location:
+            keepsakeLocation,
+
+          room:
+            keepsakeLocation === "home"
+              ? keepsakeRoom
+              : undefined,
+
+          origin:
+            keepsakeOrigin,
+
+          note:
+            keepsakeNote,
+        });
+
+      setKeepsakes((current) => [
+        saved,
+        ...current,
+      ]);
+
+      resetNewKeepsake();
+
+      setSelectedKeepsakeId(
+        saved.id
+      );
+    } catch (error) {
+      console.error(
+        "Could not create Keepsake:",
+        error
       );
 
-      setKeepsakeTitle(
-        ""
+      setKeepsakeError(
+        "The keepsake could not be saved."
+      );
+    } finally {
+      setSavingKeepsake(false);
+    }
+  };
+
+  const beginEditing = (
+    item: DiarioItem
+  ) => {
+    setEditTitle(
+      item.title ?? ""
+    );
+
+    setEditType(
+      typeof item.data?.keepsakeType ===
+        "string"
+        ? item.data.keepsakeType
+        : "object"
+    );
+
+    setEditLocation(
+      locationOf(item)
+    );
+
+    setEditRoom(
+      typeof item.data?.room ===
+        "string"
+        ? item.data.room
+        : ""
+    );
+
+    setEditOrigin(
+      typeof item.data?.origin ===
+        "string"
+        ? item.data.origin
+        : ""
+    );
+
+    setEditNote(
+      item.body ?? ""
+    );
+
+    setEditingKeepsake(true);
+  };
+
+  const saveEdit = async () => {
+    if (!selectedKeepsake) {
+      return;
+    }
+
+    setSavingKeepsake(true);
+    setKeepsakeError(null);
+
+    try {
+      const {
+        updateKeepsakeDetails,
+      } = await import(
+        "@/lib/keepsake-flow"
       );
 
-      setKeepsakeType(
-        "object"
+      const updated =
+        await updateKeepsakeDetails({
+          userId:
+            session.user.id,
+
+          keepsake:
+            selectedKeepsake,
+
+          title:
+            editTitle,
+
+          keepsakeType:
+            editType,
+
+          location:
+            editLocation,
+
+          room:
+            editRoom,
+
+          origin:
+            editOrigin,
+
+          note:
+            editNote,
+        });
+
+      replaceKeepsake(updated);
+      setEditingKeepsake(false);
+    } catch (error) {
+      console.error(
+        "Could not update Keepsake:",
+        error
       );
 
-      setKeepsakeLocation(
-        "home"
+      setKeepsakeError(
+        "The keepsake could not be updated."
+      );
+    } finally {
+      setSavingKeepsake(false);
+    }
+  };
+
+  const moveKeepsake = async (
+    item: DiarioItem
+  ) => {
+    const nextLocation =
+      locationOf(item) === "home"
+        ? "stored"
+        : "home";
+
+    setSavingKeepsake(true);
+    setKeepsakeError(null);
+
+    try {
+      const updated =
+        await updateKeepsakeLocation({
+          userId:
+            session.user.id,
+
+          keepsake:
+            item,
+
+          location:
+            nextLocation,
+        });
+
+      replaceKeepsake(updated);
+    } catch (error) {
+      console.error(
+        "Could not move Keepsake:",
+        error
       );
 
-      setKeepsakeRoom(
-        ""
+      setKeepsakeError(
+        "The keepsake could not be moved."
+      );
+    } finally {
+      setSavingKeepsake(false);
+    }
+  };
+
+  const toggleConnection = async (
+    item: DiarioItem
+  ) => {
+    if (!selectedKeepsake) {
+      return;
+    }
+
+    setSavingKeepsake(true);
+    setKeepsakeError(null);
+
+    try {
+      const {
+        toggleKeepsakeConnection,
+      } = await import(
+        "@/lib/keepsake-flow"
       );
 
-      setKeepsakeOrigin(
-        ""
+      await toggleKeepsakeConnection({
+        userId:
+          session.user.id,
+
+        keepsakeId:
+          selectedKeepsake.id,
+
+        target:
+          item,
+      });
+
+      await refreshConnections(
+        selectedKeepsake.id
+      );
+    } catch (error) {
+      console.error(
+        "Could not update Keepsake connection:",
+        error
       );
 
-      setKeepsakeNote(
-        ""
+      setKeepsakeError(
+        "The connection could not be updated."
       );
-    };
+    } finally {
+      setSavingKeepsake(false);
+    }
+  };
 
-  const saveKeepsake =
-    async () => {
-      if (
-        !keepsakeTitle.trim()
-      ) {
-        return;
-      }
+  const kindLabel = (
+    item: DiarioItem
+  ) => {
+    if (item.kind === "date") {
+      return "Date";
+    }
+
+    if (
+      item.kind ===
+      "story_memory"
+    ) {
+      return "Memory";
+    }
+
+    if (item.kind === "place") {
+      return "Place";
+    }
+
+    return "Moment";
+  };
+
+  if (connectionDetailId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={
+          connectionDetailId
+        }
+        onOpenRelated={
+          setConnectionDetailId
+        }
+        onBack={() =>
+          setConnectionDetailId(
+            null
+          )
+        }
+      />
+    );
+  }
+
+  if (selectedKeepsake) {
+    const location =
+      locationOf(
+        selectedKeepsake
+      );
+
+    const type =
+      typeof selectedKeepsake
+        .data?.keepsakeType ===
+      "string"
+        ? selectedKeepsake
+            .data.keepsakeType
+        : "object";
+
+    const room =
+      typeof selectedKeepsake
+        .data?.room ===
+      "string"
+        ? selectedKeepsake
+            .data.room
+        : "";
+
+    const origin =
+      typeof selectedKeepsake
+        .data?.origin ===
+      "string"
+        ? selectedKeepsake
+            .data.origin
+        : "";
+
+    const connectedIds =
+      new Set(
+        connections.map(
+          (item) =>
+            item.id
+        )
+      );
+
+    return (
+      <section className="keepsakes-screen keepsakes-live">
+        <button
+          type="button"
+          className="letter-connected-button"
+          onClick={() => {
+            setSelectedKeepsakeId(
+              null
+            );
+
+            setEditingKeepsake(
+              false
+            );
+
+            setManagingConnections(
+              false
+            );
+          }}
+        >
+          <ArrowLeft size={15} />
+          {" "}
+          Back to Keepsakes
+        </button>
+
+        <ScreenIntro
+          eyebrow={`${type} · ${location}`}
+          title={
+            selectedKeepsake.title ??
+            "Untitled keepsake"
+          }
+        >
+          <p className="intro-copy">
+            one physical object with one
+            history, connected everywhere
+            without creating copies.
+          </p>
+        </ScreenIntro>
+
+        <section className="date-card">
+          <header>
+            <div>
+              <span>
+                object
+              </span>
+
+              <strong>
+                Details
+              </strong>
+            </div>
+
+            <BoxIcon size={18} />
+          </header>
+
+          {editingKeepsake ? (
+            <>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(event) =>
+                  setEditTitle(
+                    event.target.value
+                  )
+                }
+                placeholder="Name"
+              />
+
+              <select
+                value={editType}
+                onChange={(event) =>
+                  setEditType(
+                    event.target.value
+                  )
+                }
+              >
+                <option value="object">
+                  Object
+                </option>
+
+                <option value="ticket">
+                  Ticket
+                </option>
+
+                <option value="flower">
+                  Flower
+                </option>
+
+                <option value="photo">
+                  Photo
+                </option>
+
+                <option value="gift">
+                  Gift
+                </option>
+
+                <option value="note">
+                  Note
+                </option>
+
+                <option value="receipt">
+                  Receipt
+                </option>
+
+                <option value="other">
+                  Other
+                </option>
+              </select>
+
+              <select
+                value={editLocation}
+                onChange={(event) =>
+                  setEditLocation(
+                    event.target.value as
+                      | "home"
+                      | "stored"
+                  )
+                }
+              >
+                <option value="home">
+                  At home
+                </option>
+
+                <option value="stored">
+                  Stored away
+                </option>
+              </select>
+
+              {editLocation ===
+                "home" && (
+                <input
+                  type="text"
+                  value={editRoom}
+                  onChange={(event) =>
+                    setEditRoom(
+                      event.target.value
+                    )
+                  }
+                  placeholder="Room"
+                />
+              )}
+
+              <input
+                type="text"
+                value={editOrigin}
+                onChange={(event) =>
+                  setEditOrigin(
+                    event.target.value
+                  )
+                }
+                placeholder="Where did it come from?"
+              />
+
+              <textarea
+                value={editNote}
+                onChange={(event) =>
+                  setEditNote(
+                    event.target.value
+                  )
+                }
+                placeholder="Why does it matter?"
+                rows={4}
+              />
+
+              <div className="diary-editor-actions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditingKeepsake(
+                      false
+                    )
+                  }
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="gallery-add-button"
+                  disabled={
+                    savingKeepsake ||
+                    !editTitle.trim()
+                  }
+                  onClick={() =>
+                    void saveEdit()
+                  }
+                >
+                  Save
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="date-place">
+                <BoxIcon size={16} />
+
+                <span>
+                  {type}
+                  {" · "}
+                  {location === "home"
+                    ? "At home"
+                    : "Stored"}
+                </span>
+              </div>
+
+              {room && (
+                <p>
+                  Room:{" "}
+                  <strong>
+                    {room}
+                  </strong>
+                </p>
+              )}
+
+              {origin && (
+                <p>
+                  From:{" "}
+                  <strong>
+                    {origin}
+                  </strong>
+                </p>
+              )}
+
+              {selectedKeepsake.body && (
+                <p>
+                  {selectedKeepsake.body}
+                </p>
+              )}
+
+              <div className="diary-editor-actions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    beginEditing(
+                      selectedKeepsake
+                    )
+                  }
+                >
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  className="gallery-add-button"
+                  disabled={
+                    savingKeepsake
+                  }
+                  onClick={() =>
+                    void moveKeepsake(
+                      selectedKeepsake
+                    )
+                  }
+                >
+                  {location === "home"
+                    ? "Store away"
+                    : "Bring home"}
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+
+        <section className="date-life-cycle">
+          <header>
+            <span>
+              history
+            </span>
+
+            <strong>
+              Where this object belongs
+            </strong>
+          </header>
+
+          {loadingConnections ? (
+            <p>
+              Opening its history…
+            </p>
+          ) : connections.length ===
+            0 ? (
+            <p>
+              Nothing is connected to this
+              Keepsake yet.
+            </p>
+          ) : (
+            <div className="dates-list">
+              {connections.map(
+                (item) => (
+                  <article
+                    key={item.id}
+                    className="date-card"
+                  >
+                    <header>
+                      <div>
+                        <span>
+                          {kindLabel(item)}
+                        </span>
+
+                        <strong>
+                          {item.title ??
+                            `Untitled ${kindLabel(
+                              item
+                            )}`}
+                        </strong>
+                      </div>
+
+                      {item.kind ===
+                      "place" ? (
+                        <MapPin
+                          size={17}
+                        />
+                      ) : item.kind ===
+                        "date" ? (
+                        <CalendarIcon
+                          size={17}
+                        />
+                      ) : (
+                        <Heart
+                          size={17}
+                        />
+                      )}
+                    </header>
+
+                    <button
+                      type="button"
+                      className="letter-connected-button"
+                      onClick={() =>
+                        setConnectionDetailId(
+                          item.id
+                        )
+                      }
+                    >
+                      Open
+                    </button>
+                  </article>
+                )
+              )}
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setManagingConnections(
+                (value) =>
+                  !value
+              )
+            }
+          >
+            {managingConnections
+              ? "Done"
+              : "＋ Connect to our world"}
+          </button>
+
+          {managingConnections && (
+            <div className="dates-list">
+              {connectionChoices.length ===
+              0 ? (
+                <p>
+                  No Dates, Memories or
+                  Places exist yet.
+                </p>
+              ) : (
+                connectionChoices.map(
+                  (item) => {
+                    const connected =
+                      connectedIds.has(
+                        item.id
+                      );
+
+                    return (
+                      <article
+                        key={item.id}
+                        className="date-card"
+                      >
+                        <header>
+                          <div>
+                            <span>
+                              {kindLabel(
+                                item
+                              )}
+                            </span>
+
+                            <strong>
+                              {item.title ??
+                                `Untitled ${kindLabel(
+                                  item
+                                )}`}
+                            </strong>
+                          </div>
+
+                          <ChevronRight
+                            size={16}
+                          />
+                        </header>
+
+                        <button
+                          type="button"
+                          className="gallery-add-button"
+                          disabled={
+                            savingKeepsake
+                          }
+                          onClick={() =>
+                            void toggleConnection(
+                              item
+                            )
+                          }
+                        >
+                          {connected
+                            ? "Remove"
+                            : "Connect"}
+                        </button>
+                      </article>
+                    );
+                  }
+                )
+              )}
+            </div>
+          )}
+        </section>
+
+        <section className="date-life-cycle">
+          <header>
+            <span>
+              same original
+            </span>
+
+            <strong>
+              One object everywhere
+            </strong>
+          </header>
+
+          <p>
+            A Date, Memory and Place can
+            all point to this same Keepsake.
+            Removing a connection never
+            removes the original object.
+          </p>
+
+          <button
+            type="button"
+            className="letter-connected-button"
+            onClick={() =>
+              setConnectionDetailId(
+                selectedKeepsake.id
+              )
+            }
+          >
+            View all connections
+          </button>
+        </section>
+
+        {keepsakeError && (
+          <p role="alert">
+            {keepsakeError}
+          </p>
+        )}
+      </section>
+    );
+  }
+
+  return (
+    <section className="keepsakes-screen keepsakes-live">
+      <ScreenIntro
+        eyebrow="Objects that stayed"
+        title="Keepsakes"
+      >
+        <p className="intro-copy">
+          tickets, gifts, notes and little
+          physical things can keep their
+          location, origin and history.
+        </p>
+      </ScreenIntro>
+
+      <div
+        className="keepsakes-tabs"
+        role="tablist"
+        aria-label="Keepsake location"
+      >
+        <button
+          type="button"
+          className={
+            keepsakeView === "all"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setKeepsakeView("all")
+          }
+        >
+          All
+        </button>
+
+        <button
+          type="button"
+          className={
+            keepsakeView === "home"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setKeepsakeView("home")
+          }
+        >
+          At home
+        </button>
+
+        <button
+          type="button"
+          className={
+            keepsakeView === "stored"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setKeepsakeView("stored")
+          }
+        >
+          Stored
+        </button>
+      </div>
+
+      <section className="keepsakes-summary">
+        <div>
+          <span>
+            at home
+          </span>
+
+          <strong>
+            {homeKeepsakes.length}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            stored
+          </span>
+
+          <strong>
+            {storedKeepsakes.length}
+          </strong>
+        </div>
+      </section>
+
+      {addingKeepsake ? (
+        <section className="keepsakes-empty">
+          <small>
+            new keepsake
+          </small>
+
+          <h2>
+            Keep an object
+          </h2>
+
+          <input
+            type="text"
+            value={keepsakeTitle}
+            onChange={(event) =>
+              setKeepsakeTitle(
+                event.target.value
+              )
+            }
+            placeholder="Name"
+            autoFocus
+          />
+
+          <select
+            value={keepsakeType}
+            onChange={(event) =>
+              setKeepsakeType(
+                event.target.value
+              )
+            }
+          >
+            <option value="object">
+              Object
+            </option>
+
+            <option value="ticket">
+              Ticket
+            </option>
+
+            <option value="flower">
+              Flower
+            </option>
+
+            <option value="photo">
+              Photo
+            </option>
+
+            <option value="gift">
+              Gift
+            </option>
+
+            <option value="note">
+              Note
+            </option>
+
+            <option value="receipt">
+              Receipt
+            </option>
+
+            <option value="other">
+              Other
+            </option>
+          </select>
+
+          <select
+            value={keepsakeLocation}
+            onChange={(event) =>
+              setKeepsakeLocation(
+                event.target.value as
+                  | "home"
+                  | "stored"
+              )
+            }
+          >
+            <option value="home">
+              At home
+            </option>
+
+            <option value="stored">
+              Stored away
+            </option>
+          </select>
+
+          {keepsakeLocation ===
+            "home" && (
+            <input
+              type="text"
+              value={keepsakeRoom}
+              onChange={(event) =>
+                setKeepsakeRoom(
+                  event.target.value
+                )
+              }
+              placeholder="Room"
+            />
+          )}
+
+          <input
+            type="text"
+            value={keepsakeOrigin}
+            onChange={(event) =>
+              setKeepsakeOrigin(
+                event.target.value
+              )
+            }
+            placeholder="Where did it come from?"
+          />
+
+          <textarea
+            value={keepsakeNote}
+            onChange={(event) =>
+              setKeepsakeNote(
+                event.target.value
+              )
+            }
+            placeholder="Why keep it?"
+            rows={4}
+          />
+
+          <div className="diary-editor-actions">
+            <button
+              type="button"
+              onClick={
+                resetNewKeepsake
+              }
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="gallery-add-button"
+              disabled={
+                savingKeepsake ||
+                !keepsakeTitle.trim()
+              }
+              onClick={() =>
+                void saveKeepsake()
+              }
+            >
+              Keep object
+            </button>
+          </div>
+        </section>
+      ) : loadingKeepsakes ? (
+        <section className="keepsakes-empty">
+          <p>
+            Opening keepsakes…
+          </p>
+        </section>
+      ) : visibleKeepsakes.length ===
+        0 ? (
+        <section className="keepsakes-empty">
+          <BoxIcon
+            size={27}
+            strokeWidth={1.3}
+          />
+
+          <small>
+            objects
+          </small>
+
+          <h2>
+            Nothing here yet.
+          </h2>
+
+          <p>
+            Keep a physical object and
+            connect it to the moments it
+            belongs to.
+          </p>
+
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setAddingKeepsake(
+                true
+              )
+            }
+          >
+            ＋ Keep an object
+          </button>
+        </section>
+      ) : (
+        <>
+          <div className="dates-list">
+            {visibleKeepsakes.map(
+              (item) => {
+                const location =
+                  locationOf(item);
+
+                const type =
+                  typeof item.data
+                    ?.keepsakeType ===
+                  "string"
+                    ? item.data
+                        .keepsakeType
+                    : "object";
+
+                const origin =
+                  typeof item.data
+                    ?.origin ===
+                  "string"
+                    ? item.data
+                        .origin
+                    : "";
+
+                return (
+                  <article
+                    key={item.id}
+                    className="date-card"
+                    onClick={() =>
+                      setSelectedKeepsakeId(
+                        item.id
+                      )
+                    }
+                  >
+                    <header>
+                      <div>
+                        <span>
+                          {type}
+                        </span>
+
+                        <strong>
+                          {item.title ??
+                            "Untitled keepsake"}
+                        </strong>
+                      </div>
+
+                      <ChevronRight
+                        size={17}
+                      />
+                    </header>
+
+                    <div className="date-place">
+                      <BoxIcon
+                        size={15}
+                      />
+
+                      <span>
+                        {location === "home"
+                          ? "At home"
+                          : "Stored"}
+
+                        {origin
+                          ? ` · From ${origin}`
+                          : ""}
+                      </span>
+                    </div>
+
+                    {item.body && (
+                      <p>
+                        {item.body}
+                      </p>
+                    )}
+                  </article>
+                );
+              }
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setAddingKeepsake(
+                true
+              )
+            }
+          >
+            ＋ Keep another object
+          </button>
+        </>
+      )}
+
+      {keepsakeError && (
+        <p role="alert">
+          {keepsakeError}
+        </p>
+      )}
+
+      <section className="date-life-cycle">
+        <header>
+          <span>
+            object history
+          </span>
+
+          <strong>
+            One object, many meanings
+          </strong>
+        </header>
+
+        <div>
+          <article>
+            <MapPin size={18} />
+
+            <span>
+              <strong>
+                Place
+              </strong>
+
+              <small>
+                where it came from
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <CalendarIcon
+              size={18}
+            />
+
+            <span>
+              <strong>
+                Date
+              </strong>
+
+              <small>
+                when it became ours
+              </small>
+            </span>
+          </article>
+
+          <article>
+            <Heart size={18} />
+
+            <span>
+              <strong>
+                Memory
+              </strong>
+
+              <small>
+                why it matters
+              </small>
+            </span>
+          </article>
+        </div>
+      </section>
+    </section>
+  );
+}
       
 function DatesScreen() {
   const { session } = usePrivateDiario();
