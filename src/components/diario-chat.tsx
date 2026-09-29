@@ -880,7 +880,8 @@ async function extractDominicActions({
         typeof loadDominicLiveDateContext
       >
     >;
-}) Promise<
+}): Promise<
+  
   DominicWorldAction[]
 > {
   try {
