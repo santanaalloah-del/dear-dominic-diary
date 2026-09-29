@@ -1,0 +1,486 @@
+.places-experience-shell {
+  display: grid;
+  gap: 14px;
+}
+
+.places-primary-tabs {
+  position: sticky;
+  top: 8px;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: min(360px, calc(100% - 24px));
+  margin: 6px auto 2px;
+  padding: 5px;
+  border: 1px solid rgba(99, 24, 51, 0.17);
+  border-radius: 999px;
+  background: rgba(255, 249, 244, 0.94);
+  box-shadow: 0 9px 24px rgba(74, 21, 41, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.places-primary-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #6c3348;
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.places-primary-tabs button.active {
+  background: #6f1939;
+  color: #fff9f4;
+}
+
+.nyc-map-world,
+.nyc-map-missing-key {
+  width: min(100%, 780px);
+  margin: 0 auto;
+}
+
+.nyc-map-world {
+  display: grid;
+  gap: 16px;
+  padding: 6px 12px 36px;
+}
+
+.nyc-map-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 4px 2px;
+  color: #5d1731;
+}
+
+.nyc-map-heading small,
+.nyc-place-card small,
+.nyc-results small,
+.nyc-date-picker small,
+.nyc-map-missing-key small {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.68rem;
+  opacity: 0.67;
+}
+
+.nyc-map-heading h1,
+.nyc-place-card h2,
+.nyc-map-missing-key h2 {
+  margin: 3px 0 6px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.nyc-map-heading h1 {
+  font-size: clamp(1.7rem, 8vw, 2.45rem);
+}
+
+.nyc-map-heading p {
+  margin: 0;
+  max-width: 560px;
+  color: #745565;
+  line-height: 1.45;
+}
+
+.nyc-map-search {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px 7px 14px;
+  border: 1px solid rgba(102, 30, 56, 0.17);
+  border-radius: 18px;
+  background: #fffaf6;
+  box-shadow: 0 8px 26px rgba(79, 20, 43, 0.07);
+  color: #782442;
+}
+
+.nyc-map-search input {
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #4f1c30;
+  font: inherit;
+  font-size: 16px;
+}
+
+.nyc-map-search input::placeholder {
+  color: #a27c8d;
+}
+
+.nyc-map-search button,
+.nyc-place-actions button,
+.nyc-new-date-idea {
+  border: 0;
+  border-radius: 13px;
+  background: #f0d9df;
+  color: #641c38;
+  font: inherit;
+  font-weight: 650;
+}
+
+.nyc-map-search button {
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.nyc-map-search button:disabled,
+.nyc-place-actions button:disabled,
+.nyc-new-date-idea:disabled {
+  opacity: 0.46;
+}
+
+.nyc-map-discovery-row {
+  display: grid;
+  gap: 8px;
+}
+
+.nyc-map-row-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #704058;
+  font-size: 0.78rem;
+}
+
+.nyc-map-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+  scrollbar-width: none;
+}
+
+.nyc-map-chips::-webkit-scrollbar,
+.nyc-results-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.nyc-map-chips button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid rgba(102, 30, 56, 0.16);
+  border-radius: 999px;
+  background: #fffaf6;
+  color: #6a3047;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.nyc-map-chips button.active {
+  border-color: #7a2948;
+  background: #7a2948;
+  color: #fff9f5;
+}
+
+.nyc-map-discovery-row.history .nyc-map-chips button {
+  background: #f8edef;
+}
+
+.nyc-map-frame {
+  position: relative;
+  min-height: min(58vh, 540px);
+  overflow: hidden;
+  border: 1px solid rgba(93, 23, 49, 0.15);
+  border-radius: 24px;
+  background: #eadfd8;
+  box-shadow: 0 13px 34px rgba(74, 21, 41, 0.11);
+}
+
+.nyc-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.nyc-map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: rgba(247, 237, 232, 0.87);
+  color: #6b2942;
+}
+
+.nyc-search-area {
+  position: absolute;
+  z-index: 500;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(93, 23, 49, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 250, 246, 0.95);
+  color: #65203b;
+  box-shadow: 0 6px 18px rgba(66, 20, 38, 0.13);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 650;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.nyc-map-pin-shell {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.nyc-map-pin {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #fff7f1;
+  border-radius: 50% 50% 50% 0;
+  background: #7b1f40;
+  box-shadow: 0 4px 12px rgba(63, 16, 34, 0.25);
+  transform: rotate(-45deg);
+}
+
+.nyc-map-pin i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #f9dce3;
+  transform: translate(-50%, -50%);
+}
+
+.nyc-map-error,
+.nyc-map-feedback {
+  margin: -4px 2px 0;
+  padding: 10px 12px;
+  border-radius: 13px;
+  font-size: 0.83rem;
+}
+
+.nyc-map-error {
+  background: #f8e2e4;
+  color: #7a263a;
+}
+
+.nyc-map-feedback {
+  background: #f7efe9;
+  color: #6b4a58;
+}
+
+.nyc-place-card {
+  padding: 18px;
+  border: 1px solid rgba(98, 28, 53, 0.15);
+  border-radius: 22px;
+  background: #fffaf6;
+  box-shadow: 0 9px 28px rgba(71, 20, 39, 0.07);
+}
+
+.nyc-place-card > header,
+.nyc-results > header,
+.nyc-date-picker > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nyc-place-card h2 {
+  margin-bottom: 0;
+  color: #5d1832;
+  font-size: 1.45rem;
+}
+
+.nyc-place-address {
+  color: #745565;
+  line-height: 1.45;
+}
+
+.nyc-place-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 15px;
+}
+
+.nyc-place-actions button {
+  min-height: 46px;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.nyc-place-actions button.primary,
+.nyc-new-date-idea {
+  background: #6d1938;
+  color: #fff8f3;
+}
+
+.nyc-date-picker {
+  display: grid;
+  gap: 11px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed rgba(102, 30, 56, 0.18);
+}
+
+.nyc-new-date-idea {
+  min-height: 46px;
+  padding: 8px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.nyc-date-options {
+  display: grid;
+  gap: 7px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.nyc-date-options > button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid rgba(98, 28, 53, 0.12);
+  border-radius: 13px;
+  background: #fbf4ef;
+  color: #5f2940;
+  text-align: left;
+  font: inherit;
+}
+
+.nyc-date-options span {
+  display: grid;
+  gap: 2px;
+}
+
+.nyc-date-options time {
+  flex: 0 0 auto;
+  color: #896879;
+  font-size: 0.72rem;
+}
+
+.nyc-results {
+  display: grid;
+  gap: 9px;
+}
+
+.nyc-results > header {
+  padding: 0 3px;
+  color: #633249;
+}
+
+.nyc-results > header strong {
+  display: block;
+  margin-top: 2px;
+}
+
+.nyc-results-strip {
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  padding: 1px 2px 6px;
+  scrollbar-width: none;
+}
+
+.nyc-results-strip > button {
+  flex: 0 0 min(250px, 77vw);
+  display: grid;
+  gap: 4px;
+  padding: 13px;
+  border: 1px solid rgba(97, 27, 53, 0.14);
+  border-radius: 16px;
+  background: #fffaf6;
+  color: #613047;
+  text-align: left;
+  font: inherit;
+}
+
+.nyc-results-strip > button.active {
+  border-color: #7a2948;
+  box-shadow: 0 6px 18px rgba(83, 25, 46, 0.1);
+}
+
+.nyc-results-strip span {
+  color: #8d6a7b;
+  font-size: 0.78rem;
+}
+
+.nyc-map-missing-key {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 26px 18px;
+  border: 1px solid rgba(99, 24, 51, 0.15);
+  border-radius: 22px;
+  background: #fff9f5;
+  color: #65263f;
+}
+
+.nyc-map-missing-key h2 {
+  margin: 0;
+}
+
+.nyc-map-missing-key p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.nyc-map-missing-key code {
+  overflow-wrap: anywhere;
+}
+
+.spin {
+  animation: diario-spin 0.8s linear infinite;
+}
+
+@keyframes diario-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 560px) {
+  .nyc-map-world {
+    padding-inline: 8px;
+  }
+
+  .nyc-map-frame {
+    min-height: 52vh;
+    border-radius: 19px;
+  }
+
+  .nyc-map-search {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .nyc-map-search button {
+    grid-column: 1 / -1;
+  }
+
+  .nyc-place-actions {
+    grid-template-columns: 1fr;
+  }
+}
