@@ -1033,20 +1033,106 @@ ${currentTime}`,
       : [];
 
   const actions =
-    rawActions
-      .map(
-        normalizeAction
-      )
-      .filter(
-        (
-          action
-        ): action is DominicWorldAction =>
-          action !== null
-      )
-      .slice(
-        0,
-        MAX_ACTIONS
-      );
+  rawActions
+    .map(
+      normalizeAction
+    )
+    .filter(
+      (
+        action
+      ): action is DominicWorldAction => {
+        if (!action) {
+          return false;
+        }
+
+        if (
+          action.type !==
+          "date_venue_action"
+        ) {
+          return true;
+        }
+
+        if (
+          !liveDateContext ||
+          typeof liveDateContext !==
+            "object" ||
+          Array.isArray(
+            liveDateContext
+          )
+        ) {
+          return false;
+        }
+
+        const context =
+          liveDateContext as Record<
+            string,
+            unknown
+          >;
+
+        if (
+          context.active !== true ||
+          context.locationMode !==
+            "place" ||
+          context.dateId !==
+            action.dateId
+        ) {
+          return false;
+        }
+
+        const items =
+          Array.isArray(
+            context.availableVenueItems
+          )
+            ? context.availableVenueItems
+            : [];
+
+        const item =
+          items.find(
+            (value) =>
+              value &&
+              typeof value ===
+                "object" &&
+              !Array.isArray(
+                value
+              ) &&
+              (
+                value as Record<
+                  string,
+                  unknown
+                >
+              ).id ===
+                action.itemId
+          );
+
+        if (!item) {
+          return false;
+        }
+
+        const kind =
+          (
+            item as Record<
+              string,
+              unknown
+            >
+          ).kind;
+
+        const shouldOrder =
+          kind === "food" ||
+          kind === "drink" ||
+          kind === "dessert" ||
+          kind === "snack";
+
+        return shouldOrder
+          ? action.venueAction ===
+              "ordered"
+          : action.venueAction ===
+              "bought";
+      }
+    )
+    .slice(
+      0,
+      MAX_ACTIONS
+    );
 
   console.log(
     "Dominic world actions interpreted:",
