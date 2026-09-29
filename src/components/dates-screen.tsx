@@ -25,6 +25,9 @@ import {
   DateVenueWorldPanel,
 } from "@/components/date-venue-world-panel";
 
+import { DateMovementControls } from "@/components/date-movement-controls";
+import "@/components/date-movement-controls.css";
+
 import {
   useDateModeEntry,
 } from "@/components/date-mode-entry";
@@ -901,7 +904,14 @@ export function DatesExperienceScreen({
     "places"
   );
 }
-  
+
+  function exploreNearbyDuringDate(
+  date: DiarioItem
+) {
+  beginDatePlaceSelection(date);
+  onOpen?.("places");
+}
+
   function replaceDate(
     updated:
       DiarioItem
@@ -2109,6 +2119,14 @@ export function DatesExperienceScreen({
             {state ===
               "live" && (
               <>
+                <DateMovementControls
+  userId={session.user.id}
+  date={selectedDate}
+  saving={saving}
+  onDateUpdated={replaceDate}
+  onExploreNearby={exploreNearbyDuringDate}
+/>
+
                 <div className="date-flow-field">
                   <label>
                     Live note
