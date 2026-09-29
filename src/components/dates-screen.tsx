@@ -22,6 +22,11 @@ import {
 } from "@/components/connected-object-detail-screen";
 
 import {
+  beginDatePlaceSelection,
+  consumeDatePlaceReturnId,
+} from "@/lib/date-place-selection";
+
+import {
   getDates,
   getLooks,
   type DiarioItem,
@@ -55,7 +60,8 @@ type DateOpenScreen =
   | "wardrobe"
   | "gallery"
   | "music"
-  | "keepsakes";
+  | "keepsakes"
+  | "places";
 
 function clean(
   value:
@@ -802,6 +808,19 @@ export function DatesExperienceScreen({
   ]);
 
   useEffect(() => {
+  const returnDateId =
+    consumeDatePlaceReturnId();
+
+  if (!returnDateId) {
+    return;
+  }
+
+  setSelectedDateId(
+    returnDateId
+  );
+}, []);
+
+  useEffect(() => {
     if (
       !selectedDateId
     ) {
@@ -852,6 +871,23 @@ export function DatesExperienceScreen({
     selectedDate?.id,
   ]);
 
+  function choosePlaceOnMap(
+  date:
+    DiarioItem
+) {
+  beginDatePlaceSelection(
+    date
+  );
+
+  setEditing(
+    false
+  );
+
+  onOpen?.(
+    "places"
+  );
+}
+  
   function replaceDate(
     updated:
       DiarioItem
