@@ -121,6 +121,7 @@ title:
   nullableStringSchema,
 
 body:
+  nullableStringSchema,
   
     place:
       nullableStringSchema,
