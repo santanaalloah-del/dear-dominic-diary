@@ -5055,66 +5055,227 @@ onClick={() => {
   );
 }
 function PlacesScreen() {
-  const { session } = usePrivateDiario();
+  const {
+    session,
+  } =
+    usePrivateDiario();
 
-  const [placeView, setPlaceView] =
+  const [
+    placeView,
+    setPlaceView,
+  ] =
     useState<
-      "all" | "saved" | "visited"
+      | "all"
+      | "saved"
+      | "visited"
     >("all");
 
-  const [places, setPlaces] =
-    useState<DiarioItem[]>([]);
+  const [
+    places,
+    setPlaces,
+  ] =
+    useState<
+      DiarioItem[]
+    >([]);
 
-  const [selectedPlaceId, setSelectedPlaceId] =
-  useState<string | null>(null);
+  const [
+    selectedPlaceId,
+    setSelectedPlaceId,
+  ] =
+    useState<
+      string | null
+    >(null);
 
-  const [loadingPlaces, setLoadingPlaces] =
+  const [
+    connectionDetailId,
+    setConnectionDetailId,
+  ] =
+    useState<
+      string | null
+    >(null);
+
+  const [
+    loadingPlaces,
+    setLoadingPlaces,
+  ] =
     useState(true);
 
-  const [placeError, setPlaceError] =
-    useState<string | null>(null);
+  const [
+    placeError,
+    setPlaceError,
+  ] =
+    useState<
+      string | null
+    >(null);
 
-  const [addingPlace, setAddingPlace] =
+  const [
+    addingPlace,
+    setAddingPlace,
+  ] =
     useState(false);
 
-  const [placeName, setPlaceName] =
+  const [
+    placeName,
+    setPlaceName,
+  ] =
     useState("");
 
-  const [placeNeighborhood, setPlaceNeighborhood] =
+  const [
+    placeNeighborhood,
+    setPlaceNeighborhood,
+  ] =
     useState("");
 
-  const [placeType, setPlaceType] =
+  const [
+    placeType,
+    setPlaceType,
+  ] =
     useState("place");
 
-  const [placeStatus, setPlaceStatus] =
+  const [
+    placeStatus,
+    setPlaceStatus,
+  ] =
     useState<
-      "saved" | "visited"
+      | "saved"
+      | "visited"
     >("saved");
 
-  const [placeNote, setPlaceNote] =
+  const [
+    placeNote,
+    setPlaceNote,
+  ] =
     useState("");
 
-  useEffect(() => {
-    let active = true;
+  const [
+    editingPlace,
+    setEditingPlace,
+  ] =
+    useState(false);
 
-    setLoadingPlaces(true);
-    setPlaceError(null);
+  const [
+    editPlaceName,
+    setEditPlaceName,
+  ] =
+    useState("");
 
-    getPlaces(
-      session.user.id
-    )
-      .then((loadedPlaces) => {
-        if (!active) return;
+  const [
+    editNeighborhood,
+    setEditNeighborhood,
+  ] =
+    useState("");
+
+  const [
+    editPlaceType,
+    setEditPlaceType,
+  ] =
+    useState("place");
+
+  const [
+    editPlaceNote,
+    setEditPlaceNote,
+  ] =
+    useState("");
+
+  const [
+    linkedDates,
+    setLinkedDates,
+  ] =
+    useState<
+      DiarioItem[]
+    >([]);
+
+  const [
+    dateChoices,
+    setDateChoices,
+  ] =
+    useState<
+      DiarioItem[]
+    >([]);
+
+  const [
+    editingDates,
+    setEditingDates,
+  ] =
+    useState(false);
+
+  const [
+    loadingPlaceDates,
+    setLoadingPlaceDates,
+  ] =
+    useState(false);
+
+  const [
+    savingPlace,
+    setSavingPlace,
+  ] =
+    useState(false);
+
+  const selectedPlace =
+    places.find(
+      (
+        place
+      ) =>
+        place.id ===
+        selectedPlaceId
+    ) ??
+    null;
+
+  const statusOf = (
+    place:
+      DiarioItem
+  ):
+    | "saved"
+    | "visited" => {
+    return place.data
+      ?.placeStatus ===
+      "visited"
+      ? "visited"
+      : "saved";
+  };
+
+  const replacePlace = (
+    updated:
+      DiarioItem
+  ) => {
+    setPlaces(
+      (
+        current
+      ) =>
+        current.map(
+          (
+            place
+          ) =>
+            place.id ===
+            updated.id
+              ? updated
+              : place
+        )
+    );
+  };
+
+  const refreshPlaces =
+    async () => {
+      setLoadingPlaces(
+        true
+      );
+
+      setPlaceError(
+        null
+      );
+
+      try {
+        const loaded =
+          await getPlaces(
+            session.user.id
+          );
 
         setPlaces(
-          loadedPlaces
+          loaded
         );
-
-        setLoadingPlaces(false);
-      })
-      .catch((loadError) => {
-        if (!active) return;
-
+      } catch (
+        loadError
+      ) {
         console.error(
           "Could not load Places:",
           loadError
@@ -5123,121 +5284,1045 @@ function PlacesScreen() {
         setPlaceError(
           "Places could not be opened."
         );
-
-        setLoadingPlaces(false);
-      });
-
-    return () => {
-      active = false;
+      } finally {
+        setLoadingPlaces(
+          false
+        );
+      }
     };
-  }, [session.user.id]);
 
-  const statusOf = (
-    place: DiarioItem
-  ): "saved" | "visited" => {
-    return place.data?.placeStatus ===
-      "visited"
-      ? "visited"
-      : "saved";
-  };
+  const refreshPlaceDates =
+    async (
+      placeId:
+        string
+    ) => {
+      setLoadingPlaceDates(
+        true
+      );
 
-  const visiblePlaces =
-    placeView === "all"
-      ? places
-      : places.filter(
-          (place) =>
-            statusOf(place) ===
-            placeView
+      try {
+        const {
+          getPlaceDates,
+          getPlaceDateCandidates,
+        } =
+          await import(
+            "@/lib/place-flow"
+          );
+
+        const [
+          connected,
+          candidates,
+        ] =
+          await Promise.all([
+            getPlaceDates({
+              userId:
+                session.user.id,
+
+              placeId,
+            }),
+
+            getPlaceDateCandidates(
+              session.user.id
+            ),
+          ]);
+
+        setLinkedDates(
+          connected.map(
+            (
+              item
+            ) =>
+              item.date
+          )
         );
 
-  const savePlace = async () => {
-    if (!placeName.trim()) {
+        setDateChoices(
+          candidates
+        );
+      } catch (
+        loadError
+      ) {
+        console.error(
+          "Could not load Place Dates:",
+          loadError
+        );
+
+        setPlaceError(
+          "Dates connected to this place could not be opened."
+        );
+      } finally {
+        setLoadingPlaceDates(
+          false
+        );
+      }
+    };
+
+  useEffect(() => {
+    void refreshPlaces();
+  }, [
+    session.user.id,
+  ]);
+
+  useEffect(() => {
+    if (
+      !selectedPlaceId
+    ) {
+      setLinkedDates(
+        []
+      );
+
+      setDateChoices(
+        []
+      );
+
       return;
     }
 
-    setPlaceError(null);
+    void refreshPlaceDates(
+      selectedPlaceId
+    );
+  }, [
+    selectedPlaceId,
+    session.user.id,
+  ]);
 
-    try {
-      const savedPlace =
-        await createPlace({
-          userId: session.user.id,
-          title: placeName,
-          neighborhood:
-            placeNeighborhood,
-          placeType,
-          placeStatus,
-          note:
-            placeNote,
-        });
+  const visiblePlaces =
+    placeView ===
+    "all"
+      ? places
+      : places.filter(
+          (
+            place
+          ) =>
+            statusOf(
+              place
+            ) ===
+            placeView
+        );
 
-      setPlaces(
-        (currentPlaces) => [
-          savedPlace,
-          ...currentPlaces,
-        ]
+  const resetNewPlace =
+    () => {
+      setAddingPlace(
+        false
       );
 
-      setPlaceName("");
-      setPlaceNeighborhood("");
-      setPlaceType("place");
-      setPlaceStatus("saved");
-      setPlaceNote("");
-      setAddingPlace(false);
-    } catch (saveError) {
-      console.error(
-        "Could not save place:",
-        saveError
+      setPlaceName(
+        ""
+      );
+
+      setPlaceNeighborhood(
+        ""
+      );
+
+      setPlaceType(
+        "place"
+      );
+
+      setPlaceStatus(
+        "saved"
+      );
+
+      setPlaceNote(
+        ""
+      );
+    };
+
+  const savePlace =
+    async () => {
+      if (
+        !placeName.trim()
+      ) {
+        return;
+      }
+
+      setSavingPlace(
+        true
       );
 
       setPlaceError(
-        "The place could not be saved."
+        null
       );
-    }
-  };
 
-  const markAsVisited = async (
-  place: DiarioItem
-) => {
-  setPlaceError(null);
+      try {
+        const savedPlace =
+          await createPlace({
+            userId:
+              session.user.id,
 
-  try {
-    const updatedPlace =
-      await markPlaceAsVisited({
-        userId: session.user.id,
-        place,
-      });
+            title:
+              placeName,
 
-    setPlaces((currentPlaces) =>
-      currentPlaces.map(
-        (currentPlace) =>
-          currentPlace.id ===
-          updatedPlace.id
-            ? updatedPlace
-            : currentPlace
-      )
-    );
-  } catch (updateError) {
-    console.error(
-      "Could not mark place as visited:",
-      updateError
-    );
+            neighborhood:
+              placeNeighborhood,
 
-    setPlaceError(
-      "The place could not be marked as visited."
+            placeType,
+
+            placeStatus,
+
+            note:
+              placeNote,
+          });
+
+        setPlaces(
+          (
+            current
+          ) => [
+            savedPlace,
+            ...current,
+          ]
+        );
+
+        resetNewPlace();
+
+        setSelectedPlaceId(
+          savedPlace.id
+        );
+      } catch (
+        saveError
+      ) {
+        console.error(
+          "Could not save place:",
+          saveError
+        );
+
+        setPlaceError(
+          "The place could not be saved."
+        );
+      } finally {
+        setSavingPlace(
+          false
+        );
+      }
+    };
+
+  const markAsVisited =
+    async (
+      place:
+        DiarioItem
+    ) => {
+      setSavingPlace(
+        true
+      );
+
+      setPlaceError(
+        null
+      );
+
+      try {
+        const updatedPlace =
+          await markPlaceAsVisited({
+            userId:
+              session.user.id,
+
+            place,
+          });
+
+        replacePlace(
+          updatedPlace
+        );
+      } catch (
+        updateError
+      ) {
+        console.error(
+          "Could not mark place as visited:",
+          updateError
+        );
+
+        setPlaceError(
+          "The place could not be marked as visited."
+        );
+      } finally {
+        setSavingPlace(
+          false
+        );
+      }
+    };
+
+  const beginEditPlace =
+    (
+      place:
+        DiarioItem
+    ) => {
+      setEditPlaceName(
+        place.title ??
+        ""
+      );
+
+      setEditNeighborhood(
+        typeof place
+          .data
+          ?.neighborhood ===
+        "string"
+          ? place
+              .data
+              .neighborhood
+          : ""
+      );
+
+      setEditPlaceType(
+        typeof place
+          .data
+          ?.placeType ===
+        "string"
+          ? place
+              .data
+              .placeType
+          : "place"
+      );
+
+      setEditPlaceNote(
+        place.body ??
+        ""
+      );
+
+      setEditingPlace(
+        true
+      );
+    };
+
+  const savePlaceEdit =
+    async () => {
+      if (
+        !selectedPlace
+      ) {
+        return;
+      }
+
+      setSavingPlace(
+        true
+      );
+
+      setPlaceError(
+        null
+      );
+
+      try {
+        const {
+          updatePlaceDetails,
+        } =
+          await import(
+            "@/lib/place-flow"
+          );
+
+        const updatedPlace =
+          await updatePlaceDetails({
+            userId:
+              session.user.id,
+
+            place:
+              selectedPlace,
+
+            title:
+              editPlaceName,
+
+            neighborhood:
+              editNeighborhood,
+
+            placeType:
+              editPlaceType,
+
+            note:
+              editPlaceNote,
+          });
+
+        replacePlace(
+          updatedPlace
+        );
+
+        setEditingPlace(
+          false
+        );
+      } catch (
+        updateError
+      ) {
+        console.error(
+          "Could not edit place:",
+          updateError
+        );
+
+        setPlaceError(
+          "The place could not be updated."
+        );
+      } finally {
+        setSavingPlace(
+          false
+        );
+      }
+    };
+
+  const toggleDate =
+    async (
+      date:
+        DiarioItem
+    ) => {
+      if (
+        !selectedPlace
+      ) {
+        return;
+      }
+
+      setSavingPlace(
+        true
+      );
+
+      setPlaceError(
+        null
+      );
+
+      try {
+        const {
+          toggleDatePlace,
+        } =
+          await import(
+            "@/lib/place-flow"
+          );
+
+        const result =
+          await toggleDatePlace({
+            userId:
+              session.user.id,
+
+            place:
+              selectedPlace,
+
+            date,
+          });
+
+        if (
+          result.place.id ===
+          selectedPlace.id
+        ) {
+          replacePlace(
+            result.place
+          );
+        }
+
+        await refreshPlaceDates(
+          selectedPlace.id
+        );
+      } catch (
+        connectionError
+      ) {
+        console.error(
+          "Could not connect Date to Place:",
+          connectionError
+        );
+
+        setPlaceError(
+          "The Date could not be connected to this place."
+        );
+      } finally {
+        setSavingPlace(
+          false
+        );
+      }
+    };
+
+  const dateStateLabel =
+    (
+      date:
+        DiarioItem
+    ) => {
+      if (
+        date.data
+          ?.flow_state ===
+        "live"
+      ) {
+        return "Happening now";
+      }
+
+      if (
+        date.data
+          ?.flow_state ===
+          "past" ||
+        date.event_at
+      ) {
+        return "Lived";
+      }
+
+      if (
+        date.planned_for
+      ) {
+        return "Planned";
+      }
+
+      return "Idea";
+    };
+
+  const dateMomentLabel =
+    (
+      date:
+        DiarioItem
+    ) => {
+      const moment =
+        date.event_at ??
+        date.planned_for;
+
+      if (
+        !moment
+      ) {
+        return "No day set";
+      }
+
+      try {
+        return new Intl.DateTimeFormat(
+          "en-US",
+          {
+            month:
+              "short",
+
+            day:
+              "numeric",
+
+            year:
+              "numeric",
+          }
+        ).format(
+          new Date(
+            moment
+          )
+        );
+      } catch {
+        return "";
+      }
+    };
+
+  if (
+    connectionDetailId
+  ) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={
+          connectionDetailId
+        }
+        onOpenRelated={
+          setConnectionDetailId
+        }
+        onBack={() =>
+          setConnectionDetailId(
+            null
+          )
+        }
+      />
     );
   }
-};
 
-  if (selectedPlaceId) {
-  return (
-    <ConnectedObjectDetailScreen
-      itemId={selectedPlaceId}
-      onOpenRelated={setSelectedPlaceId}
-      onBack={() => setSelectedPlaceId(null)}
-    />
-  );
-}
-  
+  if (
+    selectedPlace
+  ) {
+    const status =
+      statusOf(
+        selectedPlace
+      );
+
+    const neighborhood =
+      typeof selectedPlace
+        .data
+        ?.neighborhood ===
+      "string"
+        ? selectedPlace
+            .data
+            .neighborhood
+        : "";
+
+    const type =
+      typeof selectedPlace
+        .data
+        ?.placeType ===
+      "string"
+        ? selectedPlace
+            .data
+            .placeType
+        : "place";
+
+    const linkedIds =
+      new Set(
+        linkedDates.map(
+          (
+            date
+          ) =>
+            date.id
+        )
+      );
+
+    return (
+      <section className="places-screen places-live">
+        <button
+          type="button"
+          className="letter-connected-button"
+          onClick={() => {
+            setSelectedPlaceId(
+              null
+            );
+
+            setEditingPlace(
+              false
+            );
+
+            setEditingDates(
+              false
+            );
+          }}
+        >
+          <ArrowLeft
+            size={15}
+          />{" "}
+          Back to Places
+        </button>
+
+        <ScreenIntro
+          eyebrow={`${status} · ${type}`}
+          title={
+            selectedPlace.title ??
+            "Untitled place"
+          }
+        >
+          <p className="intro-copy">
+            {neighborhood ||
+              "A place in our shared world."}
+          </p>
+        </ScreenIntro>
+
+        <section className="date-card">
+          <header>
+            <div>
+              <span>
+                place
+              </span>
+
+              <strong>
+                Details
+              </strong>
+            </div>
+
+            <MapPin
+              size={18}
+            />
+          </header>
+
+          {editingPlace ? (
+            <>
+              <input
+                type="text"
+                value={
+                  editPlaceName
+                }
+                onChange={(
+                  event
+                ) =>
+                  setEditPlaceName(
+                    event
+                      .target
+                      .value
+                  )
+                }
+                placeholder="Place name"
+              />
+
+              <input
+                type="text"
+                value={
+                  editNeighborhood
+                }
+                onChange={(
+                  event
+                ) =>
+                  setEditNeighborhood(
+                    event
+                      .target
+                      .value
+                  )
+                }
+                placeholder="Neighborhood / area"
+              />
+
+              <select
+                value={
+                  editPlaceType
+                }
+                onChange={(
+                  event
+                ) =>
+                  setEditPlaceType(
+                    event
+                      .target
+                      .value
+                  )
+                }
+              >
+                <option value="place">
+                  Place
+                </option>
+
+                <option value="restaurant">
+                  Restaurant
+                </option>
+
+                <option value="cafe">
+                  Café
+                </option>
+
+                <option value="bar">
+                  Bar
+                </option>
+
+                <option value="park">
+                  Park
+                </option>
+
+                <option value="museum">
+                  Museum
+                </option>
+
+                <option value="store">
+                  Store
+                </option>
+
+                <option value="venue">
+                  Venue
+                </option>
+
+                <option value="other">
+                  Other
+                </option>
+              </select>
+
+              <textarea
+                value={
+                  editPlaceNote
+                }
+                onChange={(
+                  event
+                ) =>
+                  setEditPlaceNote(
+                    event
+                      .target
+                      .value
+                  )
+                }
+                placeholder="A note about this place…"
+                rows={4}
+              />
+
+              <div className="diary-editor-actions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEditingPlace(
+                      false
+                    )
+                  }
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="gallery-add-button"
+                  disabled={
+                    savingPlace ||
+                    !editPlaceName.trim()
+                  }
+                  onClick={() =>
+                    void savePlaceEdit()
+                  }
+                >
+                  Save
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="date-place">
+                <MapPin
+                  size={16}
+                />
+
+                <span>
+                  {type}
+
+                  {neighborhood
+                    ? ` · ${neighborhood}`
+                    : ""}
+                </span>
+              </div>
+
+              {selectedPlace.body && (
+                <p>
+                  {selectedPlace.body}
+                </p>
+              )}
+
+              {status ===
+                "visited" &&
+                selectedPlace.event_at && (
+                  <time>
+                    Visited{" "}
+                    {new Intl.DateTimeFormat(
+                      "en-US",
+                      {
+                        month:
+                          "long",
+
+                        day:
+                          "numeric",
+
+                        year:
+                          "numeric",
+                      }
+                    ).format(
+                      new Date(
+                        selectedPlace.event_at
+                      )
+                    )}
+                  </time>
+                )}
+
+              <div className="diary-editor-actions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    beginEditPlace(
+                      selectedPlace
+                    )
+                  }
+                >
+                  Edit
+                </button>
+
+                {status ===
+                  "saved" && (
+                  <button
+                    type="button"
+                    className="gallery-add-button"
+                    disabled={
+                      savingPlace
+                    }
+                    onClick={() =>
+                      void markAsVisited(
+                        selectedPlace
+                      )
+                    }
+                  >
+                    Mark as visited
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+
+        <section className="date-life-cycle">
+          <header>
+            <span>
+              history here
+            </span>
+
+            <strong>
+              Dates at this place
+            </strong>
+          </header>
+
+          {loadingPlaceDates ? (
+            <p>
+              Opening connected Dates…
+            </p>
+          ) : linkedDates.length ===
+            0 ? (
+            <p>
+              No Date is connected to this
+              place yet.
+            </p>
+          ) : (
+            <div className="dates-list">
+              {linkedDates.map(
+                (
+                  date
+                ) => (
+                  <article
+                    key={
+                      date.id
+                    }
+                    className="date-card"
+                  >
+                    <header>
+                      <div>
+                        <span>
+                          {dateStateLabel(
+                            date
+                          )}
+                        </span>
+
+                        <strong>
+                          {date.title ??
+                            "Untitled Date"}
+                        </strong>
+                      </div>
+
+                      <CalendarIcon
+                        size={17}
+                      />
+                    </header>
+
+                    <time>
+                      {dateMomentLabel(
+                        date
+                      )}
+                    </time>
+
+                    {date.body && (
+                      <p>
+                        {date.body}
+                      </p>
+                    )}
+
+                    <button
+                      type="button"
+                      className="letter-connected-button"
+                      onClick={() =>
+                        setConnectionDetailId(
+                          date.id
+                        )
+                      }
+                    >
+                      Open Date
+                    </button>
+                  </article>
+                )
+              )}
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="gallery-add-button"
+            onClick={() =>
+              setEditingDates(
+                (
+                  value
+                ) =>
+                  !value
+              )
+            }
+          >
+            {editingDates
+              ? "Done"
+              : "＋ Connect a Date"}
+          </button>
+
+          {editingDates && (
+            <div className="dates-list">
+              {dateChoices.length ===
+              0 ? (
+                <p>
+                  No Dates exist yet.
+                </p>
+              ) : (
+                dateChoices.map(
+                  (
+                    date
+                  ) => {
+                    const connected =
+                      linkedIds.has(
+                        date.id
+                      );
+
+                    return (
+                      <article
+                        key={
+                          date.id
+                        }
+                        className="date-card"
+                      >
+                        <header>
+                          <div>
+                            <span>
+                              {dateStateLabel(
+                                date
+                              )}
+                            </span>
+
+                            <strong>
+                              {date.title ??
+                                "Untitled Date"}
+                            </strong>
+                          </div>
+
+                          <ChevronRight
+                            size={16}
+                          />
+                        </header>
+
+                        <time>
+                          {dateMomentLabel(
+                            date
+                          )}
+                        </time>
+
+                        <button
+                          type="button"
+                          className="gallery-add-button"
+                          disabled={
+                            savingPlace
+                          }
+                          onClick={() =>
+                            void toggleDate(
+                              date
+                            )
+                          }
+                        >
+                          {connected
+                            ? "Remove"
+                            : "Connect"}
+                        </button>
+                      </article>
+                    );
+                  }
+                )
+              )}
+            </div>
+          )}
+        </section>
+
+        <section className="date-life-cycle">
+          <header>
+            <span>
+              connected world
+            </span>
+
+            <strong>
+              Same Place everywhere
+            </strong>
+          </header>
+
+          <p>
+            Dates, Memories, Chat and other
+            objects can point back to this same
+            Place instead of creating another
+            copy.
+          </p>
+
+          <button
+            type="button"
+            className="letter-connected-button"
+            onClick={() =>
+              setConnectionDetailId(
+                selectedPlace.id
+              )
+            }
+          >
+            View all connections
+          </button>
+        </section>
+
+        {placeError && (
+          <p role="alert">
+            {placeError}
+          </p>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section className="places-screen places-live">
       <ScreenIntro
@@ -5245,9 +6330,11 @@ function PlacesScreen() {
         title="Places"
       >
         <p className="intro-copy">
-          saving a place does not mean
-          we have been there. Visited places
-          become part of the lived world.
+          save somewhere for later,
+          connect it to a Date, and let
+          the same Place become part of
+          your lived history when you
+          actually go there.
         </p>
       </ScreenIntro>
 
@@ -5260,15 +6347,19 @@ function PlacesScreen() {
           type="button"
           role="tab"
           aria-selected={
-            placeView === "all"
+            placeView ===
+            "all"
           }
           className={
-            placeView === "all"
+            placeView ===
+            "all"
               ? "active"
               : ""
           }
           onClick={() =>
-            setPlaceView("all")
+            setPlaceView(
+              "all"
+            )
           }
         >
           All
@@ -5278,15 +6369,19 @@ function PlacesScreen() {
           type="button"
           role="tab"
           aria-selected={
-            placeView === "saved"
+            placeView ===
+            "saved"
           }
           className={
-            placeView === "saved"
+            placeView ===
+            "saved"
               ? "active"
               : ""
           }
           onClick={() =>
-            setPlaceView("saved")
+            setPlaceView(
+              "saved"
+            )
           }
         >
           Saved
@@ -5296,15 +6391,19 @@ function PlacesScreen() {
           type="button"
           role="tab"
           aria-selected={
-            placeView === "visited"
+            placeView ===
+            "visited"
           }
           className={
-            placeView === "visited"
+            placeView ===
+            "visited"
               ? "active"
               : ""
           }
           onClick={() =>
-            setPlaceView("visited")
+            setPlaceView(
+              "visited"
+            )
           }
         >
           Visited
@@ -5323,10 +6422,16 @@ function PlacesScreen() {
 
           <input
             type="text"
-            value={placeName}
-            onChange={(event) =>
+            value={
+              placeName
+            }
+            onChange={(
+              event
+            ) =>
               setPlaceName(
-                event.target.value
+                event
+                  .target
+                  .value
               )
             }
             placeholder="Place name"
@@ -5335,20 +6440,32 @@ function PlacesScreen() {
 
           <input
             type="text"
-            value={placeNeighborhood}
-            onChange={(event) =>
+            value={
+              placeNeighborhood
+            }
+            onChange={(
+              event
+            ) =>
               setPlaceNeighborhood(
-                event.target.value
+                event
+                  .target
+                  .value
               )
             }
-            placeholder="Neighborhood"
+            placeholder="Neighborhood / area"
           />
 
           <select
-            value={placeType}
-            onChange={(event) =>
+            value={
+              placeType
+            }
+            onChange={(
+              event
+            ) =>
               setPlaceType(
-                event.target.value
+                event
+                  .target
+                  .value
               )
             }
           >
@@ -5390,10 +6507,16 @@ function PlacesScreen() {
           </select>
 
           <select
-            value={placeStatus}
-            onChange={(event) =>
+            value={
+              placeStatus
+            }
+            onChange={(
+              event
+            ) =>
               setPlaceStatus(
-                event.target.value as
+                event
+                  .target
+                  .value as
                   | "saved"
                   | "visited"
               )
@@ -5409,10 +6532,16 @@ function PlacesScreen() {
           </select>
 
           <textarea
-            value={placeNote}
-            onChange={(event) =>
+            value={
+              placeNote
+            }
+            onChange={(
+              event
+            ) =>
               setPlaceNote(
-                event.target.value
+                event
+                  .target
+                  .value
               )
             }
             placeholder="A note about this place…"
@@ -5422,14 +6551,9 @@ function PlacesScreen() {
           <div className="diary-editor-actions">
             <button
               type="button"
-              onClick={() => {
-                setAddingPlace(false);
-                setPlaceName("");
-                setPlaceNeighborhood("");
-                setPlaceType("place");
-                setPlaceStatus("saved");
-                setPlaceNote("");
-              }}
+              onClick={
+                resetNewPlace
+              }
             >
               Cancel
             </button>
@@ -5438,10 +6562,11 @@ function PlacesScreen() {
               type="button"
               className="gallery-add-button"
               disabled={
+                savingPlace ||
                 !placeName.trim()
               }
-              onClick={
-                savePlace
+              onClick={() =>
+                void savePlace()
               }
             >
               Save place
@@ -5463,9 +6588,13 @@ function PlacesScreen() {
           />
 
           <small>
-            {placeView === "visited"
+            {placeView ===
+            "visited"
               ? "visited places"
-              : "saved places"}
+              : placeView ===
+                  "saved"
+                ? "saved places"
+                : "places"}
           </small>
 
           <h2>
@@ -5473,16 +6602,18 @@ function PlacesScreen() {
           </h2>
 
           <p>
-            Save somewhere for later,
-            or record a place that has
-            actually been visited.
+            Places Dominic saves in Chat
+            and places you add yourself
+            live in the same collection.
           </p>
 
           <button
             type="button"
             className="gallery-add-button"
             onClick={() =>
-              setAddingPlace(true)
+              setAddingPlace(
+                true
+              )
             }
           >
             ＋ Add place
@@ -5492,30 +6623,45 @@ function PlacesScreen() {
         <>
           <div className="dates-list">
             {visiblePlaces.map(
-              (place) => {
+              (
+                place
+              ) => {
                 const status =
-                  statusOf(place);
+                  statusOf(
+                    place
+                  );
 
                 const neighborhood =
-                  typeof place.data
+                  typeof place
+                    .data
                     ?.neighborhood ===
                   "string"
-                    ? place.data
+                    ? place
+                        .data
                         .neighborhood
-                    : null;
+                    : "";
 
                 const type =
-                  typeof place.data
+                  typeof place
+                    .data
                     ?.placeType ===
                   "string"
-                    ? place.data
+                    ? place
+                        .data
                         .placeType
                     : "place";
 
                 return (
                   <article
-                    key={place.id}
+                    key={
+                      place.id
+                    }
                     className="date-card"
+                    onClick={() =>
+                      setSelectedPlaceId(
+                        place.id
+                      )
+                    }
                   >
                     <header>
                       <div>
@@ -5529,14 +6675,19 @@ function PlacesScreen() {
                         </strong>
                       </div>
 
-                      <MapPin
+                      <ChevronRight
                         size={17}
                       />
                     </header>
 
                     <div className="date-place">
+                      <MapPin
+                        size={15}
+                      />
+
                       <span>
                         {type}
+
                         {neighborhood
                           ? ` · ${neighborhood}`
                           : ""}
@@ -5559,8 +6710,10 @@ function PlacesScreen() {
                             {
                               month:
                                 "long",
+
                               day:
                                 "numeric",
+
                               year:
                                 "numeric",
                             }
@@ -5571,28 +6724,6 @@ function PlacesScreen() {
                           )}
                         </time>
                       )}
-                    {status === "saved" && (
-  <button
-    type="button"
-    className="gallery-add-button"
-    onClick={() =>
-      void markAsVisited(place)
-    }
-  >
-    Mark as visited
-  </button>
-)}
-
-                    <button
-  type="button"
-  className="letter-connected-button"
-  onClick={() =>
-    setSelectedPlaceId(place.id)
-  }
->
-  View connections
-</button>
-                    
                   </article>
                 );
               }
@@ -5603,7 +6734,9 @@ function PlacesScreen() {
             type="button"
             className="gallery-add-button"
             onClick={() =>
-              setAddingPlace(true)
+              setAddingPlace(
+                true
+              )
             }
           >
             ＋ Add another place
@@ -5624,7 +6757,7 @@ function PlacesScreen() {
           </span>
 
           <strong>
-            Saved is not the same as lived
+            One Place, many moments
           </strong>
         </header>
 
@@ -5654,11 +6787,11 @@ function PlacesScreen() {
 
             <span>
               <strong>
-                Plan
+                Date
               </strong>
 
               <small>
-                connect it to a Date later
+                connect a real plan
               </small>
             </span>
           </article>
@@ -5684,6 +6817,7 @@ function PlacesScreen() {
     </section>
   );
 }
+
 function KeepsakesScreen() {
   const { session } = usePrivateDiario();
 
