@@ -2,6 +2,7 @@ import type { DiarioItem } from "@/lib/diario-world";
 import { getDateFlowState } from "@/lib/date-flow";
 import { arriveAtDatePlace } from "@/lib/date-experience";
 import { setDateCanonicalPlace } from "@/lib/date-place-selection";
+import { notifyDateExperienceChanged } from "@/lib/date-live-events";
 
 export function isLiveDatePlaceSelection(
   dates: DiarioItem[],
@@ -34,11 +35,6 @@ export async function goToPlaceDuringDate({
     });
   }
 
-  /*
-   * Keep the canonical Date place in sync with the current stop so the
-   * existing DateVenueWorldPanel immediately reads the new venue.
-   * Then persist the arrival event on the freshly updated Date object.
-   */
   const canonical = await setDateCanonicalPlace({
     userId,
     dateId,
@@ -50,6 +46,8 @@ export async function goToPlaceDuringDate({
     date: canonical.date,
     place: canonical.place,
   });
+
+  notifyDateExperienceChanged(arrived.id);
 
   return {
     date: arrived,
