@@ -1629,275 +1629,305 @@ export function DatesExperienceScreen({
           </div>
         </header>
 
-        <section className="date-flow-section">
+<section className="date-flow-section">
+  <small>
+    Plan
+  </small>
+
+  <h2>
+    The plan
+  </h2>
+
+  {editing ? (
+    <>
+      <div className="date-flow-field">
+        <label>
+          What are we doing?
+        </label>
+
+        <input
+          value={
+            editTitle
+          }
+          onChange={(
+            event
+          ) =>
+            setEditTitle(
+              event
+                .target
+                .value
+            )
+          }
+        />
+      </div>
+
+      <div className="date-flow-field">
+        <label>
+          Place
+        </label>
+
+        <input
+          value={
+            editPlace
+          }
+          onChange={(
+            event
+          ) =>
+            setEditPlace(
+              event
+                .target
+                .value
+            )
+          }
+        />
+
+        <button
+          type="button"
+          className="date-flow-secondary"
+          onClick={() =>
+            choosePlaceOnMap(
+              selectedDate
+            )
+          }
+        >
+          <MapPin
+            size={14}
+          />{" "}
+          Choose Place on Map
+        </button>
+      </div>
+
+      <div className="date-flow-field">
+        <label>
+          Date
+        </label>
+
+        <input
+          type="date"
+          value={
+            editDay
+          }
+          onChange={(
+            event
+          ) =>
+            setEditDay(
+              event
+                .target
+                .value
+            )
+          }
+        />
+      </div>
+
+      <div className="date-flow-field">
+        <label>
+          Time
+        </label>
+
+        <input
+          type="time"
+          value={
+            editTime
+          }
+          onChange={(
+            event
+          ) =>
+            setEditTime(
+              event
+                .target
+                .value
+            )
+          }
+        />
+      </div>
+
+      <div className="date-flow-field">
+        <label>
+          Note
+        </label>
+
+        <textarea
+          value={
+            editNote
+          }
+          onChange={(
+            event
+          ) =>
+            setEditNote(
+              event
+                .target
+                .value
+            )
+          }
+        />
+      </div>
+
+      <div className="date-flow-field">
+        <label>
+          Itinerary
+        </label>
+
+        <textarea
+          value={
+            editItinerary
+          }
+          onChange={(
+            event
+          ) =>
+            setEditItinerary(
+              event
+                .target
+                .value
+            )
+          }
+        />
+      </div>
+
+      <div className="date-flow-actions">
+        <button
+          type="button"
+          className="date-flow-secondary"
+          onClick={() =>
+            setEditing(
+              false
+            )
+          }
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className="date-flow-primary"
+          disabled={
+            saving ||
+            !hasSomething({
+              title:
+                editTitle,
+
+              place:
+                editPlace,
+
+              day:
+                editDay,
+
+              time:
+                editTime,
+
+              note:
+                editNote,
+
+              itinerary:
+                editItinerary,
+            })
+          }
+          onClick={() =>
+            void saveEdit()
+          }
+        >
+          Save
+        </button>
+      </div>
+    </>
+  ) : (
+    <>
+      <div className="date-flow-plan-grid">
+        <div className="date-flow-plan-row">
           <small>
-            Plan
+            Place
           </small>
 
-          <h2>
-            The plan
-          </h2>
+          <span>
+            {place ||
+              "Not set"}
+          </span>
+        </div>
 
-          {editing ? (
-            <>
-              <div className="date-flow-field">
-                <label>
-                  What are we doing?
-                </label>
+        <div className="date-flow-plan-row">
+          <small>
+            When
+          </small>
 
-                <input
-                  value={
-                    editTitle
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setEditTitle(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                />
-              </div>
+          <span>
+            {dateDisplay(
+              selectedDate
+            )}
+          </span>
+        </div>
 
-              <div className="date-flow-field">
-                <label>
-                  Place
-                </label>
+        <div className="date-flow-plan-row">
+          <small>
+            Note
+          </small>
 
-                <input
-                  value={
-                    editPlace
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setEditPlace(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                />
-              </div>
+          <span>
+            {selectedDate.body ||
+              "Not set"}
+          </span>
+        </div>
 
-              <div className="date-flow-field">
-                <label>
-                  Date
-                </label>
+        <div className="date-flow-plan-row">
+          <small>
+            Itinerary
+          </small>
 
-                <input
-                  type="date"
-                  value={
-                    editDay
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setEditDay(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                />
-              </div>
+          <span>
+            {itinerary ||
+              "Not set"}
+          </span>
+        </div>
+      </div>
 
-              <div className="date-flow-field">
-                <label>
-                  Time
-                </label>
+      <div className="date-flow-actions">
+        <button
+          type="button"
+          className="date-flow-secondary"
+          onClick={() =>
+            beginEditing(
+              selectedDate
+            )
+          }
+        >
+          Edit
+        </button>
 
-                <input
-                  type="time"
-                  value={
-                    editTime
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setEditTime(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                />
-              </div>
+        <button
+          type="button"
+          className="date-flow-secondary"
+          onClick={() =>
+            choosePlaceOnMap(
+              selectedDate
+            )
+          }
+        >
+          <MapPin
+            size={14}
+          />{" "}
+          Choose Place
+        </button>
 
-              <div className="date-flow-field">
-                <label>
-                  Note
-                </label>
-
-                <textarea
-                  value={
-                    editNote
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setEditNote(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                />
-              </div>
-
-              <div className="date-flow-field">
-                <label>
-                  Itinerary
-                </label>
-
-                <textarea
-                  value={
-                    editItinerary
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setEditItinerary(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                />
-              </div>
-
-              <div className="date-flow-actions">
-                <button
-                  type="button"
-                  className="date-flow-secondary"
-                  onClick={() =>
-                    setEditing(
-                      false
-                    )
-                  }
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  className="date-flow-primary"
-                  disabled={
-                    saving ||
-                    !hasSomething({
-                      title:
-                        editTitle,
-
-                      place:
-                        editPlace,
-
-                      day:
-                        editDay,
-
-                      time:
-                        editTime,
-
-                      note:
-                        editNote,
-
-                      itinerary:
-                        editItinerary,
-                    })
-                  }
-                  onClick={() =>
-                    void saveEdit()
-                  }
-                >
-                  Save
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="date-flow-plan-grid">
-                <div className="date-flow-plan-row">
-                  <small>
-                    Place
-                  </small>
-
-                  <span>
-                    {place ||
-                      "Not set"}
-                  </span>
-                </div>
-
-                <div className="date-flow-plan-row">
-                  <small>
-                    When
-                  </small>
-
-                  <span>
-                    {dateDisplay(
-                      selectedDate
-                    )}
-                  </span>
-                </div>
-
-                <div className="date-flow-plan-row">
-                  <small>
-                    Note
-                  </small>
-
-                  <span>
-                    {selectedDate.body ||
-                      "Not set"}
-                  </span>
-                </div>
-
-                <div className="date-flow-plan-row">
-                  <small>
-                    Itinerary
-                  </small>
-
-                  <span>
-                    {itinerary ||
-                      "Not set"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="date-flow-actions">
-                <button
-                  type="button"
-                  className="date-flow-secondary"
-                  onClick={() =>
-                    beginEditing(
-                      selectedDate
-                    )
-                  }
-                >
-                  Edit
-                </button>
-
-                {(state ===
-                  "idea" ||
-                  state ===
-                    "planned") && (
-                  <button
-                    type="button"
-                    className="date-flow-primary"
-                    disabled={
-                      saving
-                    }
-                    onClick={() =>
-                      void beginDate()
-                    }
-                  >
-                    Start Date Mode
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-        </section>
-
+        {(state ===
+          "idea" ||
+          state ===
+            "planned") && (
+          <button
+            type="button"
+            className="date-flow-primary"
+            disabled={
+              saving
+            }
+            onClick={() =>
+              void beginDate()
+            }
+          >
+            Start Date Mode
+          </button>
+        )}
+      </div>
+    </>
+  )}
+</section>
+        
         <section className="date-flow-section">
           <small>
             Get ready
