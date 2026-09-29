@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SpontaneousPhotoOpportunity } from "@/components/spontaneous-photo-opportunity";
 import { DateModeChatBridge } from "@/components/date-mode-chat-bridge";
+import "@/components/date-mode-chat-context.css";
 import {
   Camera,
   ChevronRight,
@@ -2925,10 +2926,12 @@ const recentConversationForPhoto = () =>
         </div>
       </header>
 
-         <DateModeChatBridge
-     userId={session.user.id}
-     onOpenDates={() => onOpen("dates")}
-   />
+<DateModeChatBridge
+  userId={session.user.id}
+  onOpenDates={() => onOpen("dates")}
+  onOpenPlaces={() => onOpen("places")}
+/>
+
       
   {activeListeningTrack && (
   <section className="chat-now-playing">
