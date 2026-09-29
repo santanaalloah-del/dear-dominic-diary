@@ -31,11 +31,6 @@ import {
 } from "@/lib/date-place-selection";
 
 import {
-  beginDatePlaceSelection,
-  consumeDatePlaceReturnId,
-} from "@/lib/date-place-selection";
-
-import {
   getDates,
   getLooks,
   type DiarioItem,
