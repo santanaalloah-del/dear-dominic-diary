@@ -291,6 +291,7 @@ function NycMapWorld({
   const [searching, setSearching] = useState(false);
   const [saving, setSaving] = useState(false);
   const [choosingDate, setChoosingDate] = useState(false);
+  const [placeSheetOpen, setPlaceSheetOpen] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const dynamicShortcuts = useMemo(
@@ -307,6 +308,17 @@ function NycMapWorld({
     () => (selected ? findSavedVersion(places, selected) : null),
     [places, selected]
   );
+
+  useEffect(() => {
+    if (!placeSheetOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [placeSheetOpen]);
 
   useEffect(() => {
     if (!apiKey || !mapNodeRef.current || mapRef.current) return;
@@ -369,86 +381,97 @@ function NycMapWorld({
   }, [apiKey]);
 
   useEffect(() => {
-  if (!mapReady || !window.L || !markerLayerRef.current) return;
+    if (!mapReady || !window.L || !markerLayerRef.current) return;
 
-  const L = window.L;
-  markerLayerRef.current.clearLayers();
+    const L = window.L;
+    markerLayerRef.current.clearLayers();
 
-  const escapeHtml = (value: string) =>
-    value
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-
-  results.forEach((place) => {
-    const icon = L.divIcon({
-      className: "nyc-map-pin-shell",
-      html: `
-        <span class="nyc-map-pin-touch">
-          <span class="nyc-map-pin">
-            <i></i>
+    results.forEach((place) => {
+      const icon = L.divIcon({
+        className: "nyc-map-pin-shell",
+        html: `
+          <span class="nyc-map-pin-touch">
+            <span class="nyc-map-pin">
+              <i></i>
+            </span>
           </span>
-        </span>
-      `,
-      iconSize: [44, 52],
-      iconAnchor: [22, 48],
-      popupAnchor: [0, -45],
-    });
+        `,
+        iconSize: [44, 52],
+        iconAnchor: [22, 48],
+        popupAnchor: [0, -44],
+      });
 
-    const marker = L.marker(
-      [place.latitude, place.longitude],
-      {
+      const marker = L.marker([place.latitude, place.longitude], {
         icon,
         title: place.name,
         keyboard: true,
         riseOnHover: true,
         bubblingMouseEvents: false,
-      }
-    ).addTo(markerLayerRef.current);
+      }).addTo(markerLayerRef.current);
 
-    const placeName = escapeHtml(place.name);
+      const popupButton = document.createElement("button");
+      popupButton.type = "button";
+      popupButton.className = "nyc-map-place-popup";
+      popupButton.setAttribute(
+        "aria-label",
+        `Open details for ${place.name}`
+      );
 
-    const placeMeta = escapeHtml(
-      place.neighborhood ||
+      const popupTitle = document.createElement("strong");
+      popupTitle.textContent = place.name;
+
+      const popupMeta = document.createElement("span");
+      popupMeta.textContent =
+        place.neighborhood ||
         place.placeType ||
-        "New York City"
-    );
+        "New York City";
 
-    marker.bindPopup(
-      `
-        <div class="nyc-map-place-popup">
-          <strong>${placeName}</strong>
-          <span>${placeMeta}</span>
-          <small>Tap below for details</small>
-        </div>
-      `,
-      {
+      const popupHint = document.createElement("small");
+      popupHint.textContent = "Open place";
+
+      popupButton.appendChild(popupTitle);
+      popupButton.appendChild(popupMeta);
+      popupButton.appendChild(popupHint);
+
+      L.DomEvent.disableClickPropagation(popupButton);
+      L.DomEvent.disableScrollPropagation(popupButton);
+
+      popupButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        setSelected(place);
+        setChoosingDate(false);
+        setFeedback(null);
+        setPlaceSheetOpen(true);
+        marker.closePopup();
+      });
+
+      marker.bindPopup(popupButton, {
         closeButton: false,
         autoPan: true,
         autoPanPadding: [24, 80],
         className: "nyc-map-place-popup-shell",
         maxWidth: 260,
         minWidth: 170,
-      }
-    );
+      });
 
-    const selectPlace = () => {
-      setSelected(place);
-      setChoosingDate(false);
-      setFeedback(null);
+      const selectPlace = () => {
+        setSelected(place);
+        setChoosingDate(false);
+        setFeedback(null);
+        setPlaceSheetOpen(false);
+        marker.openPopup();
+      };
 
-      marker.openPopup();
-    };
-
-    marker.on("click", selectPlace);
-
-    marker.on("keypress", selectPlace);
-  });
-}, [results, mapReady]);
+      marker.on("click", selectPlace);
+      marker.on("keypress", selectPlace);
+    });
+  }, [results, mapReady]);
 
   const showPlaces = (nextResults: DiscoveredPlace[]) => {
+    setPlaceSheetOpen(false);
+    setChoosingDate(false);
     setResults(nextResults);
     setSelected(nextResults[0] ?? null);
 
@@ -806,103 +829,158 @@ function NycMapWorld({
 
       {feedback && <p className="nyc-map-feedback">{feedback}</p>}
 
-      {selected && (
-        <article className="nyc-place-card">
-          <header>
-            <div>
-              <small>
-                {savedSelected
-                  ? savedSelected.data?.placeStatus === "visited"
-                    ? "Been there"
-                    : "Saved"
-                  : selected.placeType}
-              </small>
+      {selected && placeSheetOpen && (
+        <>
+          <button
+            type="button"
+            className="nyc-place-sheet-backdrop"
+            aria-label="Close place details"
+            onClick={() => {
+              setPlaceSheetOpen(false);
+              setChoosingDate(false);
+            }}
+          />
 
-              <h2>{selected.name}</h2>
-            </div>
+          <article
+            className="nyc-place-card nyc-place-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="nyc-place-sheet-title"
+          >
+            <div className="nyc-place-sheet-handle" />
 
-            <MapPin size={21} />
-          </header>
+            <header>
+              <div>
+                <small>
+                  {savedSelected
+                    ? savedSelected.data?.placeStatus === "visited"
+                      ? "Been there"
+                      : "Saved"
+                    : selected.placeType}
+                </small>
 
-          {(selected.neighborhood || selected.address) && (
-            <p className="nyc-place-address">
-              {selected.neighborhood &&
-                `${selected.neighborhood}${selected.address ? " · " : ""}`}
-              {selected.address}
-            </p>
-          )}
-
-          <div className="nyc-place-actions">
-            <button
-              type="button"
-              disabled={saving || Boolean(savedSelected)}
-              onClick={() => void saveSelected()}
-            >
-              <Heart size={16} />
-              {savedSelected ? "Saved" : "Save for later"}
-            </button>
-
-            <button
-              type="button"
-              className="primary"
-              disabled={saving}
-              onClick={() => setChoosingDate((value) => !value)}
-            >
-              <CalendarPlus size={16} />
-              Add to Date
-            </button>
-          </div>
-
-          {choosingDate && (
-            <section className="nyc-date-picker">
-              <header>
-                <div>
-                  <small>Date</small>
-                  <strong>Where should this Place go?</strong>
-                </div>
-              </header>
+                <h2 id="nyc-place-sheet-title">
+                  {selected.name}
+                </h2>
+              </div>
 
               <button
                 type="button"
-                className="nyc-new-date-idea"
-                disabled={saving}
-                onClick={() => void createDateIdea()}
+                className="nyc-place-sheet-close"
+                aria-label="Close place details"
+                onClick={() => {
+                  setPlaceSheetOpen(false);
+                  setChoosingDate(false);
+                }}
               >
-                <Sparkles size={16} />
-                Create a new Date idea from this Place
+                ×
+              </button>
+            </header>
+
+            {(selected.neighborhood || selected.address) && (
+              <p className="nyc-place-address">
+                {selected.neighborhood &&
+                  `${selected.neighborhood}${
+                    selected.address ? " · " : ""
+                  }`}
+                {selected.address}
+              </p>
+            )}
+
+            {(selected.website || selected.phone) && (
+              <div className="nyc-place-contact-row">
+                {selected.website && (
+                  <a
+                    href={selected.website}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Website
+                  </a>
+                )}
+
+                {selected.phone && (
+                  <a href={`tel:${selected.phone}`}>
+                    Call
+                  </a>
+                )}
+              </div>
+            )}
+
+            <div className="nyc-place-actions">
+              <button
+                type="button"
+                disabled={saving || Boolean(savedSelected)}
+                onClick={() => void saveSelected()}
+              >
+                <Heart size={16} />
+                {savedSelected ? "Saved" : "Save for later"}
               </button>
 
-              {loadingWorld ? (
-                <p>Opening your Dates…</p>
-              ) : dates.length === 0 ? (
-                <p>
-                  No Dates yet. You can create the first idea directly
-                  from this Place.
-                </p>
-              ) : (
-                <div className="nyc-date-options">
-                  {dates.map((date) => (
-                    <button
-                      key={date.id}
-                      type="button"
-                      disabled={saving}
-                      onClick={() => void attachToDate(date)}
-                    >
-                      <span>
-                        <small>{dateLabel(date)}</small>
-                        <strong>
-                          {date.title ?? "Untitled Date"}
-                        </strong>
-                      </span>
+              <button
+                type="button"
+                className="primary"
+                disabled={saving}
+                onClick={() =>
+                  setChoosingDate((value) => !value)
+                }
+              >
+                <CalendarPlus size={16} />
+                Add to Date
+              </button>
+            </div>
 
-                      <time>{dateMoment(date)}</time>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-        </article>
+            {choosingDate && (
+              <section className="nyc-date-picker">
+                <header>
+                  <div>
+                    <small>Date</small>
+                    <strong>Where should this Place go?</strong>
+                  </div>
+                </header>
+
+                <button
+                  type="button"
+                  className="nyc-new-date-idea"
+                  disabled={saving}
+                  onClick={() => void createDateIdea()}
+                >
+                  <Sparkles size={16} />
+                  Create a new Date idea from this Place
+                </button>
+
+                {loadingWorld ? (
+                  <p>Opening your Dates…</p>
+                ) : dates.length === 0 ? (
+                  <p>
+                    No Dates yet. You can create the first idea directly
+                    from this Place.
+                  </p>
+                ) : (
+                  <div className="nyc-date-options">
+                    {dates.map((date) => (
+                      <button
+                        key={date.id}
+                        type="button"
+                        disabled={saving}
+                        onClick={() => void attachToDate(date)}
+                      >
+                        <span>
+                          <small>{dateLabel(date)}</small>
+                          <strong>
+                            {date.title ?? "Untitled Date"}
+                          </strong>
+                        </span>
+
+                        <time>{dateMoment(date)}</time>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+          </article>
+        </>
       )}
 
       {results.length > 1 && (
@@ -924,6 +1002,7 @@ function NycMapWorld({
                   setSelected(place);
                   setChoosingDate(false);
                   setFeedback(null);
+                  setPlaceSheetOpen(true);
                   mapRef.current?.setView(
                     [place.latitude, place.longitude],
                     Math.max(mapRef.current?.getZoom?.() ?? 13, 14)

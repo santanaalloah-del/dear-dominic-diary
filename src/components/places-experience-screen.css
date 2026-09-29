@@ -485,7 +485,63 @@
   }
 }
 
-/* Bigger mobile touch target for map pins */
+
+/* Leaflet place bubble: tap a pin and immediately see what it is. */
+.nyc-map-frame .leaflet-popup-content-wrapper {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(96, 26, 52, 0.14);
+  border-radius: 16px;
+  background: #fffaf6;
+  box-shadow: 0 10px 28px rgba(70, 18, 39, 0.18);
+}
+
+.nyc-map-frame .leaflet-popup-content {
+  margin: 0;
+  min-width: 170px;
+}
+
+.nyc-map-frame .leaflet-popup-tip {
+  background: #fffaf6;
+  box-shadow: 2px 2px 5px rgba(70, 18, 39, 0.08);
+}
+
+.nyc-map-place-popup {
+  width: 100%;
+  display: grid;
+  gap: 3px;
+  padding: 11px 13px;
+  border: 0;
+  background: transparent;
+  color: #5d1832;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.nyc-map-place-popup strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.18;
+}
+
+.nyc-map-place-popup span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #876678;
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.nyc-map-place-popup:active {
+  background: #f7ecef;
+}
+
+
+/* Mobile-friendly marker target */
 .nyc-map-pin-shell {
   background: transparent !important;
   border: 0 !important;
@@ -504,50 +560,111 @@
   touch-action: manipulation;
 }
 
-/* Popup shown when a real NYC place pin is tapped */
-.nyc-map-place-popup-shell .leaflet-popup-content-wrapper {
-  overflow: hidden;
-  padding: 0;
-  border: 1px solid rgba(96, 26, 52, 0.16);
-  border-radius: 16px;
-  background: #fffaf6;
-  box-shadow: 0 10px 28px rgba(70, 18, 39, 0.2);
-}
-
-.nyc-map-place-popup-shell .leaflet-popup-content {
-  margin: 0;
-}
-
-.nyc-map-place-popup-shell .leaflet-popup-tip {
-  background: #fffaf6;
-}
-
-.nyc-map-place-popup {
-  display: grid;
-  gap: 3px;
-  min-width: 170px;
-  padding: 11px 13px;
-  color: #5d1832;
-}
-
-.nyc-map-place-popup strong {
+/* Popup is the small first step: identify the Place, then open it. */
+.nyc-map-place-popup small {
   display: block;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 0.98rem;
-  font-weight: 600;
+  margin-top: 4px;
+  color: #9a7183;
+  font-size: 0.67rem;
   line-height: 1.2;
 }
 
-.nyc-map-place-popup span {
-  display: block;
-  color: #876678;
-  font-size: 0.77rem;
-  line-height: 1.25;
+.nyc-map-place-popup:active {
+  background: #f7ecef;
 }
 
-.nyc-map-place-popup small {
-  display: block;
-  margin-top: 3px;
-  color: #a0788a;
-  font-size: 0.67rem;
+/* Full Place details open as a native-feeling bottom sheet. */
+.nyc-place-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1990;
+  border: 0;
+  background: rgba(44, 14, 27, 0.3);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.nyc-place-sheet {
+  position: fixed;
+  z-index: 2000;
+  left: 50%;
+  bottom: 0;
+  width: min(560px, 100%);
+  max-height: min(78dvh, 720px);
+  margin: 0;
+  padding:
+    13px
+    18px
+    calc(18px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  border-radius: 25px 25px 0 0;
+  box-shadow: 0 -18px 46px rgba(50, 14, 31, 0.2);
+  transform: translateX(-50%);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nyc-place-sheet-handle {
+  width: 42px;
+  height: 5px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: rgba(105, 45, 68, 0.22);
+}
+
+.nyc-place-sheet > header {
+  position: relative;
+  padding-right: 46px;
+}
+
+.nyc-place-sheet-close {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: #f4e7e9;
+  color: #681d39;
+  font: inherit;
+  font-size: 1.75rem;
+  font-weight: 300;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+}
+
+.nyc-place-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.nyc-place-contact-row a {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(100, 31, 56, 0.14);
+  border-radius: 999px;
+  background: #faf0ed;
+  color: #6b2942;
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 650;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 560px) {
+  .nyc-place-sheet {
+    width: 100%;
+    max-height: 82dvh;
+    padding-inline: 16px;
+  }
+
+  .nyc-place-sheet .nyc-place-actions {
+    grid-template-columns: 1fr 1fr;
+  }
 }
