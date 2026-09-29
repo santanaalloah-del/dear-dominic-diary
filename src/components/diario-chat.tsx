@@ -866,13 +866,21 @@ useEffect(() => {
 async function extractDominicActions({
   userMessage,
   replies,
+  liveDateContext,
 }: {
   userMessage:
     string;
 
   replies:
     string[];
-}): Promise<
+
+  liveDateContext:
+    Awaited<
+      ReturnType<
+        typeof loadDominicLiveDateContext
+      >
+    >;
+}) Promise<
   DominicWorldAction[]
 > {
   try {
@@ -898,7 +906,7 @@ async function extractDominicActions({
 
               userMessage,
 
-              replies,
+              
 
               nearbyCommitments,
             }),
@@ -2216,6 +2224,8 @@ const liveDateContext =
         combinedMessage,
 
       replies,
+      
+      liveDateContext,
     });
 
   if (
