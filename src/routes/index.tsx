@@ -44,6 +44,7 @@ import { ConnectedMemoriesScreen } from "@/components/connected-memories-screen"
 import { ConnectedCalendarScreen } from "@/components/connected-calendar-screen";
 import { ConnectedTimelineScreen } from "@/components/connected-timeline-screen";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
+import { DatesExperienceScreen } from "@/components/dates-screen";
 
 import {
   connectSpotify,
@@ -431,7 +432,13 @@ const openScreen = (nextScreen: Screen) => {
 {screen === "music" && (
   <MusicScreen onShareToChat={shareToChat} />
 )}
-{screen === "dates" && <DatesScreen />}
+
+{screen === "dates" && (
+  <DatesExperienceScreen
+    onOpen={openScreen}
+  />
+)}
+
 {screen === "places" && <PlacesScreen />}
 {screen === "keepsakes" && <KeepsakesScreen />}
 {screen === "wardrobe" && <WardrobeExperienceScreen />}
