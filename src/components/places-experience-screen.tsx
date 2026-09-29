@@ -33,6 +33,7 @@ import {
   NYC_BOUNDS,
   NYC_CENTER,
   PLACE_SHORTCUTS,
+  discoveredPlaceFromPersisted,
   findSavedVersion,
   getDynamicShortcuts,
   getHistoryShortcutKeys,
@@ -50,6 +51,33 @@ declare global {
   interface Window {
     L?: any;
   }
+}
+
+
+export const PLACE_MAP_OPEN_EVENT =
+  "diario:places:open-map";
+
+export const PLACE_LIST_OPEN_EVENT =
+  "diario:places:open-list";
+
+export function requestPlaceOnMap(placeId: string) {
+  if (typeof window === "undefined") return;
+
+  window.dispatchEvent(
+    new CustomEvent(PLACE_MAP_OPEN_EVENT, {
+      detail: { placeId },
+    })
+  );
+}
+
+function requestPlaceInList(placeId: string) {
+  if (typeof window === "undefined") return;
+
+  window.dispatchEvent(
+    new CustomEvent(PLACE_LIST_OPEN_EVENT, {
+      detail: { placeId },
+    })
+  );
 }
 
 type PlacesExperienceScreenProps = {
@@ -168,6 +196,8 @@ export function PlacesExperienceScreen({
   const [worldError, setWorldError] = useState<string | null>(
     null
   );
+  const [requestedPlaceId, setRequestedPlaceId] =
+    useState<string | null>(null);
 
   const refreshWorld = async () => {
     setLoadingWorld(true);
@@ -192,6 +222,40 @@ export function PlacesExperienceScreen({
   useEffect(() => {
     if (view === "map") void refreshWorld();
   }, [view, session.user.id]);
+
+
+  useEffect(() => {
+    const openOnMap = (event: Event) => {
+      const placeId = (
+        event as CustomEvent<{ placeId?: string }>
+      ).detail?.placeId;
+
+      if (!placeId) return;
+
+      setRequestedPlaceId(placeId);
+      setView("map");
+    };
+
+    window.addEventListener(
+      PLACE_MAP_OPEN_EVENT,
+      openOnMap
+    );
+
+    return () => {
+      window.removeEventListener(
+        PLACE_MAP_OPEN_EVENT,
+        openOnMap
+      );
+    };
+  }, []);
+
+  const openCanonicalPlaceInList = (placeId: string) => {
+    setView("list");
+
+    window.setTimeout(() => {
+      requestPlaceInList(placeId);
+    }, 0);
+  };
 
   return (
     <section className="places-experience-shell">
@@ -232,6 +296,11 @@ export function PlacesExperienceScreen({
           dates={dates}
           loadingWorld={loadingWorld}
           worldError={worldError}
+          requestedPlaceId={requestedPlaceId}
+          onRequestedPlaceHandled={() =>
+            setRequestedPlaceId(null)
+          }
+          onOpenInList={openCanonicalPlaceInList}
           onPlaceSaved={(place) =>
             setPlaces((current) => {
               const alreadyExists = current.some(
@@ -263,6 +332,9 @@ function NycMapWorld({
   dates,
   loadingWorld,
   worldError,
+  requestedPlaceId,
+  onRequestedPlaceHandled,
+  onOpenInList,
   onPlaceSaved,
   onDateCreated,
   onRefresh,
@@ -272,6 +344,9 @@ function NycMapWorld({
   dates: DiarioItem[];
   loadingWorld: boolean;
   worldError: string | null;
+  requestedPlaceId: string | null;
+  onRequestedPlaceHandled: () => void;
+  onOpenInList: (placeId: string) => void;
   onPlaceSaved: (place: DiarioItem) => void;
   onDateCreated: (date: DiarioItem) => void;
   onRefresh: () => Promise<void>;
@@ -475,6 +550,61 @@ function NycMapWorld({
       marker.on("keypress", selectPlace);
     });
   }, [results, mapReady]);
+
+
+  useEffect(() => {
+    if (
+      !mapReady ||
+      loadingWorld ||
+      !requestedPlaceId
+    ) {
+      return;
+    }
+
+    const persisted = places.find(
+      (place) => place.id === requestedPlaceId
+    );
+
+    if (!persisted) {
+      return;
+    }
+
+    const mapPlace =
+      discoveredPlaceFromPersisted(persisted);
+
+    if (!mapPlace) {
+      setFeedback(
+        `${persisted.title ?? "This Place"} does not have map coordinates yet.`
+      );
+      onRequestedPlaceHandled();
+      return;
+    }
+
+    setResults((current) => {
+      const withoutSame = current.filter(
+        (place) => place.placeId !== mapPlace.placeId
+      );
+
+      return [mapPlace, ...withoutSame];
+    });
+    setSelected(mapPlace);
+    setChoosingDate(false);
+    setFeedback(null);
+    setPlaceSheetOpen(true);
+
+    mapRef.current?.setView(
+      [mapPlace.latitude, mapPlace.longitude],
+      16
+    );
+
+    onRequestedPlaceHandled();
+  }, [
+    mapReady,
+    loadingWorld,
+    requestedPlaceId,
+    places,
+    onRequestedPlaceHandled,
+  ]);
 
   const showPlaces = (nextResults: DiscoveredPlace[]) => {
     setPlaceSheetOpen(false);
@@ -943,6 +1073,20 @@ function NycMapWorld({
                   </a>
                 )}
               </div>
+            )}
+
+
+            {savedSelected && (
+              <button
+                type="button"
+                className="nyc-open-list-action"
+                onClick={() =>
+                  onOpenInList(savedSelected.id)
+                }
+              >
+                <List size={16} />
+                Open in List
+              </button>
             )}
 
             {savedSelected && (
