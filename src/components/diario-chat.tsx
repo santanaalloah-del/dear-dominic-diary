@@ -47,6 +47,10 @@ import {
   getCurrentDominicState,
   type DominicState,
 } from "@/lib/dominic-state";
+import {
+  loadDominicLiveDateContext,
+  liveDateContextForPrompt,
+} from "@/lib/dominic-live-date-context";
 import { useTimeMood } from "@/lib/time-mood";
 import {
   createDate,
@@ -2080,6 +2084,20 @@ async function requestDominicReply(
     liveNearbyCommitments
   );
 
+const liveDateContext =
+    await loadDominicLiveDateContext(session.user.id)
+      .catch((error) => {
+        console.error(
+          "Could not load live Date context for Dominic:",
+          error
+        );
+
+        return null;
+      });
+
+  const liveDatePrompt =
+    liveDateContextForPrompt(liveDateContext);
+  
   const {
     data,
     error,
@@ -2090,6 +2108,10 @@ async function requestDominicReply(
         body: {
           message:
             combinedMessage,
+
+                    liveDateContext,
+
+          liveDatePrompt,
 
           dominicContext:
             dominicState
