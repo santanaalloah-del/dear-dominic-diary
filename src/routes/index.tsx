@@ -7242,22 +7242,23 @@ function KeepsakesScreen() {
   };
 
   const toggleConnection = async (
-    item: DiarioItem
-  ) => {
-    if (!selectedKeepsake) {
-      return;
-    }
+  item: DiarioItem
+) => {
+  if (!selectedKeepsake) {
+    return;
+  }
 
-    setSavingKeepsake(true);
-    setKeepsakeError(null);
+  setSavingKeepsake(true);
+  setKeepsakeError(null);
 
-    try {
-      const {
-        toggleKeepsakeConnection,
-      } = await import(
-        "@/lib/keepsake-flow"
-      );
+  try {
+    const {
+      toggleKeepsakeConnection,
+    } = await import(
+      "@/lib/keepsake-flow"
+    );
 
+    const connected =
       await toggleKeepsakeConnection({
         userId:
           session.user.id,
@@ -7269,23 +7270,69 @@ function KeepsakesScreen() {
           item,
       });
 
-      await refreshConnections(
-        selectedKeepsake.id
-      );
-    } catch (error) {
-      console.error(
-        "Could not update Keepsake connection:",
-        error
-      );
+    setConnections(
+      (current) => {
+        if (connected) {
+          const alreadyThere =
+            current.some(
+              (existing) =>
+                existing.id ===
+                item.id
+            );
 
-      setKeepsakeError(
-        "The connection could not be updated."
-      );
-    } finally {
-      setSavingKeepsake(false);
+          if (alreadyThere) {
+            return current;
+          }
+
+          return [
+            ...current,
+            item,
+          ];
+        }
+
+        return current.filter(
+          (existing) =>
+            existing.id !==
+            item.id
+        );
+      }
+    );
+  } catch (error) {
+    console.error(
+      "Could not update Keepsake connection:",
+      error
+    );
+
+    setKeepsakeError(
+      "The connection could not be updated."
+    );
+  } finally {
+    setSavingKeepsake(false);
+  }
+};
+
+const openConnectionManager =
+  async () => {
+    if (!selectedKeepsake) {
+      return;
     }
-  };
 
+    if (managingConnections) {
+      setManagingConnections(
+        false
+      );
+
+      return;
+    }
+
+    await refreshConnections(
+      selectedKeepsake.id
+    );
+
+    setManagingConnections(
+      true
+    );
+  };
   const kindLabel = (
     item: DiarioItem
   ) => {
@@ -7700,20 +7747,22 @@ function KeepsakesScreen() {
             </div>
           )}
 
-          <button
-            type="button"
-            className="gallery-add-button"
-            onClick={() =>
-              setManagingConnections(
-                (value) =>
-                  !value
-              )
-            }
-          >
-            {managingConnections
-              ? "Done"
-              : "＋ Connect to our world"}
-          </button>
+         <button
+  type="button"
+  className="gallery-add-button"
+  disabled={
+    loadingConnections
+  }
+  onClick={() =>
+    void openConnectionManager()
+  }
+>
+  {loadingConnections
+    ? "Refreshing…"
+    : managingConnections
+      ? "Done"
+      : "＋ Connect to our world"}
+</button>
 
           {managingConnections && (
             <div className="dates-list">
