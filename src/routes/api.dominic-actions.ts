@@ -117,12 +117,11 @@ const ACTION_ITEM_SCHEMA = {
       ],
     },
 
-    title:
-      
+title:
+  nullableStringSchema,
 
-    body:
-      nullableStringSchema,
-
+body:
+  
     place:
       nullableStringSchema,
 
