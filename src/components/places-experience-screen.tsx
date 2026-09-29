@@ -369,31 +369,84 @@ function NycMapWorld({
   }, [apiKey]);
 
   useEffect(() => {
-    if (!mapReady || !window.L || !markerLayerRef.current) return;
+  if (!mapReady || !window.L || !markerLayerRef.current) return;
 
-    const L = window.L;
-    markerLayerRef.current.clearLayers();
+  const L = window.L;
+  markerLayerRef.current.clearLayers();
 
-    results.forEach((place) => {
-      const icon = L.divIcon({
-        className: "nyc-map-pin-shell",
-        html: '<span class="nyc-map-pin"><i></i></span>',
-        iconSize: [30, 38],
-        iconAnchor: [15, 36],
-      });
+  const escapeHtml = (value: string) =>
+    value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
 
-      L.marker([place.latitude, place.longitude], {
+  results.forEach((place) => {
+    const icon = L.divIcon({
+      className: "nyc-map-pin-shell",
+      html: `
+        <span class="nyc-map-pin-touch">
+          <span class="nyc-map-pin">
+            <i></i>
+          </span>
+        </span>
+      `,
+      iconSize: [44, 52],
+      iconAnchor: [22, 48],
+      popupAnchor: [0, -45],
+    });
+
+    const marker = L.marker(
+      [place.latitude, place.longitude],
+      {
         icon,
         title: place.name,
-      })
-        .addTo(markerLayerRef.current)
-        .on("click", () => {
-          setSelected(place);
-          setChoosingDate(false);
-          setFeedback(null);
-        });
-    });
-  }, [results, mapReady]);
+        keyboard: true,
+        riseOnHover: true,
+        bubblingMouseEvents: false,
+      }
+    ).addTo(markerLayerRef.current);
+
+    const placeName = escapeHtml(place.name);
+
+    const placeMeta = escapeHtml(
+      place.neighborhood ||
+        place.placeType ||
+        "New York City"
+    );
+
+    marker.bindPopup(
+      `
+        <div class="nyc-map-place-popup">
+          <strong>${placeName}</strong>
+          <span>${placeMeta}</span>
+          <small>Tap below for details</small>
+        </div>
+      `,
+      {
+        closeButton: false,
+        autoPan: true,
+        autoPanPadding: [24, 80],
+        className: "nyc-map-place-popup-shell",
+        maxWidth: 260,
+        minWidth: 170,
+      }
+    );
+
+    const selectPlace = () => {
+      setSelected(place);
+      setChoosingDate(false);
+      setFeedback(null);
+
+      marker.openPopup();
+    };
+
+    marker.on("click", selectPlace);
+
+    marker.on("keypress", selectPlace);
+  });
+}, [results, mapReady]);
 
   const showPlaces = (nextResults: DiscoveredPlace[]) => {
     setResults(nextResults);
