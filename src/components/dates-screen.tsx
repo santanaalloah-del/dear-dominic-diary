@@ -26,6 +26,10 @@ import {
 } from "@/components/date-venue-world-panel";
 
 import {
+  useDateModeEntry,
+} from "@/components/date-mode-entry";
+
+import {
   beginDatePlaceSelection,
   consumeDatePlaceReturnId,
 } from "@/lib/date-place-selection";
@@ -710,6 +714,12 @@ export function DatesExperienceScreen({
         selectedDateId
     ) ??
     null;
+
+  useDateModeEntry({
+  dates,
+  onSelectDate: setSelectedDateId,
+});
+
 
   async function refreshDates() {
     setLoading(
@@ -2076,8 +2086,9 @@ export function DatesExperienceScreen({
           "live" ||
           state ===
             "past") && (
-          <section
-            className={`date-flow-section ${
+         <section
+  data-date-here
+  className={`date-flow-section ${
               state ===
               "live"
                 ? "date-flow-live"
