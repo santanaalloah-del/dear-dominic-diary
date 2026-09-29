@@ -56,6 +56,7 @@ type RequestBody = {
   userMessage?: string;
   replies?: string[];
   nearbyCommitments?: unknown[];
+  liveDateContext?: unknown;
 };
 
 type VerifiedUser = {
@@ -632,12 +633,14 @@ async function interpretActions({
   userMessage,
   replies,
   nearbyCommitments,
+    liveDateContext,
 }: {
   apiKey: string;
   model: string;
   userMessage: string;
   replies: string[];
   nearbyCommitments: unknown[];
+   liveDateContext: unknown;
 }): Promise<
   DominicWorldAction[]
 > {
@@ -827,6 +830,8 @@ ${currentTime}`,
                         replies,
 
                       nearbyCommitments,
+                      
+                      liveDateContext,
                     }
                   ),
               },
@@ -1081,6 +1086,9 @@ export const Route =
                     )
                       ? body.nearbyCommitments
                       : [],
+
+                  liveDateContext:
+  body.liveDateContext ?? null,
                 });
 
               return Response.json({
