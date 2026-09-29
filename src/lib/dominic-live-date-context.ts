@@ -1,6 +1,9 @@
-import type { DiarioItem } from "@/lib/diario-world";
+import { supabase } from "@/integrations/supabase/client";
 import { getLiveDateExperience, readDateExperience } from "@/lib/date-experience";
 import { readDateVenueWorld } from "@/lib/date-venue-world";
+import { readVenueWorldCatalog } from "@/lib/venue-world";
+
+const db = supabase as any;
 
 export type DominicLiveDateContext = {
   active: true;
@@ -9,6 +12,14 @@ export type DominicLiveDateContext = {
   locationMode: "place" | "walking" | "between_places";
   currentPlaceId: string | null;
   currentPlaceName: string | null;
+  venueSourceLabel: string | null;
+  availableVenueItems: Array<{
+    id: string;
+    name: string;
+    kind: string;
+    section: string;
+    priceUsdCents: number | null;
+  }>;
   recentEvents: Array<{
     type: string;
     happenedAt: string;
@@ -24,6 +35,25 @@ export type DominicLiveDateContext = {
   }>;
 };
 
+async function loadCurrentPlace(
+  userId: string,
+  placeId: string | null
+) {
+  if (!placeId) return null;
+
+  const { data, error } = await db
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("id", placeId)
+    .eq("kind", "place")
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ?? null;
+}
+
 export async function loadDominicLiveDateContext(
   userId: string
 ): Promise<DominicLiveDateContext | null> {
@@ -32,6 +62,13 @@ export async function loadDominicLiveDateContext(
 
   const experience = readDateExperience(date);
   const venueWorld = readDateVenueWorld(date);
+
+  const currentPlace =
+    experience.currentLocationMode === "walking"
+      ? null
+      : await loadCurrentPlace(userId, experience.currentPlaceId);
+
+  const catalog = readVenueWorldCatalog(currentPlace);
 
   return {
     active: true,
@@ -44,6 +81,15 @@ export async function loadDominicLiveDateContext(
         ? null
         : experience.currentPlaceName ??
           (typeof date.data?.place === "string" ? date.data.place : null),
+    venueSourceLabel: catalog?.sourceLabel ?? null,
+    availableVenueItems:
+      catalog?.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        kind: item.kind,
+        section: item.section,
+        priceUsdCents: item.priceUsdCents ?? null,
+      })) ?? [],
     recentEvents: experience.events.slice(-8).map((entry) => ({
       type: entry.type,
       happenedAt: entry.happenedAt,
@@ -75,10 +121,19 @@ export function liveDateContextForPrompt(
     `Date: ${context.title}`,
     `Current context: ${place}`,
     `Location mode: ${context.locationMode}`,
+    context.venueSourceLabel
+      ? `Venue source: ${context.venueSourceLabel}`
+      : null,
+    context.availableVenueItems.length
+      ? `Available venue items: ${context.availableVenueItems
+          .map((item) => `${item.name} [id=${item.id}; kind=${item.kind}]`)
+          .join(", ")}`
+      : `Available venue items: none supplied. Do not invent venue inventory.`,
     context.recentEvents.length
       ? `Recent Date events: ${context.recentEvents
-          .map((event) =>
-            `${event.type}${event.placeName ? ` (${event.placeName})` : ""}`
+          .map(
+            (event) =>
+              `${event.type}${event.placeName ? ` (${event.placeName})` : ""}`
           )
           .join(", ")}`
       : null,
@@ -91,6 +146,7 @@ export function liveDateContextForPrompt(
           .join(", ")}`
       : null,
     `Treat this as the physical situation Dominic and Alloah are currently sharing. Do not talk as if Dominic is somewhere else unless the conversation explicitly establishes that.`,
+    `Only treat the supplied available venue items as actionable inventory. Never invent an item or item ID.`,
   ]
     .filter(Boolean)
     .join("\n");
