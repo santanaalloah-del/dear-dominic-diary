@@ -181,6 +181,9 @@ export async function createDateIdea({
 
           flow_state:
             "idea",
+
+          time_known:
+            false,
         },
       })
       .select("*")
@@ -200,6 +203,7 @@ export async function createPlannedDate({
   title,
   place,
   plannedFor,
+  timeKnown,
   note,
   itinerary,
 }: {
@@ -207,6 +211,7 @@ export async function createPlannedDate({
   title: string;
   place: string;
   plannedFor: string;
+  timeKnown: boolean;
   note?: string;
   itinerary?: string;
 }): Promise<DiarioItem> {
@@ -240,7 +245,7 @@ export async function createPlannedDate({
     )
   ) {
     throw new Error(
-      "The Date needs a valid time."
+      "The Date needs a valid day."
     );
   }
 
@@ -288,6 +293,9 @@ export async function createPlannedDate({
 
           flow_state:
             "planned",
+
+          time_known:
+            timeKnown,
         },
       })
       .select("*")
@@ -308,6 +316,7 @@ export async function updateDateDetails({
   title,
   place,
   plannedFor,
+  timeKnown,
   note,
   itinerary,
 }: {
@@ -316,6 +325,7 @@ export async function updateDateDetails({
   title: string;
   place?: string;
   plannedFor?: string | null;
+  timeKnown?: boolean;
   note?: string;
   itinerary?: string;
 }): Promise<DiarioItem> {
@@ -389,6 +399,13 @@ export async function updateDateDetails({
 
           flow_state:
             nextState,
+
+          time_known:
+            plannedFor
+              ? Boolean(
+                  timeKnown
+                )
+              : false,
         },
       })
       .eq(
@@ -962,7 +979,8 @@ export async function getDateConnectedThings({
     )
     .filter(
       (
-        item: DateConnectedThing | null
+        item:
+          DateConnectedThing | null
       ): item is DateConnectedThing =>
         item !==
         null
