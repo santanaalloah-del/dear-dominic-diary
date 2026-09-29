@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { usePrivateDiario } from "@/components/private-diario";
+import { VenueContentPanel } from "@/components/venue-content-panel";
 import {
   getPlaces,
   type DiarioItem,
@@ -407,6 +408,8 @@ function NycMapWorld({
   onDateCreated: (date: DiarioItem) => void;
   onRefresh: () => Promise<void>;
 }) {
+  const { session } = usePrivateDiario();
+
   const apiKey =
     typeof import.meta !== "undefined"
       ? import.meta.env.VITE_GEOAPIFY_API_KEY ?? ""
@@ -436,9 +439,9 @@ function NycMapWorld({
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] =
     useState<string | null>(null);
-  const detailsCacheRef = useRef(
-    new Map<string, GeoapifyPlaceDetails>()
-  );
+const detailsCacheRef = useRef(
+  new globalThis.Map<string, GeoapifyPlaceDetails>()
+);
 
   const dynamicShortcuts = useMemo(
     () => getDynamicShortcuts(places),
@@ -1573,12 +1576,36 @@ function NycMapWorld({
               </div>
             )}
 
-            {placeDetails && (
-              <p className="nyc-place-provider-note">
-                Real place details from Geoapify / OpenStreetMap.
-                Availability and hours can change.
-              </p>
-            )}
+{placeDetails && (
+  <p className="nyc-place-provider-note">
+    Real place details from Geoapify / OpenStreetMap.
+    Availability and hours can change.
+  </p>
+)}
+
+{!dateSelection && (
+  <VenueContentPanel
+    userId={userId}
+    accessToken={session.access_token}
+    place={selected}
+    canonicalPlace={savedSelected}
+    placeDetails={placeDetails}
+    officialWebsite={officialWebsite}
+    ensureCanonicalPlace={async () => {
+      const saved =
+        savedSelected ??
+        (await saveDiscoveredPlace({
+          userId,
+          place: selected,
+        }));
+
+      return enrichCanonicalPlace(
+        saved
+      );
+    }}
+    onPlaceUpdated={onPlaceSaved}
+  />
+)}
 
             {dateSelection && (
               <button
