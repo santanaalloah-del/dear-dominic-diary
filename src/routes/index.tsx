@@ -45,7 +45,11 @@ import { ConnectedCalendarScreen } from "@/components/connected-calendar-screen"
 import { ConnectedTimelineScreen } from "@/components/connected-timeline-screen";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import { DatesExperienceScreen } from "@/components/dates-screen";
-import { PlacesExperienceScreen } from "@/components/places-experience-screen";
+import {
+  PLACE_LIST_OPEN_EVENT,
+  PlacesExperienceScreen,
+  requestPlaceOnMap,
+} from "@/components/places-experience-screen";
 
 import {
   connectSpotify,
@@ -5224,6 +5228,50 @@ function PlacesScreen() {
     ) ??
     null;
 
+  useEffect(() => {
+  const openInList = (
+    event: Event
+  ) => {
+    const placeId = (
+      event as CustomEvent<{
+        placeId?: string;
+      }>
+    ).detail?.placeId;
+
+    if (!placeId) {
+      return;
+    }
+
+    setSelectedPlaceId(
+      placeId
+    );
+
+    setEditingPlace(
+      false
+    );
+
+    setEditingDates(
+      false
+    );
+
+    setAddingPlace(
+      false
+    );
+  };
+
+  window.addEventListener(
+    PLACE_LIST_OPEN_EVENT,
+    openInList
+  );
+
+  return () => {
+    window.removeEventListener(
+      PLACE_LIST_OPEN_EVENT,
+      openInList
+    );
+  };
+}, []);
+
   const statusOf = (
     place:
       DiarioItem
@@ -5885,6 +5933,31 @@ function PlacesScreen() {
           </p>
         </ScreenIntro>
 
+        {Number.isFinite(
+  Number(
+    selectedPlace.data?.latitude
+  )
+) &&
+  Number.isFinite(
+    Number(
+      selectedPlace.data?.longitude
+    )
+  ) && (
+    <button
+      type="button"
+      className="letter-connected-button"
+      onClick={() =>
+        requestPlaceOnMap(
+          selectedPlace.id
+        )
+      }
+    >
+      <MapPin size={15} />
+      {" "}
+      View on Map
+    </button>
+  )}
+        
         <section className="date-card">
           <header>
             <div>
