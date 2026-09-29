@@ -746,6 +746,9 @@ function DiarioApp() {
   "places" && (
   <PlacesExperienceScreen
     listView={<PlacesScreen />}
+    onSelectionComplete={
+      goBack
+    }
   />
 )}
 
