@@ -41,6 +41,7 @@ import {
   friendlyPlaceCategory,
   getPlaceOpeningState,
   humanizeOpeningHours,
+  humanizeProviderValue,
   persistGeoapifyPlaceDetails,
   placeDetailsAreFresh,
   readPersistedPlaceDetails,
@@ -436,7 +437,7 @@ function NycMapWorld({
   const [detailsError, setDetailsError] =
     useState<string | null>(null);
   const detailsCacheRef = useRef(
-    new globalThis.Map<string, GeoapifyPlaceDetails>()
+    new Map<string, GeoapifyPlaceDetails>()
   );
 
   const dynamicShortcuts = useMemo(
@@ -1473,19 +1474,26 @@ function NycMapWorld({
                       <div className="nyc-place-detail-chips">
                         {placeDetails.cuisine && (
                           <span>
-                            {placeDetails.cuisine}
+                            {humanizeProviderValue(
+                              placeDetails.cuisine
+                            )}
                           </span>
                         )}
 
                         {placeDetails.diet && (
                           <span>
-                            {placeDetails.diet}
+                            {humanizeProviderValue(
+                              placeDetails.diet
+                            )}
                           </span>
                         )}
 
                         {placeDetails.reservation && (
                           <span>
-                            Reservation {placeDetails.reservation}
+                            Reservation{" "}
+                            {humanizeProviderValue(
+                              placeDetails.reservation
+                            )}
                           </span>
                         )}
                       </div>
