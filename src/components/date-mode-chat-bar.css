@@ -1,0 +1,96 @@
+.date-mode-chat-bar {
+  flex: 0 0 auto;
+  margin: 7px 11px 0;
+  border: 1px solid color-mix(in oklab, var(--chat-ink) 13%, transparent);
+  border-radius: 13px;
+  background: color-mix(in oklab, var(--chat-panel) 90%, var(--chat-mine));
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  color: var(--chat-ink);
+}
+
+.date-mode-chat-main,
+.date-mode-chat-here {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.date-mode-chat-main {
+  min-width: 0;
+  padding: 8px 9px;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 15px;
+  gap: 8px;
+  align-items: center;
+  text-align: left;
+}
+
+.date-mode-chat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--chat-accent) 14%, transparent);
+  color: var(--chat-accent);
+}
+
+.date-mode-chat-icon svg,
+.date-mode-chat-chevron {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.5;
+}
+
+.date-mode-chat-copy {
+  min-width: 0;
+}
+
+.date-mode-chat-copy small,
+.date-mode-chat-copy strong,
+.date-mode-chat-copy em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-mode-chat-copy small {
+  font: 6px var(--font-body);
+  letter-spacing: .13em;
+  color: color-mix(in oklab, var(--chat-ink) 54%, transparent);
+}
+
+.date-mode-chat-copy strong {
+  margin-top: 2px;
+  font: 500 12px var(--font-display);
+}
+
+.date-mode-chat-copy em {
+  margin-top: 1px;
+  font: 8px var(--font-body);
+  font-style: normal;
+  color: color-mix(in oklab, var(--chat-ink) 56%, transparent);
+}
+
+.date-mode-chat-chevron {
+  color: color-mix(in oklab, var(--chat-ink) 48%, transparent);
+}
+
+.date-mode-chat-here {
+  margin: 7px 7px 7px 0;
+  padding: 0 10px;
+  border-left: 1px solid color-mix(in oklab, var(--chat-ink) 10%, transparent);
+  font: 8px var(--font-body);
+  letter-spacing: .04em;
+  color: var(--chat-accent);
+}
+
+.date-mode-chat-main:active,
+.date-mode-chat-here:active {
+  opacity: .68;
+}
