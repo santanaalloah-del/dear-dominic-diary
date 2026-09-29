@@ -525,27 +525,61 @@ export function findSavedVersion(
   places: DiarioItem[],
   discovered: DiscoveredPlace
 ): DiarioItem | null {
+  const discoveredTitle =
+    normalize(discovered.name).toLowerCase();
+
+  const discoveredAddress =
+    normalize(discovered.address).toLowerCase();
+
   return (
     places.find((place) => {
-      const providerId = normalize(place.data?.geoapifyPlaceId);
+      const providerId =
+        normalize(place.data?.geoapifyPlaceId);
 
-      if (providerId && providerId === discovered.placeId) {
+      if (
+        providerId &&
+        providerId === discovered.placeId
+      ) {
         return true;
       }
 
-      const latitude = Number(place.data?.latitude);
-      const longitude = Number(place.data?.longitude);
+      const latitude =
+        Number(place.data?.latitude);
 
-      return (
-        normalize(place.title).toLowerCase() ===
-          discovered.name.toLowerCase() &&
-        Number.isFinite(latitude) &&
-        Number.isFinite(longitude) &&
-        sameCoordinates(
+      const longitude =
+        Number(place.data?.longitude);
+
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude) ||
+        !sameCoordinates(
           latitude,
           longitude,
           discovered.latitude,
           discovered.longitude
+        )
+      ) {
+        return false;
+      }
+
+      const existingTitle =
+        normalize(place.title).toLowerCase();
+
+      const existingAddress =
+        normalize(place.data?.address).toLowerCase();
+
+      return (
+        (
+          existingTitle &&
+          discoveredTitle &&
+          existingTitle ===
+            discoveredTitle
+        ) ||
+        (
+          existingAddress &&
+          discoveredAddress &&
+          existingAddress ===
+            discoveredAddress
         )
       );
     }) ?? null
@@ -573,7 +607,86 @@ export async function saveDiscoveredPlace({
     place
   );
 
-  if (existing) return existing;
+  if (existing) {
+    const existingCategories =
+      Array.isArray(
+        existing.data?.categories
+      )
+        ? existing.data.categories.filter(
+            (
+              category: unknown
+            ): category is string =>
+              typeof category === "string"
+          )
+        : [];
+
+    const mergedCategories =
+      Array.from(
+        new Set([
+          ...existingCategories,
+          ...place.categories,
+        ])
+      );
+
+    const mergedData = {
+      ...(existing.data ?? {}),
+      placeType:
+        existing.data?.placeType ||
+        place.placeType,
+      neighborhood:
+        existing.data?.neighborhood ||
+        place.neighborhood ||
+        null,
+      address:
+        existing.data?.address ||
+        place.address ||
+        null,
+      latitude:
+        place.latitude,
+      longitude:
+        place.longitude,
+      geoapifyPlaceId:
+        existing.data?.geoapifyPlaceId ||
+        place.placeId,
+      provider:
+        existing.data?.provider ||
+        "geoapify",
+      categories:
+        mergedCategories,
+      discoveryShortcut:
+        existing.data?.discoveryShortcut ||
+        place.shortcutKey,
+      website:
+        existing.data?.website ||
+        place.website,
+      phone:
+        existing.data?.phone ||
+        place.phone,
+      source:
+        existing.data?.source ||
+        "nyc_map",
+    };
+
+    const {
+      data: merged,
+      error: mergeError,
+    } = await db
+      .from("diario_items")
+      .update({
+        data: mergedData,
+      })
+      .eq("user_id", userId)
+      .eq("id", existing.id)
+      .eq("kind", "place")
+      .select("*")
+      .single();
+
+    if (mergeError) {
+      throw mergeError;
+    }
+
+    return merged as DiarioItem;
+  }
 
   const { data, error } = await db
     .from("diario_items")
