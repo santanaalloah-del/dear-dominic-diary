@@ -603,7 +603,7 @@ function titleCase(
 ): string {
   return value
     .replace(
-      /[_-]+/g,
+      /[:_;-]+/g,
       " "
     )
     .split(/\s+/)
@@ -620,6 +620,23 @@ function titleCase(
           .toLowerCase()
     )
     .join(" ");
+}
+
+export function humanizeProviderValue(
+  value: string
+): string {
+  return value
+    .split(/[;,]/)
+    .map(
+      (
+        item
+      ) =>
+        titleCase(
+          item.trim()
+        )
+    )
+    .filter(Boolean)
+    .join(" · ");
 }
 
 export function humanizeOpeningHours(
@@ -662,12 +679,19 @@ const DAY_INDEX:
     number
   > = {
     Su: 0,
+    Sun: 0,
     Mo: 1,
+    Mon: 1,
     Tu: 2,
+    Tue: 2,
     We: 3,
+    Wed: 3,
     Th: 4,
+    Thu: 4,
     Fr: 5,
+    Fri: 5,
     Sa: 6,
+    Sat: 6,
   };
 
 type ParsedRule = {
@@ -874,7 +898,7 @@ function parseOpeningHours(
 
     const match =
       rule.match(
-        /^((?:Mo|Tu|We|Th|Fr|Sa|Su)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?(?:,(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:-(?:Mo|Tu|We|Th|Fr|Sa|Su))?)*)\s+(.+)$/
+        /^((?:Mo|Mon|Tu|Tue|We|Wed|Th|Thu|Fr|Fri|Sa|Sat|Su|Sun)(?:-(?:Mo|Mon|Tu|Tue|We|Wed|Th|Thu|Fr|Fri|Sa|Sat|Su|Sun))?(?:,(?:Mo|Mon|Tu|Tue|We|Wed|Th|Thu|Fr|Fri|Sa|Sat|Su|Sun)(?:-(?:Mo|Mon|Tu|Tue|We|Wed|Th|Thu|Fr|Fri|Sa|Sat|Su|Sun))?)*)\s+(.+)$/
       );
 
     if (!match) {
