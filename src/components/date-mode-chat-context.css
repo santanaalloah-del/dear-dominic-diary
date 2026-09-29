@@ -1,0 +1,22 @@
+.date-mode-chat-actions {
+  display: flex;
+  align-items: stretch;
+}
+
+.date-mode-chat-actions > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.date-mode-chat-explore {
+  border: 0;
+  border-left: 1px solid rgba(117, 69, 85, 0.12);
+  background: transparent;
+  color: #754555;
+  padding: 0 11px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
