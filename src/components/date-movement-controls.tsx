@@ -4,6 +4,7 @@ import {
   leaveCurrentDatePlace,
   readDateExperience,
 } from "@/lib/date-experience";
+import { notifyDateExperienceChanged } from "@/lib/date-live-events";
 
 export function DateMovementControls({
   userId,
@@ -29,6 +30,7 @@ export function DateMovementControls({
       });
 
       onDateUpdated(updated);
+      notifyDateExperienceChanged(updated.id);
     } catch (error) {
       console.error("Could not leave current Date place:", error);
     }

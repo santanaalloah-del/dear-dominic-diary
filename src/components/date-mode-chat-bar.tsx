@@ -6,15 +6,11 @@ import {
   getLiveDateExperience,
   readDateExperience,
 } from "@/lib/date-experience";
+import {
+  DATE_EXPERIENCE_CHANGED_EVENT,
+  DATE_VENUE_ACTION_CHANGED_EVENT,
+} from "@/lib/date-live-events";
 import "./date-mode-chat-bar.css";
-
-export const DATE_EXPERIENCE_CHANGED_EVENT =
-  "diario:date-experience-changed";
-
-export function notifyDateExperienceChanged() {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(new Event(DATE_EXPERIENCE_CHANGED_EVENT));
-}
 
 export function DateModeChatBar({
   userId,
@@ -71,11 +67,13 @@ export function DateModeChatBar({
 
     window.addEventListener("focus", onFocus);
     window.addEventListener(DATE_EXPERIENCE_CHANGED_EVENT, onDateChanged);
+    window.addEventListener(DATE_VENUE_ACTION_CHANGED_EVENT, onDateChanged);
     document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       window.removeEventListener("focus", onFocus);
       window.removeEventListener(DATE_EXPERIENCE_CHANGED_EVENT, onDateChanged);
+      window.removeEventListener(DATE_VENUE_ACTION_CHANGED_EVENT, onDateChanged);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [refresh]);
