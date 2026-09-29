@@ -1243,16 +1243,13 @@ async function applyDominicAction(
         liveDate
       );
 
-    if (
-      !experience ||
-      experience.status !==
-        "live" ||
-      experience.locationMode !==
-        "place" ||
-      !experience.currentPlaceId
-    ) {
-      return null;
-    }
+ if (
+  experience.currentLocationMode !==
+    "place" ||
+  !experience.currentPlaceId
+) {
+  return null;
+}
 
     const {
       data: currentPlace,
