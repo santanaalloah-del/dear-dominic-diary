@@ -212,251 +212,577 @@ function Index() {
 function DiarioApp() {
   const [screen, setScreen] =
     useState<Screen>("home");
-  const [previousScreen, setPreviousScreen] =
-  useState<Screen>("home");
-  
+
+  const [
+    screenHistory,
+    setScreenHistory,
+  ] =
+    useState<Screen[]>([]);
+
   const [activeRoom, setActiveRoom] =
     useState("living");
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollPositions = useRef<Partial<Record<Screen, number>>>({});
-  const time = useTimeMood();
-  const clockHour = time.dayProgress * 24;
 
-const daylightStart = 5.5;
-const daylightEnd = 19.25;
+  const scrollRef =
+    useRef<HTMLDivElement>(
+      null
+    );
 
-const daylightProgress =
-  Math.max(
-    0,
-    Math.min(
-      1,
-      (clockHour - daylightStart) /
-        (daylightEnd - daylightStart)
-    )
-  );
+  const scrollPositions =
+    useRef<
+      Partial<
+        Record<
+          Screen,
+          number
+        >
+      >
+    >({});
 
-const daylight =
-  Math.sin(Math.PI * daylightProgress);
+  const time =
+    useTimeMood();
 
-const nightDepth =
-  clockHour >= 18
-    ? Math.min(1, (clockHour - 18) / 4)
-    : clockHour < 4
-      ? 1
-      : clockHour < 7
-        ? 1 - (clockHour - 4) / 3
-        : 0;
+  const clockHour =
+    time.dayProgress *
+    24;
 
-const sunOpacity =
-  daylight * 0.8;
+  const daylightStart =
+    5.5;
 
-const shadowOpacity =
-  daylight * 0.48;
+  const daylightEnd =
+    19.25;
 
-const roomBrightness =
-  0.55 + daylight * 0.5 - nightDepth * 0.18;
+  const daylightProgress =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        (
+          clockHour -
+          daylightStart
+        ) /
+          (
+            daylightEnd -
+            daylightStart
+          )
+      )
+    );
 
-const roomSaturation =
-  0.72 + daylight * 0.28 - nightDepth * 0.08;
+  const daylight =
+    Math.sin(
+      Math.PI *
+        daylightProgress
+    );
 
-const roomSepia =
-  daylight *
-  Math.abs(daylightProgress - 0.5) *
-  0.8;
+  const nightDepth =
+    clockHour >=
+    18
+      ? Math.min(
+          1,
+          (
+            clockHour -
+            18
+          ) /
+            4
+        )
+      : clockHour <
+          4
+        ? 1
+        : clockHour <
+            7
+          ? 1 -
+            (
+              clockHour -
+              4
+            ) /
+              3
+          : 0;
 
-const nightOpacity =
-  nightDepth * 0.38;
-  
+  const sunOpacity =
+    daylight *
+    0.8;
+
+  const shadowOpacity =
+    daylight *
+    0.48;
+
+  const roomBrightness =
+    0.55 +
+    daylight *
+      0.5 -
+    nightDepth *
+      0.18;
+
+  const roomSaturation =
+    0.72 +
+    daylight *
+      0.28 -
+    nightDepth *
+      0.08;
+
+  const roomSepia =
+    daylight *
+    Math.abs(
+      daylightProgress -
+        0.5
+    ) *
+    0.8;
+
+  const nightOpacity =
+    nightDepth *
+    0.38;
+
   const lampOpacity =
-  nightDepth * 0.55;
+    nightDepth *
+    0.55;
 
-const homePlanBrightness =
-  1 - nightDepth * 0.32;
-  const detail = !primaryScreens.includes(screen);
+  const homePlanBrightness =
+    1 -
+    nightDepth *
+      0.32;
+
+  const detail =
+    !primaryScreens.includes(
+      screen
+    );
+
   useEffect(() => {
-  void finishSpotifyConnection().catch(
-    (error) => {
-      console.error(
-        "Could not finish Spotify connection:",
-        error
+    void finishSpotifyConnection()
+      .catch(
+        (
+          error
+        ) => {
+          console.error(
+            "Could not finish Spotify connection:",
+            error
+          );
+        }
       );
-    }
+  }, []);
+
+  const saveCurrentScroll =
+    () => {
+      if (
+        scrollRef.current
+      ) {
+        scrollPositions.current[
+          screen
+        ] =
+          scrollRef.current
+            .scrollTop;
+      }
+    };
+
+  const openScreen =
+    (
+      nextScreen:
+        Screen
+    ) => {
+      if (
+        nextScreen ===
+        screen
+      ) {
+        return;
+      }
+
+      saveCurrentScroll();
+
+      setScreenHistory(
+        (
+          current
+        ) =>
+          [
+            ...current,
+            screen,
+          ].slice(
+            -50
+          )
+      );
+
+      setScreen(
+        nextScreen
+      );
+    };
+
+  const goBack =
+    () => {
+      saveCurrentScroll();
+
+      const history =
+        [
+          ...screenHistory,
+        ];
+
+      let previous =
+        history.pop();
+
+      while (
+        previous ===
+          screen &&
+        history.length >
+          0
+      ) {
+        previous =
+          history.pop();
+      }
+
+      if (
+        !previous
+      ) {
+        previous =
+          screen ===
+          "room"
+            ? "home"
+            : "more";
+      }
+
+      setScreenHistory(
+        history
+      );
+
+      setScreen(
+        previous
+      );
+    };
+
+  const shareToChat =
+    (
+      text:
+        string,
+      item?:
+        DiarioItem,
+      subtitle?:
+        string
+    ) => {
+      if (
+        typeof window !==
+        "undefined"
+      ) {
+        if (
+          item
+        ) {
+          window.localStorage
+            .setItem(
+              "diario-pending-chat-share-v1",
+
+              JSON.stringify({
+                text,
+
+                itemId:
+                  item.id,
+
+                kind:
+                  item.kind,
+
+                title:
+                  item.title ??
+                  "Shared item",
+
+                subtitle:
+                  subtitle ??
+                  null,
+              })
+            );
+
+          window.localStorage
+            .removeItem(
+              "diario-pending-chat-message"
+            );
+        } else {
+          window.localStorage
+            .setItem(
+              "diario-pending-chat-message",
+              text
+            );
+
+          window.localStorage
+            .removeItem(
+              "diario-pending-chat-share-v1"
+            );
+        }
+      }
+
+      openScreen(
+        "chat"
+      );
+    };
+
+  const openRoom =
+    (
+      roomId:
+        string
+    ) => {
+      setActiveRoom(
+        roomId
+      );
+
+      openScreen(
+        "room"
+      );
+    };
+
+  useLayoutEffect(
+    () => {
+      const scrollElement =
+        scrollRef.current;
+
+      if (
+        !scrollElement
+      ) {
+        return;
+      }
+
+      scrollElement.scrollTop =
+        scrollPositions
+          .current[
+          screen
+        ] ??
+        0;
+    },
+    [
+      screen,
+    ]
   );
-}, []);
-  
-const openScreen = (nextScreen: Screen) => {
-  if (scrollRef.current) {
-    scrollPositions.current[screen] = scrollRef.current.scrollTop;
-  }
-
-  setPreviousScreen(screen);
-  setScreen(nextScreen);
-};
- const shareToChat = (
-  text: string,
-  item?: DiarioItem,
-  subtitle?: string
-) => {
-  if (typeof window !== "undefined") {
-    if (item) {
-      window.localStorage.setItem(
-        "diario-pending-chat-share-v1",
-        JSON.stringify({
-          text,
-          itemId: item.id,
-          kind: item.kind,
-          title:
-            item.title ??
-            "Shared item",
-          subtitle:
-            subtitle ?? null,
-        })
-      );
-
-      window.localStorage.removeItem(
-        "diario-pending-chat-message"
-      );
-    } else {
-      window.localStorage.setItem(
-        "diario-pending-chat-message",
-        text
-      );
-
-      window.localStorage.removeItem(
-        "diario-pending-chat-share-v1"
-      );
-    }
-  }
-
-  openScreen("chat");
-};
-  
-  const openRoom = (roomId: string) => {
-    setActiveRoom(roomId);
-    openScreen("room");
-  };
-
-  useLayoutEffect(() => {
-    const scrollElement = scrollRef.current;
-
-    if (!scrollElement) return;
-
-    scrollElement.scrollTop = scrollPositions.current[screen] ?? 0;
-  }, [screen]);
 
   return (
     <main
       className={`prototype-stage time-${time.mood}`}
-      data-time-theme={time.mood}
+      data-time-theme={
+        time.mood
+      }
     >
+      <div
+        className="phone-shell"
+        style={
+          {
+            "--day-progress":
+              time.dayProgress,
 
-  <div
-  className="phone-shell"
- style={
-  {
-    "--day-progress": time.dayProgress,
-   "--day-x": `${daylightProgress * 100}%`,
-    "--sun-opacity": sunOpacity,
-    "--shadow-opacity": shadowOpacity,
-    "--room-brightness": roomBrightness,
-"--room-saturation": roomSaturation,
-"--room-sepia": roomSepia,
-    "--night-opacity": nightOpacity,
-    "--lamp-opacity": lampOpacity,
-"--home-plan-brightness": homePlanBrightness,
-  } as React.CSSProperties
-}
->
-        <div className="statusbar" aria-hidden="true">
-          <span>{time.timeLabel}</span>
-          <span className="brand-mark">Diário</span>
-          <span>•••</span>
+            "--day-x":
+              `${daylightProgress * 100}%`,
+
+            "--sun-opacity":
+              sunOpacity,
+
+            "--shadow-opacity":
+              shadowOpacity,
+
+            "--room-brightness":
+              roomBrightness,
+
+            "--room-saturation":
+              roomSaturation,
+
+            "--room-sepia":
+              roomSepia,
+
+            "--night-opacity":
+              nightOpacity,
+
+            "--lamp-opacity":
+              lampOpacity,
+
+            "--home-plan-brightness":
+              homePlanBrightness,
+          } as React.CSSProperties
+        }
+      >
+        <div
+          className="statusbar"
+          aria-hidden="true"
+        >
+          <span>
+            {
+              time.timeLabel
+            }
+          </span>
+
+          <span className="brand-mark">
+            Diário
+          </span>
+
+          <span>
+            •••
+          </span>
         </div>
 
         {detail && (
           <button
             className="back-button"
-     onClick={() => openScreen(screen === "room" ? "home" : previousScreen)}
+            onClick={
+              goBack
+            }
             aria-label="Go back"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft
+              size={
+                20
+              }
+            />
           </button>
         )}
 
         <div
-          ref={scrollRef}
+          ref={
+            scrollRef
+          }
           className={`screen-scroll screen-${screen}`}
-          key={screen}
+          key={
+            screen
+          }
         >
-          {screen === "home" && (
+          {screen ===
+            "home" && (
             <HomeScreen
-              time={time}
-              onOpenRoom={openRoom}
+              time={
+                time
+              }
+              onOpenRoom={
+                openRoom
+              }
             />
           )}
 
-{screen === "chat" && (
-  <DiarioChat onOpen={openScreen} />
-)}
-          {screen === "diary" && <DiaryScreen />}
-
-          {screen === "more" && (
-            <MoreScreen onOpen={openScreen} />
+          {screen ===
+            "chat" && (
+            <DiarioChat
+              onOpen={
+                openScreen
+              }
+            />
           )}
 
-          {screen === "room" && (
+          {screen ===
+            "diary" && (
+            <DiaryScreen />
+          )}
+
+          {screen ===
+            "more" && (
+            <MoreScreen
+              onOpen={
+                openScreen
+              }
+            />
+          )}
+
+          {screen ===
+            "room" && (
             <RoomScreen
-              time={time}
-              roomId={activeRoom}
-              onOpen={openScreen}
-              onOpenRoom={openRoom}
+              time={
+                time
+              }
+              roomId={
+                activeRoom
+              }
+              onOpen={
+                openScreen
+              }
+              onOpenRoom={
+                openRoom
+              }
             />
           )}
 
-         {screen === "letters" && <LettersScreen />}
-{screen === "gallery" && <GalleryScreen />}
+          {screen ===
+            "letters" && (
+            <LettersScreen />
+          )}
 
-{screen === "night" && (
-  <MorningNightScreen
-    time={time}
-    onOpen={openScreen}
-  />
-)}
+          {screen ===
+            "gallery" && (
+            <GalleryScreen />
+          )}
 
-{screen === "memories" && <ConnectedMemoriesScreen />}
-          
-{screen === "calendar" && <ConnectedCalendarScreen />}
+          {screen ===
+            "night" && (
+            <MorningNightScreen
+              time={
+                time
+              }
+              onOpen={
+                openScreen
+              }
+            />
+          )}
 
-{screen === "timeline" && <ConnectedTimelineScreen />}
+          {screen ===
+            "memories" && (
+            <ConnectedMemoriesScreen />
+          )}
 
-{screen === "music" && (
-  <MusicScreen onShareToChat={shareToChat} />
-)}
+          {screen ===
+            "calendar" && (
+            <ConnectedCalendarScreen />
+          )}
 
-{screen === "dates" && (
-  <DatesExperienceScreen
-    onOpen={openScreen}
-  />
-)}
+          {screen ===
+            "timeline" && (
+            <ConnectedTimelineScreen />
+          )}
 
-{screen === "places" && <PlacesScreen />}
-{screen === "keepsakes" && <KeepsakesScreen />}
-{screen === "wardrobe" && <WardrobeExperienceScreen />}
-          {screen === "references" && <VisualReferencesScreen />}
-          {screen === "photo-engine" && <PhotoEngineScreen />}
-          {screen === "settings" && <SettingsScreen />}
+          {screen ===
+            "music" && (
+            <MusicScreen
+              onShareToChat={
+                shareToChat
+              }
+            />
+          )}
+
+          {screen ===
+            "dates" && (
+            <DatesExperienceScreen
+              onOpen={
+                openScreen
+              }
+            />
+          )}
+
+          {screen ===
+            "places" && (
+            <PlacesScreen />
+          )}
+
+          {screen ===
+            "keepsakes" && (
+            <KeepsakesScreen />
+          )}
+
+          {screen ===
+            "wardrobe" && (
+            <WardrobeExperienceScreen />
+          )}
+
+          {screen ===
+            "references" && (
+            <VisualReferencesScreen />
+          )}
+
+          {screen ===
+            "photo-engine" && (
+            <PhotoEngineScreen />
+          )}
+
+          {screen ===
+            "settings" && (
+            <SettingsScreen />
+          )}
         </div>
 
         {!detail && (
           <BottomNav
-            active={screen}
-            onOpen={openScreen}
+            active={
+              screen
+            }
+            onOpen={
+              openScreen
+            }
           />
         )}
       </div>
     </main>
   );
 }
+
 function ScreenIntro({
   eyebrow,
   title,
