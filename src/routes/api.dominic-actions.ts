@@ -12,7 +12,8 @@ type ActionType =
   | "create_letter"
   | "create_memory"
   | "create_place"
-  | "create_song";
+  | "create_song"
+  | "date_venue_action";
 
 type DominicWorldAction =
   | {
@@ -49,6 +50,12 @@ type DominicWorldAction =
       artist: string;
       album?: string;
       note?: string;
+    }
+  | {
+      type: "date_venue_action";
+      dateId: string;
+      itemId: string;
+      venueAction: "ordered" | "bought";
     };
 
 type RequestBody = {
@@ -91,6 +98,9 @@ const ACTION_ITEM_SCHEMA = {
     "album",
     "note",
     "eventAt",
+    "dateId",
+"itemId",
+"venueAction",
   ],
 
   properties: {
@@ -103,11 +113,12 @@ const ACTION_ITEM_SCHEMA = {
         "create_memory",
         "create_place",
         "create_song",
+        "date_venue_action",
       ],
     },
 
     title:
-      nullableStringSchema,
+      
 
     body:
       nullableStringSchema,
@@ -152,6 +163,29 @@ const ACTION_ITEM_SCHEMA = {
 
     eventAt:
       nullableStringSchema,
+
+    dateId:
+      nullableStringSchema,
+
+    itemId:
+      nullableStringSchema,
+
+    venueAction: {
+      anyOf: [
+        {
+          type: "string",
+
+          enum: [
+            "ordered",
+            "bought",
+          ],
+        },
+
+        {
+          type: "null",
+        },
+      ],
+    },
   },
 } as const;
 
