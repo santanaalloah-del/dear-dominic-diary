@@ -436,7 +436,7 @@ function NycMapWorld({
   const [detailsError, setDetailsError] =
     useState<string | null>(null);
   const detailsCacheRef = useRef(
-    new Map<string, GeoapifyPlaceDetails>()
+    new globalThis.Map<string, GeoapifyPlaceDetails>()
   );
 
   const dynamicShortcuts = useMemo(
