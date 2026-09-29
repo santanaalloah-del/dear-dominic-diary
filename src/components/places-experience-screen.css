@@ -668,3 +668,32 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+/* Saved ↔ Been there changes the same Place object; it never creates a copy. */
+.nyc-place-status-action {
+  width: 100%;
+  min-height: 43px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(102, 30, 56, 0.15);
+  border-radius: 13px;
+  background: #faf0ed;
+  color: #6a2b44;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.nyc-place-status-action.visited {
+  background: #efe2e4;
+  color: #57162f;
+}
+
+.nyc-place-status-action:disabled {
+  opacity: 0.5;
+}

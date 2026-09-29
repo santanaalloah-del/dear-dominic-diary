@@ -28,6 +28,7 @@ import {
   toggleDatePlace,
 } from "@/lib/place-flow";
 import { createContextualDate } from "@/lib/date-flow";
+import { setPersistedPlaceStatus } from "@/lib/place-status";
 import {
   NYC_BOUNDS,
   NYC_CENTER,
@@ -233,11 +234,17 @@ export function PlacesExperienceScreen({
           worldError={worldError}
           onPlaceSaved={(place) =>
             setPlaces((current) => {
-              if (current.some((item) => item.id === place.id)) {
-                return current;
+              const alreadyExists = current.some(
+                (item) => item.id === place.id
+              );
+
+              if (!alreadyExists) {
+                return [place, ...current];
               }
 
-              return [place, ...current];
+              return current.map((item) =>
+                item.id === place.id ? place : item
+              );
             })
           }
           onDateCreated={(date) =>
@@ -596,6 +603,37 @@ function NycMapWorld({
     }
   };
 
+  const changeSelectedPlaceStatus = async (
+    status: "saved" | "visited"
+  ) => {
+    if (!savedSelected) return;
+
+    setSaving(true);
+    setFeedback(null);
+    setMapError(null);
+
+    try {
+      const updated = await setPersistedPlaceStatus({
+        userId,
+        place: savedSelected,
+        status,
+      });
+
+      onPlaceSaved(updated);
+
+      setFeedback(
+        status === "visited"
+          ? `${updated.title ?? selected?.name ?? "This place"} is now marked as Been there.`
+          : `${updated.title ?? selected?.name ?? "This place"} is back in Saved.`
+      );
+    } catch (error) {
+      console.error("Could not change Place status:", error);
+      setMapError("That Place status could not be changed.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const attachToDate = async (date: DiarioItem) => {
     if (!selected) return;
 
@@ -905,6 +943,30 @@ function NycMapWorld({
                   </a>
                 )}
               </div>
+            )}
+
+            {savedSelected && (
+              <button
+                type="button"
+                className={`nyc-place-status-action ${
+                  savedSelected.data?.placeStatus === "visited"
+                    ? "visited"
+                    : ""
+                }`}
+                disabled={saving}
+                onClick={() =>
+                  void changeSelectedPlaceStatus(
+                    savedSelected.data?.placeStatus === "visited"
+                      ? "saved"
+                      : "visited"
+                  )
+                }
+              >
+                <MapPin size={16} />
+                {savedSelected.data?.placeStatus === "visited"
+                  ? "Move back to Saved"
+                  : "Mark as Been there"}
+              </button>
             )}
 
             <div className="nyc-place-actions">
