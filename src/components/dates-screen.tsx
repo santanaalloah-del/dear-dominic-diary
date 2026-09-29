@@ -62,11 +62,22 @@ type DateOpenScreen =
   | "music"
   | "keepsakes";
 
+function dateTimeKnown(
+  date: DiarioItem
+) {
+  return (
+    date.data
+      ?.time_known !==
+    false
+  );
+}
+
 function dateLabel(
   value:
     | string
     | null
-    | undefined
+    | undefined,
+  timeKnown = true
 ) {
   if (
     !value
@@ -85,6 +96,29 @@ function dateLabel(
     )
   ) {
     return value;
+  }
+
+  if (
+    !timeKnown
+  ) {
+    return `${new Intl.DateTimeFormat(
+      "en-US",
+      {
+        weekday:
+          "short",
+
+        month:
+          "long",
+
+        day:
+          "numeric",
+
+        year:
+          "numeric",
+      }
+    ).format(
+      parsed
+    )} · time not set`;
   }
 
   return new Intl.DateTimeFormat(
@@ -113,7 +147,7 @@ function dateLabel(
   );
 }
 
-function dateInputValue(
+function dateDayInputValue(
   value:
     | string
     | null
@@ -138,21 +172,108 @@ function dateInputValue(
     return "";
   }
 
-  const offset =
-    date.getTimezoneOffset();
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() +
+        1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${year}-${month}-${day}`;
+}
+
+function dateClockInputValue(
+  value:
+    | string
+    | null
+    | undefined,
+  timeKnown:
+    boolean
+) {
+  if (
+    !value ||
+    !timeKnown
+  ) {
+    return "";
+  }
+
+  const date =
+    new Date(
+      value
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+  const hour =
+    String(
+      date.getHours()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const minute =
+    String(
+      date.getMinutes()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${hour}:${minute}`;
+}
+
+function buildPlannedFor(
+  day:
+    string,
+  time:
+    string
+) {
+  if (
+    !day
+  ) {
+    return null;
+  }
+
+  const cleanTime =
+    time.trim();
 
   const local =
     new Date(
-      date.getTime() -
-      offset * 60_000
+      cleanTime
+        ? `${day}T${cleanTime}:00`
+        : `${day}T12:00:00`
     );
 
+  if (
+    Number.isNaN(
+      local.getTime()
+    )
+  ) {
+    return null;
+  }
+
   return local
-    .toISOString()
-    .slice(
-      0,
-      16
-    );
+    .toISOString();
 }
 
 function flowLabel(
@@ -309,8 +430,14 @@ export function DatesExperienceScreen({
     useState("");
 
   const [
-    newWhen,
-    setNewWhen,
+    newDay,
+    setNewDay,
+  ] =
+    useState("");
+
+  const [
+    newTime,
+    setNewTime,
   ] =
     useState("");
 
@@ -345,8 +472,14 @@ export function DatesExperienceScreen({
     useState("");
 
   const [
-    editWhen,
-    setEditWhen,
+    editDay,
+    setEditDay,
+  ] =
+    useState("");
+
+  const [
+    editTime,
+    setEditTime,
   ] =
     useState("");
 
@@ -616,7 +749,11 @@ export function DatesExperienceScreen({
       ""
     );
 
-    setNewWhen(
+    setNewDay(
+      ""
+    );
+
+    setNewTime(
       ""
     );
 
@@ -641,7 +778,7 @@ export function DatesExperienceScreen({
         "planned" &&
       (
         !newPlace.trim() ||
-        !newWhen
+        !newDay
       )
     ) {
       return;
@@ -656,6 +793,12 @@ export function DatesExperienceScreen({
     );
 
     try {
+      const plannedFor =
+        buildPlannedFor(
+          newDay,
+          newTime
+        );
+
       const saved =
         newMode ===
         "idea"
@@ -686,9 +829,12 @@ export function DatesExperienceScreen({
                 newPlace,
 
               plannedFor:
-                new Date(
-                  newWhen
-                ).toISOString(),
+                plannedFor!,
+
+              timeKnown:
+                Boolean(
+                  newTime
+                ),
 
               note:
                 newNote,
@@ -726,6 +872,11 @@ export function DatesExperienceScreen({
     date:
       DiarioItem
   ) {
+    const timeKnown =
+      dateTimeKnown(
+        date
+      );
+
     setEditTitle(
       date.title ??
       ""
@@ -740,9 +891,16 @@ export function DatesExperienceScreen({
         : ""
     );
 
-    setEditWhen(
-      dateInputValue(
+    setEditDay(
+      dateDayInputValue(
         date.planned_for
+      )
+    );
+
+    setEditTime(
+      dateClockInputValue(
+        date.planned_for,
+        timeKnown
       )
     );
 
@@ -781,6 +939,14 @@ export function DatesExperienceScreen({
     );
 
     try {
+      const plannedFor =
+        editDay
+          ? buildPlannedFor(
+              editDay,
+              editTime
+            )
+          : null;
+
       const updated =
         await updateDateDetails({
           userId:
@@ -795,12 +961,12 @@ export function DatesExperienceScreen({
           place:
             editPlace,
 
-          plannedFor:
-            editWhen
-              ? new Date(
-                  editWhen
-                ).toISOString()
-              : null,
+          plannedFor,
+
+          timeKnown:
+            Boolean(
+              editTime
+            ),
 
           note:
             editNote,
@@ -1148,6 +1314,11 @@ export function DatesExperienceScreen({
         selectedDate
       );
 
+    const timeKnown =
+      dateTimeKnown(
+        selectedDate
+      );
+
     const place =
       typeof selectedDate
         .data
@@ -1315,18 +1486,40 @@ export function DatesExperienceScreen({
 
               <div className="date-flow-field">
                 <label>
-                  When
+                  Date
                 </label>
 
                 <input
-                  type="datetime-local"
+                  type="date"
                   value={
-                    editWhen
+                    editDay
                   }
                   onChange={(
                     event
                   ) =>
-                    setEditWhen(
+                    setEditDay(
+                      event
+                        .target
+                        .value
+                    )
+                  }
+                />
+              </div>
+
+              <div className="date-flow-field">
+                <label>
+                  Time — optional
+                </label>
+
+                <input
+                  type="time"
+                  value={
+                    editTime
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setEditTime(
                       event
                         .target
                         .value
@@ -1427,7 +1620,8 @@ export function DatesExperienceScreen({
                   <span>
                     {dateLabel(
                       selectedDate
-                        .planned_for
+                        .planned_for,
+                      timeKnown
                     )}
                   </span>
                 </div>
@@ -2284,27 +2478,51 @@ export function DatesExperienceScreen({
 
           {newMode ===
             "planned" && (
-            <div className="date-flow-field">
-              <label>
-                Date and time
-              </label>
+            <>
+              <div className="date-flow-field">
+                <label>
+                  Date
+                </label>
 
-              <input
-                type="datetime-local"
-                value={
-                  newWhen
-                }
-                onChange={(
-                  event
-                ) =>
-                  setNewWhen(
+                <input
+                  type="date"
+                  value={
+                    newDay
+                  }
+                  onChange={(
                     event
-                      .target
-                      .value
-                  )
-                }
-              />
-            </div>
+                  ) =>
+                    setNewDay(
+                      event
+                        .target
+                        .value
+                    )
+                  }
+                />
+              </div>
+
+              <div className="date-flow-field">
+                <label>
+                  Time — optional
+                </label>
+
+                <input
+                  type="time"
+                  value={
+                    newTime
+                  }
+                  onChange={(
+                    event
+                  ) =>
+                    setNewTime(
+                      event
+                        .target
+                        .value
+                    )
+                  }
+                />
+              </div>
+            </>
           )}
 
           <div className="date-flow-field">
@@ -2371,7 +2589,7 @@ export function DatesExperienceScreen({
                     "planned" &&
                   (
                     !newPlace.trim() ||
-                    !newWhen
+                    !newDay
                   )
                 )
               }
@@ -2482,7 +2700,10 @@ export function DatesExperienceScreen({
                     <span>
                       {dateLabel(
                         date.planned_for ??
-                          date.event_at
+                          date.event_at,
+                        dateTimeKnown(
+                          date
+                        )
                       )}
                     </span>
                   </div>
