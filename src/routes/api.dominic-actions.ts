@@ -399,22 +399,60 @@ function normalizeAction(
     >;
 
   const type =
-    cleanString(
-      raw.type
-    ) as ActionType | null;
+  cleanString(
+    raw.type
+  ) as ActionType | null;
 
-  const title =
+if (!type) {
+  return null;
+}
+
+if (
+  type ===
+  "date_venue_action"
+) {
+  const dateId =
     cleanString(
-      raw.title
+      raw.dateId
+    );
+
+  const itemId =
+    cleanString(
+      raw.itemId
+    );
+
+  const venueAction =
+    cleanString(
+      raw.venueAction
     );
 
   if (
-    !type ||
-    !title
+    !dateId ||
+    !itemId ||
+    (
+      venueAction !== "ordered" &&
+      venueAction !== "bought"
+    )
   ) {
     return null;
   }
 
+  return {
+    type,
+    dateId,
+    itemId,
+    venueAction,
+  };
+}
+
+const title =
+  cleanString(
+    raw.title
+  );
+
+if (!title) {
+  return null;
+}
   if (
     type ===
     "create_date"
