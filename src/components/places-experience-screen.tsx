@@ -57,6 +57,10 @@ import {
   type PendingDatePlaceSelection,
 } from "@/lib/date-place-selection";
 import {
+  goToPlaceDuringDate,
+  isLiveDatePlaceSelection,
+} from "@/lib/date-live-place";
+import {
   NYC_BOUNDS,
   NYC_CENTER,
   PLACE_SHORTCUTS,
@@ -457,6 +461,15 @@ const detailsCacheRef = useRef(
     () => (selected ? findSavedVersion(places, selected) : null),
     [places, selected]
   );
+
+  const liveDateSelection = useMemo(
+  () =>
+    isLiveDatePlaceSelection(
+      dates,
+      dateSelection?.dateId
+    ),
+  [dates, dateSelection?.dateId]
+);
 
   const placeCategory = useMemo(
     () =>
@@ -1021,13 +1034,19 @@ const detailsCacheRef = useRef(
           saved
         );
 
-      const result =
-        await setDateCanonicalPlace({
-          userId,
-          dateId:
-            dateSelection.dateId,
-          place: canonical,
-        });
+const result =
+  liveDateSelection
+    ? await goToPlaceDuringDate({
+        userId,
+        dates,
+        dateId: dateSelection.dateId,
+        place: canonical,
+      })
+    : await setDateCanonicalPlace({
+        userId,
+        dateId: dateSelection.dateId,
+        place: canonical,
+      });
 
       onPlaceSaved(
         result.place
@@ -1617,7 +1636,9 @@ const detailsCacheRef = useRef(
                 }
               >
                 <MapPin size={17} />
-                Choose this Place
+{liveDateSelection
+  ? "Go here"
+  : "Choose this Place"}
               </button>
             )}
 
