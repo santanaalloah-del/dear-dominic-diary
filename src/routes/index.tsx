@@ -45,6 +45,7 @@ import { ConnectedCalendarScreen } from "@/components/connected-calendar-screen"
 import { ConnectedTimelineScreen } from "@/components/connected-timeline-screen";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import { DatesExperienceScreen } from "@/components/dates-screen";
+import { PlacesExperienceScreen } from "@/components/places-experience-screen";
 
 import {
   connectSpotify,
@@ -737,10 +738,12 @@ function DiarioApp() {
             />
           )}
 
-          {screen ===
-            "places" && (
-            <PlacesScreen />
-          )}
+{screen ===
+  "places" && (
+  <PlacesExperienceScreen
+    listView={<PlacesScreen />}
+  />
+)}
 
           {screen ===
             "keepsakes" && (
