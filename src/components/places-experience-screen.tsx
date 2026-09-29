@@ -30,6 +30,13 @@ import {
 import { createContextualDate } from "@/lib/date-flow";
 import { setPersistedPlaceStatus } from "@/lib/place-status";
 import {
+  cancelDatePlaceSelection,
+  completeDatePlaceSelection,
+  readDatePlaceSelection,
+  setDateCanonicalPlace,
+  type PendingDatePlaceSelection,
+} from "@/lib/date-place-selection";
+import {
   NYC_BOUNDS,
   NYC_CENTER,
   PLACE_SHORTCUTS,
@@ -82,6 +89,7 @@ function requestPlaceInList(placeId: string) {
 
 type PlacesExperienceScreenProps = {
   listView: ReactNode;
+  onSelectionComplete?: () => void;
 };
 
 const LEAFLET_SCRIPT_ID = "diario-leaflet-script";
@@ -186,10 +194,21 @@ function categoryLabel(key: string): string {
 
 export function PlacesExperienceScreen({
   listView,
+  onSelectionComplete,
 }: PlacesExperienceScreenProps) {
   const { session } = usePrivateDiario();
 
-  const [view, setView] = useState<"list" | "map">("list");
+  const [dateSelection, setDateSelection] =
+    useState<PendingDatePlaceSelection | null>(
+      () => readDatePlaceSelection()
+    );
+
+  const [view, setView] = useState<"list" | "map">(
+    () =>
+      readDatePlaceSelection()
+        ? "map"
+        : "list"
+  );
   const [places, setPlaces] = useState<DiarioItem[]>([]);
   const [dates, setDates] = useState<DiarioItem[]>([]);
   const [loadingWorld, setLoadingWorld] = useState(false);
@@ -257,8 +276,15 @@ export function PlacesExperienceScreen({
     }, 0);
   };
 
+  const cancelSelectionMode = () => {
+    cancelDatePlaceSelection();
+    setDateSelection(null);
+    onSelectionComplete?.();
+  };
+
   return (
     <section className="places-experience-shell">
+      {!dateSelection && (
       <div
         className="places-primary-tabs"
         role="tablist"
@@ -287,7 +313,9 @@ export function PlacesExperienceScreen({
         </button>
       </div>
 
-      {view === "list" ? (
+      )}
+
+      {!dateSelection && view === "list" ? (
         listView
       ) : (
         <NycMapWorld
@@ -296,6 +324,9 @@ export function PlacesExperienceScreen({
           dates={dates}
           loadingWorld={loadingWorld}
           worldError={worldError}
+          dateSelection={dateSelection}
+          onCancelSelection={cancelSelectionMode}
+          onSelectionComplete={onSelectionComplete}
           requestedPlaceId={requestedPlaceId}
           onRequestedPlaceHandled={() =>
             setRequestedPlaceId(null)
@@ -332,6 +363,9 @@ function NycMapWorld({
   dates,
   loadingWorld,
   worldError,
+  dateSelection,
+  onCancelSelection,
+  onSelectionComplete,
   requestedPlaceId,
   onRequestedPlaceHandled,
   onOpenInList,
@@ -344,6 +378,9 @@ function NycMapWorld({
   dates: DiarioItem[];
   loadingWorld: boolean;
   worldError: string | null;
+  dateSelection: PendingDatePlaceSelection | null;
+  onCancelSelection: () => void;
+  onSelectionComplete?: () => void;
   requestedPlaceId: string | null;
   onRequestedPlaceHandled: () => void;
   onOpenInList: (placeId: string) => void;
@@ -733,6 +770,54 @@ function NycMapWorld({
     }
   };
 
+  const chooseSelectedForDate = async () => {
+    if (!selected || !dateSelection) {
+      return;
+    }
+
+    setSaving(true);
+    setFeedback(null);
+    setMapError(null);
+
+    try {
+      const saved =
+        savedSelected ??
+        (await saveDiscoveredPlace({
+          userId,
+          place: selected,
+        }));
+
+      const result =
+        await setDateCanonicalPlace({
+          userId,
+          dateId:
+            dateSelection.dateId,
+          place: saved,
+        });
+
+      onPlaceSaved(
+        result.place
+      );
+
+      completeDatePlaceSelection(
+        result.date.id
+      );
+
+      onSelectionComplete?.();
+    } catch (error) {
+      console.error(
+        "Could not choose Place for Date:",
+        error
+      );
+
+      setMapError(
+        "That Place could not be connected to the Date."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const changeSelectedPlaceStatus = async (
     status: "saved" | "visited"
   ) => {
@@ -869,6 +954,27 @@ function NycMapWorld({
 
   return (
     <section className="nyc-map-world">
+      {dateSelection && (
+        <section className="nyc-map-selection-banner">
+          <div>
+            <small>
+              Choosing a Place for
+            </small>
+
+            <strong>
+              {dateSelection.dateTitle}
+            </strong>
+          </div>
+
+          <button
+            type="button"
+            onClick={onCancelSelection}
+          >
+            Cancel
+          </button>
+        </section>
+      )}
+
       <header className="nyc-map-heading">
         <div>
           <small>New York City</small>
@@ -1076,7 +1182,21 @@ function NycMapWorld({
             )}
 
 
-            {savedSelected && (
+            {dateSelection && (
+              <button
+                type="button"
+                className="nyc-place-choose-action"
+                disabled={saving}
+                onClick={() =>
+                  void chooseSelectedForDate()
+                }
+              >
+                <MapPin size={17} />
+                Choose this Place
+              </button>
+            )}
+
+            {!dateSelection && savedSelected && (
               <button
                 type="button"
                 className="nyc-open-list-action"
@@ -1089,7 +1209,7 @@ function NycMapWorld({
               </button>
             )}
 
-            {savedSelected && (
+            {!dateSelection && savedSelected && (
               <button
                 type="button"
                 className={`nyc-place-status-action ${
@@ -1113,6 +1233,7 @@ function NycMapWorld({
               </button>
             )}
 
+            {!dateSelection && (
             <div className="nyc-place-actions">
               <button
                 type="button"
@@ -1135,8 +1256,9 @@ function NycMapWorld({
                 Add to Date
               </button>
             </div>
+            )}
 
-            {choosingDate && (
+            {!dateSelection && choosingDate && (
               <section className="nyc-date-picker">
                 <header>
                   <div>
