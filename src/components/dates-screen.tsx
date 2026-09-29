@@ -28,9 +28,8 @@ import {
 } from "@/lib/diario-world";
 
 import {
-  createDateIdea,
+  createContextualDate,
   createMemoryFromDate,
-  createPlannedDate,
   finishDate,
   getDateCandidateItems,
   getDateConnectedThings,
@@ -52,18 +51,22 @@ type DateView =
   | "past"
   | "ideas";
 
-type NewDateMode =
-  | "planned"
-  | "idea";
-
 type DateOpenScreen =
   | "wardrobe"
   | "gallery"
   | "music"
   | "keepsakes";
 
+function clean(
+  value:
+    string
+) {
+  return value.trim();
+}
+
 function dateTimeKnown(
-  date: DiarioItem
+  date:
+    DiarioItem
 ) {
   return (
     date.data
@@ -72,12 +75,80 @@ function dateTimeKnown(
   );
 }
 
+function timeHint(
+  date:
+    DiarioItem
+) {
+  return typeof date
+    .data
+    ?.time_hint ===
+  "string"
+    ? date.data
+        .time_hint
+    : "";
+}
+
+function formatTimeHint(
+  value:
+    string
+) {
+  if (
+    !value
+  ) {
+    return "";
+  }
+
+  const [
+    hour,
+    minute,
+  ] =
+    value
+      .split(":")
+      .map(
+        Number
+      );
+
+  if (
+    Number.isNaN(
+      hour
+    ) ||
+    Number.isNaN(
+      minute
+    )
+  ) {
+    return value;
+  }
+
+  const fakeDate =
+    new Date(
+      2000,
+      0,
+      1,
+      hour,
+      minute
+    );
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      hour:
+        "numeric",
+
+      minute:
+        "2-digit",
+    }
+  ).format(
+    fakeDate
+  );
+}
+
 function dateLabel(
   value:
     | string
     | null
     | undefined,
-  timeKnown = true
+  timeKnown =
+    true
 ) {
   if (
     !value
@@ -147,6 +218,37 @@ function dateLabel(
   );
 }
 
+function dateDisplay(
+  date:
+    DiarioItem
+) {
+  if (
+    date.planned_for
+  ) {
+    return dateLabel(
+      date.planned_for,
+      dateTimeKnown(
+        date
+      )
+    );
+  }
+
+  const hint =
+    timeHint(
+      date
+    );
+
+  if (
+    hint
+  ) {
+    return `Time idea · ${formatTimeHint(
+      hint
+    )}`;
+  }
+
+  return "Not scheduled";
+}
+
 function dateDayInputValue(
   value:
     | string
@@ -196,36 +298,44 @@ function dateDayInputValue(
 }
 
 function dateClockInputValue(
-  value:
-    | string
-    | null
-    | undefined,
-  timeKnown:
-    boolean
+  date:
+    DiarioItem
 ) {
+  const hint =
+    timeHint(
+      date
+    );
+
   if (
-    !value ||
-    !timeKnown
+    !date.planned_for
   ) {
-    return "";
+    return hint;
   }
 
-  const date =
+  if (
+    !dateTimeKnown(
+      date
+    )
+  ) {
+    return hint;
+  }
+
+  const parsed =
     new Date(
-      value
+      date.planned_for
     );
 
   if (
     Number.isNaN(
-      date.getTime()
+      parsed.getTime()
     )
   ) {
-    return "";
+    return hint;
   }
 
   const hour =
     String(
-      date.getHours()
+      parsed.getHours()
     ).padStart(
       2,
       "0"
@@ -233,7 +343,7 @@ function dateClockInputValue(
 
   const minute =
     String(
-      date.getMinutes()
+      parsed.getMinutes()
     ).padStart(
       2,
       "0"
@@ -254,13 +364,12 @@ function buildPlannedFor(
     return null;
   }
 
-  const cleanTime =
-    time.trim();
-
   const local =
     new Date(
-      cleanTime
-        ? `${day}T${cleanTime}:00`
+      clean(
+        time
+      )
+        ? `${day}T${time}:00`
         : `${day}T12:00:00`
     );
 
@@ -274,6 +383,45 @@ function buildPlannedFor(
 
   return local
     .toISOString();
+}
+
+function hasSomething({
+  title,
+  place,
+  day,
+  time,
+  note,
+  itinerary,
+}: {
+  title:
+    string;
+  place:
+    string;
+  day:
+    string;
+  time:
+    string;
+  note:
+    string;
+  itinerary:
+    string;
+}) {
+  return Boolean(
+    clean(
+      title
+    ) ||
+      clean(
+        place
+      ) ||
+      day ||
+      time ||
+      clean(
+        note
+      ) ||
+      clean(
+        itinerary
+      )
+  );
 }
 
 function flowLabel(
@@ -408,14 +556,6 @@ export function DatesExperienceScreen({
     setCreating,
   ] =
     useState(false);
-
-  const [
-    newMode,
-    setNewMode,
-  ] =
-    useState<NewDateMode>(
-      "planned"
-    );
 
   const [
     newTitle,
@@ -737,10 +877,6 @@ export function DatesExperienceScreen({
       false
     );
 
-    setNewMode(
-      "planned"
-    );
-
     setNewTitle(
       ""
     );
@@ -767,19 +903,29 @@ export function DatesExperienceScreen({
   }
 
   async function saveNewDate() {
-    if (
-      !newTitle.trim()
-    ) {
-      return;
-    }
+    const hasContent =
+      hasSomething({
+        title:
+          newTitle,
+
+        place:
+          newPlace,
+
+        day:
+          newDay,
+
+        time:
+          newTime,
+
+        note:
+          newNote,
+
+        itinerary:
+          newItinerary,
+      });
 
     if (
-      newMode ===
-        "planned" &&
-      (
-        !newPlace.trim() ||
-        !newDay
-      )
+      !hasContent
     ) {
       return;
     }
@@ -800,48 +946,34 @@ export function DatesExperienceScreen({
         );
 
       const saved =
-        newMode ===
-        "idea"
-          ? await createDateIdea({
-              userId:
-                session.user.id,
+        await createContextualDate({
+          userId:
+            session.user.id,
 
-              title:
-                newTitle,
+          title:
+            newTitle,
 
-              place:
-                newPlace,
+          place:
+            newPlace,
 
-              note:
-                newNote,
+          plannedFor,
 
-              itinerary:
-                newItinerary,
-            })
-          : await createPlannedDate({
-              userId:
-                session.user.id,
+          timeKnown:
+            Boolean(
+              newDay &&
+              newTime
+            ),
 
-              title:
-                newTitle,
+          timeHint:
+            newTime ||
+            null,
 
-              place:
-                newPlace,
+          note:
+            newNote,
 
-              plannedFor:
-                plannedFor!,
-
-              timeKnown:
-                Boolean(
-                  newTime
-                ),
-
-              note:
-                newNote,
-
-              itinerary:
-                newItinerary,
-            });
+          itinerary:
+            newItinerary,
+        });
 
       await refreshDates();
 
@@ -849,6 +981,12 @@ export function DatesExperienceScreen({
 
       setSelectedDateId(
         saved.id
+      );
+
+      setView(
+        plannedFor
+          ? "upcoming"
+          : "ideas"
       );
     } catch (
       saveError
@@ -872,11 +1010,6 @@ export function DatesExperienceScreen({
     date:
       DiarioItem
   ) {
-    const timeKnown =
-      dateTimeKnown(
-        date
-      );
-
     setEditTitle(
       date.title ??
       ""
@@ -899,8 +1032,7 @@ export function DatesExperienceScreen({
 
     setEditTime(
       dateClockInputValue(
-        date.planned_for,
-        timeKnown
+        date
       )
     );
 
@@ -930,6 +1062,34 @@ export function DatesExperienceScreen({
       return;
     }
 
+    if (
+      !hasSomething({
+        title:
+          editTitle,
+
+        place:
+          editPlace,
+
+        day:
+          editDay,
+
+        time:
+          editTime,
+
+        note:
+          editNote,
+
+        itinerary:
+          editItinerary,
+      })
+    ) {
+      setError(
+        "Keep at least one detail in this Date."
+      );
+
+      return;
+    }
+
     setSaving(
       true
     );
@@ -940,12 +1100,10 @@ export function DatesExperienceScreen({
 
     try {
       const plannedFor =
-        editDay
-          ? buildPlannedFor(
-              editDay,
-              editTime
-            )
-          : null;
+        buildPlannedFor(
+          editDay,
+          editTime
+        );
 
       const updated =
         await updateDateDetails({
@@ -965,8 +1123,13 @@ export function DatesExperienceScreen({
 
           timeKnown:
             Boolean(
+              editDay &&
               editTime
             ),
+
+          timeHint:
+            editTime ||
+            null,
 
           note:
             editNote,
@@ -1011,6 +1174,10 @@ export function DatesExperienceScreen({
       true
     );
 
+    setError(
+      null
+    );
+
     try {
       const updated =
         await startDate({
@@ -1046,7 +1213,7 @@ export function DatesExperienceScreen({
     }
   }
 
-  async function saveLiveNote() {
+  async function saveLiveNoteNow() {
     if (
       !selectedDate
     ) {
@@ -1314,11 +1481,6 @@ export function DatesExperienceScreen({
         selectedDate
       );
 
-    const timeKnown =
-      dateTimeKnown(
-        selectedDate
-      );
-
     const place =
       typeof selectedDate
         .data
@@ -1444,7 +1606,7 @@ export function DatesExperienceScreen({
             <>
               <div className="date-flow-field">
                 <label>
-                  Title
+                  What are we doing?
                 </label>
 
                 <input
@@ -1508,7 +1670,7 @@ export function DatesExperienceScreen({
 
               <div className="date-flow-field">
                 <label>
-                  Time — optional
+                  Time
                 </label>
 
                 <input
@@ -1551,7 +1713,7 @@ export function DatesExperienceScreen({
 
               <div className="date-flow-field">
                 <label>
-                  Itinerary / little plan
+                  Itinerary
                 </label>
 
                 <textarea
@@ -1588,13 +1750,31 @@ export function DatesExperienceScreen({
                   className="date-flow-primary"
                   disabled={
                     saving ||
-                    !editTitle.trim()
+                    !hasSomething({
+                      title:
+                        editTitle,
+
+                      place:
+                        editPlace,
+
+                      day:
+                        editDay,
+
+                      time:
+                        editTime,
+
+                      note:
+                        editNote,
+
+                      itinerary:
+                        editItinerary,
+                    })
                   }
                   onClick={() =>
                     void saveEdit()
                   }
                 >
-                  Save plan
+                  Save
                 </button>
               </div>
             </>
@@ -1608,7 +1788,7 @@ export function DatesExperienceScreen({
 
                   <span>
                     {place ||
-                      "Not chosen yet"}
+                      "Not set"}
                   </span>
                 </div>
 
@@ -1618,10 +1798,8 @@ export function DatesExperienceScreen({
                   </small>
 
                   <span>
-                    {dateLabel(
+                    {dateDisplay(
                       selectedDate
-                        .planned_for,
-                      timeKnown
                     )}
                   </span>
                 </div>
@@ -1633,7 +1811,7 @@ export function DatesExperienceScreen({
 
                   <span>
                     {selectedDate.body ||
-                      "No note yet."}
+                      "Not set"}
                   </span>
                 </div>
 
@@ -1644,7 +1822,7 @@ export function DatesExperienceScreen({
 
                   <span>
                     {itinerary ||
-                      "Nothing mapped out yet."}
+                      "Not set"}
                   </span>
                 </div>
               </div>
@@ -1659,11 +1837,13 @@ export function DatesExperienceScreen({
                     )
                   }
                 >
-                  Edit plan
+                  Edit
                 </button>
 
-                {state ===
-                  "planned" && (
+                {(state ===
+                  "idea" ||
+                  state ===
+                    "planned") && (
                   <button
                     type="button"
                     className="date-flow-primary"
@@ -1866,7 +2046,6 @@ export function DatesExperienceScreen({
                           .value
                       )
                     }
-                    placeholder="Something that happened, something he said, what the night feels like…"
                   />
                 </div>
 
@@ -1878,7 +2057,7 @@ export function DatesExperienceScreen({
                       saving
                     }
                     onClick={() =>
-                      void saveLiveNote()
+                      void saveLiveNoteNow()
                     }
                   >
                     Save note
@@ -1933,10 +2112,7 @@ export function DatesExperienceScreen({
           {contentThings.length ===
           0 ? (
             <p>
-              Nothing connected yet. Photos,
-              songs, places, keepsakes and
-              letters can all stay attached to
-              this same Date.
+              Nothing connected yet.
             </p>
           ) : (
             <div className="date-flow-things">
@@ -2132,7 +2308,6 @@ export function DatesExperienceScreen({
                       .value
                   )
                 }
-                placeholder="The little summary that remains after the night is over…"
               />
             </div>
 
@@ -2293,6 +2468,27 @@ export function DatesExperienceScreen({
         }
       );
 
+  const newHasSomething =
+    hasSomething({
+      title:
+        newTitle,
+
+      place:
+        newPlace,
+
+      day:
+        newDay,
+
+      time:
+        newTime,
+
+      note:
+        newNote,
+
+      itinerary:
+        newItinerary,
+    });
+
   return (
     <section className="dates-experience">
       <header className="date-flow-intro">
@@ -2305,10 +2501,9 @@ export function DatesExperienceScreen({
         </h1>
 
         <p>
-          A Date starts as an idea, becomes a
-          plan, lives in real time, then keeps
-          the photos, music, places and little
-          objects that actually belonged to it.
+          Add whatever you already know.
+          The Date becomes an idea or a plan
+          from the context itself.
         </p>
       </header>
 
@@ -2396,41 +2591,11 @@ export function DatesExperienceScreen({
             Add a Date
           </h2>
 
-          <div className="date-flow-mode">
-            <button
-              type="button"
-              className={
-                newMode ===
-                "planned"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setNewMode(
-                  "planned"
-                )
-              }
-            >
-              Plan
-            </button>
-
-            <button
-              type="button"
-              className={
-                newMode ===
-                "idea"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setNewMode(
-                  "idea"
-                )
-              }
-            >
-              Idea
-            </button>
-          </div>
+          <p>
+            Fill only what you know. A Date
+            with a day becomes Upcoming.
+            Without a day, it stays an Idea.
+          </p>
 
           <div className="date-flow-field">
             <label>
@@ -2472,58 +2637,52 @@ export function DatesExperienceScreen({
                     .value
                 )
               }
-              placeholder="Optional for an idea"
             />
           </div>
 
-          {newMode ===
-            "planned" && (
-            <>
-              <div className="date-flow-field">
-                <label>
-                  Date
-                </label>
+          <div className="date-flow-field">
+            <label>
+              Date
+            </label>
 
-                <input
-                  type="date"
-                  value={
-                    newDay
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setNewDay(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                />
-              </div>
+            <input
+              type="date"
+              value={
+                newDay
+              }
+              onChange={(
+                event
+              ) =>
+                setNewDay(
+                  event
+                    .target
+                    .value
+                )
+              }
+            />
+          </div>
 
-              <div className="date-flow-field">
-                <label>
-                  Time — optional
-                </label>
+          <div className="date-flow-field">
+            <label>
+              Time
+            </label>
 
-                <input
-                  type="time"
-                  value={
-                    newTime
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setNewTime(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                />
-              </div>
-            </>
-          )}
+            <input
+              type="time"
+              value={
+                newTime
+              }
+              onChange={(
+                event
+              ) =>
+                setNewTime(
+                  event
+                    .target
+                    .value
+                )
+              }
+            />
+          </div>
 
           <div className="date-flow-field">
             <label>
@@ -2548,7 +2707,7 @@ export function DatesExperienceScreen({
 
           <div className="date-flow-field">
             <label>
-              Itinerary / little plan
+              Itinerary
             </label>
 
             <textarea
@@ -2583,15 +2742,7 @@ export function DatesExperienceScreen({
               className="date-flow-primary"
               disabled={
                 saving ||
-                !newTitle.trim() ||
-                (
-                  newMode ===
-                    "planned" &&
-                  (
-                    !newPlace.trim() ||
-                    !newDay
-                  )
-                )
+                !newHasSomething
               }
               onClick={() =>
                 void saveNewDate()
@@ -2698,12 +2849,8 @@ export function DatesExperienceScreen({
 
                   <div className="date-flow-card-meta">
                     <span>
-                      {dateLabel(
-                        date.planned_for ??
-                          date.event_at,
-                        dateTimeKnown(
-                          date
-                        )
+                      {dateDisplay(
+                        date
                       )}
                     </span>
                   </div>
