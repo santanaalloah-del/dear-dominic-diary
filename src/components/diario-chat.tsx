@@ -146,6 +146,20 @@ type DominicWorldAction =
 
       note?:
         string;
+    }
+  | {
+      type:
+        "date_venue_action";
+
+      dateId:
+        string;
+
+      itemId:
+        string;
+
+      venueAction:
+        | "ordered"
+        | "bought";
     };
 
 type MessageKind =
