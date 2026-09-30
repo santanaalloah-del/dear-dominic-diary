@@ -744,7 +744,7 @@ function ScreenIntro({
 
 function HomeScreen({
   time,
-  onOpenRoom,
+  onOpenRoom: _onOpenRoom,
 }: {
   time: TimeMoodState;
   onOpenRoom: (roomId: string) => void;
@@ -752,6 +752,7 @@ function HomeScreen({
   const { session } = usePrivateDiario();
   const [dominicState, setDominicState] = useState<DominicState | null>(null);
   const [showFloorPlan, setShowFloorPlan] = useState(false);
+  const [activeHomeRoom, setActiveHomeRoom] = useState("living");
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -771,16 +772,24 @@ function HomeScreen({
   }, [session?.user?.id]);
 
   const rooms = [
-    { id: "living", label: "Living" },
-    { id: "bedroom", label: "Bedroom" },
-    { id: "kitchen", label: "Kitchen" },
-    { id: "bathroom", label: "Bath" },
-    { id: "hall", label: "Hall" },
+    { id: "living", label: "Living", title: "Living Room", image: livingRoomEmpty },
+    { id: "bedroom", label: "Bedroom", title: "Bedroom", image: bedroomEmpty },
+    { id: "kitchen", label: "Kitchen", title: "Kitchen", image: kitchenEmpty },
+    { id: "bathroom", label: "Bath", title: "Bathroom", image: bathroomEmpty },
+    { id: "hall", label: "Hall", title: "Hall", image: hallEmpty },
   ];
+
+  const activeRoom = rooms.find((room) => room.id === activeHomeRoom) ?? rooms[0];
+
+  const chooseRoom = (roomId: string) => {
+    setActiveHomeRoom(roomId);
+    setShowFloorPlan(false);
+  };
 
   return (
     <section
-      className="home-screen home-live home-house home-v2"
+      className="home-screen home-live home-house home-v2 home-v2-scene-system"
+      data-home-room={activeRoom.id}
       data-home-time={time.mood}
       data-home-phase={time.homeLight.phase}
       style={{
@@ -791,18 +800,23 @@ function HomeScreen({
         "--home-sky-progress": time.homeLight.skyProgress,
       } as any}
     >
-      <section className="apartment-home-scene" aria-label="Our Apartment">
-        <img
-          className="apartment-home-scene-image"
-          src={livingRoomEmpty}
-          alt="Our living room"
-        />
+      <section className="apartment-home-scene" aria-label={activeRoom.title}>
+        <div className="apartment-scene-base" aria-hidden="true">
+          <img
+            key={activeRoom.id}
+            className="apartment-home-scene-image"
+            src={activeRoom.image}
+            alt=""
+          />
+        </div>
+        <div className="apartment-scene-daylight" aria-hidden="true" />
         <div className="apartment-home-atmosphere" aria-hidden="true" />
+        <div className="apartment-scene-objects" aria-hidden="true" />
 
         <header className="apartment-home-heading">
           <div>
             <span>our apartment · new york</span>
-            <strong>Our Apartment</strong>
+            <strong>{activeRoom.title}</strong>
           </div>
           <div className="apartment-home-clock">
             <strong>{time.timeLabel}</strong>
@@ -810,40 +824,35 @@ function HomeScreen({
           </div>
         </header>
 
-        {dominicState && (
+        {dominicState && dominicState.location === activeRoom.id && (
           <div className="apartment-home-dominic">
             <span>DOMINIC NOW</span>
             <strong>{dominicState.activity.replaceAll("_", " ")}</strong>
-            <small>
-              {dominicState.location === "living" ? "living room" : dominicState.location}
-            </small>
+            <small>{activeRoom.title.toLowerCase()}</small>
           </div>
         )}
 
-        <div className="apartment-home-actions">
-          <button type="button" onClick={() => onOpenRoom("living")}>
-            Enter room
-          </button>
-          <button type="button" onClick={() => setShowFloorPlan(true)}>
-            Floor plan
-          </button>
-        </div>
+        <button
+          type="button"
+          className="apartment-floor-plan-trigger"
+          onClick={() => setShowFloorPlan(true)}
+        >
+          Floor plan
+        </button>
 
         <nav className="apartment-home-room-nav" aria-label="Apartment rooms">
           {rooms.map((room) => (
-            <button key={room.id} type="button" onClick={() => onOpenRoom(room.id)}>
+            <button
+              key={room.id}
+              type="button"
+              className={room.id === activeRoom.id ? "is-active" : ""}
+              aria-current={room.id === activeRoom.id ? "page" : undefined}
+              onClick={() => chooseRoom(room.id)}
+            >
               {room.label}
             </button>
           ))}
         </nav>
-      </section>
-
-      <section className="apartment-home-note">
-        <span>OUR HOME</span>
-        <p>
-          The apartment is the Home now. Rooms, furniture, keepsakes and light live inside
-          one persistent place and change with us over time.
-        </p>
       </section>
 
       {showFloorPlan && (
@@ -864,11 +873,11 @@ function HomeScreen({
             </header>
             <div className="official-floor-plan floor-plan-modal-map">
               <img src={floorPlan} alt="Official floor plan of our apartment" width={1536} height={1024} />
-              <button type="button" className="plan-hotspot plan-hotspot-living" onClick={() => onOpenRoom("living")} aria-label="Enter Living Room" />
-              <button type="button" className="plan-hotspot plan-hotspot-bedroom" onClick={() => onOpenRoom("bedroom")} aria-label="Enter Bedroom" />
-              <button type="button" className="plan-hotspot plan-hotspot-kitchen" onClick={() => onOpenRoom("kitchen")} aria-label="Enter Kitchen" />
-              <button type="button" className="plan-hotspot plan-hotspot-bathroom" onClick={() => onOpenRoom("bathroom")} aria-label="Enter Bathroom" />
-              <button type="button" className="plan-hotspot plan-hotspot-hall" onClick={() => onOpenRoom("hall")} aria-label="Enter Hall" />
+              <button type="button" className="plan-hotspot plan-hotspot-living" onClick={() => chooseRoom("living")} aria-label="View Living Room" />
+              <button type="button" className="plan-hotspot plan-hotspot-bedroom" onClick={() => chooseRoom("bedroom")} aria-label="View Bedroom" />
+              <button type="button" className="plan-hotspot plan-hotspot-kitchen" onClick={() => chooseRoom("kitchen")} aria-label="View Kitchen" />
+              <button type="button" className="plan-hotspot plan-hotspot-bathroom" onClick={() => chooseRoom("bathroom")} aria-label="View Bathroom" />
+              <button type="button" className="plan-hotspot plan-hotspot-hall" onClick={() => chooseRoom("hall")} aria-label="View Hall" />
             </div>
           </section>
         </div>
