@@ -13046,3 +13046,105 @@ select {
 .wardrobe-screen.wardrobe-live > .screen-intro {
   padding-top: 72px;
 }
+
+
+/* ─────────────────────────────────────────
+   HOME · CONTINUOUS DAY PASSAGE / PASS 1
+   Structural atmosphere only. Screen scroll remains owned by App Shell.
+   ───────────────────────────────────────── */
+
+.home-house {
+  --home-natural-light: 1;
+  --home-warmth: 0;
+  --home-night-depth: 0;
+  --home-shadow-position: .5;
+  --home-sky-progress: 0;
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in oklab,
+        #f2b77b calc(var(--home-warmth) * 16%),
+        transparent
+      ),
+      transparent 42%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(
+        in oklab,
+        #17233d calc(var(--home-night-depth) * 24%),
+        transparent
+      ),
+      transparent 72%
+    );
+}
+
+.home-house::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: calc((var(--home-shadow-position) - .5) * 18%);
+  width: 100%;
+  height: 390px;
+  pointer-events: none;
+  opacity: calc(.05 + (var(--home-natural-light) * .14));
+  background: linear-gradient(
+    112deg,
+    transparent 8%,
+    color-mix(in oklab, #fff4d8 calc(var(--home-warmth) * 55%), white) 42%,
+    transparent 72%
+  );
+  transform: skewX(-8deg);
+  transition: left 60s linear, opacity 60s linear, background 60s linear;
+}
+
+.home-house .house-header,
+.home-house .home-dominic-now,
+.home-house .home-plan-stage,
+.home-house .home-empty-state,
+.home-house .room-canon-note,
+.home-house .house-space-strip button {
+  transition: background 60s linear, border-color 60s linear, box-shadow 60s linear;
+}
+
+.home-house .official-floor-plan img {
+  --home-plan-brightness: calc(.78 + (var(--home-natural-light) * .22));
+  transition: filter 60s linear;
+}
+
+.home-house[data-home-phase="golden"] .house-header,
+.home-house[data-home-phase="dusk"] .house-header {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--paper) 84%, #f6c99a calc(var(--home-warmth) * 18%)),
+      color-mix(in oklab, var(--cream) 88%, #d99573 calc(var(--home-warmth) * 14%))
+    );
+}
+
+.home-house[data-home-phase="night"] .house-header,
+.home-house[data-home-phase="late-night"] .house-header {
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--paper) 82%, #273047 calc(var(--home-night-depth) * 13%)),
+      color-mix(in oklab, var(--cream) 86%, #1d263b calc(var(--home-night-depth) * 12%))
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-house::before,
+  .home-house .house-header,
+  .home-house .home-dominic-now,
+  .home-house .home-plan-stage,
+  .home-house .home-empty-state,
+  .home-house .room-canon-note,
+  .home-house .house-space-strip button,
+  .home-house .official-floor-plan img {
+    transition: none;
+  }
+}
