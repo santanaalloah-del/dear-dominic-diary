@@ -12875,3 +12875,90 @@ select {
     top: 10px;
   }
 }
+/* =========================================================
+   VISUAL SYSTEM · PASS 2
+   Component language only: cards, surfaces and hierarchy.
+   Intentionally does not own viewport, scrolling, shell,
+   back navigation or bottom navigation geometry.
+   ========================================================= */
+
+:root {
+  --vs-card-border: color-mix(in oklab, var(--vs-color-border) 82%, transparent);
+  --vs-card-bg: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--paper) 94%, white 6%),
+    color-mix(in oklab, var(--cream) 91%, var(--paper-deep) 9%)
+  );
+  --vs-card-bg-soft: color-mix(in oklab, var(--paper) 80%, transparent);
+  --vs-card-shadow: 0 10px 26px oklch(0.22 0.035 35 / 7%);
+  --vs-card-shadow-pressed: 0 5px 14px oklch(0.22 0.035 35 / 6%);
+}
+
+/* Shared editorial hierarchy. */
+.screen-intro .eyebrow,
+.eyebrow {
+  color: var(--vs-color-accent);
+  letter-spacing: .16em;
+}
+
+.screen-intro h1 {
+  color: var(--wine-deep);
+  text-wrap: balance;
+}
+
+.intro-copy {
+  color: var(--vs-color-text-muted);
+}
+
+/* More is the first screen to consume the component system.
+   Its existing layout remains intact; these rules only unify material. */
+.more-screen .richer-index button {
+  border-color: var(--vs-card-border);
+  border-radius: var(--vs-radius-lg);
+  background: var(--vs-card-bg);
+  box-shadow: var(--vs-card-shadow);
+  transition:
+    transform var(--vs-motion-fast) var(--vs-ease-standard),
+    border-color var(--vs-motion-base) var(--vs-ease-standard),
+    box-shadow var(--vs-motion-base) var(--vs-ease-standard),
+    background var(--vs-motion-base) var(--vs-ease-standard);
+}
+
+.more-screen .richer-index button.available {
+  cursor: pointer;
+}
+
+.more-screen .richer-index button.available:active {
+  transform: scale(.985);
+  box-shadow: var(--vs-card-shadow-pressed);
+}
+
+.more-screen .richer-index button.available:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--vs-color-accent-deep) 58%, transparent);
+  outline-offset: 3px;
+}
+
+.more-screen .richer-index .index-icon {
+  border: 1px solid color-mix(in oklab, var(--rose) 20%, transparent);
+  background: color-mix(in oklab, var(--blush) 38%, var(--paper) 62%);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 58%, transparent);
+}
+
+.more-screen .richer-index .index-number {
+  color: var(--vs-color-accent);
+}
+
+.more-screen .richer-index strong {
+  color: var(--wine-deep);
+}
+
+.more-screen .richer-index small,
+.more-screen .richer-index button > svg {
+  color: var(--vs-color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .more-screen .richer-index button {
+    transition: none;
+  }
+}
