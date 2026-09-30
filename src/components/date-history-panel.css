@@ -1,0 +1,132 @@
+.date-history-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(117, 54, 67, 0.13);
+  border-radius: 22px;
+  background: rgba(255, 250, 248, 0.78);
+}
+
+.date-history-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.date-history-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.date-history-head small {
+  color: rgba(88, 49, 57, 0.55);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+
+.date-history-head strong {
+  color: #5f3440;
+  font-size: 0.94rem;
+}
+
+.date-history-head > span {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(117, 54, 67, 0.07);
+  color: rgba(88, 49, 57, 0.66);
+  font-size: 0.67rem;
+  font-weight: 700;
+}
+
+.date-history-timeline {
+  display: grid;
+}
+
+.date-history-entry {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+
+.date-history-rail {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  min-height: 58px;
+}
+
+.date-history-dot {
+  position: relative;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(117, 54, 67, 0.13);
+  background: #fffaf8;
+  color: #754555;
+}
+
+.date-history-entry.venue .date-history-dot {
+  background: rgba(117, 69, 85, 0.09);
+}
+
+.date-history-entry.walking .date-history-dot,
+.date-history-entry.left_place .date-history-dot {
+  background: rgba(181, 145, 104, 0.11);
+}
+
+.date-history-entry.date_finished .date-history-dot {
+  background: rgba(86, 115, 80, 0.1);
+  color: #526c4d;
+}
+
+.date-history-line {
+  position: absolute;
+  top: 28px;
+  bottom: 0;
+  width: 1px;
+  background: rgba(117, 54, 67, 0.17);
+}
+
+.date-history-copy {
+  min-width: 0;
+  padding: 2px 0 15px;
+}
+
+.date-history-entry:last-child .date-history-copy {
+  padding-bottom: 0;
+}
+
+.date-history-entry-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.date-history-entry-top strong {
+  min-width: 0;
+  color: #603642;
+  font-size: 0.81rem;
+  line-height: 1.35;
+}
+
+.date-history-entry-top time {
+  flex: 0 0 auto;
+  color: rgba(88, 49, 57, 0.47);
+  font-size: 0.65rem;
+}
+
+.date-history-copy p {
+  margin: 4px 0 0;
+  color: rgba(88, 49, 57, 0.64);
+  font-size: 0.73rem;
+  line-height: 1.45;
+}
