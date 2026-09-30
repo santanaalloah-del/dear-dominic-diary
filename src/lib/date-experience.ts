@@ -169,48 +169,357 @@ export function isDateLive(date: DiarioItem | null): boolean {
   return Boolean(date && getDateFlowState(date) === "live");
 }
 
+export type DateStartPhase =
+  | "upcoming"
+  | "approaching"
+  | "available";
+
+export type DateStartAvailability = {
+  phase: DateStartPhase;
+  label: string;
+  detail: string;
+  canStartNaturally: boolean;
+  canStartEarly: boolean;
+};
+
+const DATE_TIME_ZONE =
+  "America/Sao_Paulo";
+
+const DATE_APPROACHING_MS =
+  24 * 60 * 60_000;
+
+const DATE_MODE_EARLY_WINDOW_MS =
+  60 * 60_000;
+
+function rioCalendarParts(
+  value: Date
+) {
+  const parts =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:
+          DATE_TIME_ZONE,
+        year:
+          "numeric",
+        month:
+          "2-digit",
+        day:
+          "2-digit",
+      }
+    )
+      .formatToParts(
+        value
+      );
+
+  const read =
+    (
+      type:
+        Intl.DateTimeFormatPartTypes
+    ) =>
+      Number(
+        parts.find(
+          (
+            part
+          ) =>
+            part.type ===
+            type
+        )?.value ??
+          "0"
+      );
+
+  return {
+    year:
+      read("year"),
+    month:
+      read("month"),
+    day:
+      read("day"),
+  };
+}
+
+function rioDaySerial(
+  value: Date
+) {
+  const parts =
+    rioCalendarParts(
+      value
+    );
+
+  return Math.floor(
+    Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day
+    ) /
+      86_400_000
+  );
+}
+
+function plannedDateLabel(
+  date: DiarioItem
+) {
+  if (
+    !date.planned_for
+  ) {
+    return "this Date";
+  }
+
+  const planned =
+    new Date(
+      date.planned_for
+    );
+
+  if (
+    Number.isNaN(
+      planned.getTime()
+    )
+  ) {
+    return "this Date";
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone:
+        DATE_TIME_ZONE,
+      month:
+        "long",
+      day:
+        "numeric",
+      year:
+        "numeric",
+      ...(date.data
+        ?.time_known !==
+      false
+        ? {
+            hour:
+              "numeric" as const,
+            minute:
+              "2-digit" as const,
+          }
+        : {}),
+    }
+  ).format(
+    planned
+  );
+}
+
+export function getDateStartAvailability(
+  date: DiarioItem,
+  now = new Date()
+): DateStartAvailability {
+  if (
+    !date.planned_for
+  ) {
+    return {
+      phase:
+        "available",
+      label:
+        "Date Mode available",
+      detail:
+        "This Date has no scheduled time, so you can start whenever you want.",
+      canStartNaturally:
+        true,
+      canStartEarly:
+        false,
+    };
+  }
+
+  const planned =
+    new Date(
+      date.planned_for
+    );
+
+  if (
+    Number.isNaN(
+      planned.getTime()
+    )
+  ) {
+    return {
+      phase:
+        "available",
+      label:
+        "Date Mode available",
+      detail:
+        "The planned time could not be read, so Date Mode is available.",
+      canStartNaturally:
+        true,
+      canStartEarly:
+        false,
+    };
+  }
+
+  const timeKnown =
+    date.data
+      ?.time_known !==
+    false;
+
+  if (
+    !timeKnown
+  ) {
+    const daysUntil =
+      rioDaySerial(
+        planned
+      ) -
+      rioDaySerial(
+        now
+      );
+
+    if (
+      daysUntil >
+      1
+    ) {
+      return {
+        phase:
+          "upcoming",
+        label:
+          "Upcoming",
+        detail:
+          `Date Mode becomes available on ${plannedDateLabel(
+            date
+          )}.`,
+        canStartNaturally:
+          false,
+        canStartEarly:
+          true,
+      };
+    }
+
+    if (
+      daysUntil ===
+      1
+    ) {
+      return {
+        phase:
+          "approaching",
+        label:
+          "Approaching",
+        detail:
+          "Tomorrow — Date Mode will be available for the whole day.",
+        canStartNaturally:
+          false,
+        canStartEarly:
+          true,
+      };
+    }
+
+    return {
+      phase:
+        "available",
+      label:
+        "Date Mode available",
+      detail:
+        daysUntil ===
+        0
+          ? "It's the planned day. Date Mode is available now."
+          : "The planned day has passed, so you can start now or reschedule it.",
+      canStartNaturally:
+        true,
+      canStartEarly:
+        false,
+    };
+  }
+
+  const untilPlanned =
+    planned.getTime() -
+    now.getTime();
+
+  if (
+    untilPlanned >
+    DATE_APPROACHING_MS
+  ) {
+    return {
+      phase:
+        "upcoming",
+      label:
+        "Upcoming",
+      detail:
+        `Date Mode opens one hour before ${plannedDateLabel(
+          date
+        )}.`,
+      canStartNaturally:
+        false,
+      canStartEarly:
+        true,
+    };
+  }
+
+  if (
+    untilPlanned >
+    DATE_MODE_EARLY_WINDOW_MS
+  ) {
+    const availableAt =
+      new Date(
+        planned.getTime() -
+          DATE_MODE_EARLY_WINDOW_MS
+      );
+
+    return {
+      phase:
+        "approaching",
+      label:
+        "Approaching",
+      detail:
+        `Coming up soon. Date Mode opens at ${new Intl.DateTimeFormat(
+          "en-US",
+          {
+            timeZone:
+              DATE_TIME_ZONE,
+            hour:
+              "numeric",
+            minute:
+              "2-digit",
+          }
+        ).format(
+          availableAt
+        )}.`,
+      canStartNaturally:
+        false,
+      canStartEarly:
+        true,
+    };
+  }
+
+  return {
+    phase:
+      "available",
+    label:
+      "Date Mode available",
+    detail:
+      untilPlanned >
+      0
+        ? "You're within one hour of the planned time. Date Mode is available."
+        : "The planned time has arrived. Date Mode is available.",
+    canStartNaturally:
+      true,
+    canStartEarly:
+      false,
+  };
+}
+
 export function canNaturallyStartDate(
   date: DiarioItem,
   now = new Date()
 ): boolean {
-  if (!date.planned_for) return true;
-
-  const planned = new Date(date.planned_for);
-  if (Number.isNaN(planned.getTime())) return true;
-
-  const timeKnown = date.data?.time_known !== false;
-
-  if (!timeKnown) {
-    const sameLocalDay =
-      planned.getFullYear() === now.getFullYear() &&
-      planned.getMonth() === now.getMonth() &&
-      planned.getDate() === now.getDate();
-
-    return sameLocalDay;
-  }
-
-  const earlyWindowMs = 60 * 60_000;
-  return now.getTime() >= planned.getTime() - earlyWindowMs;
+  return getDateStartAvailability(
+    date,
+    now
+  ).canStartNaturally;
 }
 
-export function naturalStartMessage(date: DiarioItem): string | null {
-  if (canNaturallyStartDate(date)) return null;
-  if (!date.planned_for) return null;
+export function naturalStartMessage(
+  date: DiarioItem
+): string | null {
+  const availability =
+    getDateStartAvailability(
+      date
+    );
 
-  const planned = new Date(date.planned_for);
-  if (Number.isNaN(planned.getTime())) return null;
-
-  return `This Date is scheduled for ${new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    ...(date.data?.time_known !== false
-      ? {
-          hour: "numeric" as const,
-          minute: "2-digit" as const,
-        }
-      : {}),
-  }).format(planned)}.`;
+  return availability
+    .canStartNaturally
+    ? null
+    : availability.detail;
 }
 
 export async function beginDateExperience({
