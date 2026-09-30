@@ -245,178 +245,29 @@ function DiarioApp() {
   const time =
     useTimeMood();
 
-  const clockHour =
-    time.dayProgress *
-    24;
+  // Home Pass 2: derive every visible apartment-light value from the
+  // continuous Home timeline created in Pass 1. No day/night switch.
+  const { homeLight } = time;
 
-  const daylightStart =
-    5.5;
+  const daylightProgress = homeLight.shadowPosition;
+  const sunOpacity = Math.max(0, Math.min(0.82, homeLight.naturalLight * (0.72 + homeLight.warmth * 0.18)));
+  const shadowOpacity = Math.max(0, Math.min(0.52, homeLight.naturalLight * 0.46));
+  const roomBrightness = 0.58 + homeLight.naturalLight * 0.48 - homeLight.nightDepth * 0.12;
+  const roomSaturation = 0.78 + homeLight.naturalLight * 0.18 + homeLight.warmth * 0.08 - homeLight.nightDepth * 0.06;
+  const roomSepia = homeLight.warmth * 0.24;
+  const nightOpacity = homeLight.nightDepth * 0.42;
 
-  const daylightEnd =
-    19.25;
-
-  const daylightProgress =
-    Math.max(
-      0,
-      Math.min(
-        1,
-        (
-          clockHour -
-          daylightStart
-        ) /
-          (
-            daylightEnd -
-            daylightStart
-          )
-      )
-    );
-
-  const daylight =
-    Math.sin(
-      Math.PI *
-        daylightProgress
-    );
-
-  const nightDepth =
-    clockHour >=
-    18
-      ? Math.min(
-          1,
-          (
-            clockHour -
-            18
-          ) /
-            4
-        )
-      : clockHour <
-          4
-        ? 1
-        : clockHour <
-            7
-          ? 1 -
-            (
-              clockHour -
-              4
-            ) /
-              3
-          : 0;
-
-  const sunOpacity =
-    daylight *
-    0.8;
-
-  const shadowOpacity =
-    daylight *
-    0.48;
-
-  const roomBrightness =
-    0.55 +
-    daylight *
-      0.5 -
-    nightDepth *
-      0.18;
-
-  const roomSaturation =
-    0.72 +
-    daylight *
-      0.28 -
-    nightDepth *
-      0.08;
-
-  const roomSepia =
-    daylight *
-    Math.abs(
-      daylightProgress -
-        0.5
-    ) *
-    0.8;
-
-  const nightOpacity =
-    nightDepth *
-    0.38;
-
-  const lampOpacity =
-    nightDepth *
-    0.55;
-
-  const homePlanBrightness =
-    1 -
-    nightDepth *
-      0.32;
-
-  // HOME PASS 3 · directional sky / window light
-  // These values stay continuous so the apartment can move through
-  // late afternoon, sunset, twilight and night without a hard switch.
-  const sunHeight =
-    Math.max(
-      0,
-      Math.sin(
-        Math.PI *
-          daylightProgress
-      )
-    );
-
-  const sunsetStrength =
-    Math.max(
-      0,
-      1 -
-        Math.abs(
-          clockHour -
-            18.15
-        ) /
-          1.65
-    );
-
-  const twilightStrength =
-    Math.max(
-      0,
-      Math.min(
-        1,
-        (clockHour - 18.25) / 1.15
-      )
-    ) *
-    Math.max(
-      0,
-      Math.min(
-        1,
-        (21.25 - clockHour) / 1.75
-      )
-    );
-
-  const skyCoolness =
-    Math.max(
-      twilightStrength * 0.72,
-      nightDepth * 0.92
-    );
-
-  const windowBeamOpacity =
-    daylight *
-    (0.12 + sunsetStrength * 0.34);
-
-  const sunVisualY =
-    `${10 + sunHeight * 18}%`;
-
-  const shadowWidth =
-    `${38 + sunsetStrength * 18}%`;
-
-  const shadowSkew =
-    `${-4 - sunsetStrength * 10}deg`;
-
-  const shadowScaleY =
-    1 + sunsetStrength * 0.16;
-
-  const directionalShadowOpacity =
-    shadowOpacity *
-    (1 - skyCoolness * 0.72);
-
-  const twilightWashOpacity =
-    Math.max(
-      twilightStrength * 0.72,
-      nightOpacity
-    );
-
-  const sunsetEdgeOpacity =
-    sunsetStrength * 0.10;
+  // Home Pass 4: artificial light wakes up continuously as daylight leaves.
+  // Keep this independent from the old discrete time themes so 18:47 can sit
+  // naturally between sunset and a lamp-led night scene.
+  const artificialLight = Math.max(
+    0,
+    Math.min(1, (homeLight.nightDepth - 0.08) / 0.84),
+  );
+  const lampOpacity = artificialLight * 0.82;
+  const lampAmbientOpacity = artificialLight * 0.46;
+  const lampCoreOpacity = artificialLight * 0.9;
+  const homePlanBrightness = 0.68 + homeLight.naturalLight * 0.32 - homeLight.nightDepth * 0.08;
 
   const detail =
     !primaryScreens.includes(
@@ -660,44 +511,32 @@ function DiarioApp() {
             "--lamp-opacity":
               lampOpacity,
 
+            "--lamp-ambient-opacity":
+              lampAmbientOpacity,
+
+            "--lamp-core-opacity":
+              lampCoreOpacity,
+
+            "--artificial-light":
+              artificialLight,
+
             "--home-plan-brightness":
               homePlanBrightness,
 
-            "--sun-height":
-              sunHeight,
+            "--home-natural-light":
+              time.homeLight.naturalLight,
 
-            "--sunset-strength":
-              sunsetStrength,
+            "--home-warmth":
+              time.homeLight.warmth,
 
-            "--twilight-strength":
-              twilightStrength,
+            "--home-night-depth":
+              time.homeLight.nightDepth,
 
-            "--sky-coolness":
-              skyCoolness,
+            "--home-shadow-position":
+              time.homeLight.shadowPosition,
 
-            "--window-beam-opacity":
-              windowBeamOpacity,
-
-            "--sun-visual-y":
-              sunVisualY,
-
-            "--shadow-width":
-              shadowWidth,
-
-            "--shadow-skew":
-              shadowSkew,
-
-            "--shadow-scale-y":
-              shadowScaleY,
-
-            "--directional-shadow-opacity":
-              directionalShadowOpacity,
-
-            "--twilight-wash-opacity":
-              twilightWashOpacity,
-
-            "--sunset-edge-opacity":
-              sunsetEdgeOpacity,
+            "--home-sky-progress":
+              time.homeLight.skyProgress,
           } as React.CSSProperties
         }
       >
@@ -968,6 +807,14 @@ return (
 <section
   className="home-screen home-live home-house"
   data-home-time={time.mood}
+  data-home-phase={time.homeLight.phase}
+  style={{
+    "--home-natural-light": time.homeLight.naturalLight,
+    "--home-warmth": time.homeLight.warmth,
+    "--home-night-depth": time.homeLight.nightDepth,
+    "--home-shadow-position": time.homeLight.shadowPosition,
+    "--home-sky-progress": time.homeLight.skyProgress,
+  } as any}
 >
       <header className="house-header">
         <div className="house-heading">
