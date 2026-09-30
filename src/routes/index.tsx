@@ -555,7 +555,8 @@ function DiarioApp() {
       }
     >
       <div
-        className="phone-shell"
+        className="phone-shell app-shell"
+        data-detail={detail ? "true" : "false"}
         style={
           {
             "--day-progress":
@@ -591,7 +592,7 @@ function DiarioApp() {
         }
       >
         <div
-          className="statusbar"
+          className="statusbar app-shell-statusbar"
           aria-hidden="true"
         >
           <span>
@@ -611,7 +612,7 @@ function DiarioApp() {
 
         {detail && (
           <button
-            className="back-button"
+            className="back-button app-shell-back"
             onClick={
               goBack
             }
@@ -629,7 +630,7 @@ function DiarioApp() {
           ref={
             scrollRef
           }
-          className={`screen-scroll screen-${screen}`}
+          className={`screen-scroll app-shell-content screen-${screen}`}
           key={
             screen
           }
