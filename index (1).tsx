@@ -256,7 +256,17 @@ function DiarioApp() {
   const roomSaturation = 0.78 + homeLight.naturalLight * 0.18 + homeLight.warmth * 0.08 - homeLight.nightDepth * 0.06;
   const roomSepia = homeLight.warmth * 0.24;
   const nightOpacity = homeLight.nightDepth * 0.42;
-  const lampOpacity = homeLight.nightDepth * 0.55;
+
+  // Home Pass 4: artificial light wakes up continuously as daylight leaves.
+  // Keep this independent from the old discrete time themes so 18:47 can sit
+  // naturally between sunset and a lamp-led night scene.
+  const artificialLight = Math.max(
+    0,
+    Math.min(1, (homeLight.nightDepth - 0.08) / 0.84),
+  );
+  const lampOpacity = artificialLight * 0.82;
+  const lampAmbientOpacity = artificialLight * 0.46;
+  const lampCoreOpacity = artificialLight * 0.9;
   const homePlanBrightness = 0.68 + homeLight.naturalLight * 0.32 - homeLight.nightDepth * 0.08;
 
   const detail =
@@ -500,6 +510,15 @@ function DiarioApp() {
 
             "--lamp-opacity":
               lampOpacity,
+
+            "--lamp-ambient-opacity":
+              lampAmbientOpacity,
+
+            "--lamp-core-opacity":
+              lampCoreOpacity,
+
+            "--artificial-light":
+              artificialLight,
 
             "--home-plan-brightness":
               homePlanBrightness,

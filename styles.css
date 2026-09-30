@@ -13398,3 +13398,61 @@ select {
 .home-v2 .apartment-plan-sheet > header small { color: var(--cherry); font-size: 8px; font-weight: 800; letter-spacing: .15em; }
 .home-v2 .apartment-plan-sheet > header strong { color: var(--wine-deep); font: 400 28px/1 var(--font-display); }
 .home-v2 .apartment-plan-sheet > header button { width: 36px; height: 36px; border: 1px solid var(--divider); border-radius: 50%; color: var(--wine); background: var(--paper); font-size: 22px; }
+
+
+/* =========================================
+   HOME V2 · PASS 2 · LIVING SCENE FOUNDATION
+   One persistent apartment scene with room switching and layered objects.
+   Screen-local only; shell and scroll ownership remain untouched.
+   ========================================= */
+.home-scene-v2 { padding-bottom: 104px; }
+.home-scene-v2 .apartment-home-scene {
+  min-height: min(690px, 79dvh);
+  margin-top: 0;
+}
+.home-scene-v2 .apartment-scene-base,
+.home-scene-v2 .apartment-scene-window-light,
+.home-scene-v2 .apartment-scene-object-layer {
+  position: absolute;
+  inset: 0;
+}
+.home-scene-v2 .apartment-scene-base { z-index: 0; }
+.home-scene-v2 .apartment-scene-window-light {
+  z-index: 1;
+  pointer-events: none;
+  opacity: calc(.08 + var(--home-warmth, 0) * .18);
+  background: radial-gradient(
+    ellipse at var(--home-shadow-position, 55%) 42%,
+    rgb(255 207 146 / .42),
+    transparent 48%
+  );
+  mix-blend-mode: screen;
+}
+.home-scene-v2 .apartment-home-atmosphere { z-index: 2; }
+.home-scene-v2 .apartment-scene-object-layer {
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+.home-scene-v2 .apartment-scene-object {
+  position: absolute;
+  height: auto;
+  transform: translate(-50%, -50%);
+  transform-origin: center bottom;
+  filter:
+    brightness(calc(.80 + var(--home-natural-light, .8) * .22))
+    saturate(calc(.86 + var(--home-natural-light, .8) * .14))
+    sepia(calc(var(--home-warmth, 0) * .06));
+  transition: filter .6s ease;
+}
+.home-scene-v2 .apartment-home-heading,
+.home-scene-v2 .apartment-home-dominic,
+.home-scene-v2 .apartment-home-actions,
+.home-scene-v2 .apartment-home-room-nav { z-index: 5; }
+.home-scene-v2 .apartment-home-heading > div:first-child strong { font-size: 39px; }
+.home-scene-v2 .apartment-home-room-nav button:first-child { background: transparent; color: rgb(255 255 255 / .92); }
+.home-scene-v2 .apartment-home-room-nav button.is-active {
+  background: rgb(255 246 239 / .94);
+  color: var(--wine-deep);
+}
+.home-scene-v2 .apartment-home-actions button:first-child::before { content: "✦ "; }
