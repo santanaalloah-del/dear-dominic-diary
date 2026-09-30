@@ -307,6 +307,16 @@ export async function arriveAtDatePlace({
   const current = readDateExperience(date);
   const placeName = place.title ?? cleanString(place.data?.name) ?? "Place";
 
+  const alreadyHere =
+    current.currentLocationMode === "place" &&
+    (current.currentPlaceId === place.id ||
+      (!current.currentPlaceId &&
+        current.currentPlaceName === placeName));
+
+  if (alreadyHere) {
+    return date;
+  }
+
   return persistDateExperience({
     userId,
     date,
