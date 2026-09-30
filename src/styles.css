@@ -13191,4 +13191,55 @@ select {
   box-shadow:
     inset 0 0 52px rgb(255 179 101 / var(--sunset-edge-opacity, 0));
 }
-\n\n/* =========================================\n   HOME PASS 4 · ARTIFICIAL LIGHT\n   Screen-local only. Lamps gradually take over\n   as natural light fades; no App Shell/scroll rules.\n   ========================================= */\n\n/* A placed lighting object now creates two zones: a tight luminous source\n   and a softer room-filling pool. Multiple lamps naturally accumulate. */\n.apartment-screen .room-lamp-glow {\n  background:\n    radial-gradient(\n      circle at var(--lamp-x, 72%) var(--lamp-y, 48%),\n      rgb(255 241 205 / calc(var(--lamp-core-opacity, 0) * .74)) 0%,\n      rgb(255 205 132 / calc(var(--lamp-core-opacity, 0) * .48)) 8%,\n      rgb(255 179 96 / calc(var(--lamp-ambient-opacity, 0) * .52)) 24%,\n      rgb(245 151 82 / calc(var(--lamp-ambient-opacity, 0) * .22)) 43%,\n      transparent 68%\n    );\n  mix-blend-mode: screen;\n  opacity: 1;\n}\n\n/* The physical lamp/decor image itself begins to look switched on instead\n   of only casting an anonymous glow around it. */\n.apartment-screen\n.home-object-layer[data-object-type="lighting"]\n.home-object-image {\n  filter:\n    brightness(calc(var(--room-brightness, 1) + var(--artificial-light, 0) * .22))\n    saturate(calc(var(--room-saturation, 1) + var(--artificial-light, 0) * .10))\n    sepia(var(--room-sepia, 0))\n    drop-shadow(\n      0 0 calc(10px + var(--artificial-light, 0) * 15px)\n      rgb(255 194 112 / var(--lamp-core-opacity, 0))\n    );\n}\n\n/* Once night deepens, warm artificial light gently lifts the lower/interior\n   part of a room while the window/sky layer is allowed to stay cool. */\n.apartment-screen .room-view-stage::after {\n  box-shadow:\n    inset 0 -46px 76px\n      rgb(255 184 105 / calc(var(--artificial-light, 0) * .08));\n}\n\n/* Preserve blue-hour contrast: lamps do not erase the night cast, they sit\n   above it as localized warm sources. */\n.apartment-screen .room-night-wash {\n  opacity: calc(var(--twilight-wash-opacity, 0) * (1 - var(--artificial-light, 0) * .16));\n}\n
+
+
+/* =========================================
+   HOME PASS 4 · ARTIFICIAL LIGHT
+   Screen-local only. Lamps gradually take over
+   as natural light fades; no App Shell/scroll rules.
+   ========================================= */
+
+/* A placed lighting object now creates two zones: a tight luminous source
+   and a softer room-filling pool. Multiple lamps naturally accumulate. */
+.apartment-screen .room-lamp-glow {
+  background:
+    radial-gradient(
+      circle at var(--lamp-x, 72%) var(--lamp-y, 48%),
+      rgb(255 241 205 / calc(var(--lamp-core-opacity, 0) * .74)) 0%,
+      rgb(255 205 132 / calc(var(--lamp-core-opacity, 0) * .48)) 8%,
+      rgb(255 179 96 / calc(var(--lamp-ambient-opacity, 0) * .52)) 24%,
+      rgb(245 151 82 / calc(var(--lamp-ambient-opacity, 0) * .22)) 43%,
+      transparent 68%
+    );
+  mix-blend-mode: screen;
+  opacity: 1;
+}
+
+/* The physical lamp/decor image itself begins to look switched on instead
+   of only casting an anonymous glow around it. */
+.apartment-screen
+.home-object-layer[data-object-type="lighting"]
+.home-object-image {
+  filter:
+    brightness(calc(var(--room-brightness, 1) + var(--artificial-light, 0) * .22))
+    saturate(calc(var(--room-saturation, 1) + var(--artificial-light, 0) * .10))
+    sepia(var(--room-sepia, 0))
+    drop-shadow(
+      0 0 calc(10px + var(--artificial-light, 0) * 15px)
+      rgb(255 194 112 / var(--lamp-core-opacity, 0))
+    );
+}
+
+/* Once night deepens, warm artificial light gently lifts the lower/interior
+   part of a room while the window/sky layer is allowed to stay cool. */
+.apartment-screen .room-view-stage::after {
+  box-shadow:
+    inset 0 -46px 76px
+      rgb(255 184 105 / calc(var(--artificial-light, 0) * .08));
+}
+
+/* Preserve blue-hour contrast: lamps do not erase the night cast, they sit
+   above it as localized warm sources. */
+.apartment-screen .room-night-wash {
+  opacity: calc(var(--twilight-wash-opacity, 0) * (1 - var(--artificial-light, 0) * .16));
+}
