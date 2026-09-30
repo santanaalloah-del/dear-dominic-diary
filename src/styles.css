@@ -12984,3 +12984,103 @@ select {
     transition: none !important;
   }
 }
+
+/* =========================================================
+   VISUAL SYSTEM · PASS 2
+   Shared interactive language only — intentionally owns no
+   viewport sizing, positioning, scrolling or overflow.
+   ========================================================= */
+
+:where(
+  .back-button,
+  .index-list button.available,
+  .theme-grid button,
+  .bubble-choice-grid button,
+  .chat-actions-grid button,
+  .composer button,
+  .messenger-composer button,
+  .bottom-nav button
+) {
+  transition:
+    background-color var(--diario-motion-fast) var(--diario-ease-standard),
+    border-color var(--diario-motion-fast) var(--diario-ease-standard),
+    color var(--diario-motion-fast) var(--diario-ease-standard),
+    box-shadow var(--diario-motion-fast) var(--diario-ease-standard),
+    opacity var(--diario-motion-fast) var(--diario-ease-standard),
+    transform var(--diario-motion-fast) var(--diario-ease-standard);
+}
+
+:where(
+  .back-button,
+  .index-list button.available,
+  .theme-grid button,
+  .bubble-choice-grid button,
+  .chat-actions-grid button,
+  .composer button,
+  .messenger-composer button,
+  .bottom-nav button
+):focus-visible {
+  outline: none;
+  box-shadow: var(--diario-focus-ring);
+}
+
+.back-button {
+  border-color: var(--diario-color-divider);
+  background: color-mix(in oklab, var(--diario-color-surface) 88%, transparent);
+  box-shadow: var(--diario-shadow-soft);
+}
+
+.back-button:active {
+  transform: scale(0.96);
+}
+
+.index-list button {
+  border-color: var(--diario-color-divider);
+  box-shadow: var(--diario-shadow-soft);
+}
+
+.index-list button.available:active {
+  box-shadow: none;
+}
+
+.theme-grid button,
+.bubble-choice-grid button {
+  border-color: var(--diario-color-border);
+}
+
+.theme-grid button.active,
+.bubble-choice-grid button.active {
+  border-color: var(--diario-color-action);
+}
+
+.chat-actions-grid button:active {
+  background: color-mix(in oklab, var(--diario-color-accent) 16%, transparent);
+}
+
+.composer div {
+  border-color: var(--diario-color-border);
+}
+
+.composer .send-button {
+  background: var(--diario-color-brand);
+  color: var(--text-on-dark);
+}
+
+.bottom-nav button:active {
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    .back-button,
+    .index-list button.available,
+    .theme-grid button,
+    .bubble-choice-grid button,
+    .chat-actions-grid button,
+    .composer button,
+    .messenger-composer button,
+    .bottom-nav button
+  ) {
+    transition-duration: 0.01ms;
+  }
+}
