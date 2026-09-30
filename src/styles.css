@@ -12699,3 +12699,48 @@ select {
   }
 }
 
+
+/* =========================================================
+   APP SHELL FOUNDATION · PASS 2A.1
+   iPhone top safe-area correction.
+   On the real mobile app, iOS owns the system status bar.
+   Keep only the Diario brand in our header and place it below
+   the notch/status area instead of drawing a second clock/menu.
+   ========================================================= */
+
+@media (max-width: 699px) {
+  .phone-shell.app-shell {
+    --app-mobile-safe-top: max(env(safe-area-inset-top), 47px);
+    --app-mobile-header-height: 30px;
+  }
+
+  .app-shell-statusbar {
+    height: calc(var(--app-mobile-safe-top) + var(--app-mobile-header-height));
+    padding: var(--app-mobile-safe-top) 18px 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    place-items: center;
+    line-height: var(--app-mobile-header-height);
+  }
+
+  .app-shell-statusbar > span:first-child,
+  .app-shell-statusbar > span:last-child {
+    display: none;
+  }
+
+  .app-shell-statusbar .brand-mark {
+    display: block;
+    align-self: center;
+    font-size: 14px;
+    line-height: var(--app-mobile-header-height);
+  }
+
+  .app-shell-content {
+    height: calc(100% - var(--app-mobile-safe-top) - var(--app-mobile-header-height));
+    max-height: calc(100% - var(--app-mobile-safe-top) - var(--app-mobile-header-height));
+  }
+
+  .app-shell-back {
+    top: calc(var(--app-mobile-safe-top) + var(--app-mobile-header-height) + 10px);
+  }
+}
