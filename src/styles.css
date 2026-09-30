@@ -13148,3 +13148,114 @@ select {
     transition: none;
   }
 }
+
+/* ─────────────────────────────────────────
+   HOME · PASS 2 · CONTINUOUS VISIBLE LIGHT
+   Screen-local only. Scroll ownership stays with App Shell/screen-scroll.
+   ───────────────────────────────────────── */
+.home-house {
+  --home-light: var(--home-natural-light, 1);
+  --home-heat: var(--home-warmth, 0);
+  --home-dark: var(--home-night-depth, 0);
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      180deg,
+      rgb(43 48 72 / calc(var(--home-dark) * .16)),
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      rgb(255 202 126 / calc(var(--home-heat) * .11)),
+      transparent 48%
+    );
+  transition: background 900ms linear;
+}
+
+.home-house .house-header,
+.home-house .home-dominic-now,
+.home-house .home-plan-stage,
+.home-house .home-empty-state,
+.home-house .house-space-strip,
+.home-house .room-canon-note {
+  position: relative;
+  z-index: 1;
+}
+
+.home-house .official-floor-plan {
+  background:
+    linear-gradient(
+      135deg,
+      rgb(255 207 135 / calc(var(--home-heat) * .16)),
+      rgb(47 55 86 / calc(var(--home-dark) * .13))
+    ),
+    var(--paper);
+}
+
+.home-house .official-floor-plan > img {
+  filter:
+    brightness(calc(.72 + var(--home-light) * .28 - var(--home-dark) * .06))
+    saturate(calc(.88 + var(--home-light) * .08 + var(--home-heat) * .08))
+    sepia(calc(var(--home-heat) * .12));
+  transition: filter 900ms linear;
+}
+
+.home-house .official-floor-plan::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      calc(112deg + var(--home-shadow-position, .5) * 34deg),
+      transparent 18%,
+      rgb(255 196 112 / calc(var(--home-heat) * .13)) 48%,
+      transparent 72%
+    ),
+    rgb(30 38 67 / calc(var(--home-dark) * .22));
+  mix-blend-mode: multiply;
+  transition: background 900ms linear;
+}
+
+.room-view-stage {
+  --continuous-room-light: var(--home-natural-light, 1);
+  --continuous-room-warmth: var(--home-warmth, 0);
+  --continuous-room-night: var(--home-night-depth, 0);
+}
+
+.room-view-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      calc(108deg + var(--home-shadow-position, .5) * 38deg),
+      transparent 12%,
+      rgb(255 190 105 / calc(var(--continuous-room-warmth) * .15)) 47%,
+      transparent 72%
+    );
+  mix-blend-mode: screen;
+  opacity: calc(.22 + var(--continuous-room-light) * .58);
+  transition: opacity 900ms linear, background 900ms linear;
+}
+
+.room-view-stage .room-night-wash {
+  z-index: 2;
+  background:
+    linear-gradient(
+      180deg,
+      rgb(31 39 68 / calc(var(--continuous-room-night) * .34)),
+      rgb(19 24 47 / calc(var(--continuous-room-night) * .48))
+    );
+  transition: background 900ms linear;
+}
+
+.room-view-stage .home-object-layer,
+.room-view-stage .room-dominic-presence,
+.room-view-stage .room-lamp-glow {
+  z-index: 3;
+}
