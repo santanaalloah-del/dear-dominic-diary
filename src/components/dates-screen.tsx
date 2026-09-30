@@ -64,6 +64,7 @@ import {
 import {
   closeOtherLiveDateExperiences,
   finishDateExperience,
+  getDateStartAvailability,
 } from "@/lib/date-experience";
 
 import {
@@ -71,6 +72,7 @@ import {
 } from "@/lib/date-live-events";
 
 import "./dates-screen.css";
+import "./date-lifecycle.css";
 
 type DateView =
   | "upcoming"
@@ -453,13 +455,28 @@ function hasSomething({
 
 function flowLabel(
   state:
-    DateFlowState
+    DateFlowState,
+  date?:
+    DiarioItem,
+  now =
+    new Date()
 ) {
   if (
     state ===
     "idea"
   ) {
     return "Idea";
+  }
+
+  if (
+    state ===
+    "planned" &&
+    date
+  ) {
+    return getDateStartAvailability(
+      date,
+      now
+    ).label;
   }
 
   if (
@@ -711,6 +728,21 @@ export function DatesExperienceScreen({
     useState(false);
 
   const [
+    lifecycleNow,
+    setLifecycleNow,
+  ] =
+    useState(
+      () =>
+        new Date()
+    );
+
+  const [
+    earlyStartConfirm,
+    setEarlyStartConfirm,
+  ] =
+    useState(false);
+
+  const [
     createdMemory,
     setCreatedMemory,
   ] =
@@ -863,11 +895,31 @@ export function DatesExperienceScreen({
   ]);
 
   useEffect(() => {
+    const timer =
+      window.setInterval(
+        () =>
+          setLifecycleNow(
+            new Date()
+          ),
+        30_000
+      );
+
+    return () =>
+      window.clearInterval(
+        timer
+      );
+  }, []);
+
+  useEffect(() => {
     if (
       !selectedDate
     ) {
       return;
     }
+
+    setEarlyStartConfirm(
+      false
+    );
 
     setLiveNote(
       typeof selectedDate
@@ -1233,10 +1285,31 @@ export function DatesExperienceScreen({
     }
   }
 
-  async function beginDate() {
+  async function beginDate(
+    allowEarly =
+      false
+  ) {
     if (
       !selectedDate
     ) {
+      return;
+    }
+
+    const availability =
+      getDateStartAvailability(
+        selectedDate,
+        new Date()
+      );
+
+    if (
+      !availability
+        .canStartNaturally &&
+      !allowEarly
+    ) {
+      setError(
+        "This Date is not available yet. Use Start early if you really want to begin it now."
+      );
+
       return;
     }
 
@@ -1268,6 +1341,10 @@ export function DatesExperienceScreen({
 
       replaceDate(
         updated
+      );
+
+      setEarlyStartConfirm(
+        false
       );
 
       notifyDateExperienceChanged(
@@ -1621,6 +1698,12 @@ export function DatesExperienceScreen({
           "dominic"
       );
 
+    const startAvailability =
+      getDateStartAvailability(
+        selectedDate,
+        lifecycleNow
+      );
+
     const contentThings =
       connectedThings.filter(
         (
@@ -1668,7 +1751,9 @@ export function DatesExperienceScreen({
         <header className="date-flow-detail-head">
           <span className="date-flow-state-badge">
             {flowLabel(
-              state
+              state,
+              selectedDate,
+              lifecycleNow
             )}
           </span>
 
@@ -1976,20 +2061,107 @@ export function DatesExperienceScreen({
           "idea" ||
           state ===
             "planned") && (
-          <button
-            type="button"
-            className="date-flow-primary"
-            disabled={
-              saving
-            }
-            onClick={() =>
-              void beginDate()
-            }
-          >
-            Start Date Mode
-          </button>
+          <>
+            {state ===
+              "planned" && (
+              <div
+                className={`date-lifecycle-note ${startAvailability.phase}`}
+              >
+                <small>
+                  {startAvailability.label}
+                </small>
+
+                <span>
+                  {startAvailability.detail}
+                </span>
+              </div>
+            )}
+
+            {startAvailability
+              .canStartNaturally ? (
+              <button
+                type="button"
+                className="date-flow-primary"
+                disabled={
+                  saving
+                }
+                onClick={() =>
+                  void beginDate()
+                }
+              >
+                Start Date Mode
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="date-flow-secondary"
+                disabled={
+                  saving
+                }
+                onClick={() =>
+                  setEarlyStartConfirm(
+                    true
+                  )
+                }
+              >
+                Start early
+              </button>
+            )}
+          </>
         )}
       </div>
+
+      {earlyStartConfirm &&
+        state ===
+          "planned" &&
+        !startAvailability
+          .canStartNaturally && (
+        <div className="date-start-early-confirm">
+          <small>
+            START EARLY
+          </small>
+
+          <strong>
+            Start this Date before its planned time?
+          </strong>
+
+          <p>
+            This will make it the active Date now. It will not happen automatically.
+          </p>
+
+          <div className="date-flow-actions">
+            <button
+              type="button"
+              className="date-flow-secondary"
+              disabled={
+                saving
+              }
+              onClick={() =>
+                setEarlyStartConfirm(
+                  false
+                )
+              }
+            >
+              Not yet
+            </button>
+
+            <button
+              type="button"
+              className="date-flow-primary"
+              disabled={
+                saving
+              }
+              onClick={() =>
+                void beginDate(
+                  true
+                )
+              }
+            >
+              Start early now
+            </button>
+          </div>
+        </div>
+      )}
     </>
   )}
 </section>
@@ -2971,7 +3143,9 @@ export function DatesExperienceScreen({
                     <div>
                       <span className="date-flow-card-status">
                         {flowLabel(
-                          state
+                          state,
+                          date,
+                          lifecycleNow
                         )}
                       </span>
 
