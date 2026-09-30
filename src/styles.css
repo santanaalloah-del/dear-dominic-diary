@@ -58,6 +58,57 @@
   /* shape */
   --radius-soft: 10px;
   --radius-small: 5px;
+
+  /* visual system foundation — semantic aliases only; no layout ownership */
+  --diario-color-canvas: var(--surface);
+  --diario-color-surface: var(--surface-raised);
+  --diario-color-surface-deep: var(--surface-deep);
+  --diario-color-ink: var(--text);
+  --diario-color-ink-soft: var(--text-soft);
+  --diario-color-brand: var(--ink);
+  --diario-color-action: var(--interactive);
+  --diario-color-accent: var(--accent-soft);
+  --diario-color-border: var(--border);
+  --diario-color-divider: var(--divider);
+
+  --diario-font-display: var(--font-display);
+  --diario-font-body: var(--font-body);
+  --diario-font-hand: var(--font-hand);
+  --diario-text-xs: 0.6875rem;
+  --diario-text-sm: 0.8125rem;
+  --diario-text-md: 0.9375rem;
+  --diario-text-lg: 1.125rem;
+  --diario-text-xl: 1.5rem;
+  --diario-text-display-sm: 2rem;
+  --diario-text-display-md: 2.75rem;
+  --diario-leading-tight: 1.05;
+  --diario-leading-copy: 1.55;
+  --diario-tracking-label: 0.12em;
+
+  --diario-space-1: 4px;
+  --diario-space-2: 8px;
+  --diario-space-3: 12px;
+  --diario-space-4: 16px;
+  --diario-space-5: 20px;
+  --diario-space-6: 24px;
+  --diario-space-8: 32px;
+  --diario-space-10: 40px;
+  --diario-space-12: 48px;
+
+  --diario-radius-xs: var(--radius-small);
+  --diario-radius-sm: var(--radius-soft);
+  --diario-radius-md: 16px;
+  --diario-radius-lg: 22px;
+  --diario-radius-pill: 999px;
+
+  --diario-shadow-soft: var(--paper-shadow-soft);
+  --diario-shadow-raised: var(--paper-shadow);
+  --diario-focus-ring: 0 0 0 3px color-mix(in oklab, var(--interactive) 24%, transparent);
+
+  --diario-motion-fast: 140ms;
+  --diario-motion-base: 220ms;
+  --diario-motion-slow: 360ms;
+  --diario-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 html[data-diario-appearance="light"] {
   --background: var(--cream);
