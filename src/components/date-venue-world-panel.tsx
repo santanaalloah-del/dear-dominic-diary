@@ -8,6 +8,7 @@ import {
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -33,10 +34,18 @@ import {
 } from "@/lib/date-live-events";
 
 import {
+  discoveredPlaceFromPersisted,
+} from "@/lib/nyc-place-discovery";
+
+import {
   formatVenuePrice,
+  localInspiredVenueCatalog,
+  persistVenueWorldCatalog,
   readVenueWorldCatalog,
+  venueWorldPlaceContext,
   type VenueWorldCatalog,
   type VenueWorldItem,
+  type VenueWorldPlaceContext,
 } from "@/lib/venue-world";
 
 import "./date-venue-world-panel.css";
@@ -218,6 +227,87 @@ async function loadDatePlace({
   return data
     ? data as DiarioItem
     : null;
+}
+
+function persistedPlaceContext(
+  place: DiarioItem
+): VenueWorldPlaceContext {
+  const discovered =
+    discoveredPlaceFromPersisted(
+      place
+    );
+
+  if (
+    discovered
+  ) {
+    return venueWorldPlaceContext({
+      place:
+        discovered,
+    });
+  }
+
+  const categories =
+    Array.isArray(
+      place.data
+        ?.categories
+    )
+      ? place.data.categories.filter(
+          (
+            value: unknown
+          ): value is string =>
+            typeof value ===
+            "string"
+        )
+      : [];
+
+  const stringValue =
+    (
+      value: unknown
+    ) =>
+      typeof value ===
+        "string" &&
+      value.trim()
+        ? value.trim()
+        : null;
+
+  return {
+    name:
+      place.title ||
+      "This place",
+
+    placeType:
+      stringValue(
+        place.data
+          ?.placeType
+      ) ||
+      "place",
+
+    neighborhood:
+      stringValue(
+        place.data
+          ?.neighborhood
+      ),
+
+    address:
+      stringValue(
+        place.data
+          ?.address
+      ),
+
+    categories,
+
+    cuisine:
+      stringValue(
+        place.data
+          ?.cuisine
+      ),
+
+    description:
+      stringValue(
+        place.data
+          ?.description
+      ),
+  };
 }
 
 function actionButtonLabel(
@@ -675,6 +765,23 @@ export function DateVenueWorldPanel({
       "all"
     );
 
+  const [
+    buildingCatalog,
+    setBuildingCatalog,
+  ] =
+    useState(false);
+
+  const [
+    buildRetry,
+    setBuildRetry,
+  ] =
+    useState(0);
+
+  const attemptedCatalogPlaceId =
+    useRef<string | null>(
+      null
+    );
+
   useEffect(() => {
     let active =
       true;
@@ -759,6 +866,195 @@ export function DateVenueWorldPanel({
         place,
       ]
     );
+
+  useEffect(() => {
+    if (
+      !place ||
+      catalog ||
+      attemptedCatalogPlaceId.current ===
+        place.id
+    ) {
+      return;
+    }
+
+    let active =
+      true;
+
+    attemptedCatalogPlaceId.current =
+      place.id;
+
+    async function buildCatalog() {
+      setBuildingCatalog(
+        true
+      );
+
+      setError(
+        null
+      );
+
+      const context =
+        persistedPlaceContext(
+          place!
+        );
+
+      try {
+        let nextCatalog:
+          VenueWorldCatalog;
+
+        try {
+          const {
+            data:
+              authData,
+            error:
+              authError,
+          } =
+            await supabase
+              .auth
+              .getSession();
+
+          if (
+            authError ||
+            !authData
+              .session
+              ?.access_token
+          ) {
+            throw new Error(
+              "No active session for Venue World."
+            );
+          }
+
+          const response =
+            await fetch(
+              "/api/venue-world",
+              {
+                method:
+                  "POST",
+
+                headers: {
+                  "Content-Type":
+                    "application/json",
+
+                  Authorization:
+                    `Bearer ${authData.session.access_token}`,
+                },
+
+                body:
+                  JSON.stringify({
+                    userId,
+                    place:
+                      context,
+                  }),
+              }
+            );
+
+          if (
+            !response.ok
+          ) {
+            const payload =
+              await response
+                .json()
+                .catch(
+                  () => null
+                );
+
+            throw new Error(
+              payload?.error ||
+                "Could not build Things Here."
+            );
+          }
+
+          const payload =
+            (await response.json()) as {
+              catalog?:
+                VenueWorldCatalog;
+            };
+
+          if (
+            !payload.catalog
+              ?.items
+              ?.length
+          ) {
+            throw new Error(
+              "Things Here came back empty."
+            );
+          }
+
+          nextCatalog =
+            payload.catalog;
+        } catch (
+          remoteError
+        ) {
+          console.warn(
+            "Could not build remote Venue World. Using the local inspired catalog:",
+            remoteError
+          );
+
+          nextCatalog =
+            localInspiredVenueCatalog(
+              context
+            );
+        }
+
+        const updatedPlace =
+          await persistVenueWorldCatalog({
+            userId,
+
+            place:
+              place!,
+
+            catalog:
+              nextCatalog,
+          });
+
+        if (
+          active
+        ) {
+          setPlace(
+            updatedPlace
+          );
+
+          setActiveFilter(
+            "all"
+          );
+        }
+      } catch (
+        buildError
+      ) {
+        console.error(
+          "Could not build Things Here from the live Date:",
+          buildError
+        );
+
+        if (
+          active
+        ) {
+          setError(
+            "Things Here could not be built right now."
+          );
+        }
+      } finally {
+        if (
+          active
+        ) {
+          setBuildingCatalog(
+            false
+          );
+        }
+      }
+    }
+
+    void buildCatalog();
+
+    return () => {
+      active =
+        false;
+    };
+  }, [
+    place?.id,
+    catalog,
+    userId,
+    buildRetry,
+  ]);
 
   const sections =
     useMemo(
@@ -922,18 +1218,41 @@ export function DateVenueWorldPanel({
           />
         </header>
 
-        <p className="date-venue-world-empty">
-          There isn't a Things Here catalog for this place yet.
-        </p>
+        {buildingCatalog ||
+        !error ? (
+          <div className="date-venue-world-loading">
+            <LoaderCircle
+              className="spin"
+              size={16}
+            />
 
-        <p className="date-venue-world-hint">
-          Explore this Place once from Places to build its menu, shop or little things. After that, it will appear here automatically.
-        </p>
+            Looking around…
+          </div>
+        ) : (
+          <>
+            <p className="date-venue-world-error">
+              {error}
+            </p>
 
-        {error && (
-          <p className="date-venue-world-error">
-            {error}
-          </p>
+            <button
+              type="button"
+              className="date-venue-record-button"
+              onClick={() => {
+                attemptedCatalogPlaceId.current =
+                  null;
+
+                setBuildRetry(
+                  (
+                    current
+                  ) =>
+                    current +
+                    1
+                );
+              }}
+            >
+              Try again
+            </button>
+          </>
         )}
       </section>
     );
