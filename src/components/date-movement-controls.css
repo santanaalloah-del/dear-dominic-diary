@@ -24,15 +24,21 @@
 }
 
 .date-movement-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 .date-movement-actions button {
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+}
+
+.date-movement-actions button:only-child {
+  grid-column: 1 / -1;
 }
 
 .date-movement-note {
@@ -40,4 +46,10 @@
   font-size: 12px;
   line-height: 1.45;
   opacity: 0.68;
+}
+
+@media (max-width: 360px) {
+  .date-movement-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

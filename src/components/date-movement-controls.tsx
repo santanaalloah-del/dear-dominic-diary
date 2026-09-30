@@ -1,10 +1,23 @@
-import { Footprints, MapPin } from "lucide-react";
-import type { DiarioItem } from "@/lib/diario-world";
+import {
+  useState,
+} from "react";
+import {
+  Footprints,
+  MapPin,
+} from "lucide-react";
+
+import type {
+  DiarioItem,
+} from "@/lib/diario-world";
+
 import {
   leaveCurrentDatePlace,
   readDateExperience,
 } from "@/lib/date-experience";
-import { notifyDateExperienceChanged } from "@/lib/date-live-events";
+
+import {
+  notifyDateExperienceChanged,
+} from "@/lib/date-live-events";
 
 export function DateMovementControls({
   userId,
@@ -14,39 +27,158 @@ export function DateMovementControls({
   onExploreNearby,
 }: {
   userId: string;
+
   date: DiarioItem;
+
   saving?: boolean;
-  onDateUpdated: (date: DiarioItem) => void;
-  onExploreNearby: (date: DiarioItem) => void;
+
+  onDateUpdated: (
+    date: DiarioItem
+  ) => void;
+
+  onExploreNearby: (
+    date: DiarioItem
+  ) => void;
 }) {
-  const experience = readDateExperience(date);
-  const walking = experience.currentLocationMode === "walking";
+  const [
+    moving,
+    setMoving,
+  ] =
+    useState(false);
 
-  async function leave() {
+  const experience =
+    readDateExperience(
+      date
+    );
+
+  const walking =
+    experience
+      .currentLocationMode ===
+    "walking";
+
+  const busy =
+    Boolean(
+      saving ||
+      moving
+    );
+
+  async function leaveOnly() {
+    if (
+      busy ||
+      walking
+    ) {
+      return;
+    }
+
+    setMoving(
+      true
+    );
+
     try {
-      const updated = await leaveCurrentDatePlace({
-        userId,
-        date,
-      });
+      const updated =
+        await leaveCurrentDatePlace({
+          userId,
+          date,
+        });
 
-      onDateUpdated(updated);
-      notifyDateExperienceChanged(updated.id);
-    } catch (error) {
-      console.error("Could not leave current Date place:", error);
+      onDateUpdated(
+        updated
+      );
+
+      notifyDateExperienceChanged(
+        updated.id
+      );
+    } catch (
+      error
+    ) {
+      console.error(
+        "Could not leave current Date place:",
+        error
+      );
+    } finally {
+      setMoving(
+        false
+      );
+    }
+  }
+
+  async function nextStop() {
+    if (
+      busy
+    ) {
+      return;
+    }
+
+    setMoving(
+      true
+    );
+
+    try {
+      let workingDate =
+        date;
+
+      if (
+        !walking
+      ) {
+        workingDate =
+          await leaveCurrentDatePlace({
+            userId,
+            date,
+          });
+
+        onDateUpdated(
+          workingDate
+        );
+
+        notifyDateExperienceChanged(
+          workingDate.id
+        );
+      }
+
+      onExploreNearby(
+        workingDate
+      );
+    } catch (
+      error
+    ) {
+      console.error(
+        "Could not open the next Date stop:",
+        error
+      );
+    } finally {
+      setMoving(
+        false
+      );
     }
   }
 
   return (
-    <section className="date-movement-controls" aria-label="Date movement">
+    <section
+      className="date-movement-controls"
+      aria-label="Date movement"
+    >
       <div className="date-movement-status">
-        <small>{walking ? "BETWEEN PLACES" : "HERE NOW"}</small>
+        <small>
+          {walking
+            ? "BETWEEN PLACES"
+            : "HERE NOW"}
+        </small>
+
         <strong>
           {walking
             ? "Walking together"
-            : experience.currentPlaceName ||
-              (typeof date.data?.place === "string"
-                ? date.data.place
-                : "Together")}
+            : experience
+                .currentPlaceName ||
+              (
+                typeof date
+                  .data
+                  ?.place ===
+                "string"
+                  ? date
+                      .data
+                      .place
+                  : "Together"
+              )}
         </strong>
       </div>
 
@@ -55,30 +187,46 @@ export function DateMovementControls({
           <button
             type="button"
             className="date-flow-secondary"
-            disabled={saving}
-            onClick={() => void leave()}
+            disabled={
+              busy
+            }
+            onClick={() =>
+              void leaveOnly()
+            }
           >
-            <Footprints size={14} />
-            Leave
+            <Footprints
+              size={14}
+            />
+
+            Just walk
           </button>
         )}
 
         <button
           type="button"
-          className={walking ? "date-flow-primary" : "date-flow-secondary"}
-          disabled={saving}
-          onClick={() => onExploreNearby(date)}
+          className="date-flow-primary"
+          disabled={
+            busy
+          }
+          onClick={() =>
+            void nextStop()
+          }
         >
-          <MapPin size={14} />
-          Explore nearby
+          <MapPin
+            size={14}
+          />
+
+          {walking
+            ? "Find a place"
+            : "Next stop"}
         </button>
       </div>
 
-      {walking && (
-        <p className="date-movement-note">
-          The Date is still happening. You’re just between places.
-        </p>
-      )}
+      <p className="date-movement-note">
+        {walking
+          ? "The Date is still happening. Pick somewhere when you feel like stopping."
+          : "Next stop keeps this same Date going and moves you into walking while you choose where to go."}
+      </p>
     </section>
   );
 }

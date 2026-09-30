@@ -12,7 +12,7 @@
 }
 
 .date-mode-chat-main,
-.date-mode-chat-here {
+.date-mode-chat-next {
   border: 0;
   background: transparent;
   color: inherit;
@@ -81,16 +81,35 @@
   color: color-mix(in oklab, var(--chat-ink) 48%, transparent);
 }
 
-.date-mode-chat-here {
-  margin: 7px 7px 7px 0;
+.date-mode-chat-next {
+  min-width: 68px;
   padding: 0 10px;
   border-left: 1px solid color-mix(in oklab, var(--chat-ink) 10%, transparent);
-  font: 8px var(--font-body);
-  letter-spacing: .04em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font: 700 8px var(--font-body);
+  letter-spacing: .02em;
   color: var(--chat-accent);
 }
 
+.date-mode-chat-next span {
+  white-space: nowrap;
+}
+
 .date-mode-chat-main:active,
-.date-mode-chat-here:active {
+.date-mode-chat-next:active {
   opacity: .68;
+}
+
+@media (max-width: 380px) {
+  .date-mode-chat-next {
+    min-width: 58px;
+    padding: 0 8px;
+  }
+
+  .date-mode-chat-next svg {
+    display: none;
+  }
 }
