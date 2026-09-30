@@ -301,12 +301,9 @@ export function DateModeChatBar({
             {location}
           </strong>
 
-          <em>
-            {contextLine}
-            {" · "}
-            {date.title ??
-              "Our Date"}
-          </em>
+   <em>
+  {contextLine}
+</em>
         </span>
 
         <ChevronRight className="date-mode-chat-chevron" />
