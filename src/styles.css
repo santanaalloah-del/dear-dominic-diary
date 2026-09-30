@@ -13454,3 +13454,57 @@ select {
 }
 .home-v2-scene-system .apartment-home-note,
 .home-v2-scene-system .apartment-home-actions { display: none; }
+
+
+/* =========================================
+   HOME V2 · PASS 2 FIX · IN-HOME ROOM SWITCHING
+   Screen-local only. Scroll/App Shell untouched.
+   ========================================= */
+.home-v2-scene-system { padding-bottom: 104px; }
+.home-v2-scene-system .apartment-home-scene {
+  min-height: min(690px, calc(100dvh - 122px));
+  margin-top: 0;
+}
+.home-v2-scene-system .apartment-scene-base,
+.home-v2-scene-system .apartment-scene-daylight,
+.home-v2-scene-system .apartment-scene-objects { position: absolute; inset: 0; }
+.home-v2-scene-system .apartment-scene-base { z-index: 0; overflow: hidden; }
+.home-v2-scene-system .apartment-scene-daylight {
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--home-shadow-position, 58%) 24%, rgb(255 215 164 / calc(var(--home-warmth, 0) * .10)), transparent 48%);
+}
+.home-v2-scene-system .apartment-home-atmosphere { z-index: 2; }
+.home-v2-scene-system .apartment-scene-objects { z-index: 3; pointer-events: none; }
+.home-v2-scene-system .apartment-home-heading,
+.home-v2-scene-system .apartment-home-dominic,
+.home-v2-scene-system .apartment-home-room-nav,
+.home-v2-scene-system .apartment-floor-plan-trigger { z-index: 5; }
+.home-v2-scene-system .apartment-home-scene-image { animation: apartment-room-arrive .28s ease-out; }
+@keyframes apartment-room-arrive {
+  from { opacity: .72; transform: scale(1.018); }
+  to { opacity: 1; transform: scale(1.01); }
+}
+.home-v2-scene-system .apartment-floor-plan-trigger {
+  position: absolute;
+  right: 16px;
+  bottom: 72px;
+  min-width: 92px;
+  padding: 9px 12px;
+  border: 1px solid rgb(255 255 255 / .42);
+  border-radius: 999px;
+  color: white;
+  background: rgb(45 22 27 / .52);
+  backdrop-filter: blur(12px);
+  font: 700 8px var(--font-body);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.home-v2-scene-system .apartment-home-room-nav button:first-child {
+  background: transparent;
+  color: rgb(255 255 255 / .92);
+}
+.home-v2-scene-system .apartment-home-room-nav button.is-active {
+  background: rgb(255 246 239 / .94);
+  color: var(--wine-deep);
+}
