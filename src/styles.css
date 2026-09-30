@@ -13012,3 +13012,25 @@ select {
   }
 }
 
+
+/* =========================================================
+   VISUAL SYSTEM · PASS 3.1
+   Wardrobe label repair only.
+   Pass 3 allowed labels to break at any character; on narrow
+   cards that could stack text vertically. Restore normal word
+   wrapping while keeping the two-column grid responsive.
+   No shell, viewport, scrolling, Back or Bottom Nav rules.
+   ========================================================= */
+
+.wardrobe-item strong,
+.wardrobe-item small {
+  width: 100%;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  white-space: normal;
+}
+
+.wardrobe-item strong {
+  line-height: 1.05;
+}
