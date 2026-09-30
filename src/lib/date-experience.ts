@@ -103,7 +103,7 @@ export function readDateExperience(
   const events = Array.isArray(value.events)
     ? value.events
         .map(readEvent)
-        .filter((event): event is DateExperienceEvent => event !== null)
+        .filter((entry): entry is DateExperienceEvent => entry !== null)
     : [];
 
   return {
@@ -307,11 +307,23 @@ export async function arriveAtDatePlace({
   const current = readDateExperience(date);
   const placeName = place.title ?? cleanString(place.data?.name) ?? "Place";
 
+  const samePlaceName =
+    Boolean(
+      current.currentPlaceName &&
+      current.currentPlaceName
+        .trim()
+        .toLocaleLowerCase("en-US") ===
+        placeName
+          .trim()
+          .toLocaleLowerCase("en-US")
+    );
+
   const alreadyHere =
     current.currentLocationMode === "place" &&
-    (current.currentPlaceId === place.id ||
-      (!current.currentPlaceId &&
-        current.currentPlaceName === placeName));
+    (
+      current.currentPlaceId === place.id ||
+      samePlaceName
+    );
 
   if (alreadyHere) {
     return date;
@@ -367,19 +379,360 @@ export async function finishDateExperience({
   });
 }
 
+function dateStartedTimestamp(
+  date: DiarioItem
+): number {
+  const raw =
+    cleanString(
+      date.data
+        ?.started_at
+    ) ??
+    date.event_at ??
+    date.updated_at ??
+    date.created_at;
+
+  const value =
+    raw
+      ? new Date(
+          raw
+        ).getTime()
+      : Number.NaN;
+
+  return Number.isNaN(
+    value
+  )
+    ? 0
+    : value;
+}
+
+function dateFinishedTimestamp(
+  date: DiarioItem
+): number {
+  const raw =
+    cleanString(
+      date.data
+        ?.finished_at
+    );
+
+  if (
+    !raw
+  ) {
+    return 0;
+  }
+
+  const value =
+    new Date(
+      raw
+    ).getTime();
+
+  return Number.isNaN(
+    value
+  )
+    ? 0
+    : value;
+}
+
+async function closeLiveDateRecord({
+  userId,
+  liveDate,
+}: {
+  userId: string;
+  liveDate: DiarioItem;
+}): Promise<void> {
+  const current =
+    readDateExperience(
+      liveDate
+    );
+
+  const alreadyFinished =
+    current
+      .events
+      .some(
+        (
+          entry
+        ) =>
+          entry.type ===
+          "date_finished"
+      );
+
+  const repairedExperience:
+    DateExperienceState =
+      alreadyFinished
+        ? current
+        : {
+            ...current,
+            events: [
+              ...current.events,
+              event({
+                type:
+                  "date_finished",
+                placeId:
+                  current.currentPlaceId,
+                placeName:
+                  current.currentPlaceName,
+              }),
+            ],
+          };
+
+  const now =
+    new Date()
+      .toISOString();
+
+  const startedAt =
+    cleanString(
+      liveDate.data
+        ?.started_at
+    );
+
+  const {
+    error,
+  } =
+    await db
+      .from(
+        "diario_items"
+      )
+      .update({
+        event_at:
+          liveDate.event_at ??
+          startedAt ??
+          now,
+
+        data: {
+          ...(
+            liveDate.data ??
+            {}
+          ),
+
+          flow_state:
+            "past",
+
+          finished_at:
+            cleanString(
+              liveDate.data
+                ?.finished_at
+            ) ??
+            now,
+
+          date_experience:
+            repairedExperience,
+        },
+      })
+      .eq(
+        "user_id",
+        userId
+      )
+      .eq(
+        "id",
+        liveDate.id
+      )
+      .eq(
+        "kind",
+        "date"
+      );
+
+  if (
+    error
+  ) {
+    throw error;
+  }
+}
+
+/**
+ * Enforces the app invariant that only one Date can be live.
+ * Older dangling live Dates are historical and are repaired as Past.
+ */
+export async function closeOtherLiveDateExperiences({
+  userId,
+  exceptDateId = null,
+}: {
+  userId: string;
+  exceptDateId?: string | null;
+}): Promise<void> {
+  const {
+    data,
+    error,
+  } =
+    await db
+      .from(
+        "diario_items"
+      )
+      .select("*")
+      .eq(
+        "user_id",
+        userId
+      )
+      .eq(
+        "kind",
+        "date"
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .contains(
+        "data",
+        {
+          flow_state:
+            "live",
+        }
+      );
+
+  if (
+    error
+  ) {
+    throw error;
+  }
+
+  const liveDates =
+    (data ??
+      []) as DiarioItem[];
+
+  for (
+    const liveDate of
+    liveDates
+  ) {
+    if (
+      exceptDateId &&
+      liveDate.id ===
+        exceptDateId
+    ) {
+      continue;
+    }
+
+    await closeLiveDateRecord({
+      userId,
+      liveDate,
+    });
+  }
+}
+
+/**
+ * Reads the one valid live Date and also self-heals legacy data:
+ * - if an older live Date predates a Date that has already finished, it is stale;
+ * - if several Dates are live, only the newest valid one remains live.
+ */
 export async function getLiveDateExperience(
   userId: string
 ): Promise<DiarioItem | null> {
-  const { data, error } = await db
-    .from("diario_items")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("kind", "date")
-    .eq("status", "active")
-    .contains("data", { flow_state: "live" })
-    .order("updated_at", { ascending: false })
-    .limit(1);
+  const {
+    data,
+    error,
+  } =
+    await db
+      .from(
+        "diario_items"
+      )
+      .select("*")
+      .eq(
+        "user_id",
+        userId
+      )
+      .eq(
+        "kind",
+        "date"
+      )
+      .eq(
+        "status",
+        "active"
+      );
 
-  if (error) throw error;
-  return (data?.[0] as DiarioItem | undefined) ?? null;
+  if (
+    error
+  ) {
+    throw error;
+  }
+
+  const dates =
+    (data ??
+      []) as DiarioItem[];
+
+  const latestFinishedAt =
+    dates
+      .filter(
+        (
+          date
+        ) =>
+          getDateFlowState(
+            date
+          ) ===
+          "past"
+      )
+      .reduce(
+        (
+          latest,
+          date
+        ) =>
+          Math.max(
+            latest,
+            dateFinishedTimestamp(
+              date
+            )
+          ),
+        0
+      );
+
+  const liveDates =
+    dates
+      .filter(
+        (
+          date
+        ) =>
+          getDateFlowState(
+            date
+          ) ===
+          "live"
+      )
+      .sort(
+        (
+          first,
+          second
+        ) =>
+          dateStartedTimestamp(
+            second
+          ) -
+          dateStartedTimestamp(
+            first
+          )
+      );
+
+  const validLive =
+    liveDates.find(
+      (
+        date
+      ) => {
+        if (
+          !latestFinishedAt
+        ) {
+          return true;
+        }
+
+        return (
+          dateStartedTimestamp(
+            date
+          ) >
+          latestFinishedAt
+        );
+      }
+    ) ??
+    null;
+
+  for (
+    const liveDate of
+    liveDates
+  ) {
+    if (
+      validLive &&
+      liveDate.id ===
+        validLive.id
+    ) {
+      continue;
+    }
+
+    await closeLiveDateRecord({
+      userId,
+      liveDate,
+    });
+  }
+
+  return validLive;
 }
