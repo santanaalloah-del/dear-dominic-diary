@@ -13034,3 +13034,15 @@ select {
 .wardrobe-item strong {
   line-height: 1.05;
 }
+
+/* =========================================================
+   VISUAL SYSTEM · PASS 4
+   Wardrobe header clearance only.
+   Gives the Wardrobe intro enough local top space for the
+   floating App Shell Back control without changing shell,
+   safe-area, viewport, scrolling or navigation geometry.
+   ========================================================= */
+
+.wardrobe-screen.wardrobe-live > .screen-intro {
+  padding-top: 72px;
+}
