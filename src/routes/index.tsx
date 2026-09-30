@@ -245,104 +245,19 @@ function DiarioApp() {
   const time =
     useTimeMood();
 
-  const clockHour =
-    time.dayProgress *
-    24;
+  // Home Pass 2: derive every visible apartment-light value from the
+  // continuous Home timeline created in Pass 1. No day/night switch.
+  const { homeLight } = time;
 
-  const daylightStart =
-    5.5;
-
-  const daylightEnd =
-    19.25;
-
-  const daylightProgress =
-    Math.max(
-      0,
-      Math.min(
-        1,
-        (
-          clockHour -
-          daylightStart
-        ) /
-          (
-            daylightEnd -
-            daylightStart
-          )
-      )
-    );
-
-  const daylight =
-    Math.sin(
-      Math.PI *
-        daylightProgress
-    );
-
-  const nightDepth =
-    clockHour >=
-    18
-      ? Math.min(
-          1,
-          (
-            clockHour -
-            18
-          ) /
-            4
-        )
-      : clockHour <
-          4
-        ? 1
-        : clockHour <
-            7
-          ? 1 -
-            (
-              clockHour -
-              4
-            ) /
-              3
-          : 0;
-
-  const sunOpacity =
-    daylight *
-    0.8;
-
-  const shadowOpacity =
-    daylight *
-    0.48;
-
-  const roomBrightness =
-    0.55 +
-    daylight *
-      0.5 -
-    nightDepth *
-      0.18;
-
-  const roomSaturation =
-    0.72 +
-    daylight *
-      0.28 -
-    nightDepth *
-      0.08;
-
-  const roomSepia =
-    daylight *
-    Math.abs(
-      daylightProgress -
-        0.5
-    ) *
-    0.8;
-
-  const nightOpacity =
-    nightDepth *
-    0.38;
-
-  const lampOpacity =
-    nightDepth *
-    0.55;
-
-  const homePlanBrightness =
-    1 -
-    nightDepth *
-      0.32;
+  const daylightProgress = homeLight.shadowPosition;
+  const sunOpacity = Math.max(0, Math.min(0.82, homeLight.naturalLight * (0.72 + homeLight.warmth * 0.18)));
+  const shadowOpacity = Math.max(0, Math.min(0.52, homeLight.naturalLight * 0.46));
+  const roomBrightness = 0.58 + homeLight.naturalLight * 0.48 - homeLight.nightDepth * 0.12;
+  const roomSaturation = 0.78 + homeLight.naturalLight * 0.18 + homeLight.warmth * 0.08 - homeLight.nightDepth * 0.06;
+  const roomSepia = homeLight.warmth * 0.24;
+  const nightOpacity = homeLight.nightDepth * 0.42;
+  const lampOpacity = homeLight.nightDepth * 0.55;
+  const homePlanBrightness = 0.68 + homeLight.naturalLight * 0.32 - homeLight.nightDepth * 0.08;
 
   const detail =
     !primaryScreens.includes(
@@ -588,6 +503,21 @@ function DiarioApp() {
 
             "--home-plan-brightness":
               homePlanBrightness,
+
+            "--home-natural-light":
+              time.homeLight.naturalLight,
+
+            "--home-warmth":
+              time.homeLight.warmth,
+
+            "--home-night-depth":
+              time.homeLight.nightDepth,
+
+            "--home-shadow-position":
+              time.homeLight.shadowPosition,
+
+            "--home-sky-progress":
+              time.homeLight.skyProgress,
           } as React.CSSProperties
         }
       >
