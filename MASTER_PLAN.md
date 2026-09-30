@@ -230,28 +230,41 @@ Dates are a flow, not one screen.
 - The intended live-Date UX is primarily `Chat ↔ Here ↔ movement/next place`, without forcing Alloah to repeatedly return to Maps or administrative Date screens.
 - `Things Here` should surface the current Place's canonical Venue World automatically. Alloah should not have to pre-pick items merely so Dominic or the Date can see the venue inventory.
 
-### Date experience implementation status — 2026-09-29
-Completed and verified:
+### Date experience implementation status — 2026-09-30
+Completed and manually verified:
 - Date Experience state foundation and live-Date detection.
 - Chat Date Mode bar/bridge and direct entry into the active Date.
-- Movement flow: Here → Leave → Walking → Explore nearby → arrive at another place while keeping the same Date live.
+- Simplified live navigation: `Chat → Here → Next stop → Walking → new Place`, while keeping the same Date alive.
+- Leaving a venue does not finish the Date.
 - Live `Go here` updates the Date's canonical Place and current Date Experience location.
-- `Here` panel shows the current place and Date Venue World.
+- `Here` shows the current Place and the full useful `Things Here` catalog.
+- `Things Here` is mobile-safe, filterable and supports direct Alloah Order/Buy actions.
+- `Things Here` builds and persists a Venue World automatically after arriving at a new Place; Alloah no longer has to return to Maps just to initialize inventory.
 - Immediate Date Experience / Venue action refresh events keep Chat and Here synchronized.
-- Dominic receives active Date context in Chat: Date, current location, recent events and recent venue actions.
-- Dominic receives the current canonical Venue World inventory with exact item IDs.
-- Venue World generated from Maps/Places is persisted onto the canonical Place so `Here` and Chat use the same inventory.
-- Autonomous `date_venue_action` support is end-to-end: Dominic can clearly initiate an order/purchase in Chat, the action interpreter validates it against the current canonical item ID and action kind, the client records it with `actor: "dominic"`, and `Here` reflects the recorded action with Undo.
-- End-to-end autonomous venue action was manually verified in the live Date flow.
+- Dominic receives the active Date, current location, recent events, recent venue actions and the exact canonical Venue World item IDs.
+- Autonomous `date_venue_action` is end-to-end and manually verified.
+- Live `DATE SO FAR / Our trail` merges movement and venue actions chronologically.
+- Past `DATE STORY / Our trail` is read-only.
+- Duplicate same-place arrival events are prevented/filtered.
+- `Finish Date → Past + final summary` is complete and manually verified: `date_finished` is recorded, the last Place is preserved, the final summary is stored, the active Date card disappears from Chat and the Date appears in Past.
+- Stale legacy Dates accidentally left `live` are repaired to Past so they do not reappear in Chat.
+- Only one Date may remain live at a time.
+
+Current Date block — lifecycle by time:
+- A planned Date remains Upcoming while it is far away.
+- Within 24 hours it becomes `Approaching`.
+- With a known clock time, `Date Mode available` opens automatically one hour before the planned time.
+- With a date but no exact time, Date Mode becomes available for the whole planned calendar day.
+- Reaching an availability window does **not** auto-start the Date; it only enables the intentional Start Date Mode action.
+- Far-future Dates must not expose the normal Start Date Mode button.
+- `Start early` is a separate deliberate path with a confirmation step, so starting a far-future Date cannot happen accidentally.
+- Lifecycle labels should refresh while the Dates screen stays open.
 
 ### Next Date work
-- Make `Things Here` easier to use and surface the full useful venue catalog directly, not only the old pick-oriented presentation.
-- Simplify live navigation so normal use feels like `Chat ↔ Here ↔ next place`, with Maps used mainly for discovery.
-- Present the full Date event history clearly and automatically as the outing unfolds.
-- Finish the `Finish Date → Past` experience and final Date summary.
-- Finish the time-driven lifecycle for future Dates, including the far-future auto-live bug and optional intentional early start.
-- Connect Date events/objects cleanly into Calendar, Timeline, Memories, Gallery and Keepsakes without duplicating source objects.
-- Continue polishing the Dates screen so it feels like an experience, not an administrative panel.
+- Manually verify the time-driven lifecycle states: far future → Upcoming, within 24h → Approaching, availability window → Date Mode available, and explicit Start early confirmation.
+- After lifecycle verification, connect Date events/objects cleanly into Calendar, Timeline, Memories, Gallery and Keepsakes without duplicating source objects.
+- Expand Date history beyond movement and venue actions to photos, notes, tickets and other meaningful event/object types.
+- Continue later visual polish of Here, Things Here, Past summaries and Date cards without changing the verified underlying flow.
 
 ## Diary
 - Alloah's diary and Dominic's diary are distinct
