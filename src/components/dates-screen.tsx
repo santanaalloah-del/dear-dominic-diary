@@ -22,8 +22,8 @@ import {
 } from "@/components/connected-object-detail-screen";
 
 import {
-  DateVenueWorldPanel,
-} from "@/components/date-venue-world-panel";
+  DateHistoryPanel,
+} from "@/components/date-history-panel";
 
 import { DateHerePanel } from "@/components/date-here-panel";
 
@@ -60,6 +60,14 @@ import {
   type DateFlowState,
   type DateLookRole,
 } from "@/lib/date-flow";
+
+import {
+  finishDateExperience,
+} from "@/lib/date-experience";
+
+import {
+  notifyDateExperienceChanged,
+} from "@/lib/date-live-events";
 
 import "./dates-screen.css";
 
@@ -1331,13 +1339,22 @@ export function DatesExperienceScreen({
     );
 
     try {
+      const withFinishedExperience =
+        await finishDateExperience({
+          userId:
+            session.user.id,
+
+          date:
+            selectedDate,
+        });
+
       const updated =
         await finishDate({
           userId:
             session.user.id,
 
           dateId:
-            selectedDate.id,
+            withFinishedExperience.id,
 
           summary:
             finishSummary,
@@ -1345,6 +1362,10 @@ export function DatesExperienceScreen({
 
       replaceDate(
         updated
+      );
+
+      notifyDateExperienceChanged(
+        updated.id
       );
 
       setView(
@@ -2199,10 +2220,8 @@ export function DatesExperienceScreen({
               )}
 
            {state === "past" && (
-  <DateVenueWorldPanel
-    userId={session.user.id}
+  <DateHistoryPanel
     date={selectedDate}
-    onDateUpdated={replaceDate}
   />
 )}
 
