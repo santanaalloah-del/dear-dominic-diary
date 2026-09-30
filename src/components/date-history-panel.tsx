@@ -21,6 +21,10 @@ import {
 } from "@/lib/date-venue-world";
 
 import {
+  getDateFlowState,
+} from "@/lib/date-flow";
+
+import {
   formatVenuePrice,
 } from "@/lib/venue-world";
 
@@ -71,6 +75,78 @@ function formatHistoryTime(
     .format(
       date
     );
+}
+
+function placeKey(
+  event:
+    DateExperienceEvent
+) {
+  return (
+    event.placeId ||
+    event.placeName ||
+    null
+  );
+}
+
+function withoutRepeatedArrivals(
+  events:
+    DateExperienceEvent[]
+) {
+  const result:
+    DateExperienceEvent[] =
+    [];
+
+  let activeArrival:
+    string | null =
+    null;
+
+  for (
+    const event of
+    events
+  ) {
+    if (
+      event.type ===
+      "arrived"
+    ) {
+      const key =
+        placeKey(
+          event
+        );
+
+      if (
+        key &&
+        activeArrival ===
+          key
+      ) {
+        continue;
+      }
+
+      activeArrival =
+        key;
+
+      result.push(
+        event
+      );
+
+      continue;
+    }
+
+    if (
+      event.type ===
+        "left_place" ||
+      event.type ===
+        "walking"
+    ) {
+      activeArrival =
+        null;
+    }
+
+    result.push(
+      event
+    );
+  }
+
+  return result;
 }
 
 function experienceCopy(
@@ -206,10 +282,14 @@ export function DateHistoryPanel({
       date
     );
 
+  const experienceEvents =
+    withoutRepeatedArrivals(
+      experience.events
+    );
+
   const entries:
     DateHistoryEntry[] = [
-      ...experience
-        .events
+      ...experienceEvents
         .map(
           (
             event
@@ -260,15 +340,26 @@ export function DateHistoryPanel({
     return null;
   }
 
+  const past =
+    getDateFlowState(
+      date
+    ) === "past";
+
   return (
     <section
       className="date-history-panel"
-      aria-label="Date so far"
+      aria-label={
+        past
+          ? "Date story"
+          : "Date so far"
+      }
     >
       <header className="date-history-head">
         <div>
           <small>
-            DATE SO FAR
+            {past
+              ? "DATE STORY"
+              : "DATE SO FAR"}
           </small>
 
           <strong>
