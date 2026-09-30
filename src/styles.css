@@ -12985,102 +12985,95 @@ select {
   }
 }
 
-/* =========================================================
-   VISUAL SYSTEM · PASS 2
-   Shared interactive language only — intentionally owns no
-   viewport sizing, positioning, scrolling or overflow.
-   ========================================================= */
+/* ─────────────────────────────────────────
+   VISUAL SYSTEM · PASS 2A · MORE CARDS ONLY
+   Scope: visual treatment for the More index cards.
+   Intentionally does not alter scroll, overflow, viewport,
+   shell, navigation, or page positioning.
+   ───────────────────────────────────────── */
 
-:where(
-  .back-button,
-  .index-list button.available,
-  .theme-grid button,
-  .bubble-choice-grid button,
-  .chat-actions-grid button,
-  .composer button,
-  .messenger-composer button,
-  .bottom-nav button
-) {
+.more-screen .richer-index > button.available {
+  border-color: color-mix(in oklab, var(--wine) 12%, var(--divider));
+  background:
+    radial-gradient(
+      circle at 88% 14%,
+      color-mix(in oklab, var(--blush) 28%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(
+      138deg,
+      color-mix(in oklab, var(--paper) 96%, white 4%),
+      color-mix(in oklab, var(--cream) 91%, var(--blush) 9%)
+    );
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 72%, transparent) inset,
+    0 10px 24px color-mix(in oklab, var(--wine) 6%, transparent);
   transition:
-    background-color var(--diario-motion-fast) var(--diario-ease-standard),
-    border-color var(--diario-motion-fast) var(--diario-ease-standard),
-    color var(--diario-motion-fast) var(--diario-ease-standard),
-    box-shadow var(--diario-motion-fast) var(--diario-ease-standard),
-    opacity var(--diario-motion-fast) var(--diario-ease-standard),
-    transform var(--diario-motion-fast) var(--diario-ease-standard);
+    transform 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
 }
 
-:where(
-  .back-button,
-  .index-list button.available,
-  .theme-grid button,
-  .bubble-choice-grid button,
-  .chat-actions-grid button,
-  .composer button,
-  .messenger-composer button,
-  .bottom-nav button
-):focus-visible {
-  outline: none;
-  box-shadow: var(--diario-focus-ring);
+.more-screen .richer-index > button.available:nth-child(3n + 2) {
+  background:
+    radial-gradient(
+      circle at 12% 82%,
+      color-mix(in oklab, var(--blush) 22%, transparent),
+      transparent 31%
+    ),
+    linear-gradient(
+      142deg,
+      color-mix(in oklab, var(--paper) 97%, white 3%),
+      color-mix(in oklab, var(--cream) 94%, var(--rose) 6%)
+    );
 }
 
-.back-button {
-  border-color: var(--diario-color-divider);
-  background: color-mix(in oklab, var(--diario-color-surface) 88%, transparent);
-  box-shadow: var(--diario-shadow-soft);
+.more-screen .richer-index > button.available:active {
+  transform: scale(0.988);
+  border-color: color-mix(in oklab, var(--cherry) 28%, var(--divider));
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 60%, transparent) inset,
+    0 5px 14px color-mix(in oklab, var(--wine) 8%, transparent);
 }
 
-.back-button:active {
-  transform: scale(0.96);
+.more-screen .richer-index > button.available .index-number {
+  color: color-mix(in oklab, var(--cherry) 84%, var(--wine));
+  opacity: .82;
 }
 
-.index-list button {
-  border-color: var(--diario-color-divider);
-  box-shadow: var(--diario-shadow-soft);
+.more-screen .richer-index > button.available .index-icon {
+  border: 1px solid color-mix(in oklab, var(--wine) 9%, transparent);
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--blush) 48%, white 10%),
+      color-mix(in oklab, var(--paper) 88%, var(--blush) 12%)
+    );
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--wine) 5%, transparent);
 }
 
-.index-list button.available:active {
-  box-shadow: none;
+.more-screen .richer-index > button.available strong {
+  letter-spacing: -0.015em;
 }
 
-.theme-grid button,
-.bubble-choice-grid button {
-  border-color: var(--diario-color-border);
+.more-screen .richer-index > button.available small {
+  opacity: .82;
 }
 
-.theme-grid button.active,
-.bubble-choice-grid button.active {
-  border-color: var(--diario-color-action);
+.more-screen .richer-index > button.available > svg {
+  opacity: .58;
+  transition: transform 150ms ease, opacity 150ms ease;
 }
 
-.chat-actions-grid button:active {
-  background: color-mix(in oklab, var(--diario-color-accent) 16%, transparent);
-}
-
-.composer div {
-  border-color: var(--diario-color-border);
-}
-
-.composer .send-button {
-  background: var(--diario-color-brand);
-  color: var(--text-on-dark);
-}
-
-.bottom-nav button:active {
-  opacity: 0.72;
+.more-screen .richer-index > button.available:active > svg {
+  transform: translateX(2px);
+  opacity: .82;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :where(
-    .back-button,
-    .index-list button.available,
-    .theme-grid button,
-    .bubble-choice-grid button,
-    .chat-actions-grid button,
-    .composer button,
-    .messenger-composer button,
-    .bottom-nav button
-  ) {
-    transition-duration: 0.01ms;
+  .more-screen .richer-index > button.available,
+  .more-screen .richer-index > button.available > svg {
+    transition: none;
   }
 }
