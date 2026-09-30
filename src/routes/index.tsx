@@ -858,6 +858,14 @@ return (
 <section
   className="home-screen home-live home-house"
   data-home-time={time.mood}
+  data-home-phase={time.homeLight.phase}
+  style={{
+    "--home-natural-light": time.homeLight.naturalLight,
+    "--home-warmth": time.homeLight.warmth,
+    "--home-night-depth": time.homeLight.nightDepth,
+    "--home-shadow-position": time.homeLight.shadowPosition,
+    "--home-sky-progress": time.homeLight.skyProgress,
+  } as any}
 >
       <header className="house-header">
         <div className="house-heading">
