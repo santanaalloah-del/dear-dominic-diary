@@ -12744,3 +12744,94 @@ select {
     top: calc(var(--app-mobile-safe-top) + var(--app-mobile-header-height) + 10px);
   }
 }
+
+/* =========================================================
+   APP SHELL FOUNDATION · PASS 2B
+   Internal-screen navigation language.
+   Local object-detail back controls visually inherit the shell
+   back button so detail screens no longer fall back to a small
+   text link. AppShellContinuity keeps ownership exclusive.
+   ========================================================= */
+
+.phone-shell.app-shell {
+  --app-back-size: 44px;
+  --app-back-inline: 18px;
+}
+
+.app-shell-back,
+.screen-scroll .connected-object-back {
+  width: var(--app-back-size);
+  height: var(--app-back-size);
+  min-width: var(--app-back-size);
+  min-height: var(--app-back-size);
+  padding: 0;
+  border: 1px solid color-mix(in oklab, var(--divider) 76%, white 12%);
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 92%, white 8%),
+      color-mix(in oklab, var(--cream) 90%, white 5%)
+    );
+  color: var(--wine);
+  box-shadow:
+    0 9px 22px oklch(0.2 0.04 25 / 12%),
+    inset 0 1px 0 color-mix(in oklab, white 58%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  line-height: 1;
+}
+
+.app-shell-back svg,
+.screen-scroll .connected-object-back svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.8;
+}
+
+.screen-scroll .connected-object-back {
+  position: sticky;
+  top: 10px;
+  z-index: 62;
+  margin: 10px 0 8px var(--app-back-inline);
+  font-size: 0;
+  letter-spacing: 0;
+  overflow: hidden;
+}
+
+.screen-scroll .connected-object-back:hover,
+.screen-scroll .connected-object-back:focus-visible,
+.app-shell-back:hover,
+.app-shell-back:focus-visible {
+  background: color-mix(in oklab, var(--paper) 86%, var(--blush) 14%);
+}
+
+.screen-scroll .connected-object-back:focus-visible,
+.app-shell-back:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--wine) 62%, transparent);
+  outline-offset: 3px;
+}
+
+.screen-scroll .connected-object-back:active,
+.app-shell-back:active {
+  transform: scale(.96);
+}
+
+/* Keep the detail heading from colliding with its local back control. */
+.connected-object-detail-screen > .connected-screen-intro:first-of-type,
+.connected-object-detail-screen > .connected-object-detail-heading {
+  margin-top: 2px;
+}
+
+@media (max-width: 699px) {
+  .phone-shell.app-shell {
+    --app-back-size: 44px;
+    --app-back-inline: 18px;
+  }
+
+  .screen-scroll .connected-object-back {
+    top: 10px;
+  }
+}
