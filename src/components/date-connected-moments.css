@@ -1,0 +1,104 @@
+.date-calendar-moments {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(117, 54, 67, 0.12);
+}
+
+.date-calendar-moments > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #754555;
+}
+
+.date-calendar-moments > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.date-calendar-moments > header small {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  opacity: 0.62;
+}
+
+.date-calendar-moments > header strong {
+  font-size: 0.8rem;
+}
+
+.date-calendar-moments > div {
+  display: grid;
+  gap: 7px;
+}
+
+.date-connected-moment-card {
+  width: 100%;
+  border: 1px solid rgba(117, 54, 67, 0.11);
+  border-radius: 14px;
+  background: rgba(255, 250, 248, 0.74);
+  color: inherit;
+  padding: 10px 11px;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 9px;
+  text-align: left;
+}
+
+.date-connected-moment-time {
+  padding-top: 2px;
+  color: rgba(88, 49, 57, 0.46);
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+.date-connected-moment-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.date-connected-moment-copy small {
+  overflow: hidden;
+  color: rgba(88, 49, 57, 0.48);
+  font-size: 0.63rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-connected-moment-copy strong {
+  color: #603642;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.date-connected-moment-copy em {
+  color: rgba(88, 49, 57, 0.64);
+  font-size: 0.7rem;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.connected-timeline-entry.date-moment .connected-timeline-dot {
+  background: #fff8f4;
+  border-color: rgba(117, 54, 67, 0.25);
+}
+
+.date-timeline-moment-button {
+  border: 1px solid rgba(117, 54, 67, 0.11) !important;
+  border-radius: 15px !important;
+  background: rgba(255, 250, 248, 0.68) !important;
+}
+
+.date-timeline-moment-button > small:first-child {
+  color: rgba(88, 49, 57, 0.5);
+}
+
+@media (max-width: 360px) {
+  .date-connected-moment-card {
+    grid-template-columns: 44px minmax(0, 1fr);
+    padding: 9px;
+  }
+}

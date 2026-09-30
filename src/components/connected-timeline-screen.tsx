@@ -25,6 +25,11 @@ import {
 } from "@/lib/diario-world";
 
 import {
+  collectDateConnectedMoments,
+  type DateConnectedMoment,
+} from "@/lib/date-connected-moments";
+
+import {
   connectedKindLabel,
   connectedMoment,
   getMemoryConnectionMap,
@@ -34,11 +39,69 @@ import {
 } from "@/lib/connected-diary";
 
 import "./connected-diary.css";
+import "./date-connected-moments.css";
 
 type TimelineView =
   | "all"
   | "lived"
   | "planned";
+
+type TimelineEntry =
+  | {
+      kind:
+        "object";
+      key:
+        string;
+      happenedAt:
+        string;
+      view:
+        ConnectedDiaryView;
+    }
+  | {
+      kind:
+        "date_moment";
+      key:
+        string;
+      happenedAt:
+        string;
+      moment:
+        DateConnectedMoment;
+    };
+
+function timelineDateLabel(
+  value: string
+) {
+  const date =
+    new Date(
+      value
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      month:
+        "short",
+      day:
+        "numeric",
+      year:
+        "numeric",
+      hour:
+        "numeric",
+      minute:
+        "2-digit",
+    }
+  ).format(
+    date
+  );
+}
 
 export function ConnectedTimelineScreen() {
   const {
@@ -77,6 +140,14 @@ export function ConnectedTimelineScreen() {
     >([]);
 
   const [
+    dateMoments,
+    setDateMoments,
+  ] =
+    useState<
+      DateConnectedMoment[]
+    >([]);
+
+  const [
     connectionMap,
     setConnectionMap,
   ] =
@@ -107,10 +178,16 @@ export function ConnectedTimelineScreen() {
     >(null);
 
   useEffect(() => {
-    let active = true;
+    let active =
+      true;
 
-    setLoading(true);
-    setError(null);
+    setLoading(
+      true
+    );
+
+    setError(
+      null
+    );
 
     void getTimelineItems(
       session.user.id
@@ -127,14 +204,18 @@ export function ConnectedTimelineScreen() {
           const containerIds =
             hydrated
               .filter(
-                (entry) =>
+                (
+                  entry
+                ) =>
                   entry.item.kind ===
                     "date" ||
                   entry.item.kind ===
                     "story_memory"
               )
               .map(
-                (entry) =>
+                (
+                  entry
+                ) =>
                   entry.item.id
               );
 
@@ -147,9 +228,21 @@ export function ConnectedTimelineScreen() {
                 containerIds,
             });
 
+          const moments =
+            collectDateConnectedMoments(
+              loaded.filter(
+                (
+                  item
+                ) =>
+                  item.kind ===
+                  "date"
+              )
+            );
+
           return {
             hydrated,
             connections,
+            moments,
           };
         }
       )
@@ -157,8 +250,11 @@ export function ConnectedTimelineScreen() {
         ({
           hydrated,
           connections,
+          moments,
         }) => {
-          if (!active) {
+          if (
+            !active
+          ) {
             return;
           }
 
@@ -169,32 +265,45 @@ export function ConnectedTimelineScreen() {
           setConnectionMap(
             connections
           );
+
+          setDateMoments(
+            moments
+          );
         }
       )
       .catch(
-        (nextError) => {
+        (
+          nextError
+        ) => {
           console.error(
             "Could not open connected Timeline:",
             nextError
           );
 
-          if (active) {
+          if (
+            active
+          ) {
             setError(
               "The timeline could not be opened."
             );
           }
         }
       )
-      .finally(() => {
-        if (active) {
-          setLoading(
-            false
-          );
+      .finally(
+        () => {
+          if (
+            active
+          ) {
+            setLoading(
+              false
+            );
+          }
         }
-      });
+      );
 
     return () => {
-      active = false;
+      active =
+        false;
     };
   }, [
     session.user.id,
@@ -203,57 +312,112 @@ export function ConnectedTimelineScreen() {
 
   const visible =
     useMemo(
-      () => {
-        const filtered =
-          items.filter(
-            ({
-              item,
-            }) => {
-              const planned =
-                !item.event_at &&
-                Boolean(
-                  item.planned_for
-                );
-
-              if (
-                view ===
-                "planned"
-              ) {
-                return planned;
-              }
-
-              if (
-                view ===
-                "lived"
-              ) {
-                return !planned;
-              }
-
-              return true;
-            }
+      (): TimelineEntry[] => {
+        const dateIdsWithMoments =
+          new Set(
+            dateMoments.map(
+              (
+                moment
+              ) =>
+                moment.dateId
+            )
           );
 
+        const objectEntries =
+          items
+            .filter(
+              ({
+                item,
+              }) => {
+                const planned =
+                  !item.event_at &&
+                  Boolean(
+                    item.planned_for
+                  );
+
+                if (
+                  view ===
+                  "planned"
+                ) {
+                  return planned;
+                }
+
+                if (
+                  view ===
+                  "lived" &&
+                  planned
+                ) {
+                  return false;
+                }
+
+                if (
+                  item.kind ===
+                    "date" &&
+                  !planned &&
+                  dateIdsWithMoments.has(
+                    item.id
+                  )
+                ) {
+                  return false;
+                }
+
+                return true;
+              }
+            )
+            .map(
+              (
+                entry
+              ): TimelineEntry => ({
+                kind:
+                  "object",
+                key:
+                  `object:${entry.item.id}`,
+                happenedAt:
+                  connectedMoment(
+                    entry.item
+                  ),
+                view:
+                  entry,
+              })
+            );
+
+        const momentEntries =
+          view ===
+          "planned"
+            ? []
+            : dateMoments.map(
+                (
+                  moment
+                ): TimelineEntry => ({
+                  kind:
+                    "date_moment",
+                  key:
+                    moment.id,
+                  happenedAt:
+                    moment.happenedAt,
+                  moment,
+                })
+              );
+
         return [
-          ...filtered,
+          ...objectEntries,
+          ...momentEntries,
         ].sort(
           (
-            a,
-            b
+            first,
+            second
           ) =>
             new Date(
-              connectedMoment(
-                b.item
-              )
+              second.happenedAt
             ).getTime() -
             new Date(
-              connectedMoment(
-                a.item
-              )
+              first.happenedAt
             ).getTime()
         );
       },
       [
         items,
+        dateMoments,
         view,
       ]
     );
@@ -275,8 +439,11 @@ export function ConnectedTimelineScreen() {
           );
 
           setRefreshKey(
-            (current) =>
-              current + 1
+            (
+              current
+            ) =>
+              current +
+              1
           );
         }}
       />
@@ -295,12 +462,10 @@ export function ConnectedTimelineScreen() {
         </h1>
 
         <p>
-          The same original objects,
-          arranged by when they
-          entered your life. Dates
-          and Memories can reveal the
-          real objects that belong to
-          them.
+          Original objects stay
+          original. A Date can unfold
+          here as real moments read
+          from that same Date record.
         </p>
       </header>
 
@@ -357,7 +522,9 @@ export function ConnectedTimelineScreen() {
         0 ? (
         <div className="connected-empty">
           <Clock
-            size={25}
+            size={
+              25
+            }
             strokeWidth={
               1.3
             }
@@ -373,32 +540,80 @@ export function ConnectedTimelineScreen() {
             (
               entry
             ) => {
+              if (
+                entry.kind ===
+                "date_moment"
+              ) {
+                return (
+                  <article
+                    className="connected-timeline-entry date-moment"
+                    key={
+                      entry.key
+                    }
+                  >
+                    <span className="connected-timeline-dot" />
+
+                    <time>
+                      {timelineDateLabel(
+                        entry.happenedAt
+                      )}
+                    </time>
+
+                    <button
+                      type="button"
+                      className="date-timeline-moment-button"
+                      onClick={() =>
+                        setSelectedObjectId(
+                          entry.moment.dateId
+                        )
+                      }
+                    >
+                      <small>
+                        Date · {entry.moment.dateTitle}
+                      </small>
+
+                      <strong>
+                        {entry.moment.title}
+                      </strong>
+
+                      {entry.moment.detail && (
+                        <p>
+                          {entry.moment.detail}
+                        </p>
+                      )}
+                    </button>
+                  </article>
+                );
+              }
+
+              const object =
+                entry.view;
+
               const expanded =
                 expandedId ===
-                entry.item.id;
+                object.item.id;
 
               const planned =
-                !entry
+                !object
                   .item
                   .event_at &&
                 Boolean(
-                  entry
+                  object
                     .item
                     .planned_for
                 );
 
               const contained =
                 connectionMap[
-                  entry.item.id
-                ] ?? [];
+                  object.item.id
+                ] ??
+                [];
 
               return (
                 <article
                   className="connected-timeline-entry"
                   key={
-                    entry
-                      .item
-                      .id
+                    entry.key
                   }
                 >
                   <span className="connected-timeline-dot" />
@@ -417,7 +632,7 @@ export function ConnectedTimelineScreen() {
                     ).format(
                       new Date(
                         connectedMoment(
-                          entry.item
+                          object.item
                         )
                       )
                     )}
@@ -429,7 +644,7 @@ export function ConnectedTimelineScreen() {
                       setExpandedId(
                         expanded
                           ? null
-                          : entry
+                          : object
                               .item
                               .id
                       )
@@ -438,28 +653,28 @@ export function ConnectedTimelineScreen() {
                     <small>
                       {planned
                         ? `planned · ${connectedKindLabel(
-                            entry
+                            object
                               .item
                               .kind
                           )}`
                         : connectedKindLabel(
-                            entry
+                            object
                               .item
                               .kind
                           )}
                     </small>
 
                     <strong>
-                      {entry.item
+                      {object.item
                         .title ??
                         (
-                          entry
+                          object
                             .item
                             .kind ===
                           "diary"
                             ? "Diary entry"
                             : connectedKindLabel(
-                                entry
+                                object
                                   .item
                                   .kind
                               )
@@ -467,11 +682,11 @@ export function ConnectedTimelineScreen() {
                     </strong>
 
                     {!expanded &&
-                      entry.item
+                      object.item
                         .body && (
                         <p>
                           {
-                            entry
+                            object
                               .item
                               .body
                           }
@@ -496,11 +711,11 @@ export function ConnectedTimelineScreen() {
                     <div className="connected-timeline-expanded">
                       <ConnectedDiaryObject
                         view={
-                          entry
+                          object
                         }
                         onOpen={() =>
                           setSelectedObjectId(
-                            entry
+                            object
                               .item
                               .id
                           )

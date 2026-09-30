@@ -6,6 +6,7 @@ import {
 
 import {
   Calendar as CalendarIcon,
+  Footprints,
 } from "lucide-react";
 
 import {
@@ -22,8 +23,14 @@ import {
 
 import {
   getCalendarItems,
+  getDates,
   type DiarioItem,
 } from "@/lib/diario-world";
+
+import {
+  collectDateConnectedMoments,
+  type DateConnectedMoment,
+} from "@/lib/date-connected-moments";
 
 import {
   getMemoryConnectionMap,
@@ -33,6 +40,7 @@ import {
 } from "@/lib/connected-diary";
 
 import "./connected-diary.css";
+import "./date-connected-moments.css";
 
 function dateKey(
   date: Date
@@ -71,6 +79,53 @@ function itemDateKey(
         new Date(value)
       )
     : null;
+}
+
+function momentDateKey(
+  moment:
+    DateConnectedMoment
+) {
+  const value =
+    new Date(
+      moment.happenedAt
+    );
+
+  return Number.isNaN(
+    value.getTime()
+  )
+    ? null
+    : dateKey(
+        value
+      );
+}
+
+function momentTime(
+  value: string
+) {
+  const date =
+    new Date(
+      value
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      hour:
+        "numeric",
+      minute:
+        "2-digit",
+    }
+  ).format(
+    date
+  );
 }
 
 export function ConnectedCalendarScreen() {
@@ -131,6 +186,14 @@ export function ConnectedCalendarScreen() {
     >([]);
 
   const [
+    dateMoments,
+    setDateMoments,
+  ] =
+    useState<
+      DateConnectedMoment[]
+    >([]);
+
+  const [
     dateConnectionMap,
     setDateConnectionMap,
   ] =
@@ -159,7 +222,8 @@ export function ConnectedCalendarScreen() {
     viewDate.getMonth();
 
   useEffect(() => {
-    let active = true;
+    let active =
+      true;
 
     const monthStart =
       new Date(
@@ -175,23 +239,35 @@ export function ConnectedCalendarScreen() {
         1
       );
 
-    setLoading(true);
-    setError(null);
+    setLoading(
+      true
+    );
 
-    void getCalendarItems({
-      userId:
-        session.user.id,
+    setError(
+      null
+    );
 
-      start:
-        monthStart.toISOString(),
+    void Promise.all([
+      getCalendarItems({
+        userId:
+          session.user.id,
 
-      end:
-        nextMonthStart.toISOString(),
-    })
+        start:
+          monthStart.toISOString(),
+
+        end:
+          nextMonthStart.toISOString(),
+      }),
+
+      getDates(
+        session.user.id
+      ),
+    ])
       .then(
-        async (
-          loaded
-        ) => {
+        async ([
+          loaded,
+          allDates,
+        ]) => {
           const hydrated =
             await hydrateDiaryItems(
               loaded
@@ -200,12 +276,16 @@ export function ConnectedCalendarScreen() {
           const dateIds =
             hydrated
               .filter(
-                (view) =>
+                (
+                  view
+                ) =>
                   view.item.kind ===
                   "date"
               )
               .map(
-                (view) =>
+                (
+                  view
+                ) =>
                   view.item.id
               );
 
@@ -218,9 +298,40 @@ export function ConnectedCalendarScreen() {
                 dateIds,
             });
 
+          const startMs =
+            monthStart.getTime();
+
+          const endMs =
+            nextMonthStart.getTime();
+
+          const moments =
+            collectDateConnectedMoments(
+              allDates
+            ).filter(
+              (
+                moment
+              ) => {
+                const value =
+                  new Date(
+                    moment.happenedAt
+                  ).getTime();
+
+                return (
+                  !Number.isNaN(
+                    value
+                  ) &&
+                  value >=
+                    startMs &&
+                  value <
+                    endMs
+                );
+              }
+            );
+
           return {
             hydrated,
             connections,
+            moments,
           };
         }
       )
@@ -228,8 +339,11 @@ export function ConnectedCalendarScreen() {
         ({
           hydrated,
           connections,
+          moments,
         }) => {
-          if (!active) {
+          if (
+            !active
+          ) {
             return;
           }
 
@@ -240,32 +354,45 @@ export function ConnectedCalendarScreen() {
           setDateConnectionMap(
             connections
           );
+
+          setDateMoments(
+            moments
+          );
         }
       )
       .catch(
-        (nextError) => {
+        (
+          nextError
+        ) => {
           console.error(
             "Could not open connected Calendar:",
             nextError
           );
 
-          if (active) {
+          if (
+            active
+          ) {
             setError(
               "The calendar could not be opened."
             );
           }
         }
       )
-      .finally(() => {
-        if (active) {
-          setLoading(
-            false
-          );
+      .finally(
+        () => {
+          if (
+            active
+          ) {
+            setLoading(
+              false
+            );
+          }
         }
-      });
+      );
 
     return () => {
-      active = false;
+      active =
+        false;
     };
   }, [
     session.user.id,
@@ -291,7 +418,8 @@ export function ConnectedCalendarScreen() {
   const cells =
     Array.from(
       {
-        length: 42,
+        length:
+          42,
       },
       (
         _,
@@ -303,7 +431,8 @@ export function ConnectedCalendarScreen() {
           1;
 
         return (
-          day >= 1 &&
+          day >=
+            1 &&
           day <=
             daysInMonth
         )
@@ -364,7 +493,9 @@ export function ConnectedCalendarScreen() {
               view.item
             );
 
-          if (!key) {
+          if (
+            !key
+          ) {
             continue;
           }
 
@@ -380,7 +511,8 @@ export function ConnectedCalendarScreen() {
             const connected =
               dateConnectionMap[
                 view.item.id
-              ] ?? [];
+              ] ??
+              [];
 
             for (
               const child of
@@ -419,6 +551,56 @@ export function ConnectedCalendarScreen() {
       ]
     );
 
+  const momentsByDay =
+    useMemo(
+      () => {
+        const buckets =
+          new Map<
+            string,
+            DateConnectedMoment[]
+          >();
+
+        for (
+          const moment of
+          dateMoments
+        ) {
+          const key =
+            momentDateKey(
+              moment
+            );
+
+          if (
+            !key
+          ) {
+            continue;
+          }
+
+          buckets.set(
+            key,
+            [
+              ...(
+                buckets.get(
+                  key
+                ) ??
+                []
+              ),
+              moment,
+            ]
+          );
+        }
+
+        return Object.fromEntries(
+          buckets.entries()
+        ) as Record<
+          string,
+          DateConnectedMoment[]
+        >;
+      },
+      [
+        dateMoments,
+      ]
+    );
+
   const selectedKey =
     dateKey(
       selectedDate
@@ -429,9 +611,23 @@ export function ConnectedCalendarScreen() {
       () =>
         itemsByDay[
           selectedKey
-        ] ?? [],
+        ] ??
+        [],
       [
         itemsByDay,
+        selectedKey,
+      ]
+    );
+
+  const selectedMoments =
+    useMemo(
+      () =>
+        momentsByDay[
+          selectedKey
+        ] ??
+        [],
+      [
+        momentsByDay,
         selectedKey,
       ]
     );
@@ -440,8 +636,10 @@ export function ConnectedCalendarScreen() {
     new Intl.DateTimeFormat(
       "en-US",
       {
-        month: "long",
-        year: "numeric",
+        month:
+          "long",
+        year:
+          "numeric",
       }
     ).format(
       viewDate
@@ -479,8 +677,11 @@ export function ConnectedCalendarScreen() {
           );
 
           setRefreshKey(
-            (current) =>
-              current + 1
+            (
+              current
+            ) =>
+              current +
+              1
           );
         }}
       />
@@ -501,8 +702,10 @@ export function ConnectedCalendarScreen() {
         <p>
           Each day opens the real
           objects that belong to it.
-          Objects connected to a Date
-          live on that Date here too.
+          Date moments are read
+          directly from the original
+          Date instead of being
+          duplicated.
         </p>
       </header>
 
@@ -514,7 +717,8 @@ export function ConnectedCalendarScreen() {
               const next =
                 new Date(
                   year,
-                  month - 1,
+                  month -
+                    1,
                   1
                 );
 
@@ -540,7 +744,8 @@ export function ConnectedCalendarScreen() {
               const next =
                 new Date(
                   year,
-                  month + 1,
+                  month +
+                    1,
                   1
                 );
 
@@ -586,7 +791,9 @@ export function ConnectedCalendarScreen() {
               date,
               index
             ) => {
-              if (!date) {
+              if (
+                !date
+              ) {
                 return (
                   <span
                     key={`empty-${index}`}
@@ -602,7 +809,18 @@ export function ConnectedCalendarScreen() {
               const dayItems =
                 itemsByDay[
                   key
-                ] ?? [];
+                ] ??
+                [];
+
+              const dayMoments =
+                momentsByDay[
+                  key
+                ] ??
+                [];
+
+              const count =
+                dayItems.length +
+                dayMoments.length;
 
               const selected =
                 key ===
@@ -627,7 +845,7 @@ export function ConnectedCalendarScreen() {
                     current
                       ? "today"
                       : "",
-                    dayItems.length
+                    count
                       ? "has-items"
                       : "",
                   ]
@@ -647,14 +865,14 @@ export function ConnectedCalendarScreen() {
                     {date.getDate()}
                   </span>
 
-                  {dayItems.length >
+                  {count >
                     0 && (
                     <i
-                      aria-label={`${dayItems.length} items`}
+                      aria-label={`${count} moments and objects`}
                     >
                       {Math.min(
-                        dayItems.length,
-                        4
+                        count,
+                        9
                       )}
                     </i>
                   )}
@@ -680,11 +898,17 @@ export function ConnectedCalendarScreen() {
           <div className="connected-empty">
             Opening day…
           </div>
-        ) : selectedItems.length ===
-          0 ? (
+        ) : (
+          selectedItems.length ===
+            0 &&
+          selectedMoments.length ===
+            0
+        ) ? (
           <div className="connected-empty">
             <CalendarIcon
-              size={22}
+              size={
+                22
+              }
               strokeWidth={
                 1.3
               }
@@ -695,27 +919,98 @@ export function ConnectedCalendarScreen() {
             </strong>
           </div>
         ) : (
-          <div className="connected-day-objects">
-            {selectedItems.map(
-              (
-                view
-              ) => (
-                <ConnectedDiaryObject
-                  key={
-                    view.item.id
-                  }
-                  view={
+          <>
+            {selectedItems.length >
+              0 && (
+              <div className="connected-day-objects">
+                {selectedItems.map(
+                  (
                     view
-                  }
-                  onOpen={() =>
-                    setSelectedObjectId(
-                      view.item.id
-                    )
-                  }
-                />
-              )
+                  ) => (
+                    <ConnectedDiaryObject
+                      key={
+                        view.item.id
+                      }
+                      view={
+                        view
+                      }
+                      onOpen={() =>
+                        setSelectedObjectId(
+                          view.item.id
+                        )
+                      }
+                    />
+                  )
+                )}
+              </div>
             )}
-          </div>
+
+            {selectedMoments.length >
+              0 && (
+              <section className="date-calendar-moments">
+                <header>
+                  <Footprints
+                    size={
+                      15
+                    }
+                  />
+
+                  <div>
+                    <small>
+                      FROM DATES
+                    </small>
+
+                    <strong>
+                      What happened that day
+                    </strong>
+                  </div>
+                </header>
+
+                <div>
+                  {selectedMoments.map(
+                    (
+                      moment
+                    ) => (
+                      <button
+                        key={
+                          moment.id
+                        }
+                        type="button"
+                        className="date-connected-moment-card"
+                        onClick={() =>
+                          setSelectedObjectId(
+                            moment.dateId
+                          )
+                        }
+                      >
+                        <span className="date-connected-moment-time">
+                          {momentTime(
+                            moment.happenedAt
+                          )}
+                        </span>
+
+                        <span className="date-connected-moment-copy">
+                          <small>
+                            {moment.dateTitle}
+                          </small>
+
+                          <strong>
+                            {moment.title}
+                          </strong>
+
+                          {moment.detail && (
+                            <em>
+                              {moment.detail}
+                            </em>
+                          )}
+                        </span>
+                      </button>
+                    )
+                  )}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </section>
 
