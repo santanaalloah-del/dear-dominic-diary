@@ -802,7 +802,12 @@ function HomeScreen({
     >
       <section className="apartment-home-scene" aria-label={activeRoom.title}>
         <div className="apartment-scene-base" aria-hidden="true">
-          <img key={activeRoom.id} className="apartment-home-scene-image" src={activeRoom.image} alt="" />
+          <img
+            key={activeRoom.id}
+            className="apartment-home-scene-image"
+            src={activeRoom.image}
+            alt=""
+          />
         </div>
         <div className="apartment-scene-daylight" aria-hidden="true" />
         <div className="apartment-home-atmosphere" aria-hidden="true" />
@@ -827,7 +832,11 @@ function HomeScreen({
           </div>
         )}
 
-        <button type="button" className="apartment-floor-plan-trigger" onClick={() => setShowFloorPlan(true)}>
+        <button
+          type="button"
+          className="apartment-floor-plan-trigger"
+          onClick={() => setShowFloorPlan(true)}
+        >
           Floor plan
         </button>
 
@@ -848,10 +857,18 @@ function HomeScreen({
 
       {showFloorPlan && (
         <div className="apartment-plan-overlay" role="dialog" aria-modal="true" aria-label="Apartment floor plan">
-          <button type="button" className="apartment-plan-backdrop" onClick={() => setShowFloorPlan(false)} aria-label="Close floor plan" />
+          <button
+            type="button"
+            className="apartment-plan-backdrop"
+            onClick={() => setShowFloorPlan(false)}
+            aria-label="Close floor plan"
+          />
           <section className="apartment-plan-sheet">
             <header>
-              <div><small>OUR APARTMENT</small><strong>Floor Plan</strong></div>
+              <div>
+                <small>OUR APARTMENT</small>
+                <strong>Floor Plan</strong>
+              </div>
               <button type="button" onClick={() => setShowFloorPlan(false)} aria-label="Close floor plan">×</button>
             </header>
             <div className="official-floor-plan floor-plan-modal-map">
