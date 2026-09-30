@@ -942,18 +942,18 @@ export function WardrobeExperienceScreen() {
                           />
                         </div>
 
-                        <span>
+                        <span className="wardrobe-item-copy">
                           <strong>
                             {item.title ??
                               "Untitled"}
                           </strong>
 
-                          <small>
+                          <small className="wardrobe-item-category">
                             {category}
                           </small>
 
                           {item.body && (
-                            <small>
+                            <small className="wardrobe-item-note">
                               {item.body}
                             </small>
                           )}
