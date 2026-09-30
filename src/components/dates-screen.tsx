@@ -62,6 +62,7 @@ import {
 } from "@/lib/date-flow";
 
 import {
+  closeOtherLiveDateExperiences,
   finishDateExperience,
 } from "@/lib/date-experience";
 
@@ -1248,6 +1249,14 @@ export function DatesExperienceScreen({
     );
 
     try {
+      await closeOtherLiveDateExperiences({
+        userId:
+          session.user.id,
+
+        exceptDateId:
+          selectedDate.id,
+      });
+
       const updated =
         await startDate({
           userId:
@@ -1259,6 +1268,10 @@ export function DatesExperienceScreen({
 
       replaceDate(
         updated
+      );
+
+      notifyDateExperienceChanged(
+        updated.id
       );
 
       setView(
@@ -1364,9 +1377,16 @@ export function DatesExperienceScreen({
         updated
       );
 
+      await closeOtherLiveDateExperiences({
+        userId:
+          session.user.id,
+      });
+
       notifyDateExperienceChanged(
         updated.id
       );
+
+      await refreshDates();
 
       setView(
         "past"

@@ -81,11 +81,23 @@ function placeKey(
   event:
     DateExperienceEvent
 ) {
-  return (
-    event.placeId ||
-    event.placeName ||
-    null
-  );
+  const placeName =
+    event.placeName
+      ?.trim()
+      .toLocaleLowerCase(
+        "en-US"
+      ) ??
+    "";
+
+  if (
+    placeName
+  ) {
+    return `name:${placeName}`;
+  }
+
+  return event.placeId
+    ? `id:${event.placeId}`
+    : null;
 }
 
 function withoutRepeatedArrivals(
