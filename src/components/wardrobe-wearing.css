@@ -209,3 +209,38 @@
     align-items: flex-start;
   }
 }
+
+/* =========================================================
+   WARDROBE · PASS 3.3 — CLOSET CARD LAYOUT FIX
+   Keep the outer two-column closet grid, but make each card's
+   own content a single-column stack. This prevents the icon +
+   copy grid from squeezing labels into a microscopic column.
+   ========================================================= */
+
+.wardrobe-item-with-action {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+}
+
+.wardrobe-item-with-action > .wardrobe-item-image,
+.wardrobe-item-with-action > .wardrobe-item-copy,
+.wardrobe-item-with-action > .wardrobe-wear-button,
+.wardrobe-item-with-action > .letter-connected-button {
+  grid-column: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wardrobe-item-with-action > .wardrobe-item-copy {
+  display: block;
+  width: 100%;
+}
+
+.wardrobe-item-with-action > .wardrobe-item-copy strong,
+.wardrobe-item-with-action > .wardrobe-item-copy small {
+  width: auto;
+  max-width: 100%;
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
