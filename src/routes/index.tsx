@@ -749,243 +749,134 @@ function HomeScreen({
   time: TimeMoodState;
   onOpenRoom: (roomId: string) => void;
 }) {
+  const { session } = usePrivateDiario();
+  const [dominicState, setDominicState] = useState<DominicState | null>(null);
+  const [showFloorPlan, setShowFloorPlan] = useState(false);
 
- const { session } = usePrivateDiario();
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    let cancelled = false;
 
-const [dominicState, setDominicState] =
-  useState<DominicState | null>(null);
+    const refresh = async () => {
+      const state = await getCurrentDominicState(session.user.id);
+      if (!cancelled) setDominicState(state);
+    };
 
-useEffect(() => {
-  if (!session?.user?.id) return;
+    void refresh();
+    const timer = window.setInterval(refresh, 60_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [session?.user?.id]);
 
-  let cancelled = false;
+  const rooms = [
+    { id: "living", label: "Living" },
+    { id: "bedroom", label: "Bedroom" },
+    { id: "kitchen", label: "Kitchen" },
+    { id: "bathroom", label: "Bath" },
+    { id: "hall", label: "Hall" },
+  ];
 
-  const refresh = async () => {
-    const state =
-      await getCurrentDominicState(
-        session.user.id
-      );
+  return (
+    <section
+      className="home-screen home-live home-house home-v2"
+      data-home-time={time.mood}
+      data-home-phase={time.homeLight.phase}
+      style={{
+        "--home-natural-light": time.homeLight.naturalLight,
+        "--home-warmth": time.homeLight.warmth,
+        "--home-night-depth": time.homeLight.nightDepth,
+        "--home-shadow-position": time.homeLight.shadowPosition,
+        "--home-sky-progress": time.homeLight.skyProgress,
+      } as any}
+    >
+      <section className="apartment-home-scene" aria-label="Our Apartment">
+        <img
+          className="apartment-home-scene-image"
+          src={livingRoomEmpty}
+          alt="Our living room"
+        />
+        <div className="apartment-home-atmosphere" aria-hidden="true" />
 
-    if (!cancelled) {
-      setDominicState(state);
-    }
-  };
+        <header className="apartment-home-heading">
+          <div>
+            <span>our apartment · new york</span>
+            <strong>Our Apartment</strong>
+          </div>
+          <div className="apartment-home-clock">
+            <strong>{time.timeLabel}</strong>
+            <small>{time.dateLabel}</small>
+          </div>
+        </header>
 
-  void refresh();
-
-  const timer = window.setInterval(
-    refresh,
-    60_000
-  );
-
-  return () => {
-    cancelled = true;
-    window.clearInterval(timer);
-  };
-}, [session?.user?.id]);
-
-return (
-<section
-  className="home-screen home-live home-house"
-  data-home-time={time.mood}
-  data-home-phase={time.homeLight.phase}
-  style={{
-    "--home-natural-light": time.homeLight.naturalLight,
-    "--home-warmth": time.homeLight.warmth,
-    "--home-night-depth": time.homeLight.nightDepth,
-    "--home-shadow-position": time.homeLight.shadowPosition,
-    "--home-sky-progress": time.homeLight.skyProgress,
-  } as any}
->
-      <header className="house-header">
-        <div className="house-heading">
-          <span className="house-kicker">
-            our apartment · new york
-          </span>
-
-          <strong>
-            Our Apartment
-          </strong>
-
-          <small>
-            empty now · built slowly over time
-          </small>
-        </div>
-
-        <div className="house-time">
-          <span>
-            {time.timeLabel}
-          </span>
-
-          <small>
-            {time.dateLabel}
-          </small>
-        </div>
-      </header>
-
-  {dominicState && (
-  <section className="home-dominic-now">
-    <small>DOMINIC NOW</small>
-
-    <strong>
-      {dominicState.activity.replaceAll(
-        "_",
-        " "
-      )}
-    </strong>
-
-    <span>
-      {dominicState.location === "living"
-        ? "living room"
-        : dominicState.location}
-    </span>
-  </section>
-)}
-  
-      <section className="home-plan-stage">
-        <div className="floor-plan-heading">
-          <small>
-            official architecture
-          </small>
-
-          <strong>
-            Floor Plan
-          </strong>
-        </div>
-
-        <div className="official-floor-plan floor-plan-modal-map">
-          <img
-            src={floorPlan}
-            alt="Official floor plan of our apartment"
-            width={1536}
-            height={1024}
-          />
-
-          <button
-            type="button"
-            className="plan-hotspot plan-hotspot-living"
-            onClick={() =>
-              onOpenRoom("living")
-            }
-            aria-label="Enter Living Room"
-          />
-
-          <button
-            type="button"
-            className="plan-hotspot plan-hotspot-bedroom"
-            onClick={() =>
-              onOpenRoom("bedroom")
-            }
-            aria-label="Enter Bedroom"
-          />
-
-          <button
-            type="button"
-            className="plan-hotspot plan-hotspot-kitchen"
-            onClick={() =>
-              onOpenRoom("kitchen")
-            }
-            aria-label="Enter Kitchen"
-          />
-
-          <button
-            type="button"
-            className="plan-hotspot plan-hotspot-bathroom"
-            onClick={() =>
-              onOpenRoom("bathroom")
-            }
-            aria-label="Enter Bathroom"
-          />
-
-          <button
-            type="button"
-            className="plan-hotspot plan-hotspot-hall"
-            onClick={() =>
-              onOpenRoom("hall")
-            }
-            aria-label="Enter Hall"
-          />
-        </div>
-      </section>
-
-      <section className="home-empty-state">
-        <small>
-          day one
-        </small>
-
-        <h2>
-          The apartment starts empty.
-        </h2>
-
-        <p>
-          The architecture already exists.
-          Everything else will enter this
-          home only after you choose it.
-        </p>
-      </section>
-
-      <nav
-        className="house-space-strip"
-        aria-label="Apartment rooms"
-      >
-        {[
-          {
-            id: "living",
-            label: "Living Room",
-          },
-          {
-            id: "bedroom",
-            label: "Bedroom",
-          },
-          {
-            id: "kitchen",
-            label: "Kitchen",
-          },
-          {
-            id: "bathroom",
-            label: "Bathroom",
-          },
-          {
-            id: "hall",
-            label: "Hall",
-          },
-        ].map((room) => (
-          <button
-            key={room.id}
-            type="button"
-            onClick={() =>
-              onOpenRoom(room.id)
-            }
-          >
-            <span
-              aria-hidden="true"
-            >
-              □
-            </span>
-
+        {dominicState && (
+          <div className="apartment-home-dominic">
+            <span>DOMINIC NOW</span>
+            <strong>{dominicState.activity.replaceAll("_", " ")}</strong>
             <small>
-              {room.label}
+              {dominicState.location === "living" ? "living room" : dominicState.location}
             </small>
+          </div>
+        )}
+
+        <div className="apartment-home-actions">
+          <button type="button" onClick={() => onOpenRoom("living")}>
+            Enter room
           </button>
-        ))}
-      </nav>
+          <button type="button" onClick={() => setShowFloorPlan(true)}>
+            Floor plan
+          </button>
+        </div>
 
-      <section className="room-canon-note">
-        <span>
-          apartment rule
-        </span>
+        <nav className="apartment-home-room-nav" aria-label="Apartment rooms">
+          {rooms.map((room) => (
+            <button key={room.id} type="button" onClick={() => onOpenRoom(room.id)}>
+              {room.label}
+            </button>
+          ))}
+        </nav>
+      </section>
 
+      <section className="apartment-home-note">
+        <span>OUR HOME</span>
         <p>
-          The floor plan controls the
-          architecture. Furniture, decor,
-          photos and keepsakes will exist
-          separately and only after being
-          deliberately added.
+          The apartment is the Home now. Rooms, furniture, keepsakes and light live inside
+          one persistent place and change with us over time.
         </p>
       </section>
+
+      {showFloorPlan && (
+        <div className="apartment-plan-overlay" role="dialog" aria-modal="true" aria-label="Apartment floor plan">
+          <button
+            type="button"
+            className="apartment-plan-backdrop"
+            onClick={() => setShowFloorPlan(false)}
+            aria-label="Close floor plan"
+          />
+          <section className="apartment-plan-sheet">
+            <header>
+              <div>
+                <small>OUR APARTMENT</small>
+                <strong>Floor Plan</strong>
+              </div>
+              <button type="button" onClick={() => setShowFloorPlan(false)} aria-label="Close floor plan">×</button>
+            </header>
+            <div className="official-floor-plan floor-plan-modal-map">
+              <img src={floorPlan} alt="Official floor plan of our apartment" width={1536} height={1024} />
+              <button type="button" className="plan-hotspot plan-hotspot-living" onClick={() => onOpenRoom("living")} aria-label="Enter Living Room" />
+              <button type="button" className="plan-hotspot plan-hotspot-bedroom" onClick={() => onOpenRoom("bedroom")} aria-label="Enter Bedroom" />
+              <button type="button" className="plan-hotspot plan-hotspot-kitchen" onClick={() => onOpenRoom("kitchen")} aria-label="Enter Kitchen" />
+              <button type="button" className="plan-hotspot plan-hotspot-bathroom" onClick={() => onOpenRoom("bathroom")} aria-label="Enter Bathroom" />
+              <button type="button" className="plan-hotspot plan-hotspot-hall" onClick={() => onOpenRoom("hall")} aria-label="Enter Hall" />
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
+
 function RoomScreen({
   time,
   roomId,
