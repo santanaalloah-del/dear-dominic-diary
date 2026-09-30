@@ -59,56 +59,45 @@
   --radius-soft: 10px;
   --radius-small: 5px;
 
-  /* visual system foundation — semantic aliases only; no layout ownership */
-  --diario-color-canvas: var(--surface);
-  --diario-color-surface: var(--surface-raised);
-  --diario-color-surface-deep: var(--surface-deep);
-  --diario-color-ink: var(--text);
-  --diario-color-ink-soft: var(--text-soft);
-  --diario-color-brand: var(--ink);
-  --diario-color-action: var(--interactive);
-  --diario-color-accent: var(--accent-soft);
-  --diario-color-border: var(--border);
-  --diario-color-divider: var(--divider);
+  /* visual system · pass 1
+     additive aliases only — no layout, scroll, shell or navigation ownership */
+  --vs-color-bg: var(--background);
+  --vs-color-surface: var(--surface-raised);
+  --vs-color-surface-deep: var(--surface-deep);
+  --vs-color-text: var(--text);
+  --vs-color-text-muted: var(--text-soft);
+  --vs-color-accent: var(--cherry);
+  --vs-color-accent-deep: var(--wine);
+  --vs-color-border: var(--border);
+  --vs-color-divider: var(--divider);
 
-  --diario-font-display: var(--font-display);
-  --diario-font-body: var(--font-body);
-  --diario-font-hand: var(--font-hand);
-  --diario-text-xs: 0.6875rem;
-  --diario-text-sm: 0.8125rem;
-  --diario-text-md: 0.9375rem;
-  --diario-text-lg: 1.125rem;
-  --diario-text-xl: 1.5rem;
-  --diario-text-display-sm: 2rem;
-  --diario-text-display-md: 2.75rem;
-  --diario-leading-tight: 1.05;
-  --diario-leading-copy: 1.55;
-  --diario-tracking-label: 0.12em;
+  --vs-font-display: var(--font-display);
+  --vs-font-body: var(--font-body);
+  --vs-font-hand: var(--font-hand);
 
-  --diario-space-1: 4px;
-  --diario-space-2: 8px;
-  --diario-space-3: 12px;
-  --diario-space-4: 16px;
-  --diario-space-5: 20px;
-  --diario-space-6: 24px;
-  --diario-space-8: 32px;
-  --diario-space-10: 40px;
-  --diario-space-12: 48px;
+  --vs-space-1: 4px;
+  --vs-space-2: 8px;
+  --vs-space-3: 12px;
+  --vs-space-4: 16px;
+  --vs-space-5: 20px;
+  --vs-space-6: 24px;
+  --vs-space-8: 32px;
+  --vs-space-10: 40px;
 
-  --diario-radius-xs: var(--radius-small);
-  --diario-radius-sm: var(--radius-soft);
-  --diario-radius-md: 16px;
-  --diario-radius-lg: 22px;
-  --diario-radius-pill: 999px;
+  --vs-radius-xs: var(--radius-small);
+  --vs-radius-sm: var(--radius-soft);
+  --vs-radius-md: 16px;
+  --vs-radius-lg: 24px;
+  --vs-radius-pill: 999px;
 
-  --diario-shadow-soft: var(--paper-shadow-soft);
-  --diario-shadow-raised: var(--paper-shadow);
-  --diario-focus-ring: 0 0 0 3px color-mix(in oklab, var(--interactive) 24%, transparent);
+  --vs-shadow-soft: var(--paper-shadow-soft);
+  --vs-shadow-raised: var(--paper-shadow);
+  --vs-focus-ring: 0 0 0 3px color-mix(in oklab, var(--blush) 42%, transparent);
 
-  --diario-motion-fast: 140ms;
-  --diario-motion-base: 220ms;
-  --diario-motion-slow: 360ms;
-  --diario-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --vs-motion-fast: 140ms;
+  --vs-motion-base: 220ms;
+  --vs-motion-slow: 360ms;
+  --vs-ease-standard: cubic-bezier(.2, .8, .2, 1);
 }
 html[data-diario-appearance="light"] {
   --background: var(--cream);
@@ -12884,196 +12873,5 @@ select {
 
   .screen-scroll .connected-object-back {
     top: 10px;
-  }
-}
-
-/* =========================================================
-   APP SHELL FOUNDATION · PASS 2C
-   Motion + scroll ownership.
-   One scroll surface per screen, restrained screen entrance,
-   stable touch scrolling and reduced-motion support.
-   ========================================================= */
-
-.phone-shell.app-shell {
-  --app-screen-enter-duration: 180ms;
-  --app-screen-enter-distance: 6px;
-}
-
-/* The shell owns clipping; each screen owns its vertical scroll. */
-.app-shell-content {
-  overflow: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-.app-shell-content > .screen-scroll {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  touch-action: pan-y;
-  animation: app-screen-enter var(--app-screen-enter-duration) ease-out both;
-}
-
-.app-shell-content > .screen-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-/* Detail screens use the same scroll contract without the global nav gap. */
-.app-shell[data-detail="true"] .app-shell-content > .screen-scroll {
-  padding-bottom: max(28px, env(safe-area-inset-bottom));
-  scroll-padding-top: calc(var(--app-back-size) + 20px);
-  scroll-padding-bottom: max(28px, env(safe-area-inset-bottom));
-}
-
-/* Root screens reserve exactly one nav-safe zone. */
-.app-shell:not([data-detail="true"]) .app-shell-content > .screen-scroll {
-  padding-bottom: var(--app-content-bottom-space);
-  scroll-padding-bottom: var(--app-content-bottom-space);
-}
-
-/* Chat is a fixed-height experience inside the shell; its message list scrolls. */
-.app-shell-content > .screen-scroll:has(.messenger-chat) {
-  overflow: hidden;
-  padding-bottom: 0;
-  touch-action: auto;
-}
-
-/* Prevent horizontal rubber-banding from cards/carousels from moving the shell. */
-.phone-shell.app-shell,
-.app-shell-content,
-.app-shell-content > .screen-scroll {
-  overscroll-behavior-x: none;
-}
-
-@keyframes app-screen-enter {
-  from {
-    opacity: .985;
-    transform: translateY(var(--app-screen-enter-distance));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Back/nav interactions should feel immediate, not like page animations. */
-.app-shell-back,
-.app-shell > .bottom-nav button,
-.screen-scroll .connected-object-back {
-  transition:
-    transform 120ms ease,
-    background-color 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease,
-    border-color 160ms ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-shell-content > .screen-scroll {
-    animation: none !important;
-  }
-
-  .app-shell-back,
-  .app-shell > .bottom-nav button,
-  .screen-scroll .connected-object-back {
-    transition: none !important;
-  }
-}
-
-/* ─────────────────────────────────────────
-   VISUAL SYSTEM · PASS 2A · MORE CARDS ONLY
-   Scope: visual treatment for the More index cards.
-   Intentionally does not alter scroll, overflow, viewport,
-   shell, navigation, or page positioning.
-   ───────────────────────────────────────── */
-
-.more-screen .richer-index > button.available {
-  border-color: color-mix(in oklab, var(--wine) 12%, var(--divider));
-  background:
-    radial-gradient(
-      circle at 88% 14%,
-      color-mix(in oklab, var(--blush) 28%, transparent),
-      transparent 34%
-    ),
-    linear-gradient(
-      138deg,
-      color-mix(in oklab, var(--paper) 96%, white 4%),
-      color-mix(in oklab, var(--cream) 91%, var(--blush) 9%)
-    );
-  box-shadow:
-    0 1px 0 color-mix(in oklab, white 72%, transparent) inset,
-    0 10px 24px color-mix(in oklab, var(--wine) 6%, transparent);
-  transition:
-    transform 150ms ease,
-    border-color 150ms ease,
-    box-shadow 150ms ease,
-    background 150ms ease;
-}
-
-.more-screen .richer-index > button.available:nth-child(3n + 2) {
-  background:
-    radial-gradient(
-      circle at 12% 82%,
-      color-mix(in oklab, var(--blush) 22%, transparent),
-      transparent 31%
-    ),
-    linear-gradient(
-      142deg,
-      color-mix(in oklab, var(--paper) 97%, white 3%),
-      color-mix(in oklab, var(--cream) 94%, var(--rose) 6%)
-    );
-}
-
-.more-screen .richer-index > button.available:active {
-  transform: scale(0.988);
-  border-color: color-mix(in oklab, var(--cherry) 28%, var(--divider));
-  box-shadow:
-    0 1px 0 color-mix(in oklab, white 60%, transparent) inset,
-    0 5px 14px color-mix(in oklab, var(--wine) 8%, transparent);
-}
-
-.more-screen .richer-index > button.available .index-number {
-  color: color-mix(in oklab, var(--cherry) 84%, var(--wine));
-  opacity: .82;
-}
-
-.more-screen .richer-index > button.available .index-icon {
-  border: 1px solid color-mix(in oklab, var(--wine) 9%, transparent);
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in oklab, var(--blush) 48%, white 10%),
-      color-mix(in oklab, var(--paper) 88%, var(--blush) 12%)
-    );
-  box-shadow: 0 4px 12px color-mix(in oklab, var(--wine) 5%, transparent);
-}
-
-.more-screen .richer-index > button.available strong {
-  letter-spacing: -0.015em;
-}
-
-.more-screen .richer-index > button.available small {
-  opacity: .82;
-}
-
-.more-screen .richer-index > button.available > svg {
-  opacity: .58;
-  transition: transform 150ms ease, opacity 150ms ease;
-}
-
-.more-screen .richer-index > button.available:active > svg {
-  transform: translateX(2px);
-  opacity: .82;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .more-screen .richer-index > button.available,
-  .more-screen .richer-index > button.available > svg {
-    transition: none;
   }
 }
