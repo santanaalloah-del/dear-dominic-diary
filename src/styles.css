@@ -12962,3 +12962,53 @@ select {
     transition: none;
   }
 }
+
+/* =========================================================
+   VISUAL SYSTEM · PASS 3
+   Wardrobe mobile resilience only.
+   Keeps the existing Wardrobe design while preventing the
+   two-column item cards from forcing content outside their
+   available width on narrow iPhone screens.
+   No shell, viewport, scrolling, Back or Bottom Nav rules.
+   ========================================================= */
+
+.wardrobe-item-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.wardrobe-item {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wardrobe-item strong,
+.wardrobe-item small {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.wardrobe-closet > header > *,
+.wardrobe-looks > header > * {
+  min-width: 0;
+}
+
+@media (max-width: 390px) {
+  .wardrobe-closet,
+  .wardrobe-looks {
+    padding-inline: 15px;
+  }
+
+  .wardrobe-item-grid {
+    gap: 9px;
+  }
+
+  .wardrobe-item {
+    padding: 11px;
+  }
+
+  .wardrobe-item strong {
+    font-size: 20px;
+  }
+}
+
