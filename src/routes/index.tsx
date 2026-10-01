@@ -79,6 +79,10 @@ import {
   useTimeMood,
   type TimeMoodState,
 } from "@/lib/time-mood";
+import {
+  HOME_SCENE_ASSETS,
+  hasHomeSceneTimeline,
+} from "@/lib/home-scene-assets";
 
 import {
   getCurrentDominicState,
@@ -780,6 +784,17 @@ function HomeScreen({
   ];
 
   const activeRoom = rooms.find((room) => room.id === activeHomeRoom) ?? rooms[0];
+  const hasPhotoTimeline = hasHomeSceneTimeline(activeRoom.id);
+  const sceneSet = hasPhotoTimeline ? HOME_SCENE_ASSETS[activeRoom.id] : null;
+  const sceneFrom = sceneSet?.[time.homeScene.from] ?? activeRoom.image;
+  const sceneTo = sceneSet?.[time.homeScene.to] ?? sceneFrom;
+  const sceneMix = sceneSet ? time.homeScene.amount : 0;
+
+  useEffect(() => {
+    if (!sceneSet || sceneTo === sceneFrom) return;
+    const preload = new Image();
+    preload.src = sceneTo;
+  }, [sceneFrom, sceneSet, sceneTo]);
 
   const chooseRoom = (roomId: string) => {
     setActiveHomeRoom(roomId);
@@ -792,6 +807,9 @@ function HomeScreen({
       data-home-room={activeRoom.id}
       data-home-time={time.mood}
       data-home-phase={time.homeLight.phase}
+      data-photo-timeline={hasPhotoTimeline ? "true" : "false"}
+      data-scene-from={time.homeScene.from}
+      data-scene-to={time.homeScene.to}
       style={{
         "--home-natural-light": time.homeLight.naturalLight,
         "--home-warmth": time.homeLight.warmth,
@@ -801,13 +819,20 @@ function HomeScreen({
       } as any}
     >
       <section className="apartment-home-scene" aria-label={activeRoom.title}>
-        <div className="apartment-scene-base" aria-hidden="true">
+        <div className="apartment-scene-base" aria-hidden="true" key={activeRoom.id}>
           <img
-            key={activeRoom.id}
-            className="apartment-home-scene-image"
-            src={activeRoom.image}
+            className={`apartment-home-scene-image ${hasPhotoTimeline ? "apartment-home-scene-layer apartment-home-scene-from" : ""}`}
+            src={sceneFrom}
             alt=""
           />
+          {hasPhotoTimeline && sceneTo !== sceneFrom && (
+            <img
+              className="apartment-home-scene-image apartment-home-scene-layer apartment-home-scene-to"
+              src={sceneTo}
+              alt=""
+              style={{ opacity: sceneMix }}
+            />
+          )}
         </div>
         <div className="apartment-scene-daylight" aria-hidden="true" />
         <div className="apartment-home-atmosphere" aria-hidden="true" />
