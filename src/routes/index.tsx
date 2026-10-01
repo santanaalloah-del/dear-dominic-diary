@@ -151,7 +151,6 @@ import bedroomEmpty from "@/assets/bedroom-empty.jpeg";
 import kitchenEmpty from "@/assets/kitchen-empty.jpeg";
 import bathroomEmpty from "@/assets/bathroom-empty.jpeg";
 import hallEmpty from "@/assets/hall-empty.jpeg";
-import floorPlan from "@/assets/apartment-floor-plan.png";
 type Screen =
   | "home"
   | "chat"
@@ -755,7 +754,6 @@ function HomeScreen({
 }) {
   const { session } = usePrivateDiario();
   const [dominicState, setDominicState] = useState<DominicState | null>(null);
-  const [showFloorPlan, setShowFloorPlan] = useState(false);
   const [activeHomeRoom, setActiveHomeRoom] = useState("living");
   const [homeKeepsakes, setHomeKeepsakes] = useState<DiarioItem[]>([]);
   const [showLivingThings, setShowLivingThings] = useState(false);
@@ -851,7 +849,6 @@ function HomeScreen({
 
   const chooseRoom = (roomId: string) => {
     setActiveHomeRoom(roomId);
-    setShowFloorPlan(false);
     setShowLivingThings(false);
   };
 
@@ -985,14 +982,6 @@ function HomeScreen({
           </button>
         )}
 
-        <button
-          type="button"
-          className="apartment-floor-plan-trigger"
-          onClick={() => setShowFloorPlan(true)}
-        >
-          Floor plan
-        </button>
-
         <nav className="apartment-home-room-nav" aria-label="Apartment rooms">
           {rooms.map((room) => (
             <button
@@ -1102,33 +1091,6 @@ function HomeScreen({
         </div>
       )}
 
-      {showFloorPlan && (
-        <div className="apartment-plan-overlay" role="dialog" aria-modal="true" aria-label="Apartment floor plan">
-          <button
-            type="button"
-            className="apartment-plan-backdrop"
-            onClick={() => setShowFloorPlan(false)}
-            aria-label="Close floor plan"
-          />
-          <section className="apartment-plan-sheet">
-            <header>
-              <div>
-                <small>OUR APARTMENT</small>
-                <strong>Floor Plan</strong>
-              </div>
-              <button type="button" onClick={() => setShowFloorPlan(false)} aria-label="Close floor plan">×</button>
-            </header>
-            <div className="official-floor-plan floor-plan-modal-map">
-              <img src={floorPlan} alt="Official floor plan of our apartment" width={1536} height={1024} />
-              <button type="button" className="plan-hotspot plan-hotspot-living" onClick={() => chooseRoom("living")} aria-label="View Living Room" />
-              <button type="button" className="plan-hotspot plan-hotspot-bedroom" onClick={() => chooseRoom("bedroom")} aria-label="View Bedroom" />
-              <button type="button" className="plan-hotspot plan-hotspot-kitchen" onClick={() => chooseRoom("kitchen")} aria-label="View Kitchen" />
-              <button type="button" className="plan-hotspot plan-hotspot-bathroom" onClick={() => chooseRoom("bathroom")} aria-label="View Bathroom" />
-              <button type="button" className="plan-hotspot plan-hotspot-hall" onClick={() => chooseRoom("hall")} aria-label="View Hall" />
-            </div>
-          </section>
-        </div>
-      )}
     </section>
   );
 }
