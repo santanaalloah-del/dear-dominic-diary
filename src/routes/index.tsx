@@ -1912,21 +1912,21 @@ const displayY =
 }
 function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
   const { preferredName, signOut } = usePrivateDiario();
-  const entries: { name: string; note: string; target: Screen; icon: ReactNode }[] = [
-    { name: "Memories", note: "the moments that stay", target: "memories", icon: <Heart /> },
-    { name: "Gallery", note: "photos, videos & context", target: "gallery", icon: <ImageIcon /> },
-    { name: "Photo Engine", note: "me, Dominic, us & daily life", target: "photo-engine", icon: <ImageIcon /> },
-    { name: "References", note: "faces, poses, places & visual canon", target: "references", icon: <ImageIcon /> },
-    { name: "Letters", note: "letters, notes & envelopes", target: "letters", icon: <Mail /> },
-    { name: "Calendar", note: "days, plans & what happened", target: "calendar", icon: <CalendarIcon /> },
-    { name: "Timeline", note: "our story in order", target: "timeline", icon: <Clock /> },
-    { name: "Music", note: "Mine · Dominic · Ours", target: "music", icon: <Music2 /> },
-    { name: "Dates", note: "places, plans & memories", target: "dates", icon: <CalendarIcon /> },
-    { name: "Places", note: "saved places & places we've been", target: "places", icon: <MapPin /> },
-    { name: "Keepsakes", note: "little things with a history", target: "keepsakes", icon: <BoxIcon /> },
-    { name: "Wardrobe", note: "looks for our days", target: "wardrobe", icon: <Shirt /> },
-    { name: "Morning / Night", note: "the day changes with you", target: "night", icon: <Disc3 /> },
-    { name: "Settings", note: "make this place yours", target: "settings", icon: <Settings /> },
+  const entries: { name: string; note: string; target: Screen; icon: ReactNode; kind: string }[] = [
+    { name: "Memories", note: "the moments that stay", target: "memories", icon: <Heart />, kind: "note" },
+    { name: "Gallery", note: "photos, videos & context", target: "gallery", icon: <ImageIcon />, kind: "photo" },
+    { name: "Photo Engine", note: "me, Dominic, us & daily life", target: "photo-engine", icon: <ImageIcon />, kind: "film" },
+    { name: "References", note: "faces, poses, places & visual canon", target: "references", icon: <ImageIcon />, kind: "label" },
+    { name: "Letters", note: "letters, notes & envelopes", target: "letters", icon: <Mail />, kind: "envelope" },
+    { name: "Calendar", note: "days, plans & what happened", target: "calendar", icon: <CalendarIcon />, kind: "calendar" },
+    { name: "Timeline", note: "our story in order", target: "timeline", icon: <Clock />, kind: "strip" },
+    { name: "Music", note: "Mine · Dominic · Ours", target: "music", icon: <Music2 />, kind: "record" },
+    { name: "Dates", note: "places, plans & memories", target: "dates", icon: <CalendarIcon />, kind: "ticket" },
+    { name: "Places", note: "saved places & places we've been", target: "places", icon: <MapPin />, kind: "map" },
+    { name: "Keepsakes", note: "little things with a history", target: "keepsakes", icon: <BoxIcon />, kind: "keepsake" },
+    { name: "Wardrobe", note: "looks for our days", target: "wardrobe", icon: <Shirt />, kind: "tag" },
+    { name: "Morning / Night", note: "the day changes with you", target: "night", icon: <Disc3 />, kind: "moon" },
+    { name: "Settings", note: "make this place yours", target: "settings", icon: <Settings />, kind: "plain" },
   ];
 
   return (
@@ -1936,7 +1936,7 @@ function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
       </ScreenIntro>
       <div className="index-list richer-index">
         {entries.map((entry, index) => (
-          <button key={entry.name} onClick={() => onOpen(entry.target)} className="available">
+          <button key={entry.name} onClick={() => onOpen(entry.target)} className={`available index-object index-${entry.kind}`}>
             <span className="index-number">{String(index + 1).padStart(2, "0")}</span>
             <span className="index-icon">{entry.icon}</span>
             <div>
