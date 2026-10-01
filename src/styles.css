@@ -13973,3 +13973,59 @@ select {
   z-index: 2;
   flex: 0 0 auto;
 }
+
+/* =========================================================
+   DIÁRIO · CONTINUOUS TIME THEME · VISUAL PASS 01
+   Color/material only. No layout, scroll or navigation ownership.
+   ========================================================= */
+html[data-diario-time-theme="continuous"],
+html[data-diario-time-theme="continuous"] body,
+html[data-diario-time-theme="continuous"] .phone-shell,
+html[data-diario-time-theme="continuous"] .screen-scroll {
+  transition:
+    background-color 900ms var(--vs-ease-standard),
+    color 900ms var(--vs-ease-standard),
+    border-color 900ms var(--vs-ease-standard),
+    box-shadow 900ms var(--vs-ease-standard);
+}
+
+html[data-diario-time-theme="continuous"] body {
+  background:
+    radial-gradient(circle at 50% -10%, color-mix(in oklab, var(--accent-soft) 12%, transparent), transparent 42%),
+    var(--background);
+  color: var(--text);
+}
+
+html[data-diario-time-theme="continuous"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitchTiles'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+}
+
+html[data-diario-time-theme="continuous"] .phone-shell {
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-diario-time-theme="continuous"] .screen-scroll {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+html[data-diario-time-theme="continuous"] .bottom-nav {
+  border-color: var(--divider);
+  background: color-mix(in oklab, var(--surface-raised) 91%, transparent);
+  color: var(--text-soft);
+  box-shadow: 0 -8px 28px color-mix(in oklab, var(--accent-deep, var(--wine)) 10%, transparent);
+  backdrop-filter: blur(16px) saturate(.86);
+  -webkit-backdrop-filter: blur(16px) saturate(.86);
+}
+
+html[data-diario-time-theme="continuous"] .statusbar {
+  color: var(--text);
+}
