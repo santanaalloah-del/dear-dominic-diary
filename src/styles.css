@@ -14386,3 +14386,262 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .diary-screen.diary-live .diary-empty-page p{font:19px/1.65 var(--font-display)!important;max-width:310px!important;color:#73534c!important}
 .diary-screen.diary-live .diary-write-button{border-radius:2px!important;transform:rotate(-1deg)!important;box-shadow:2px 3px 0 rgba(72,23,28,.14)!important}
 .diary-screen.diary-live .diary-page-footer{border-top:1px solid rgba(109,32,41,.35)!important;margin-top:38px!important;padding-top:12px!important;font-family:var(--font-hand)!important}
+
+/* =========================================================
+   VISUAL PASS 03 · PLAYER / RECORD SHELF
+   Keeps existing Spotify playback + library logic intact.
+   ========================================================= */
+
+.screen-music.music-live {
+  --player-paper: color-mix(in oklab, var(--paper) 94%, #fff7ea 6%);
+  --player-ink: color-mix(in oklab, var(--wine) 84%, #2a1714 16%);
+  padding-bottom: 170px !important;
+}
+
+.screen-music .screen-intro {
+  position: relative;
+  padding-bottom: 16px !important;
+}
+
+.screen-music .screen-intro::after {
+  content: "a little record shelf for two";
+  display: inline-block;
+  margin: 12px 0 0 2px;
+  padding: 5px 11px 6px;
+  background: color-mix(in oklab, var(--paper) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--wine) 18%, transparent);
+  box-shadow: 0 5px 12px rgb(64 34 29 / 8%);
+  color: color-mix(in oklab, var(--wine) 72%, transparent);
+  font: italic 12px/1 var(--font-script);
+  transform: rotate(-1.5deg);
+}
+
+/* Spotify is the actual player: compact, always first, like a record sleeve. */
+.screen-music .spotify-live-player {
+  display: grid !important;
+  grid-template-columns: 86px minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 14px !important;
+  row-gap: 10px !important;
+  margin: 8px 18px 20px !important;
+  padding: 14px !important;
+  border-radius: 5px !important;
+  overflow: visible !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 22%, transparent) !important;
+  background:
+    linear-gradient(90deg, transparent 0 17px, color-mix(in oklab, var(--rose) 18%, transparent) 17px 18px, transparent 18px),
+    repeating-linear-gradient(0deg, transparent 0 25px, color-mix(in oklab, var(--wine) 5%, transparent) 25px 26px),
+    var(--player-paper) !important;
+  box-shadow: 7px 9px 0 color-mix(in oklab, var(--wine) 7%, transparent), 0 18px 34px rgb(54 28 24 / 12%) !important;
+  transform: rotate(.25deg);
+}
+
+.screen-music .spotify-live-player::before {
+  content: "NOW PLAYING · SPOTIFY" !important;
+  position: absolute !important;
+  width: auto !important;
+  height: auto !important;
+  inset: -11px auto auto 112px !important;
+  padding: 4px 9px !important;
+  background: color-mix(in oklab, #ead8ca 86%, transparent) !important;
+  color: color-mix(in oklab, var(--wine) 72%, transparent) !important;
+  font: 8px/1 var(--font-body) !important;
+  letter-spacing: .15em !important;
+  transform: rotate(-1deg) !important;
+  opacity: .96 !important;
+  pointer-events: none;
+}
+
+.screen-music .spotify-live-cover {
+  grid-column: 1;
+  grid-row: 1;
+  width: 86px !important;
+  height: 86px !important;
+  margin: 0 !important;
+  border-radius: 2px !important;
+  box-shadow: 0 6px 14px rgb(48 25 22 / 16%) !important;
+  transform: rotate(-1deg);
+}
+
+.screen-music .spotify-live-info {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  padding: 3px 4px 0 0 !important;
+  text-align: left !important;
+}
+
+.screen-music .spotify-live-info small { margin-bottom: 5px !important; font-size: 8px !important; }
+.screen-music .spotify-live-info strong { font-size: 22px !important; line-height: 1.02 !important; }
+.screen-music .spotify-live-info span { margin-top: 5px !important; font-size: 11px !important; }
+.screen-music .spotify-live-progress { width: 100% !important; height: 4px !important; margin: 11px 0 0 !important; }
+
+.screen-music .spotify-live-controls {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-content: flex-start !important;
+  gap: 7px !important;
+  margin: 0 !important;
+  padding-top: 9px;
+  border-top: 1px dashed color-mix(in oklab, var(--wine) 18%, transparent);
+}
+
+.screen-music .spotify-live-controls button {
+  min-width: 34px !important;
+  height: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+}
+
+.screen-music .spotify-live-controls button:nth-child(3) {
+  min-width: 50px !important;
+  height: 34px !important;
+  font-size: 10px !important;
+}
+
+/* Most played becomes a compact chart slip, not a huge app card. */
+.spotify-top-rotation {
+  position: relative;
+  margin: 0 18px 18px !important;
+  padding: 16px 14px 13px !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 18%, transparent) !important;
+  border-radius: 3px !important;
+  background:
+    linear-gradient(90deg, color-mix(in oklab, var(--rose) 10%, transparent), transparent 32%),
+    var(--player-paper) !important;
+  box-shadow: 4px 6px 0 color-mix(in oklab, var(--wine) 6%, transparent) !important;
+  transform: rotate(-.18deg);
+}
+
+.spotify-top-rotation::after {
+  content: "MOST PLAYED";
+  position: absolute;
+  right: 11px;
+  bottom: 9px;
+  color: color-mix(in oklab, var(--wine) 16%, transparent);
+  font: 700 17px/1 var(--font-body);
+  letter-spacing: .08em;
+  transform: rotate(-90deg) translateX(100%);
+  transform-origin: right bottom;
+  pointer-events: none;
+}
+
+.spotify-top-rotation header strong { font-size: 26px !important; }
+.spotify-top-range-tabs { border-radius: 3px !important; padding: 2px !important; }
+.spotify-top-range-tabs button { border-radius: 2px !important; padding: 6px 7px !important; }
+.spotify-top-list { gap: 2px !important; }
+.spotify-top-track {
+  grid-template-columns: 20px 34px minmax(0, 1fr) auto !important;
+  padding: 6px 4px !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid color-mix(in oklab, var(--wine) 9%, transparent);
+  background: transparent !important;
+}
+.spotify-top-cover { width: 34px !important; height: 34px !important; border-radius: 2px !important; }
+.spotify-top-copy strong { font: 13px/1.05 var(--font-body) !important; font-weight: 600 !important; }
+.spotify-top-actions { grid-column: 4 !important; display: flex !important; gap: 3px !important; }
+.spotify-top-actions button { min-height: 27px !important; padding: 0 7px !important; font-size: 8px !important; border-radius: 3px !important; }
+.spotify-top-actions button:first-child { width: 27px !important; }
+
+/* Mine / Dominic / Ours reads like three labelled record drawers. */
+.screen-music .music-tabs {
+  position: relative;
+  margin: 4px 18px 9px !important;
+  padding: 4px !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 22%, transparent) !important;
+  border-radius: 3px !important;
+  background: color-mix(in oklab, var(--paper) 82%, transparent) !important;
+  box-shadow: 0 8px 20px rgb(57 29 25 / 8%);
+}
+.screen-music .music-tabs button { border-radius: 2px !important; letter-spacing: .13em !important; text-transform: uppercase; }
+.screen-music .music-tabs button.active {
+  background: var(--wine) !important;
+  color: var(--cream) !important;
+  box-shadow: 0 4px 10px rgb(48 25 22 / 14%) !important;
+}
+
+.music-section-tabs {
+  margin: 0 18px 18px !important;
+  padding: 0 4px 7px !important;
+  gap: 12px !important;
+  border-bottom: 1px solid color-mix(in oklab, var(--wine) 20%, transparent);
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.music-section-tabs button {
+  position: relative;
+  padding: 7px 0 5px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  font-size: 9px !important;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.music-section-tabs button.active { box-shadow: none !important; color: var(--wine) !important; }
+.music-section-tabs button.active::after {
+  content: "";
+  position: absolute;
+  left: 20%; right: 20%; bottom: -8px;
+  height: 2px;
+  background: var(--wine);
+}
+
+/* Saved songs = compact record index cards. */
+.music-library {
+  display: grid !important;
+  gap: 9px !important;
+  margin: 0 18px 16px !important;
+}
+.music-track {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 74px !important;
+  padding: 10px 10px 10px 12px !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 15%, transparent) !important;
+  border-radius: 2px !important;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 22px, color-mix(in oklab, var(--wine) 4%, transparent) 22px 23px),
+    var(--player-paper) !important;
+  box-shadow: 3px 4px 0 color-mix(in oklab, var(--wine) 5%, transparent) !important;
+}
+.music-track:nth-child(even) { transform: rotate(.18deg); }
+.music-track:nth-child(odd) { transform: rotate(-.12deg); }
+.music-record { width: 54px !important; height: 54px !important; border-radius: 2px !important; overflow: hidden; }
+.music-record img { width: 100%; height: 100%; object-fit: cover; }
+.music-track > div:nth-child(2) { min-width: 0; }
+.music-track > div:nth-child(2) small { font-size: 8px !important; letter-spacing: .14em; text-transform: uppercase; }
+.music-track > div:nth-child(2) strong { display: block; margin-top: 2px; font: 17px/1.05 var(--font-display) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-track > div:nth-child(2) span,
+.music-track > div:nth-child(2) em { display: block; margin-top: 2px; font-size: 10px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-track > div:nth-child(2) p { display: none !important; }
+.music-track > button { min-width: 31px !important; min-height: 31px !important; padding: 0 8px !important; border-radius: 3px !important; font-size: 8px !important; }
+.music-track > button:not(.music-favorite-button):not([aria-label="Listen now"]):not([aria-label="Add to queue"]):not(.letter-connected-button) { display: none !important; }
+.music-track .music-favorite-button { width: 31px !important; height: 31px !important; }
+.music-track button[aria-label="Listen now"] { grid-column: 3; grid-row: 1; background: var(--wine) !important; color: var(--cream) !important; }
+.music-track button[aria-label="Add to queue"] { grid-column: 4; grid-row: 1; }
+.music-track .letter-connected-button { grid-column: 2 / -1 !important; width: max-content !important; margin: 0 !important; min-height: 25px !important; border: 0 !important; border-bottom: 1px solid color-mix(in oklab, var(--wine) 30%, transparent) !important; background: transparent !important; }
+
+.music-playlist-board,
+.spotify-queue-panel.music-section-panel,
+.music-empty {
+  border-radius: 3px !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 17%, transparent) !important;
+  background: var(--player-paper) !important;
+  box-shadow: 5px 7px 0 color-mix(in oklab, var(--wine) 6%, transparent) !important;
+}
+
+.music-playlist-cover { border-radius: 2px !important; }
+.music-rule { opacity: .72; }
+
+@media (max-width: 390px) {
+  .screen-music .spotify-live-player { grid-template-columns: 74px minmax(0, 1fr) !important; }
+  .screen-music .spotify-live-cover { width: 74px !important; height: 74px !important; }
+  .spotify-top-actions button:not(:first-child) { display: none !important; }
+  .music-track { grid-template-columns: 48px minmax(0, 1fr) auto auto !important; gap: 7px !important; }
+  .music-record { width: 48px !important; height: 48px !important; }
+}
