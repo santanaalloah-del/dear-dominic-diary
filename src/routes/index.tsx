@@ -790,6 +790,16 @@ function HomeScreen({
   const sceneTo = sceneSet?.[time.homeScene.to] ?? sceneFrom;
   const sceneMix = sceneSet ? time.homeScene.amount : 0;
 
+  // Living + Bathroom use a single dominant photo at a time.
+  // Their generated anchors are not pixel-identical, so a full opacity
+  // crossfade creates double furniture/frames. Switching the dominant
+  // frame removes that ghosting while keeping the seven time anchors.
+  const usesSingleFrameTransition =
+    hasPhotoTimeline &&
+    (activeRoom.id === "living" || activeRoom.id === "bathroom");
+  const dominantScene =
+    usesSingleFrameTransition && sceneMix >= 0.5 ? sceneTo : sceneFrom;
+
   useEffect(() => {
     if (!sceneSet || sceneTo === sceneFrom) return;
     const preload = new Image();
@@ -810,6 +820,7 @@ function HomeScreen({
       data-photo-timeline={hasPhotoTimeline ? "true" : "false"}
       data-scene-from={time.homeScene.from}
       data-scene-to={time.homeScene.to}
+      data-scene-transition={usesSingleFrameTransition ? "single-frame" : "crossfade"}
       style={{
         "--home-natural-light": time.homeLight.naturalLight,
         "--home-warmth": time.homeLight.warmth,
@@ -821,18 +832,27 @@ function HomeScreen({
       <section className="apartment-home-scene" aria-label={activeRoom.title}>
         <div className="apartment-scene-base" aria-hidden="true" key={activeRoom.id}>
           <img
-            className={`apartment-home-scene-image ${hasPhotoTimeline ? "apartment-home-scene-layer apartment-home-scene-from" : ""}`}
-            src={sceneFrom}
+            key={usesSingleFrameTransition ? `${activeRoom.id}-${dominantScene}` : activeRoom.id}
+            className={`apartment-home-scene-image ${
+              hasPhotoTimeline
+                ? `apartment-home-scene-layer apartment-home-scene-from ${
+                    usesSingleFrameTransition ? "apartment-home-scene-single-frame" : ""
+                  }`
+                : ""
+            }`}
+            src={usesSingleFrameTransition ? dominantScene : sceneFrom}
             alt=""
           />
-          {hasPhotoTimeline && sceneTo !== sceneFrom && (
-            <img
-              className="apartment-home-scene-image apartment-home-scene-layer apartment-home-scene-to"
-              src={sceneTo}
-              alt=""
-              style={{ opacity: sceneMix }}
-            />
-          )}
+          {hasPhotoTimeline &&
+            !usesSingleFrameTransition &&
+            sceneTo !== sceneFrom && (
+              <img
+                className="apartment-home-scene-image apartment-home-scene-layer apartment-home-scene-to"
+                src={sceneTo}
+                alt=""
+                style={{ opacity: sceneMix }}
+              />
+            )}
         </div>
         <div className="apartment-scene-daylight" aria-hidden="true" />
         <div className="apartment-home-atmosphere" aria-hidden="true" />
