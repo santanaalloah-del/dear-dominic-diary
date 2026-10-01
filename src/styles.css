@@ -13638,3 +13638,25 @@ select {
     transition: none;
   }
 }
+
+/* HOME V2 · Living/Bath no-ghost transition
+   These two rooms use one dominant anchor image at a time because their
+   generated photos are not pixel-identical. This prevents double furniture
+   and double frames during the middle of a long crossfade. */
+.home-v2-scene-system[data-scene-transition="single-frame"]
+  .apartment-home-scene-single-frame {
+  animation: apartment-home-single-frame-in 320ms ease-out both;
+}
+
+@keyframes apartment-home-single-frame-in {
+  from { opacity: 0.72; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-v2-scene-system[data-scene-transition="single-frame"]
+    .apartment-home-scene-single-frame {
+    animation: none;
+  }
+}
+
