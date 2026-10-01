@@ -14336,3 +14336,53 @@ html[data-diario-time-theme="continuous"] .statusbar {
     transform: none;
   }
 }
+
+/* ============================================================
+   VISUAL PASS 02B — physical paper, not a card grid
+   ============================================================ */
+.more-screen .richer-index{
+  position:relative; display:grid!important; grid-template-columns:1fr 1fr!important;
+  gap:18px 13px!important; padding:34px 22px 42px!important; margin:28px 12px 0!important;
+  background:transparent!important; border:0!important; box-shadow:none!important; overflow:visible!important;
+}
+.more-screen .richer-index::before{content:"our little archive";position:absolute;top:0;left:30px;font:italic 13px/1 var(--font-hand);letter-spacing:.04em;color:var(--muted-foreground);transform:rotate(-2deg)}
+.more-screen .richer-index>button.index-object{position:relative!important;display:block!important;width:auto!important;min-height:132px!important;padding:44px 15px 16px!important;border:0!important;border-radius:2px!important;text-align:left!important;overflow:visible!important;box-shadow:2px 5px 14px rgba(75,35,29,.13)!important;background:#f8eee1!important;transform:rotate(-1.1deg)!important}
+.more-screen .richer-index>button.index-object:nth-child(even){transform:rotate(1deg)!important;background:#f4e6d7!important}
+.more-screen .richer-index>button.index-object:nth-child(3n){transform:rotate(.35deg)!important}
+.more-screen .richer-index>button.index-object::before{content:"";position:absolute;inset:7px;border:1px solid rgba(116,42,45,.16);pointer-events:none}
+.more-screen .richer-index>button.index-object::after{content:"";position:absolute;top:-7px;left:50%;width:48px;height:15px;background:rgba(226,194,178,.65);transform:translateX(-50%) rotate(-2deg);box-shadow:0 1px 2px rgba(60,30,20,.06)}
+.more-screen .richer-index .index-number{position:absolute!important;top:13px!important;left:14px!important;font:10px/1 var(--font-body)!important;letter-spacing:.12em!important;color:#9d5558!important}
+.more-screen .richer-index .index-icon{position:absolute!important;top:10px!important;right:12px!important;left:auto!important;width:28px!important;height:28px!important;border:0!important;border-radius:0!important;background:transparent!important;color:#6d2029!important}
+.more-screen .richer-index .index-icon svg{width:20px!important;height:20px!important}
+.more-screen .richer-index>button>div{padding:0!important}
+.more-screen .richer-index strong{font:30px/.92 var(--font-display)!important;font-weight:400!important;color:#4b171c!important;letter-spacing:-.02em!important}
+.more-screen .richer-index small{margin-top:8px!important;font:11px/1.25 var(--font-body)!important;color:#855c57!important;max-width:120px!important}
+.more-screen .richer-index>button>svg{display:none!important}
+.more-screen .richer-index .index-envelope{min-height:155px!important;background:#f0d9d3!important;clip-path:polygon(0 0,100% 0,100% 100%,0 100%)!important}
+.more-screen .richer-index .index-envelope::before{inset:0!important;border:1px solid rgba(109,32,41,.24)!important;background:linear-gradient(32deg,transparent 49%,rgba(109,32,41,.13) 50%,transparent 51%),linear-gradient(-32deg,transparent 49%,rgba(109,32,41,.13) 50%,transparent 51%)!important}
+.more-screen .richer-index .index-ticket{border-radius:9px!important;background:#ead8bd!important}
+.more-screen .richer-index .index-ticket::before{border-style:dashed!important}
+.more-screen .richer-index .index-photo{padding-top:54px!important;background:#fbf4e9!important}
+.more-screen .richer-index .index-photo::after{width:54px;height:17px;background:rgba(221,186,201,.68)}
+.more-screen .richer-index .index-record{border-radius:50%!important;aspect-ratio:1/1;min-height:0!important;padding:35% 20px 20px!important;background:#3a201f!important;text-align:center!important}
+.more-screen .richer-index .index-record::before{inset:22%!important;border-radius:50%!important;border:1px solid rgba(248,238,225,.4)!important;background:#7c3037!important}
+.more-screen .richer-index .index-record::after{display:none!important}.more-screen .richer-index .index-record strong,.more-screen .richer-index .index-record small,.more-screen .richer-index .index-record .index-number,.more-screen .richer-index .index-record .index-icon{color:#f8eee1!important}
+.more-screen .richer-index .index-tag{clip-path:polygon(0 0,88% 0,100% 50%,88% 100%,0 100%)!important;padding-right:28px!important}
+.more-screen .more-signoff{margin:22px 18px 120px!important;transform:rotate(-.4deg);border-radius:2px!important;background:#f6eadc!important}
+
+/* Diary is the sheet itself: remove the card-inside-card feeling. */
+.diary-screen.diary-live{padding-left:0!important;padding-right:0!important}
+.diary-screen.diary-live .screen-intro,.diary-screen.diary-live .diary-owner-tabs,.diary-screen.diary-live .diary-archive-preview{margin-left:28px!important;margin-right:28px!important}
+.diary-screen.diary-live .diary-owner-tabs{border-radius:3px!important;transform:rotate(-.35deg);box-shadow:2px 4px 10px rgba(72,31,29,.09)!important}
+.diary-screen.diary-live .diary-today-card{position:relative!important;margin:34px 13px 32px!important;padding:42px 36px 58px 58px!important;min-height:650px!important;border:0!important;border-radius:1px!important;background:repeating-linear-gradient(to bottom,#fbf3e7 0,#fbf3e7 31px,#dccfc4 32px)!important;box-shadow:3px 8px 24px rgba(67,32,25,.18)!important;transform:rotate(.45deg)!important;overflow:visible!important}
+.diary-screen.diary-live .diary-today-card::before{content:""!important;position:absolute!important;top:0!important;bottom:0!important;left:39px!important;width:1px!important;background:rgba(167,77,84,.35)!important;border:0!important;opacity:1!important}
+.diary-screen.diary-live .diary-today-card::after{content:""!important;position:absolute!important;top:-9px!important;left:50%!important;width:82px!important;height:20px!important;background:rgba(226,196,180,.72)!important;transform:translateX(-50%) rotate(-1.5deg)!important;box-shadow:0 1px 2px rgba(60,30,20,.07)!important;border:0!important;border-radius:0!important}
+.diary-screen.diary-live .diary-today-header{padding:0 0 18px!important;border-bottom:0!important;align-items:flex-start!important}
+.diary-screen.diary-live .diary-today-header strong{font-size:37px!important;font-weight:400!important}
+.diary-screen.diary-live .diary-today-header>small{background:transparent!important;border:1px solid rgba(109,32,41,.25)!important;border-radius:50%!important;padding:12px 9px!important;transform:rotate(7deg)!important;font-family:var(--font-hand)!important}
+.diary-screen.diary-live .diary-empty-page{border:0!important;border-radius:0!important;background:transparent!important;padding:44px 0 10px!important;box-shadow:none!important}
+.diary-screen.diary-live .diary-page-mark{position:absolute!important;right:27px!important;top:125px!important;border:0!important;background:transparent!important;font-size:24px!important;transform:rotate(12deg)!important}
+.diary-screen.diary-live .diary-empty-page h2{font:48px/.94 var(--font-display)!important;max-width:270px!important;margin-bottom:18px!important}
+.diary-screen.diary-live .diary-empty-page p{font:19px/1.65 var(--font-display)!important;max-width:310px!important;color:#73534c!important}
+.diary-screen.diary-live .diary-write-button{border-radius:2px!important;transform:rotate(-1deg)!important;box-shadow:2px 3px 0 rgba(72,23,28,.14)!important}
+.diary-screen.diary-live .diary-page-footer{border-top:1px solid rgba(109,32,41,.35)!important;margin-top:38px!important;padding-top:12px!important;font-family:var(--font-hand)!important}
