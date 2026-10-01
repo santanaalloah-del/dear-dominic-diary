@@ -15,20 +15,20 @@ import bedroom21 from "@/assets/home-bedroom-2100.png";
 import bedroom02 from "@/assets/home-bedroom-0200.png";
 
 import kitchen07 from "@/assets/home-kitchen-0700.jpeg";
-import kitchen11 from "@/assets/home-kitchen-1100.jpeg";
-import kitchen1740 from "@/assets/home-kitchen-1740.jpeg";
-import kitchen1830 from "@/assets/home-kitchen-1830.jpeg";
-import kitchen1910 from "@/assets/home-kitchen-1910.jpeg";
-import kitchen21 from "@/assets/home-kitchen-2100.jpeg";
-import kitchen02 from "@/assets/home-kitchen-0200.jpeg";
+import kitchen11 from "@/assets/home-kitchen-1100.png";
+import kitchen1740 from "@/assets/home-kitchen-1740.png";
+import kitchen1830 from "@/assets/home-kitchen-1830.png";
+import kitchen1910 from "@/assets/home-kitchen-1910.png";
+import kitchen21 from "@/assets/home-kitchen-2100.png";
+import kitchen02 from "@/assets/home-kitchen-0200.png";
 
-import bathroom07 from "@/assets/home-bathroom-0700.jpeg";
-import bathroom11 from "@/assets/home-bathroom-1100.jpeg";
-import bathroom1740 from "@/assets/home-bathroom-1740.jpeg";
-import bathroom1830 from "@/assets/home-bathroom-1830.jpeg";
-import bathroom1910 from "@/assets/home-bathroom-1910.jpeg";
-import bathroom21 from "@/assets/home-bathroom-2100.jpeg";
-import bathroom02 from "@/assets/home-bathroom-0200.jpeg";
+import bathroom07 from "@/assets/home-bathroom-0700.png";
+import bathroom11 from "@/assets/home-bathroom-1100.png";
+import bathroom1740 from "@/assets/home-bathroom-1740.png";
+import bathroom1830 from "@/assets/home-bathroom-1830.png";
+import bathroom1910 from "@/assets/home-bathroom-1910.png";
+import bathroom21 from "@/assets/home-bathroom-2100.png";
+import bathroom02 from "@/assets/home-bathroom-0200.png";
 
 import type { HomeSceneAnchor } from "@/lib/time-mood";
 
