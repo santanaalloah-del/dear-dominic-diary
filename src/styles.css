@@ -13510,14 +13510,14 @@ select {
 }
 
 /* =========================================
-   HOME V2 · PASS 3.1 · SCENE FRAMING
-   Keep the complete 4:3 neutral room base visible.
+   HOME V2 · PASS 4 · FURNISHED VERTICAL SCENES
+   iPhone-14-first framing for the approved furnished room bases.
    Screen-local only: App Shell / scroll / Bottom Nav untouched.
    ========================================= */
 .home-v2-scene-system .apartment-home-scene {
-  min-height: 0;
-  height: auto;
-  aspect-ratio: 4 / 3;
+  min-height: 640px;
+  height: calc(100dvh - 108px);
+  aspect-ratio: auto;
 }
 
 .home-v2-scene-system .apartment-home-scene-image {
@@ -13528,6 +13528,12 @@ select {
   transform: none;
   animation: apartment-room-fit-arrive .24s ease-out;
 }
+
+.home-v2-scene-system[data-home-room="living"] .apartment-home-scene-image { object-position: 50% 50%; }
+.home-v2-scene-system[data-home-room="bedroom"] .apartment-home-scene-image { object-position: 50% 50%; }
+.home-v2-scene-system[data-home-room="kitchen"] .apartment-home-scene-image { object-position: 50% 50%; }
+.home-v2-scene-system[data-home-room="bathroom"] .apartment-home-scene-image { object-position: 50% 50%; }
+.home-v2-scene-system[data-home-room="hall"] .apartment-home-scene-image { object-position: 50% 50%; }
 
 @keyframes apartment-room-fit-arrive {
   from { opacity: .76; }
