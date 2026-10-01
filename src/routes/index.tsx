@@ -757,6 +757,12 @@ function HomeScreen({
   const [dominicState, setDominicState] = useState<DominicState | null>(null);
   const [showFloorPlan, setShowFloorPlan] = useState(false);
   const [activeHomeRoom, setActiveHomeRoom] = useState("living");
+  const [homeKeepsakes, setHomeKeepsakes] = useState<DiarioItem[]>([]);
+  const [showLivingThings, setShowLivingThings] = useState(false);
+  const [livingThingTitle, setLivingThingTitle] = useState("");
+  const [livingThingNote, setLivingThingNote] = useState("");
+  const [savingLivingThing, setSavingLivingThing] = useState(false);
+  const [livingThingsError, setLivingThingsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -775,6 +781,26 @@ function HomeScreen({
     };
   }, [session?.user?.id]);
 
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    let cancelled = false;
+
+    getKeepsakes(session.user.id)
+      .then((items) => {
+        if (!cancelled) setHomeKeepsakes(items);
+      })
+      .catch((error) => {
+        console.error("Could not load Home keepsakes:", error);
+        if (!cancelled) {
+          setLivingThingsError("Our things could not be opened right now.");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
+
   const rooms = [
     { id: "living", label: "Living", title: "Living Room", image: livingRoomEmpty },
     { id: "bedroom", label: "Bedroom", title: "Bedroom", image: bedroomEmpty },
@@ -784,6 +810,23 @@ function HomeScreen({
   ];
 
   const activeRoom = rooms.find((room) => room.id === activeHomeRoom) ?? rooms[0];
+
+  const normalizeRoomKey = (value: unknown) =>
+    String(value ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+
+  const livingKeepsakes = homeKeepsakes.filter((item) => {
+    const location = item.data?.location === "stored" ? "stored" : "home";
+    const roomKey = normalizeRoomKey(item.data?.room);
+    return (
+      location === "home" &&
+      (roomKey === "living" || roomKey === "living room")
+    );
+  });
+
   const hasPhotoTimeline = hasHomeSceneTimeline(activeRoom.id);
   const sceneSet = hasPhotoTimeline ? HOME_SCENE_ASSETS[activeRoom.id] : null;
   const sceneFrom = sceneSet?.[time.homeScene.from] ?? activeRoom.image;
@@ -809,6 +852,58 @@ function HomeScreen({
   const chooseRoom = (roomId: string) => {
     setActiveHomeRoom(roomId);
     setShowFloorPlan(false);
+    setShowLivingThings(false);
+  };
+
+  const saveLivingThing = async () => {
+    if (!session?.user?.id || !livingThingTitle.trim() || savingLivingThing) {
+      return;
+    }
+
+    setSavingLivingThing(true);
+    setLivingThingsError(null);
+
+    try {
+      const saved = await createKeepsake({
+        userId: session.user.id,
+        title: livingThingTitle,
+        keepsakeType: "object",
+        location: "home",
+        room: "living",
+        origin: "Home · Living Room",
+        note: livingThingNote,
+      });
+
+      setHomeKeepsakes((current) => [saved, ...current]);
+      setLivingThingTitle("");
+      setLivingThingNote("");
+    } catch (error) {
+      console.error("Could not save Living Room keepsake:", error);
+      setLivingThingsError("This keepsake could not be saved.");
+    } finally {
+      setSavingLivingThing(false);
+    }
+  };
+
+  const storeLivingThing = async (keepsake: DiarioItem) => {
+    if (!session?.user?.id) return;
+
+    setLivingThingsError(null);
+
+    try {
+      const updated = await updateKeepsakeLocation({
+        userId: session.user.id,
+        keepsake,
+        location: "stored",
+      });
+
+      setHomeKeepsakes((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item))
+      );
+    } catch (error) {
+      console.error("Could not store Living Room keepsake:", error);
+      setLivingThingsError("This keepsake could not be stored.");
+    }
   };
 
   return (
@@ -877,6 +972,19 @@ function HomeScreen({
           </div>
         )}
 
+        {activeRoom.id === "living" && (
+          <button
+            type="button"
+            className="apartment-room-things-trigger"
+            onClick={() => setShowLivingThings(true)}
+            aria-label="Open Living Room keepsakes"
+          >
+            <BoxIcon size={13} aria-hidden="true" />
+            <span>Our things</span>
+            {livingKeepsakes.length > 0 && <b>{livingKeepsakes.length}</b>}
+          </button>
+        )}
+
         <button
           type="button"
           className="apartment-floor-plan-trigger"
@@ -899,6 +1007,100 @@ function HomeScreen({
           ))}
         </nav>
       </section>
+
+      {showLivingThings && activeRoom.id === "living" && (
+        <div
+          className="apartment-room-things-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Living Room keepsakes"
+        >
+          <button
+            type="button"
+            className="apartment-room-things-backdrop"
+            onClick={() => setShowLivingThings(false)}
+            aria-label="Close Living Room keepsakes"
+          />
+
+          <section className="apartment-room-things-sheet">
+            <header>
+              <div>
+                <small>LIVING ROOM</small>
+                <strong>Our things</strong>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLivingThings(false)}
+                aria-label="Close Living Room keepsakes"
+              >
+                ×
+              </button>
+            </header>
+
+            <p className="apartment-room-things-intro">
+              Little things that belong here. They stay connected to the real Keepsakes drawer.
+            </p>
+
+            <div className="apartment-room-things-list">
+              {livingKeepsakes.length === 0 ? (
+                <div className="apartment-room-things-empty">
+                  <BoxIcon size={20} aria-hidden="true" />
+                  <strong>Nothing lives here yet.</strong>
+                  <span>Add the first object you want the Living Room to remember.</span>
+                </div>
+              ) : (
+                livingKeepsakes.map((item) => (
+                  <article key={item.id} className="apartment-room-thing-card">
+                    <div className="apartment-room-thing-mark" aria-hidden="true">
+                      <BoxIcon size={15} />
+                    </div>
+                    <div>
+                      <small>{String(item.data?.keepsakeType ?? "object")}</small>
+                      <strong>{item.title ?? "Untitled keepsake"}</strong>
+                      {item.body && <p>{item.body}</p>}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void storeLivingThing(item)}
+                    >
+                      Store
+                    </button>
+                  </article>
+                ))
+              )}
+            </div>
+
+            <div className="apartment-room-thing-add">
+              <small>ADD TO THE ROOM</small>
+              <input
+                value={livingThingTitle}
+                onChange={(event) => setLivingThingTitle(event.target.value)}
+                placeholder="e.g. the little ceramic horse"
+                maxLength={80}
+              />
+              <textarea
+                value={livingThingNote}
+                onChange={(event) => setLivingThingNote(event.target.value)}
+                placeholder="Why does it matter? (optional)"
+                rows={2}
+              />
+              <button
+                type="button"
+                onClick={() => void saveLivingThing()}
+                disabled={!livingThingTitle.trim() || savingLivingThing}
+              >
+                {savingLivingThing ? "Saving…" : "Keep in Living Room"}
+              </button>
+            </div>
+
+            {livingThingsError && (
+              <p className="apartment-room-things-error" role="alert">
+                {livingThingsError}
+              </p>
+            )}
+          </section>
+        </div>
+      )}
 
       {showFloorPlan && (
         <div className="apartment-plan-overlay" role="dialog" aria-modal="true" aria-label="Apartment floor plan">
