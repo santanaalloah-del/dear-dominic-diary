@@ -58,6 +58,11 @@ import {
   isSpotifyConnected,
   searchSpotifyTracks,
   getSpotifyTopTracks,
+  getSpotifyPlaylists,
+  getSpotifyLikedTracks,
+  getSpotifyRecentlyPlayed,
+  getSpotifyPlaylistTracks,
+  type SpotifyPlaylist,
   type SpotifyTopRange,
   type SpotifyTrack,
 } from "@/lib/spotify";
@@ -9032,7 +9037,7 @@ function MusicScreen({
 
   const [musicSection, setMusicSection] =
   useState<
-    "library" | "playlists" | "queue" | "favorites"
+    "library" | "playlists" | "recent" | "queue" | "favorites"
   >("library");
 
   const [songs, setSongs] =
@@ -9105,6 +9110,14 @@ const [spotifyTopTracks, setSpotifyTopTracks] =
 
 const [loadingSpotifyTop, setLoadingSpotifyTop] =
   useState(false);
+
+const [spotifyPlaylists, setSpotifyPlaylists] = useState<SpotifyPlaylist[]>([]);
+const [spotifyLikedTracks, setSpotifyLikedTracks] = useState<SpotifyTrack[]>([]);
+const [spotifyRecentTracks, setSpotifyRecentTracks] = useState<SpotifyTrack[]>([]);
+const [selectedSpotifyPlaylist, setSelectedSpotifyPlaylist] = useState<SpotifyPlaylist | null>(null);
+const [spotifyPlaylistTracks, setSpotifyPlaylistTracks] = useState<SpotifyTrack[]>([]);
+const [spotifyLibraryLoading, setSpotifyLibraryLoading] = useState(false);
+
   
 const searchSpotify = async () => {
   if (!spotifyQuery.trim()) return;
@@ -9144,6 +9157,35 @@ const searchSpotify = async () => {
   setSpotifyResults([]);
   setSpotifyQuery(track.name);
 };
+
+  useEffect(() => {
+  if (musicView !== "mine" || !isSpotifyConnected()) return;
+  let active = true;
+  setSpotifyLibraryLoading(true);
+  Promise.all([
+    getSpotifyPlaylists(),
+    getSpotifyLikedTracks(),
+    getSpotifyRecentlyPlayed(),
+  ]).then(([playlists, liked, recent]) => {
+    if (!active) return;
+    setSpotifyPlaylists(playlists);
+    setSpotifyLikedTracks(liked);
+    setSpotifyRecentTracks(recent);
+  }).catch((error) => {
+    console.error("Could not load Spotify library:", error);
+    if (active) setMusicError("Reconnect Spotify once so the Diário can read your playlists, Liked Songs and recent music.");
+  }).finally(() => {
+    if (active) setSpotifyLibraryLoading(false);
+  });
+  return () => { active = false; };
+}, [musicView]);
+
+  useEffect(() => {
+  if (!isSpotifyConnected()) return;
+  void initializeSpotifyPlayer().catch((error) => {
+    console.warn("Spotify player is waiting for a user gesture:", error);
+  });
+}, []);
 
   useEffect(() => {
   let active = true;
@@ -9658,109 +9700,36 @@ setAddingSong(false);
   </p>
 </ScreenIntro>
 
-      {spotifyPlayerState?.track && (
-  <section className="spotify-live-player">
-    <div className="spotify-live-cover">
-      {spotifyPlayerState.track.coverUrl ? (
-        <img
-          src={spotifyPlayerState.track.coverUrl}
-          alt=""
-        />
-      ) : (
-        <Disc3
-          size={30}
-          strokeWidth={1.25}
-        />
-      )}
-    </div>
-
-    <div className="spotify-live-info">
-      <small>
-        DIÁRIO PLAYER
-      </small>
-
-      <strong>
-        {spotifyPlayerState.track.name}
-      </strong>
-
-      <span>
-        {spotifyPlayerState.track.artist}
-      </span>
-
-    <button
-  type="button"
-  className="spotify-live-progress"
-  aria-label="Move through song"
-  onClick={(event) => {
-    const rect =
-      event.currentTarget.getBoundingClientRect();
-
-    const percent =
-      ((event.clientX - rect.left) /
-        rect.width) *
-      100;
-
-    void seekSpotifyToPercent(percent);
-  }}
->
-  <span
-    style={{
-      width: `${spotifyProgressPercent}%`,
-    }}
-  />
-</button>
-    </div>
-
-    <div className="spotify-live-controls">
-      <button
-        type="button"
-        onClick={() =>
-          void previousSpotifyTrack()
-        }
-      >
-        ‹
-      </button>
-
-      <button
-  type="button"
-  onClick={() => {
-    setSpotifyQueueOpen(
-      (current) => !current
-    );
-
-    void refreshSpotifyQueue();
-  }}
->
-  <ListPlus size={13} />
-  <span>play next</span>
-</button>
-
-      <button
-        type="button"
-        onClick={() =>
-          void (
-            spotifyPlayerState.paused
-              ? resumeSpotifyPlayback()
-              : pauseSpotifyPlayback()
-          )
-        }
-      >
-        {spotifyPlayerState.paused
-          ? "play"
-          : "pause"}
-      </button>
-
-      <button
-        type="button"
-        onClick={() =>
-          void nextSpotifyTrack()
-        }
-      >
-        ›
-      </button>
-    </div>
-  </section>
-)}
+      <section className={`spotify-live-player ${spotifyPlayerState?.track ? "is-playing" : "is-idle"}`}>
+        {spotifyPlayerState?.track ? (
+          <>
+            <div className="spotify-live-cover">
+              {spotifyPlayerState.track.coverUrl ? <img src={spotifyPlayerState.track.coverUrl} alt="" /> : <Disc3 size={30} strokeWidth={1.25} />}
+            </div>
+            <div className="spotify-live-info">
+              <small>NOW PLAYING · SPOTIFY</small>
+              <strong>{spotifyPlayerState.track.name}</strong>
+              <span>{spotifyPlayerState.track.artist}</span>
+              <button type="button" className="spotify-live-progress" aria-label="Move through song" onClick={(event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                void seekSpotifyToPercent(((event.clientX - rect.left) / rect.width) * 100);
+              }}><span style={{ width: `${spotifyProgressPercent}%` }} /></button>
+            </div>
+            <div className="spotify-live-controls">
+              <button type="button" aria-label="Previous" onClick={() => void previousSpotifyTrack()}>‹</button>
+              <button type="button" className="spotify-main-play" onClick={() => void (spotifyPlayerState.paused ? resumeSpotifyPlayback() : pauseSpotifyPlayback())}>{spotifyPlayerState.paused ? <Play size={16} fill="currentColor" /> : "Ⅱ"}</button>
+              <button type="button" aria-label="Next" onClick={() => void nextSpotifyTrack()}>›</button>
+              <button type="button" className="spotify-queue-toggle" onClick={() => { setSpotifyQueueOpen((current) => !current); void refreshSpotifyQueue(); }}><ListPlus size={14} /><span>queue</span></button>
+            </div>
+          </>
+        ) : (
+          <div className="spotify-idle-state">
+            <div className="spotify-idle-record"><Disc3 size={30} strokeWidth={1.1} /></div>
+            <div><small>SPOTIFY · DIÁRIO PLAYER</small><strong>Your music, right here.</strong><span>Play a track below and it will stay here while you wander through the Diário.</span></div>
+            <button type="button" onClick={() => void connectSpotify()}>{isSpotifyConnected() ? "Reconnect Spotify" : "Connect Spotify"}</button>
+          </div>
+        )}
+      </section>
 
       {spotifyQueueOpen && (
   <section className="spotify-queue-panel">
@@ -9822,6 +9791,7 @@ setAddingSong(false);
   </section>
 )}
 
+      {musicView === "mine" && (
             <section className="spotify-top-rotation">
         <header>
           <div>
@@ -9990,6 +9960,7 @@ setAddingSong(false);
           </div>
         )}
       </section>
+      )}
       
       <div
         className="music-tabs"
@@ -10062,6 +10033,7 @@ setAddingSong(false);
   {[
     ["library", "Library"],
     ["playlists", "Playlists"],
+    ["recent", "Recent"],
     ["queue", "Queue"],
     ["favorites", "Favorites"],
   ].map(([id, label]) => (
@@ -10082,6 +10054,7 @@ setAddingSong(false);
           id as
             | "library"
             | "playlists"
+            | "recent"
             | "queue"
             | "favorites"
         );
@@ -10096,77 +10069,62 @@ setAddingSong(false);
   ))}
 </div>
 
-{musicSection === "playlists" && (
-  <section className="music-playlist-board">
-    <header>
-      <div>
-        <span>
-          playlist
-        </span>
-
-        <strong>
-          {playlistTitle}
-        </strong>
-      </div>
-
-      <small>
-        {visibleSongs.length} songs
-      </small>
+{musicSection === "playlists" && musicView === "mine" && (
+  <section className="spotify-library-paper">
+    <header className="spotify-library-heading">
+      <div><span>from your Spotify</span><strong>Your playlists</strong></div>
+      <small>{spotifyLibraryLoading ? "loading…" : `${spotifyPlaylists.length} playlists`}</small>
     </header>
-
-    <div className="music-playlist-cover">
-      {visibleSongs
-        .slice(0, 4)
-        .map((song) => {
-          const coverUrl =
-            typeof song.data?.coverUrl ===
-            "string"
-              ? song.data.coverUrl
-              : null;
-
-          return coverUrl ? (
-            <img
-              key={song.id}
-              src={coverUrl}
-              alt=""
-            />
-          ) : (
-            <div key={song.id}>
-              <Disc3
-                size={20}
-                strokeWidth={1.25}
-              />
-            </div>
-          );
-        })}
-
-      {visibleSongs.length === 0 && (
-        <div>
-          <Disc3
-            size={28}
-            strokeWidth={1.25}
-          />
+    {selectedSpotifyPlaylist ? (
+      <>
+        <button className="spotify-library-back" type="button" onClick={() => { setSelectedSpotifyPlaylist(null); setSpotifyPlaylistTracks([]); }}>← all playlists</button>
+        <div className="spotify-selected-playlist">
+          {selectedSpotifyPlaylist.coverUrl && <img src={selectedSpotifyPlaylist.coverUrl} alt="" />}
+          <div><small>PLAYLIST</small><strong>{selectedSpotifyPlaylist.name}</strong><span>{selectedSpotifyPlaylist.owner}</span></div>
         </div>
-      )}
+        <div className="spotify-compact-track-list">
+          {spotifyPlaylistTracks.map((track) => (
+            <button key={track.id} type="button" onClick={() => playSpotifyTopTrack(track)}>
+              {track.coverUrl ? <img src={track.coverUrl} alt="" /> : <Disc3 size={18} />}
+              <span><strong>{track.name}</strong><small>{track.artists.join(", ")}</small></span><Play size={13} fill="currentColor" />
+            </button>
+          ))}
+        </div>
+      </>
+    ) : (
+      <div className="spotify-playlist-grid">
+        {spotifyPlaylists.map((playlist) => (
+          <button key={playlist.id} type="button" onClick={() => {
+            setSelectedSpotifyPlaylist(playlist);
+            setSpotifyPlaylistTracks([]);
+            void getSpotifyPlaylistTracks(playlist.id).then(setSpotifyPlaylistTracks).catch((error) => { console.error(error); setMusicError("Could not open this Spotify playlist."); });
+          }}>
+            <div className="spotify-playlist-art">{playlist.coverUrl ? <img src={playlist.coverUrl} alt="" /> : <Disc3 size={24} />}</div>
+            <strong>{playlist.name}</strong><span>{playlist.trackCount} tracks</span>
+          </button>
+        ))}
+      </div>
+    )}
+  </section>
+)}
+
+{musicSection === "playlists" && musicView !== "mine" && (
+  <section className="music-playlist-board"><header><div><span>playlist</span><strong>{playlistTitle}</strong></div><small>{visibleSongs.length} songs</small></header><p>{musicView === "ours" ? "Songs that became part of your story together live here." : "Dominic's own playlists will grow here with his musical autonomy."}</p></section>
+)}
+
+{musicSection === "recent" && (
+  <section className="spotify-library-paper">
+    <header className="spotify-library-heading"><div><span>listening history</span><strong>{musicView === "mine" ? "Recently played" : musicView === "dominic" ? "Dominic recently" : "Recently together"}</strong></div></header>
+    {musicView === "mine" ? <div className="spotify-compact-track-list">{spotifyRecentTracks.map((track) => <button key={track.id} type="button" onClick={() => playSpotifyTopTrack(track)}>{track.coverUrl ? <img src={track.coverUrl} alt="" /> : <Disc3 size={18} />}<span><strong>{track.name}</strong><small>{track.artists.join(", ")}</small></span><Play size={13} fill="currentColor" /></button>)}</div> : <p className="music-empty-note">This history will appear when {musicView === "dominic" ? "Dominic starts listening on his own." : "you actually listen together."}</p>}
+  </section>
+)}
+
+{musicSection === "favorites" && musicView === "mine" && (
+  <section className="spotify-library-paper">
+    <header className="spotify-library-heading"><div><span>from your Spotify</span><strong>Liked Songs</strong></div><small>{spotifyLibraryLoading ? "loading…" : `${spotifyLikedTracks.length} liked`}</small></header>
+    <div className="spotify-compact-track-list">
+      {spotifyLikedTracks.map((track) => <button key={track.id} type="button" onClick={() => playSpotifyTopTrack(track)}>{track.coverUrl ? <img src={track.coverUrl} alt="" /> : <Disc3 size={18} />}<span><strong>{track.name}</strong><small>{track.artists.join(", ")}</small></span><Play size={13} fill="currentColor" /></button>)}
     </div>
-
-    <p>
-      {musicView === "ours"
-        ? "Songs added to both of you collect here like a shared playlist."
-        : musicView === "dominic"
-          ? "Dominic's saved songs, favorites and future playlists live here."
-          : "Your saved songs from Spotify and the Diário library live here."}
-    </p>
-
-    <button
-      type="button"
-      className="gallery-add-button"
-      onClick={() =>
-        setAddingSong(true)
-      }
-    >
-      ＋ Add song
-    </button>
   </section>
 )}
 
@@ -10230,7 +10188,7 @@ setAddingSong(false);
   </section>
 )}
       
-      {addingSong ? (
+      {musicSection !== "library" && !(musicSection === "favorites" && musicView !== "mine") ? null : addingSong ? (
         <section className="music-empty">
           <small>
             new song
