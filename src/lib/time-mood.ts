@@ -2,6 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 
 export type TimeMood = "early" | "morning" | "afternoon" | "golden" | "night" | "late";
 
+export type HomeSceneAnchor =
+  | "02:00"
+  | "07:00"
+  | "11:00"
+  | "17:40"
+  | "18:30"
+  | "19:10"
+  | "21:00";
+
+export type HomeSceneBlend = {
+  from: HomeSceneAnchor;
+  to: HomeSceneAnchor;
+  amount: number;
+};
+
 export type TimeMoodState = {
   mood: TimeMood;
   hour: number;
@@ -11,6 +26,7 @@ export type TimeMoodState = {
   dateLabel: string;
   greeting: string;
   homeLine: string;
+  homeScene: HomeSceneBlend;
   homeLight: {
     phase: "late-night" | "morning" | "day" | "afternoon" | "golden" | "dusk" | "night";
     naturalLight: number;
@@ -47,6 +63,53 @@ const HOME_LIGHT_KEYFRAMES: HomeLightKeyframe[] = [
 
 function mix(a: number, b: number, amount: number) {
   return a + (b - a) * amount;
+}
+
+type HomeSceneKeyframe = {
+  minute: number;
+  anchor: HomeSceneAnchor;
+};
+
+const HOME_SCENE_KEYFRAMES: HomeSceneKeyframe[] = [
+  { minute: 120, anchor: "02:00" },
+  { minute: 420, anchor: "07:00" },
+  { minute: 660, anchor: "11:00" },
+  { minute: 1060, anchor: "17:40" },
+  { minute: 1110, anchor: "18:30" },
+  { minute: 1150, anchor: "19:10" },
+  { minute: 1260, anchor: "21:00" },
+  { minute: 1560, anchor: "02:00" },
+];
+
+function smoothstep(value: number) {
+  const t = Math.min(1, Math.max(0, value));
+  return t * t * (3 - 2 * t);
+}
+
+function getHomeSceneBlend(totalMinutes: number): HomeSceneBlend {
+  // 00:00–01:59 belongs to the previous evening → 02:00 transition.
+  const minute = totalMinutes < 120 ? totalMinutes + 1440 : totalMinutes;
+  let left = HOME_SCENE_KEYFRAMES[0];
+  let right = HOME_SCENE_KEYFRAMES[1];
+
+  for (let index = 0; index < HOME_SCENE_KEYFRAMES.length - 1; index += 1) {
+    const current = HOME_SCENE_KEYFRAMES[index];
+    const next = HOME_SCENE_KEYFRAMES[index + 1];
+    if (minute >= current.minute && minute <= next.minute) {
+      left = current;
+      right = next;
+      break;
+    }
+  }
+
+  const span = Math.max(1, right.minute - left.minute);
+  const linear = (minute - left.minute) / span;
+
+  return {
+    from: left.anchor,
+    to: right.anchor,
+    amount: smoothstep(linear),
+  };
 }
 
 function getHomeLight(totalMinutes: number): TimeMoodState["homeLight"] {
@@ -97,6 +160,7 @@ export function getTimeMood(date = new Date()): TimeMoodState {
   const totalMinutes = hour * 60 + minute;
 const dayProgress = totalMinutes / (24 * 60);
   const homeLight = getHomeLight(totalMinutes);
+  const homeScene = getHomeSceneBlend(totalMinutes);
 
   let mood: TimeMood;
   if (hour >= 4 && hour < 8) mood = "early";
@@ -138,6 +202,7 @@ return {
   hour,
   minute,
   dayProgress,
+  homeScene,
   homeLight,
   timeLabel: new Intl.DateTimeFormat("en-US", {
       timeZone: TIME_ZONE,
