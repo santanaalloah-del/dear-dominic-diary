@@ -21,6 +21,10 @@ const SPOTIFY_SCOPES = [
   "user-read-currently-playing",
   "user-modify-playback-state",
   "user-top-read",
+  "playlist-read-private",
+  "playlist-read-collaborative",
+  "user-library-read",
+  "user-read-recently-played",
 ].join(" ");
 
 type SpotifyToken = {
@@ -607,4 +611,74 @@ export async function getSpotifyTopTracks(
         track.duration_ms ?? 0,
     })
   );
+}
+
+
+export type SpotifyPlaylist = {
+  id: string;
+  name: string;
+  uri: string;
+  externalUrl: string;
+  coverUrl: string | null;
+  owner: string;
+  trackCount: number;
+};
+
+const mapSpotifyTrack = (track: any): SpotifyTrack => ({
+  id: track.id,
+  name: track.name,
+  uri: track.uri,
+  externalUrl: track.external_urls?.spotify ?? "",
+  artists: track.artists?.map((artist: any) => artist.name) ?? [],
+  album: track.album?.name ?? "",
+  coverUrl: track.album?.images?.[0]?.url ?? null,
+  durationMs: track.duration_ms ?? 0,
+});
+
+async function spotifyGet(path: string) {
+  const accessToken = await getSpotifyAccessToken();
+  if (!accessToken) throw new Error("Spotify is not connected.");
+  const response = await fetch(`https://api.spotify.com/v1${path}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Spotify library failed (${response.status}): ${body}`);
+  }
+  return response.json();
+}
+
+export async function getSpotifyPlaylists(): Promise<SpotifyPlaylist[]> {
+  const data = await spotifyGet("/me/playlists?limit=50");
+  return (data.items ?? []).filter(Boolean).map((playlist: any) => ({
+    id: playlist.id,
+    name: playlist.name,
+    uri: playlist.uri,
+    externalUrl: playlist.external_urls?.spotify ?? "",
+    coverUrl: playlist.images?.[0]?.url ?? null,
+    owner: playlist.owner?.display_name ?? playlist.owner?.id ?? "Spotify",
+    trackCount: playlist.items?.total ?? playlist.tracks?.total ?? 0,
+  }));
+}
+
+export async function getSpotifyLikedTracks(): Promise<SpotifyTrack[]> {
+  const data = await spotifyGet("/me/tracks?limit=50");
+  return (data.items ?? []).map((item: any) => item.track).filter(Boolean).map(mapSpotifyTrack);
+}
+
+export async function getSpotifyRecentlyPlayed(): Promise<SpotifyTrack[]> {
+  const data = await spotifyGet("/me/player/recently-played?limit=20");
+  const seen = new Set<string>();
+  return (data.items ?? [])
+    .map((item: any) => item.track)
+    .filter((track: any) => track && !seen.has(track.id) && seen.add(track.id))
+    .map(mapSpotifyTrack);
+}
+
+export async function getSpotifyPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]> {
+  const data = await spotifyGet(`/playlists/${encodeURIComponent(playlistId)}/items?limit=50`);
+  return (data.items ?? [])
+    .map((item: any) => item.item ?? item.track)
+    .filter((track: any) => track?.type === "track")
+    .map(mapSpotifyTrack);
 }
