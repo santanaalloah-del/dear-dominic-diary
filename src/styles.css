@@ -13940,3 +13940,36 @@ select {
   font-size: 10px;
   line-height: 1.4;
 }
+
+/* HOME V2 · OUR THINGS · all rooms + mobile sheet fix */
+.apartment-room-things-overlay {
+  z-index: 91;
+  pointer-events: auto;
+}
+
+.apartment-room-things-sheet {
+  box-sizing: border-box;
+  width: 100%;
+  max-height: calc(100dvh - 92px);
+  padding-bottom: calc(
+    var(--app-nav-height) +
+    var(--app-nav-bottom) +
+    28px +
+    env(safe-area-inset-bottom)
+  );
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+
+.apartment-room-thing-add {
+  scroll-margin-bottom: calc(var(--app-nav-height) + 36px);
+}
+
+.apartment-room-thing-add > button {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+}
