@@ -13591,3 +13591,50 @@ select {
     72px
   );
 }
+
+/* =========================================================
+   HOME V2 · PHOTO TIMELINE CROSSFADE
+   Seven real photographed/rendered lighting anchors per room.
+   No fake dark filter: the room changes by crossfading photos.
+   Home-only. App Shell / global scroll / Bottom Nav untouched.
+   ========================================================= */
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-scene-daylight,
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-atmosphere {
+  display: none;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-scene-base {
+  background: #1e1716;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-image {
+  filter: none;
+  transform: none;
+  animation: none;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  will-change: opacity;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-from {
+  z-index: 0;
+  opacity: 1;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-to {
+  z-index: 1;
+  transition: opacity 28s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-to {
+    transition: none;
+  }
+}
