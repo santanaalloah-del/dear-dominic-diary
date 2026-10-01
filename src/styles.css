@@ -13539,3 +13539,55 @@ select {
   from { opacity: .76; }
   to { opacity: 1; }
 }
+
+
+/* =========================================
+   HOME V2 · PASS 4.2 · FIXED HOME SCENE
+   Home only: the apartment is a fixed viewport scene.
+   Other screens keep their existing local scroll behavior.
+   ========================================= */
+
+/* The App Shell already identifies the active screen with screen-home.
+   Disable scrolling ONLY for Home; do not change global .screen-scroll. */
+.app-shell-content.screen-home {
+  overflow: hidden;
+  overscroll-behavior: none;
+  padding-bottom: 0;
+  scroll-padding-bottom: 0;
+}
+
+/* Home occupies the complete content viewport below the native/app header. */
+.screen-home > .home-v2-scene-system {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+/* The room image is the Home itself: no page content exists below it. */
+.screen-home .home-v2-scene-system .apartment-home-scene {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  aspect-ratio: auto;
+}
+
+/* Keep the room selector above the floating global Bottom Nav. */
+.screen-home .home-v2-scene-system .apartment-home-room-nav {
+  bottom: calc(
+    var(--app-nav-height) +
+    var(--app-nav-bottom) +
+    14px
+  );
+}
+
+/* Floor Plan sits just above the room selector. */
+.screen-home .home-v2-scene-system .apartment-floor-plan-trigger {
+  bottom: calc(
+    var(--app-nav-height) +
+    var(--app-nav-bottom) +
+    72px
+  );
+}
