@@ -13401,58 +13401,1410 @@ select {
 
 
 /* =========================================
-   HOME V2 · PASS 2 · LIVING SCENE FOUNDATION
-   One persistent apartment scene with room switching and layered objects.
-   Screen-local only; shell and scroll ownership remain untouched.
+   HOME V2 · PASS 2 · IN-HOME ROOM SWITCHING
+   Screen-local only. Scroll ownership stays unchanged.
    ========================================= */
-.home-scene-v2 { padding-bottom: 104px; }
-.home-scene-v2 .apartment-home-scene {
-  min-height: min(690px, 79dvh);
+.home-v2-scene-system { padding-bottom: 104px; }
+.home-v2-scene-system .apartment-home-scene {
+  min-height: min(690px, calc(100dvh - 122px));
   margin-top: 0;
 }
-.home-scene-v2 .apartment-scene-base,
-.home-scene-v2 .apartment-scene-window-light,
-.home-scene-v2 .apartment-scene-object-layer {
-  position: absolute;
-  inset: 0;
-}
-.home-scene-v2 .apartment-scene-base { z-index: 0; }
-.home-scene-v2 .apartment-scene-window-light {
+.home-v2-scene-system .apartment-scene-base,
+.home-v2-scene-system .apartment-scene-daylight,
+.home-v2-scene-system .apartment-scene-objects { position: absolute; inset: 0; }
+.home-v2-scene-system .apartment-scene-base { z-index: 0; overflow: hidden; }
+.home-v2-scene-system .apartment-scene-daylight {
   z-index: 1;
   pointer-events: none;
-  opacity: calc(.08 + var(--home-warmth, 0) * .18);
-  background: radial-gradient(
-    ellipse at var(--home-shadow-position, 55%) 42%,
-    rgb(255 207 146 / .42),
-    transparent 48%
-  );
-  mix-blend-mode: screen;
+  background: radial-gradient(circle at var(--home-shadow-position, 58%) 24%, rgb(255 215 164 / calc(var(--home-warmth, 0) * .10)), transparent 48%);
 }
-.home-scene-v2 .apartment-home-atmosphere { z-index: 2; }
-.home-scene-v2 .apartment-scene-object-layer {
-  z-index: 3;
-  pointer-events: none;
-  overflow: hidden;
+.home-v2-scene-system .apartment-home-atmosphere { z-index: 2; }
+.home-v2-scene-system .apartment-scene-objects { z-index: 3; pointer-events: none; }
+.home-v2-scene-system .apartment-home-heading,
+.home-v2-scene-system .apartment-home-dominic,
+.home-v2-scene-system .apartment-home-room-nav,
+.home-v2-scene-system .apartment-floor-plan-trigger { z-index: 5; }
+.home-v2-scene-system .apartment-home-scene-image { animation: apartment-room-arrive .28s ease-out; }
+@keyframes apartment-room-arrive {
+  from { opacity: .72; transform: scale(1.018); }
+  to { opacity: 1; transform: scale(1.01); }
 }
-.home-scene-v2 .apartment-scene-object {
+.home-v2-scene-system .apartment-floor-plan-trigger {
   position: absolute;
-  height: auto;
-  transform: translate(-50%, -50%);
-  transform-origin: center bottom;
-  filter:
-    brightness(calc(.80 + var(--home-natural-light, .8) * .22))
-    saturate(calc(.86 + var(--home-natural-light, .8) * .14))
-    sepia(calc(var(--home-warmth, 0) * .06));
-  transition: filter .6s ease;
+  right: 16px;
+  bottom: 72px;
+  min-width: 92px;
+  padding: 9px 12px;
+  border: 1px solid rgb(255 255 255 / .42);
+  border-radius: 999px;
+  color: white;
+  background: rgb(45 22 27 / .52);
+  backdrop-filter: blur(12px);
+  font: 700 8px var(--font-body);
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
-.home-scene-v2 .apartment-home-heading,
-.home-scene-v2 .apartment-home-dominic,
-.home-scene-v2 .apartment-home-actions,
-.home-scene-v2 .apartment-home-room-nav { z-index: 5; }
-.home-scene-v2 .apartment-home-heading > div:first-child strong { font-size: 39px; }
-.home-scene-v2 .apartment-home-room-nav button:first-child { background: transparent; color: rgb(255 255 255 / .92); }
-.home-scene-v2 .apartment-home-room-nav button.is-active {
+.home-v2-scene-system .apartment-home-room-nav button:first-child {
+  background: transparent;
+  color: rgb(255 255 255 / .92);
+}
+.home-v2-scene-system .apartment-home-room-nav button.is-active {
   background: rgb(255 246 239 / .94);
   color: var(--wine-deep);
 }
-.home-scene-v2 .apartment-home-actions button:first-child::before { content: "✦ "; }
+.home-v2-scene-system .apartment-home-note,
+.home-v2-scene-system .apartment-home-actions { display: none; }
+
+
+/* =========================================
+   HOME V2 · PASS 2 FIX · IN-HOME ROOM SWITCHING
+   Screen-local only. Scroll/App Shell untouched.
+   ========================================= */
+.home-v2-scene-system { padding-bottom: 104px; }
+.home-v2-scene-system .apartment-home-scene {
+  min-height: min(690px, calc(100dvh - 122px));
+  margin-top: 0;
+}
+.home-v2-scene-system .apartment-scene-base,
+.home-v2-scene-system .apartment-scene-daylight,
+.home-v2-scene-system .apartment-scene-objects { position: absolute; inset: 0; }
+.home-v2-scene-system .apartment-scene-base { z-index: 0; overflow: hidden; }
+.home-v2-scene-system .apartment-scene-daylight {
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--home-shadow-position, 58%) 24%, rgb(255 215 164 / calc(var(--home-warmth, 0) * .10)), transparent 48%);
+}
+.home-v2-scene-system .apartment-home-atmosphere { z-index: 2; }
+.home-v2-scene-system .apartment-scene-objects { z-index: 3; pointer-events: none; }
+.home-v2-scene-system .apartment-home-heading,
+.home-v2-scene-system .apartment-home-dominic,
+.home-v2-scene-system .apartment-home-room-nav,
+.home-v2-scene-system .apartment-floor-plan-trigger { z-index: 5; }
+.home-v2-scene-system .apartment-home-scene-image { animation: apartment-room-arrive .28s ease-out; }
+@keyframes apartment-room-arrive {
+  from { opacity: .72; transform: scale(1.018); }
+  to { opacity: 1; transform: scale(1.01); }
+}
+.home-v2-scene-system .apartment-floor-plan-trigger {
+  position: absolute;
+  right: 16px;
+  bottom: 72px;
+  min-width: 92px;
+  padding: 9px 12px;
+  border: 1px solid rgb(255 255 255 / .42);
+  border-radius: 999px;
+  color: white;
+  background: rgb(45 22 27 / .52);
+  backdrop-filter: blur(12px);
+  font: 700 8px var(--font-body);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.home-v2-scene-system .apartment-home-room-nav button:first-child {
+  background: transparent;
+  color: rgb(255 255 255 / .92);
+}
+.home-v2-scene-system .apartment-home-room-nav button.is-active {
+  background: rgb(255 246 239 / .94);
+  color: var(--wine-deep);
+}
+
+/* =========================================
+   HOME V2 · PASS 4 · FURNISHED VERTICAL SCENES
+   iPhone-14-first framing for the approved furnished room bases.
+   Screen-local only: App Shell / scroll / Bottom Nav untouched.
+   ========================================= */
+.home-v2-scene-system .apartment-home-scene {
+  min-height: 640px;
+  height: calc(100dvh - 108px);
+  aspect-ratio: auto;
+}
+
+.home-v2-scene-system .apartment-home-scene-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  transform: none;
+  animation: apartment-room-fit-arrive .24s ease-out;
+}
+
+.home-v2-scene-system[data-home-room="living"] .apartment-home-scene-image { object-position: 50% 50%; }
+.home-v2-scene-system[data-home-room="bedroom"] .apartment-home-scene-image { object-position: 50% 50%; }
+.home-v2-scene-system[data-home-room="kitchen"] .apartment-home-scene-image { object-position: 50% 50%; }
+.home-v2-scene-system[data-home-room="bathroom"] .apartment-home-scene-image { object-position: 50% 50%; }
+.home-v2-scene-system[data-home-room="hall"] .apartment-home-scene-image { object-position: 50% 50%; }
+
+@keyframes apartment-room-fit-arrive {
+  from { opacity: .76; }
+  to { opacity: 1; }
+}
+
+
+/* =========================================
+   HOME V2 · PASS 4.2 · FIXED HOME SCENE
+   Home only: the apartment is a fixed viewport scene.
+   Other screens keep their existing local scroll behavior.
+   ========================================= */
+
+/* The App Shell already identifies the active screen with screen-home.
+   Disable scrolling ONLY for Home; do not change global .screen-scroll. */
+.app-shell-content.screen-home {
+  overflow: hidden;
+  overscroll-behavior: none;
+  padding-bottom: 0;
+  scroll-padding-bottom: 0;
+}
+
+/* Home occupies the complete content viewport below the native/app header. */
+.screen-home > .home-v2-scene-system {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+/* The room image is the Home itself: no page content exists below it. */
+.screen-home .home-v2-scene-system .apartment-home-scene {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  aspect-ratio: auto;
+}
+
+/* Keep the room selector above the floating global Bottom Nav. */
+.screen-home .home-v2-scene-system .apartment-home-room-nav {
+  bottom: calc(
+    var(--app-nav-height) +
+    var(--app-nav-bottom) +
+    14px
+  );
+}
+
+/* Floor Plan sits just above the room selector. */
+.screen-home .home-v2-scene-system .apartment-floor-plan-trigger {
+  bottom: calc(
+    var(--app-nav-height) +
+    var(--app-nav-bottom) +
+    72px
+  );
+}
+
+/* =========================================================
+   HOME V2 · PHOTO TIMELINE CROSSFADE
+   Seven real photographed/rendered lighting anchors per room.
+   No fake dark filter: the room changes by crossfading photos.
+   Home-only. App Shell / global scroll / Bottom Nav untouched.
+   ========================================================= */
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-scene-daylight,
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-atmosphere {
+  display: none;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-scene-base {
+  background: #1e1716;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-image {
+  filter: none;
+  transform: none;
+  animation: none;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  will-change: opacity;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-from {
+  z-index: 0;
+  opacity: 1;
+}
+
+.home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-to {
+  z-index: 1;
+  transition: opacity 28s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-v2-scene-system[data-photo-timeline="true"] .apartment-home-scene-to {
+    transition: none;
+  }
+}
+
+/* HOME V2 · Living/Bath no-ghost transition
+   These two rooms use one dominant anchor image at a time because their
+   generated photos are not pixel-identical. This prevents double furniture
+   and double frames during the middle of a long crossfade. */
+.home-v2-scene-system[data-scene-transition="single-frame"]
+  .apartment-home-scene-single-frame {
+  animation: apartment-home-single-frame-in 320ms ease-out both;
+}
+
+@keyframes apartment-home-single-frame-in {
+  from { opacity: 0.72; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-v2-scene-system[data-scene-transition="single-frame"]
+    .apartment-home-scene-single-frame {
+    animation: none;
+  }
+}
+
+
+/* =========================================================
+   HOME V2 · LIVING ROOM KEEPSAKES · PROOF OF CONCEPT
+   Home-only. Uses the existing keepsake data model.
+   App Shell / global scroll / Bottom Nav untouched.
+   ========================================================= */
+.home-v2-scene-system .apartment-room-things-trigger {
+  position: absolute;
+  z-index: 6;
+  left: 16px;
+  bottom: calc(
+    var(--app-nav-height) +
+    var(--app-nav-bottom) +
+    72px
+  );
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 8px 11px;
+  border: 1px solid rgb(255 255 255 / .42);
+  border-radius: 999px;
+  color: white;
+  background: rgb(45 22 27 / .52);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgb(0 0 0 / .14);
+  font: 700 8px var(--font-body);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.home-v2-scene-system .apartment-room-things-trigger svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.6;
+}
+
+.home-v2-scene-system .apartment-room-things-trigger b {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 5px;
+  border-radius: 999px;
+  background: rgb(255 246 239 / .94);
+  color: var(--wine-deep);
+  font-size: 8px;
+  line-height: 1;
+}
+
+.apartment-room-things-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 91;
+  display: grid;
+  align-items: end;
+}
+
+.apartment-room-things-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(28 12 16 / .58);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.apartment-room-things-sheet {
+  position: relative;
+  z-index: 1;
+  max-height: min(74dvh, 660px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 18px calc(22px + env(safe-area-inset-bottom));
+  border-radius: 30px 30px 0 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 96%, white 4%),
+      var(--cream)
+    );
+  box-shadow: 0 -18px 50px rgb(28 12 16 / .24);
+}
+
+.apartment-room-things-sheet > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 4px 8px;
+}
+
+.apartment-room-things-sheet > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.apartment-room-things-sheet > header small,
+.apartment-room-thing-add > small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .15em;
+}
+
+.apartment-room-things-sheet > header strong {
+  color: var(--wine-deep);
+  font: 400 30px/1 var(--font-display);
+}
+
+.apartment-room-things-sheet > header > button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--divider);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--wine);
+  font-size: 22px;
+}
+
+.apartment-room-things-intro {
+  margin: 0 4px 16px;
+  max-width: 310px;
+  color: var(--brown-soft);
+  font: italic 13px/1.4 var(--font-display);
+}
+
+.apartment-room-things-list {
+  display: grid;
+  gap: 9px;
+}
+
+.apartment-room-things-empty {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+  padding: 17px;
+  border: 1px dashed color-mix(in oklab, var(--wine) 24%, var(--divider));
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--paper) 76%, transparent);
+}
+
+.apartment-room-things-empty svg {
+  color: var(--cherry);
+}
+
+.apartment-room-things-empty strong {
+  color: var(--wine-deep);
+  font: 400 18px/1.1 var(--font-display);
+}
+
+.apartment-room-things-empty span {
+  color: var(--brown-soft);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.apartment-room-thing-card {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--paper) 88%, white 5%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.apartment-room-thing-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--blush) 62%, var(--paper));
+  color: var(--cherry);
+}
+
+.apartment-room-thing-card > div:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.apartment-room-thing-card small {
+  color: var(--cherry);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.apartment-room-thing-card strong {
+  overflow: hidden;
+  color: var(--wine-deep);
+  font: 400 17px/1.08 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apartment-room-thing-card p {
+  margin: 2px 0 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--brown-soft);
+  font-size: 10px;
+  line-height: 1.35;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.apartment-room-thing-card > button {
+  border: 0;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 9px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.apartment-room-thing-add {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 15px;
+  border: 1px solid var(--divider);
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--paper) 82%, white 5%);
+}
+
+.apartment-room-thing-add input,
+.apartment-room-thing-add textarea {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 13px;
+  outline: none;
+  background: var(--cream);
+  color: var(--foreground);
+  font: 12px/1.4 var(--font-body);
+}
+
+.apartment-room-thing-add input {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.apartment-room-thing-add textarea {
+  min-height: 64px;
+  resize: vertical;
+  padding: 10px 12px;
+}
+
+.apartment-room-thing-add input:focus,
+.apartment-room-thing-add textarea:focus {
+  border-color: color-mix(in oklab, var(--wine) 42%, var(--divider));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--blush) 34%, transparent);
+}
+
+.apartment-room-thing-add > button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--wine-deep);
+  color: var(--cream);
+  font: 700 10px var(--font-body);
+  letter-spacing: .04em;
+}
+
+.apartment-room-thing-add > button:disabled {
+  opacity: .45;
+}
+
+.apartment-room-things-error {
+  margin: 10px 4px 0;
+  color: var(--cherry);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* HOME V2 · OUR THINGS · all rooms + mobile sheet fix */
+.apartment-room-things-overlay {
+  z-index: 91;
+  pointer-events: auto;
+}
+
+.apartment-room-things-sheet {
+  box-sizing: border-box;
+  width: 100%;
+  max-height: calc(100dvh - 92px);
+  padding-bottom: calc(
+    var(--app-nav-height) +
+    var(--app-nav-bottom) +
+    28px +
+    env(safe-area-inset-bottom)
+  );
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+
+.apartment-room-thing-add {
+  scroll-margin-bottom: calc(var(--app-nav-height) + 36px);
+}
+
+.apartment-room-thing-add > button {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+}
+
+/* =========================================================
+   DIÁRIO · CONTINUOUS TIME THEME · VISUAL PASS 01
+   Color/material only. No layout, scroll or navigation ownership.
+   ========================================================= */
+html[data-diario-time-theme="continuous"],
+html[data-diario-time-theme="continuous"] body,
+html[data-diario-time-theme="continuous"] .phone-shell,
+html[data-diario-time-theme="continuous"] .screen-scroll {
+  transition:
+    background-color 900ms var(--vs-ease-standard),
+    color 900ms var(--vs-ease-standard),
+    border-color 900ms var(--vs-ease-standard),
+    box-shadow 900ms var(--vs-ease-standard);
+}
+
+html[data-diario-time-theme="continuous"] body {
+  background:
+    radial-gradient(circle at 50% -10%, color-mix(in oklab, var(--accent-soft) 12%, transparent), transparent 42%),
+    var(--background);
+  color: var(--text);
+}
+
+html[data-diario-time-theme="continuous"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitchTiles'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+}
+
+html[data-diario-time-theme="continuous"] .phone-shell {
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-diario-time-theme="continuous"] .screen-scroll {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+html[data-diario-time-theme="continuous"] .bottom-nav {
+  border-color: var(--divider);
+  background: color-mix(in oklab, var(--surface-raised) 91%, transparent);
+  color: var(--text-soft);
+  box-shadow: 0 -8px 28px color-mix(in oklab, var(--accent-deep, var(--wine)) 10%, transparent);
+  backdrop-filter: blur(16px) saturate(.86);
+  -webkit-backdrop-filter: blur(16px) saturate(.86);
+}
+
+html[data-diario-time-theme="continuous"] .statusbar {
+  color: var(--text);
+}
+
+/* =========================================================
+   DIÁRIO · VISUAL PASS 02 · PAPER & OBJECTS
+   Material pass for Diary + More. No behavior changes.
+   ========================================================= */
+
+/* Subtle paper grain without external image assets. */
+.diary-screen.diary-live,
+.more-screen {
+  position: relative;
+  isolation: isolate;
+}
+
+.diary-screen.diary-live::before,
+.more-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .18;
+  background-image:
+    radial-gradient(circle at 18% 12%, color-mix(in oklab, var(--paper) 55%, transparent) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 74% 36%, color-mix(in oklab, var(--wine) 12%, transparent) 0 .7px, transparent 1.2px),
+    linear-gradient(105deg, transparent 0 49.5%, color-mix(in oklab, var(--paper-deep) 10%, transparent) 50%, transparent 50.5%);
+  background-size: 17px 19px, 23px 29px, 41px 41px;
+  mix-blend-mode: multiply;
+}
+
+/* ---------- DIARY: a real sheet, not a card ---------- */
+.diary-live .screen-intro {
+  position: relative;
+}
+
+.diary-live .screen-intro::after {
+  content: "✦  private pages  ✦";
+  display: block;
+  width: max-content;
+  margin-top: 17px;
+  color: color-mix(in oklab, var(--wine) 56%, var(--brown-soft));
+  font: italic 11px/1 var(--font-display);
+  letter-spacing: .08em;
+  opacity: .68;
+}
+
+.diary-owner-tabs {
+  background: color-mix(in oklab, var(--paper) 91%, transparent);
+  box-shadow:
+    0 8px 24px color-mix(in oklab, var(--wine-deep) 7%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 58%, transparent);
+}
+
+.diary-today-card {
+  position: relative;
+  overflow: hidden;
+  padding: 20px 18px 22px 31px;
+  border-radius: 8px 28px 12px 20px;
+  border-color: color-mix(in oklab, var(--wine) 18%, var(--divider));
+  background:
+    linear-gradient(90deg, transparent 0 34px, color-mix(in oklab, var(--rose) 24%, transparent) 35px 36px, transparent 37px),
+    repeating-linear-gradient(180deg, transparent 0 31px, color-mix(in oklab, var(--brown-soft) 11%, transparent) 32px),
+    linear-gradient(110deg, color-mix(in oklab, var(--paper) 97%, white 3%), color-mix(in oklab, var(--cream) 92%, var(--paper-deep) 8%));
+  box-shadow:
+    0 18px 38px color-mix(in oklab, var(--wine-deep) 9%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 62%, transparent);
+  transform: rotate(-.12deg);
+}
+
+.diary-today-card::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: 36px;
+  width: 72px;
+  height: 21px;
+  pointer-events: none;
+  opacity: .54;
+  transform: rotate(2deg);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--blush) 55%, var(--paper) 45%) 12% 88%, transparent);
+  box-shadow: 0 1px 1px color-mix(in oklab, var(--brown) 7%, transparent);
+}
+
+.diary-today-header,
+.diary-empty-page,
+.diary-page-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.diary-empty-page {
+  min-height: 250px;
+  padding: 23px 20px 23px 28px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.diary-page-mark {
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in oklab, var(--rose) 25%, transparent);
+  background: color-mix(in oklab, var(--blush) 30%, var(--paper) 70%);
+  box-shadow: 0 3px 10px color-mix(in oklab, var(--wine) 6%, transparent);
+  transform: rotate(-5deg);
+}
+
+.diary-empty-page h2 {
+  max-width: 270px;
+  font-size: 34px;
+}
+
+.diary-empty-page p {
+  max-width: 330px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 1.52;
+}
+
+.diary-write-button {
+  border-radius: 999px;
+  box-shadow: 0 7px 18px color-mix(in oklab, var(--wine-deep) 14%, transparent);
+}
+
+.diary-page-footer {
+  margin-left: 4px;
+  margin-right: 4px;
+  border-top-style: double;
+}
+
+.diary-archive-preview {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px 7px 22px 10px;
+  background:
+    linear-gradient(120deg, color-mix(in oklab, var(--paper) 94%, white 6%), color-mix(in oklab, var(--cream) 90%, var(--paper-deep) 10%));
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--wine-deep) 7%, transparent);
+  transform: rotate(.1deg);
+}
+
+.diary-archive-preview::after {
+  content: "archive";
+  position: absolute;
+  top: 13px;
+  right: -20px;
+  width: 90px;
+  padding: 4px 0;
+  text-align: center;
+  transform: rotate(35deg);
+  background: color-mix(in oklab, var(--wine) 80%, var(--rose) 20%);
+  color: var(--cream);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  opacity: .76;
+}
+
+/* ---------- MORE: an index made of paper objects ---------- */
+.more-screen .richer-index {
+  position: relative;
+  gap: 13px;
+  padding: 17px 14px 22px;
+  border: 1px solid color-mix(in oklab, var(--wine) 12%, transparent);
+  border-radius: 8px 30px 18px 25px;
+  background:
+    linear-gradient(105deg, color-mix(in oklab, var(--paper) 88%, transparent), color-mix(in oklab, var(--cream) 80%, transparent));
+  box-shadow: 0 18px 42px color-mix(in oklab, var(--wine-deep) 8%, transparent);
+}
+
+.more-screen .richer-index::before {
+  content: "our little archive";
+  position: absolute;
+  top: -11px;
+  left: 28px;
+  padding: 5px 13px 4px;
+  background: color-mix(in oklab, var(--blush) 60%, var(--paper) 40%);
+  color: var(--wine);
+  font: italic 10px/1 var(--font-display);
+  letter-spacing: .04em;
+  transform: rotate(-1.5deg);
+  box-shadow: 0 3px 8px color-mix(in oklab, var(--wine) 6%, transparent);
+}
+
+.more-screen .richer-index > button {
+  min-height: 82px;
+  border-radius: 7px 20px 9px 16px;
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--wine-deep) 6%, transparent);
+  transform-origin: center;
+}
+
+.more-screen .richer-index > button:nth-child(4n + 1) {
+  transform: rotate(-.28deg);
+  background:
+    linear-gradient(100deg, color-mix(in oklab, var(--paper) 96%, white 4%), color-mix(in oklab, var(--cream) 89%, var(--blush) 11%));
+}
+
+.more-screen .richer-index > button:nth-child(4n + 2) {
+  transform: rotate(.22deg);
+  border-radius: 18px 6px 18px 10px;
+  background:
+    linear-gradient(105deg, color-mix(in oklab, var(--cream) 92%, white 8%), color-mix(in oklab, var(--paper-deep) 12%, var(--paper) 88%));
+}
+
+.more-screen .richer-index > button:nth-child(4n + 3) {
+  transform: rotate(-.12deg);
+  border-radius: 5px 22px 13px 20px;
+  background:
+    linear-gradient(100deg, color-mix(in oklab, var(--blush) 13%, var(--paper) 87%), color-mix(in oklab, var(--paper) 94%, white 6%));
+}
+
+.more-screen .richer-index > button:nth-child(4n) {
+  transform: rotate(.3deg);
+  border-radius: 16px 12px 5px 20px;
+}
+
+.more-screen .richer-index > button::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 14px;
+  width: 25px;
+  height: 7px;
+  border-top: 1px solid color-mix(in oklab, var(--wine) 18%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--wine) 9%, transparent);
+  opacity: .55;
+  transform: rotate(-5deg);
+}
+
+.more-screen .richer-index > button:nth-child(3n)::after {
+  width: 31px;
+  transform: rotate(4deg);
+}
+
+.more-screen .richer-index > button.available:active {
+  transform: scale(.985) rotate(0deg);
+}
+
+.more-screen .index-icon {
+  border-radius: 50% 47% 52% 46%;
+  background: color-mix(in oklab, var(--blush) 30%, var(--paper) 70%);
+}
+
+.more-screen .index-number {
+  font-family: var(--font-display);
+  font-style: italic;
+  letter-spacing: .03em;
+}
+
+.more-screen .richer-index strong {
+  font-size: clamp(25px, 7vw, 31px);
+  line-height: .95;
+}
+
+.more-screen .richer-index small {
+  margin-top: 6px;
+  line-height: 1.18;
+}
+
+.more-screen .more-signoff {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px 24px 9px 20px;
+  background:
+    linear-gradient(105deg, color-mix(in oklab, var(--paper) 94%, white 6%), color-mix(in oklab, var(--cream) 91%, var(--blush) 9%));
+  box-shadow: 0 10px 24px color-mix(in oklab, var(--wine-deep) 7%, transparent);
+}
+
+.more-screen .more-signoff::before {
+  content: "♡";
+  position: absolute;
+  right: 16px;
+  bottom: -20px;
+  color: color-mix(in oklab, var(--rose) 18%, transparent);
+  font: 400 76px/1 var(--font-display);
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
+.more-screen .index-signoff {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 390px) {
+  .diary-today-card {
+    margin-inline: 18px;
+    padding-left: 26px;
+  }
+
+  .more-screen .richer-index {
+    margin-inline: 18px;
+    padding-inline: 11px;
+  }
+
+  .more-screen .richer-index > button {
+    min-height: 78px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diary-today-card,
+  .diary-archive-preview,
+  .more-screen .richer-index > button {
+    transform: none;
+  }
+}
+
+/* ============================================================
+   VISUAL PASS 02B — physical paper, not a card grid
+   ============================================================ */
+.more-screen .richer-index{
+  position:relative; display:grid!important; grid-template-columns:1fr 1fr!important;
+  gap:18px 13px!important; padding:34px 22px 42px!important; margin:28px 12px 0!important;
+  background:transparent!important; border:0!important; box-shadow:none!important; overflow:visible!important;
+}
+.more-screen .richer-index::before{content:"our little archive";position:absolute;top:0;left:30px;font:italic 13px/1 var(--font-hand);letter-spacing:.04em;color:var(--muted-foreground);transform:rotate(-2deg)}
+.more-screen .richer-index>button.index-object{position:relative!important;display:block!important;width:auto!important;min-height:132px!important;padding:44px 15px 16px!important;border:0!important;border-radius:2px!important;text-align:left!important;overflow:visible!important;box-shadow:2px 5px 14px rgba(75,35,29,.13)!important;background:#f8eee1!important;transform:rotate(-1.1deg)!important}
+.more-screen .richer-index>button.index-object:nth-child(even){transform:rotate(1deg)!important;background:#f4e6d7!important}
+.more-screen .richer-index>button.index-object:nth-child(3n){transform:rotate(.35deg)!important}
+.more-screen .richer-index>button.index-object::before{content:"";position:absolute;inset:7px;border:1px solid rgba(116,42,45,.16);pointer-events:none}
+.more-screen .richer-index>button.index-object::after{content:"";position:absolute;top:-7px;left:50%;width:48px;height:15px;background:rgba(226,194,178,.65);transform:translateX(-50%) rotate(-2deg);box-shadow:0 1px 2px rgba(60,30,20,.06)}
+.more-screen .richer-index .index-number{position:absolute!important;top:13px!important;left:14px!important;font:10px/1 var(--font-body)!important;letter-spacing:.12em!important;color:#9d5558!important}
+.more-screen .richer-index .index-icon{position:absolute!important;top:10px!important;right:12px!important;left:auto!important;width:28px!important;height:28px!important;border:0!important;border-radius:0!important;background:transparent!important;color:#6d2029!important}
+.more-screen .richer-index .index-icon svg{width:20px!important;height:20px!important}
+.more-screen .richer-index>button>div{padding:0!important}
+.more-screen .richer-index strong{font:30px/.92 var(--font-display)!important;font-weight:400!important;color:#4b171c!important;letter-spacing:-.02em!important}
+.more-screen .richer-index small{margin-top:8px!important;font:11px/1.25 var(--font-body)!important;color:#855c57!important;max-width:120px!important}
+.more-screen .richer-index>button>svg{display:none!important}
+.more-screen .richer-index .index-envelope{min-height:155px!important;background:#f0d9d3!important;clip-path:polygon(0 0,100% 0,100% 100%,0 100%)!important}
+.more-screen .richer-index .index-envelope::before{inset:0!important;border:1px solid rgba(109,32,41,.24)!important;background:linear-gradient(32deg,transparent 49%,rgba(109,32,41,.13) 50%,transparent 51%),linear-gradient(-32deg,transparent 49%,rgba(109,32,41,.13) 50%,transparent 51%)!important}
+.more-screen .richer-index .index-ticket{border-radius:9px!important;background:#ead8bd!important}
+.more-screen .richer-index .index-ticket::before{border-style:dashed!important}
+.more-screen .richer-index .index-photo{padding-top:54px!important;background:#fbf4e9!important}
+.more-screen .richer-index .index-photo::after{width:54px;height:17px;background:rgba(221,186,201,.68)}
+.more-screen .richer-index .index-record{border-radius:50%!important;aspect-ratio:1/1;min-height:0!important;padding:35% 20px 20px!important;background:#3a201f!important;text-align:center!important}
+.more-screen .richer-index .index-record::before{inset:22%!important;border-radius:50%!important;border:1px solid rgba(248,238,225,.4)!important;background:#7c3037!important}
+.more-screen .richer-index .index-record::after{display:none!important}.more-screen .richer-index .index-record strong,.more-screen .richer-index .index-record small,.more-screen .richer-index .index-record .index-number,.more-screen .richer-index .index-record .index-icon{color:#f8eee1!important}
+.more-screen .richer-index .index-tag{clip-path:polygon(0 0,88% 0,100% 50%,88% 100%,0 100%)!important;padding-right:28px!important}
+.more-screen .more-signoff{margin:22px 18px 120px!important;transform:rotate(-.4deg);border-radius:2px!important;background:#f6eadc!important}
+
+/* Diary is the sheet itself: remove the card-inside-card feeling. */
+.diary-screen.diary-live{padding-left:0!important;padding-right:0!important}
+.diary-screen.diary-live .screen-intro,.diary-screen.diary-live .diary-owner-tabs,.diary-screen.diary-live .diary-archive-preview{margin-left:28px!important;margin-right:28px!important}
+.diary-screen.diary-live .diary-owner-tabs{border-radius:3px!important;transform:rotate(-.35deg);box-shadow:2px 4px 10px rgba(72,31,29,.09)!important}
+.diary-screen.diary-live .diary-today-card{position:relative!important;margin:34px 13px 32px!important;padding:42px 36px 58px 58px!important;min-height:650px!important;border:0!important;border-radius:1px!important;background:repeating-linear-gradient(to bottom,#fbf3e7 0,#fbf3e7 31px,#dccfc4 32px)!important;box-shadow:3px 8px 24px rgba(67,32,25,.18)!important;transform:rotate(.45deg)!important;overflow:visible!important}
+.diary-screen.diary-live .diary-today-card::before{content:""!important;position:absolute!important;top:0!important;bottom:0!important;left:39px!important;width:1px!important;background:rgba(167,77,84,.35)!important;border:0!important;opacity:1!important}
+.diary-screen.diary-live .diary-today-card::after{content:""!important;position:absolute!important;top:-9px!important;left:50%!important;width:82px!important;height:20px!important;background:rgba(226,196,180,.72)!important;transform:translateX(-50%) rotate(-1.5deg)!important;box-shadow:0 1px 2px rgba(60,30,20,.07)!important;border:0!important;border-radius:0!important}
+.diary-screen.diary-live .diary-today-header{padding:0 0 18px!important;border-bottom:0!important;align-items:flex-start!important}
+.diary-screen.diary-live .diary-today-header strong{font-size:37px!important;font-weight:400!important}
+.diary-screen.diary-live .diary-today-header>small{background:transparent!important;border:1px solid rgba(109,32,41,.25)!important;border-radius:50%!important;padding:12px 9px!important;transform:rotate(7deg)!important;font-family:var(--font-hand)!important}
+.diary-screen.diary-live .diary-empty-page{border:0!important;border-radius:0!important;background:transparent!important;padding:44px 0 10px!important;box-shadow:none!important}
+.diary-screen.diary-live .diary-page-mark{position:absolute!important;right:27px!important;top:125px!important;border:0!important;background:transparent!important;font-size:24px!important;transform:rotate(12deg)!important}
+.diary-screen.diary-live .diary-empty-page h2{font:48px/.94 var(--font-display)!important;max-width:270px!important;margin-bottom:18px!important}
+.diary-screen.diary-live .diary-empty-page p{font:19px/1.65 var(--font-display)!important;max-width:310px!important;color:#73534c!important}
+.diary-screen.diary-live .diary-write-button{border-radius:2px!important;transform:rotate(-1deg)!important;box-shadow:2px 3px 0 rgba(72,23,28,.14)!important}
+.diary-screen.diary-live .diary-page-footer{border-top:1px solid rgba(109,32,41,.35)!important;margin-top:38px!important;padding-top:12px!important;font-family:var(--font-hand)!important}
+
+/* =========================================================
+   VISUAL PASS 03 · PLAYER / RECORD SHELF
+   Keeps existing Spotify playback + library logic intact.
+   ========================================================= */
+
+.screen-music.music-live {
+  --player-paper: color-mix(in oklab, var(--paper) 94%, #fff7ea 6%);
+  --player-ink: color-mix(in oklab, var(--wine) 84%, #2a1714 16%);
+  padding-bottom: 170px !important;
+}
+
+.screen-music .screen-intro {
+  position: relative;
+  padding-bottom: 16px !important;
+}
+
+.screen-music .screen-intro::after {
+  content: "a little record shelf for two";
+  display: inline-block;
+  margin: 12px 0 0 2px;
+  padding: 5px 11px 6px;
+  background: color-mix(in oklab, var(--paper) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--wine) 18%, transparent);
+  box-shadow: 0 5px 12px rgb(64 34 29 / 8%);
+  color: color-mix(in oklab, var(--wine) 72%, transparent);
+  font: italic 12px/1 var(--font-script);
+  transform: rotate(-1.5deg);
+}
+
+/* Spotify is the actual player: compact, always first, like a record sleeve. */
+.screen-music .spotify-live-player {
+  display: grid !important;
+  grid-template-columns: 86px minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 14px !important;
+  row-gap: 10px !important;
+  margin: 8px 18px 20px !important;
+  padding: 14px !important;
+  border-radius: 5px !important;
+  overflow: visible !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 22%, transparent) !important;
+  background:
+    linear-gradient(90deg, transparent 0 17px, color-mix(in oklab, var(--rose) 18%, transparent) 17px 18px, transparent 18px),
+    repeating-linear-gradient(0deg, transparent 0 25px, color-mix(in oklab, var(--wine) 5%, transparent) 25px 26px),
+    var(--player-paper) !important;
+  box-shadow: 7px 9px 0 color-mix(in oklab, var(--wine) 7%, transparent), 0 18px 34px rgb(54 28 24 / 12%) !important;
+  transform: rotate(.25deg);
+}
+
+.screen-music .spotify-live-player::before {
+  content: "NOW PLAYING · SPOTIFY" !important;
+  position: absolute !important;
+  width: auto !important;
+  height: auto !important;
+  inset: -11px auto auto 112px !important;
+  padding: 4px 9px !important;
+  background: color-mix(in oklab, #ead8ca 86%, transparent) !important;
+  color: color-mix(in oklab, var(--wine) 72%, transparent) !important;
+  font: 8px/1 var(--font-body) !important;
+  letter-spacing: .15em !important;
+  transform: rotate(-1deg) !important;
+  opacity: .96 !important;
+  pointer-events: none;
+}
+
+.screen-music .spotify-live-cover {
+  grid-column: 1;
+  grid-row: 1;
+  width: 86px !important;
+  height: 86px !important;
+  margin: 0 !important;
+  border-radius: 2px !important;
+  box-shadow: 0 6px 14px rgb(48 25 22 / 16%) !important;
+  transform: rotate(-1deg);
+}
+
+.screen-music .spotify-live-info {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  padding: 3px 4px 0 0 !important;
+  text-align: left !important;
+}
+
+.screen-music .spotify-live-info small { margin-bottom: 5px !important; font-size: 8px !important; }
+.screen-music .spotify-live-info strong { font-size: 22px !important; line-height: 1.02 !important; }
+.screen-music .spotify-live-info span { margin-top: 5px !important; font-size: 11px !important; }
+.screen-music .spotify-live-progress { width: 100% !important; height: 4px !important; margin: 11px 0 0 !important; }
+
+.screen-music .spotify-live-controls {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-content: flex-start !important;
+  gap: 7px !important;
+  margin: 0 !important;
+  padding-top: 9px;
+  border-top: 1px dashed color-mix(in oklab, var(--wine) 18%, transparent);
+}
+
+.screen-music .spotify-live-controls button {
+  min-width: 34px !important;
+  height: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+}
+
+.screen-music .spotify-live-controls button:nth-child(3) {
+  min-width: 50px !important;
+  height: 34px !important;
+  font-size: 10px !important;
+}
+
+/* Most played becomes a compact chart slip, not a huge app card. */
+.spotify-top-rotation {
+  position: relative;
+  margin: 0 18px 18px !important;
+  padding: 16px 14px 13px !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 18%, transparent) !important;
+  border-radius: 3px !important;
+  background:
+    linear-gradient(90deg, color-mix(in oklab, var(--rose) 10%, transparent), transparent 32%),
+    var(--player-paper) !important;
+  box-shadow: 4px 6px 0 color-mix(in oklab, var(--wine) 6%, transparent) !important;
+  transform: rotate(-.18deg);
+}
+
+.spotify-top-rotation::after {
+  content: "MOST PLAYED";
+  position: absolute;
+  right: 11px;
+  bottom: 9px;
+  color: color-mix(in oklab, var(--wine) 16%, transparent);
+  font: 700 17px/1 var(--font-body);
+  letter-spacing: .08em;
+  transform: rotate(-90deg) translateX(100%);
+  transform-origin: right bottom;
+  pointer-events: none;
+}
+
+.spotify-top-rotation header strong { font-size: 26px !important; }
+.spotify-top-range-tabs { border-radius: 3px !important; padding: 2px !important; }
+.spotify-top-range-tabs button { border-radius: 2px !important; padding: 6px 7px !important; }
+.spotify-top-list { gap: 2px !important; }
+.spotify-top-track {
+  grid-template-columns: 20px 34px minmax(0, 1fr) auto !important;
+  padding: 6px 4px !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid color-mix(in oklab, var(--wine) 9%, transparent);
+  background: transparent !important;
+}
+.spotify-top-cover { width: 34px !important; height: 34px !important; border-radius: 2px !important; }
+.spotify-top-copy strong { font: 13px/1.05 var(--font-body) !important; font-weight: 600 !important; }
+.spotify-top-actions { grid-column: 4 !important; display: flex !important; gap: 3px !important; }
+.spotify-top-actions button { min-height: 27px !important; padding: 0 7px !important; font-size: 8px !important; border-radius: 3px !important; }
+.spotify-top-actions button:first-child { width: 27px !important; }
+
+/* Mine / Dominic / Ours reads like three labelled record drawers. */
+.screen-music .music-tabs {
+  position: relative;
+  margin: 4px 18px 9px !important;
+  padding: 4px !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 22%, transparent) !important;
+  border-radius: 3px !important;
+  background: color-mix(in oklab, var(--paper) 82%, transparent) !important;
+  box-shadow: 0 8px 20px rgb(57 29 25 / 8%);
+}
+.screen-music .music-tabs button { border-radius: 2px !important; letter-spacing: .13em !important; text-transform: uppercase; }
+.screen-music .music-tabs button.active {
+  background: var(--wine) !important;
+  color: var(--cream) !important;
+  box-shadow: 0 4px 10px rgb(48 25 22 / 14%) !important;
+}
+
+.music-section-tabs {
+  margin: 0 18px 18px !important;
+  padding: 0 4px 7px !important;
+  gap: 12px !important;
+  border-bottom: 1px solid color-mix(in oklab, var(--wine) 20%, transparent);
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.music-section-tabs button {
+  position: relative;
+  padding: 7px 0 5px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  font-size: 9px !important;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.music-section-tabs button.active { box-shadow: none !important; color: var(--wine) !important; }
+.music-section-tabs button.active::after {
+  content: "";
+  position: absolute;
+  left: 20%; right: 20%; bottom: -8px;
+  height: 2px;
+  background: var(--wine);
+}
+
+/* Saved songs = compact record index cards. */
+.music-library {
+  display: grid !important;
+  gap: 9px !important;
+  margin: 0 18px 16px !important;
+}
+.music-track {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) auto auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 74px !important;
+  padding: 10px 10px 10px 12px !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 15%, transparent) !important;
+  border-radius: 2px !important;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 22px, color-mix(in oklab, var(--wine) 4%, transparent) 22px 23px),
+    var(--player-paper) !important;
+  box-shadow: 3px 4px 0 color-mix(in oklab, var(--wine) 5%, transparent) !important;
+}
+.music-track:nth-child(even) { transform: rotate(.18deg); }
+.music-track:nth-child(odd) { transform: rotate(-.12deg); }
+.music-record { width: 54px !important; height: 54px !important; border-radius: 2px !important; overflow: hidden; }
+.music-record img { width: 100%; height: 100%; object-fit: cover; }
+.music-track > div:nth-child(2) { min-width: 0; }
+.music-track > div:nth-child(2) small { font-size: 8px !important; letter-spacing: .14em; text-transform: uppercase; }
+.music-track > div:nth-child(2) strong { display: block; margin-top: 2px; font: 17px/1.05 var(--font-display) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-track > div:nth-child(2) span,
+.music-track > div:nth-child(2) em { display: block; margin-top: 2px; font-size: 10px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-track > div:nth-child(2) p { display: none !important; }
+.music-track > button { min-width: 31px !important; min-height: 31px !important; padding: 0 8px !important; border-radius: 3px !important; font-size: 8px !important; }
+.music-track > button:not(.music-favorite-button):not([aria-label="Listen now"]):not([aria-label="Add to queue"]):not(.letter-connected-button) { display: none !important; }
+.music-track .music-favorite-button { width: 31px !important; height: 31px !important; }
+.music-track button[aria-label="Listen now"] { grid-column: 3; grid-row: 1; background: var(--wine) !important; color: var(--cream) !important; }
+.music-track button[aria-label="Add to queue"] { grid-column: 4; grid-row: 1; }
+.music-track .letter-connected-button { grid-column: 2 / -1 !important; width: max-content !important; margin: 0 !important; min-height: 25px !important; border: 0 !important; border-bottom: 1px solid color-mix(in oklab, var(--wine) 30%, transparent) !important; background: transparent !important; }
+
+.music-playlist-board,
+.spotify-queue-panel.music-section-panel,
+.music-empty {
+  border-radius: 3px !important;
+  border: 1px solid color-mix(in oklab, var(--wine) 17%, transparent) !important;
+  background: var(--player-paper) !important;
+  box-shadow: 5px 7px 0 color-mix(in oklab, var(--wine) 6%, transparent) !important;
+}
+
+.music-playlist-cover { border-radius: 2px !important; }
+.music-rule { opacity: .72; }
+
+@media (max-width: 390px) {
+  .screen-music .spotify-live-player { grid-template-columns: 74px minmax(0, 1fr) !important; }
+  .screen-music .spotify-live-cover { width: 74px !important; height: 74px !important; }
+  .spotify-top-actions button:not(:first-child) { display: none !important; }
+  .music-track { grid-template-columns: 48px minmax(0, 1fr) auto auto !important; gap: 7px !important; }
+  .music-record { width: 48px !important; height: 48px !important; }
+}
+
+/* Visual Pass 03B — Spotify as playback, Diário as meaning */
+.screen-music { padding-bottom: 150px !important; }
+.screen-music .spotify-live-player {
+  position: relative !important; display: grid !important; grid-template-columns: 82px minmax(0,1fr) !important;
+  gap: 14px !important; min-height: 118px !important; margin: 12px 0 18px !important; padding: 15px !important;
+  border: 1px solid color-mix(in srgb, var(--ink) 28%, transparent) !important; border-radius: 4px 14px 5px 12px !important;
+  background: color-mix(in srgb, var(--paper) 93%, #ead4d7) !important; box-shadow: 0 12px 26px rgba(74,29,36,.11) !important;
+  transform: rotate(-.25deg); overflow: hidden !important;
+}
+.screen-music .spotify-live-player::after { content:""; position:absolute; width:70px; height:18px; top:-7px; left:50%; transform:translateX(-50%) rotate(1deg); background:rgba(220,185,179,.62); box-shadow:0 1px 2px rgba(60,30,30,.08); }
+.screen-music .spotify-live-cover { width:82px !important; height:82px !important; border-radius:3px !important; overflow:hidden; align-self:center; box-shadow:0 5px 13px rgba(57,24,30,.18); }
+.screen-music .spotify-live-cover img { width:100%; height:100%; object-fit:cover; }
+.screen-music .spotify-live-info { min-width:0; align-self:center; padding-top:4px; }
+.screen-music .spotify-live-info small, .spotify-library-heading span, .spotify-selected-playlist small { display:block; font-size:8px !important; letter-spacing:.17em; text-transform:uppercase; opacity:.6; }
+.screen-music .spotify-live-info strong { display:block; margin-top:5px; font-family:Georgia,serif; font-size:18px !important; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.screen-music .spotify-live-info > span { display:block; margin-top:4px; font-size:11px; opacity:.72; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.screen-music .spotify-live-progress { width:100% !important; height:12px !important; padding:5px 0 !important; margin:7px 0 0 !important; background:transparent !important; border:0 !important; position:relative; }
+.screen-music .spotify-live-progress::before { content:""; position:absolute; left:0; right:0; top:5px; height:2px; background:color-mix(in srgb,var(--ink) 18%,transparent); }
+.screen-music .spotify-live-progress span { display:block; position:relative; height:2px; background:var(--ink); }
+.screen-music .spotify-live-controls { grid-column:1/-1; display:flex !important; align-items:center; justify-content:center; gap:9px !important; margin-top:-3px; }
+.screen-music .spotify-live-controls button { width:32px !important; height:30px !important; min-width:0 !important; border:0 !important; background:transparent !important; color:var(--ink) !important; padding:0 !important; border-radius:50% !important; display:grid; place-items:center; }
+.screen-music .spotify-live-controls .spotify-main-play { background:var(--ink) !important; color:var(--paper) !important; width:38px !important; height:38px !important; }
+.screen-music .spotify-live-controls .spotify-queue-toggle { width:auto !important; border-radius:999px !important; padding:0 8px !important; gap:4px; display:flex; font-size:9px; }
+.spotify-idle-state { grid-column:1/-1; display:grid; grid-template-columns:58px minmax(0,1fr); gap:12px; align-items:center; width:100%; }
+.spotify-idle-record { width:58px; height:58px; border-radius:50%; display:grid; place-items:center; border:1px solid color-mix(in srgb,var(--ink) 30%,transparent); background:radial-gradient(circle,transparent 0 9%,color-mix(in srgb,var(--ink) 18%,transparent) 10% 12%,transparent 13% 30%,color-mix(in srgb,var(--ink) 12%,transparent) 31% 33%,transparent 34%); }
+.spotify-idle-state small { font-size:8px; letter-spacing:.15em; opacity:.58; }
+.spotify-idle-state strong { display:block; font-family:Georgia,serif; font-size:18px; margin:3px 0; }
+.spotify-idle-state span { display:block; font-size:10px; line-height:1.35; opacity:.7; }
+.spotify-idle-state > button { grid-column:1/-1; justify-self:start; border:1px solid color-mix(in srgb,var(--ink) 35%,transparent); background:transparent; color:var(--ink); border-radius:999px; padding:7px 12px; font-size:10px; }
+.screen-music .spotify-top-rotation { max-height:330px !important; overflow:hidden !important; margin-bottom:18px !important; }
+.screen-music .spotify-top-list { max-height:220px !important; overflow:auto !important; }
+.screen-music .spotify-top-track { min-height:42px !important; padding:5px 7px !important; grid-template-columns:20px 34px minmax(0,1fr) auto !important; }
+.screen-music .spotify-top-cover { width:34px !important; height:34px !important; }
+.screen-music .spotify-top-copy strong { font-size:11px !important; }
+.screen-music .spotify-top-copy span { font-size:9px !important; }
+.spotify-library-paper { margin:14px 0 20px; padding:14px 12px 16px; background:color-mix(in srgb,var(--paper) 94%,#ecd8d5); border:1px solid color-mix(in srgb,var(--ink) 22%,transparent); border-radius:3px 10px 4px 8px; box-shadow:0 8px 18px rgba(70,25,35,.08); }
+.spotify-library-heading { display:flex; align-items:end; justify-content:space-between; gap:10px; margin-bottom:12px; }
+.spotify-library-heading strong { display:block; font-family:Georgia,serif; font-size:20px; margin-top:2px; }
+.spotify-library-heading small { font-size:9px; opacity:.55; }
+.spotify-playlist-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.spotify-playlist-grid > button { border:0; background:transparent; color:var(--ink); text-align:left; padding:0; min-width:0; }
+.spotify-playlist-art { aspect-ratio:1; width:100%; overflow:hidden; display:grid; place-items:center; background:color-mix(in srgb,var(--paper) 80%,var(--ink) 5%); border:1px solid color-mix(in srgb,var(--ink) 15%,transparent); box-shadow:0 5px 12px rgba(65,25,31,.10); }
+.spotify-playlist-art img { width:100%; height:100%; object-fit:cover; }
+.spotify-playlist-grid strong { display:block; margin-top:6px; font-family:Georgia,serif; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.spotify-playlist-grid span { display:block; margin-top:2px; font-size:9px; opacity:.58; }
+.spotify-library-back { border:0; background:transparent; color:var(--ink); padding:0 0 10px; font-size:10px; }
+.spotify-selected-playlist { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
+.spotify-selected-playlist img { width:66px; height:66px; object-fit:cover; box-shadow:0 5px 12px rgba(65,25,31,.13); }
+.spotify-selected-playlist strong { display:block; font-family:Georgia,serif; font-size:18px; margin:3px 0; }
+.spotify-selected-playlist span { font-size:10px; opacity:.62; }
+.spotify-compact-track-list { display:flex; flex-direction:column; gap:2px; max-height:340px; overflow:auto; }
+.spotify-compact-track-list > button { display:grid; grid-template-columns:38px minmax(0,1fr) 24px; align-items:center; gap:9px; width:100%; border:0; border-bottom:1px solid color-mix(in srgb,var(--ink) 10%,transparent); background:transparent; color:var(--ink); text-align:left; padding:6px 2px; }
+.spotify-compact-track-list img { width:38px; height:38px; object-fit:cover; }
+.spotify-compact-track-list span { min-width:0; }
+.spotify-compact-track-list strong { display:block; font-family:Georgia,serif; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.spotify-compact-track-list small { display:block; margin-top:2px; font-size:9px; opacity:.58; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.music-empty-note { font-size:11px; line-height:1.5; opacity:.65; }
+@media (max-width:420px) { .screen-music .spotify-live-player { grid-template-columns:70px minmax(0,1fr) !important; padding:13px !important; } .screen-music .spotify-live-cover { width:70px !important; height:70px !important; } }
+
+/* =========================================================
+   VISUAL PASS 03C · CONTRAST + ROMANTIC PLAYER POLISH
+   ========================================================= */
+
+/* CHAT — atmosphere may fade, text never does */
+.screen-chat .messenger-chat {
+  --chat-readable-ink: #54252a;
+  --chat-readable-muted: #8a5d5d;
+}
+.screen-chat .messenger-person h1,
+.screen-chat .messenger-bubble,
+.screen-chat .diario-message-content,
+.screen-chat .messenger-composer textarea,
+.screen-chat .chat-now-playing-main { color: var(--chat-readable-ink) !important; opacity: 1 !important; }
+.screen-chat .messenger-person p,
+.screen-chat .messenger-message time,
+.screen-chat .messenger-day-divider span,
+.screen-chat .chat-now-playing small { color: var(--chat-readable-muted) !important; opacity: 1 !important; }
+.screen-chat .messenger-header-actions button,
+.screen-chat .messenger-composer [data-align=block-end] button { color: #754047 !important; opacity: 1 !important; }
+.screen-chat .messenger-bubble { background: #f7eadc !important; }
+.screen-chat .messenger-message.is-user .messenger-bubble { background: #efd0d0 !important; }
+.screen-chat .messenger-composer textarea::placeholder { color: #9a7171 !important; opacity: 1 !important; }
+.screen-chat .messenger-composer [data-slot=input-group] { border-color: rgba(94,42,48,.25) !important; background: rgba(246,226,219,.72) !important; }
+.screen-chat .messenger-person h1 span { color:#7a303b !important; }
+
+/* MORE — Music must stay readable in every time mood */
+.more-screen .richer-index .index-record {
+  border-radius: 2px !important;
+  aspect-ratio: auto !important;
+  min-height: 132px !important;
+  padding: 44px 15px 16px !important;
+  background: #f3dfd5 !important;
+  text-align: left !important;
+  clip-path: none !important;
+}
+.more-screen .richer-index .index-record::before {
+  inset: 7px !important;
+  border-radius: 0 !important;
+  border: 1px solid rgba(116,42,45,.16) !important;
+  background: radial-gradient(circle at 88% 22%, transparent 0 8px, rgba(109,32,41,.12) 9px 10px, transparent 11px 15px, rgba(109,32,41,.08) 16px 17px, transparent 18px) !important;
+}
+.more-screen .richer-index .index-record::after { display:block !important; }
+.more-screen .richer-index .index-record strong { color:#4b171c !important; }
+.more-screen .richer-index .index-record small { color:#855c57 !important; }
+.more-screen .richer-index .index-record .index-number { color:#9d5558 !important; }
+.more-screen .richer-index .index-record .index-icon { color:#6d2029 !important; }
+
+/* PLAYER — less app-card, more record sleeve / love-letter object */
+.screen-music .spotify-live-player {
+  border-radius: 2px !important;
+  background:
+    linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)),
+    repeating-linear-gradient(0deg, transparent 0 24px, rgba(109,32,41,.035) 25px),
+    #f7eadc !important;
+  border: 1px solid rgba(91,35,42,.18) !important;
+  box-shadow: 4px 7px 0 rgba(93,38,45,.06), 0 14px 30px rgba(74,29,36,.08) !important;
+}
+.screen-music .spotify-live-player::before {
+  content:"our record, right now" !important;
+  position:absolute !important; right:13px !important; bottom:9px !important; top:auto !important; left:auto !important;
+  font: italic 11px/1 var(--font-hand) !important; letter-spacing:.02em !important;
+  color:#a46d6c !important; opacity:.72 !important; transform:rotate(-3deg) !important;
+}
+.screen-music .spotify-live-info small { color:#9c5960 !important; opacity:1 !important; }
+.screen-music .spotify-live-info strong { color:#511b23 !important; font-family:var(--font-display),Georgia,serif !important; font-size:20px !important; }
+.screen-music .spotify-live-info > span { color:#80585a !important; opacity:1 !important; }
+.screen-music .spotify-live-controls { border-top:1px dashed rgba(92,40,47,.18); padding-top:9px; }
+.screen-music .spotify-live-controls .spotify-main-play { background:#6b1722 !important; color:#fff3e8 !important; box-shadow:0 4px 10px rgba(80,22,31,.18); }
+.screen-music .spotify-live-controls button { color:#6b2630 !important; }
+
+/* Most played becomes a slim chart clipping instead of the giant box */
+.screen-music .spotify-top-rotation {
+  position:relative !important;
+  max-height:none !important;
+  overflow:visible !important;
+  margin:14px 8px 20px !important;
+  padding:15px 13px 12px !important;
+  border-radius:2px !important;
+  background:#f2dfd5 !important;
+  border:0 !important;
+  box-shadow:3px 5px 0 rgba(91,35,42,.06) !important;
+  transform:rotate(.25deg);
+}
+.screen-music .spotify-top-rotation::before { content:""; position:absolute; top:-7px; left:34px; width:58px; height:16px; background:rgba(224,190,183,.66); transform:rotate(-2deg); }
+.screen-music .spotify-top-rotation::after { content:"top rotation" !important; position:absolute !important; right:12px !important; bottom:8px !important; top:auto !important; writing-mode:horizontal-tb !important; transform:rotate(-4deg) !important; font:italic 10px var(--font-hand) !important; letter-spacing:.02em !important; color:#a26c6c !important; opacity:.6 !important; }
+.screen-music .spotify-top-rotation header strong { font-family:var(--font-display),Georgia,serif !important; font-size:25px !important; color:#551b24 !important; }
+.screen-music .spotify-top-list { max-height:none !important; overflow:visible !important; }
+.screen-music .spotify-top-track { min-height:38px !important; grid-template-columns:18px 31px minmax(0,1fr) 31px !important; padding:4px 3px !important; }
+.screen-music .spotify-top-cover { width:31px !important; height:31px !important; border-radius:1px !important; }
+.screen-music .spotify-top-copy strong { color:#64242c !important; }
+.screen-music .spotify-top-actions button { width:30px !important; height:30px !important; border-radius:3px !important; }
+
+/* Spotify library: album art does the decoration; surrounding UI stays quiet */
+.spotify-library-paper { border-radius:2px !important; background:#f7eadc !important; border-color:rgba(91,35,42,.14) !important; box-shadow:3px 6px 0 rgba(91,35,42,.05) !important; }
+.spotify-library-heading strong, .spotify-playlist-grid strong, .spotify-selected-playlist strong, .spotify-compact-track-list strong { color:#572029 !important; font-family:var(--font-display),Georgia,serif !important; }
+.spotify-library-heading span, .spotify-library-heading small, .spotify-playlist-grid span, .spotify-compact-track-list small { color:#8c5e5e !important; opacity:1 !important; }
+.spotify-playlist-grid > button:nth-child(odd) .spotify-playlist-art { transform:rotate(-.5deg); }
+.spotify-playlist-grid > button:nth-child(even) .spotify-playlist-art { transform:rotate(.45deg); }
+
+/* Navigation must not cover the last useful content */
+.screen-music { padding-bottom:190px !important; }
+.more-screen { padding-bottom:190px !important; }
