@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { useTimeMood } from "../lib/time-mood";
 
 function NotFoundComponent() {
   return (
@@ -104,6 +105,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+function VisualThemeSync() {
+  const { visualTheme } = useTimeMood();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--background", visualTheme.background);
+    root.style.setProperty("--foreground", visualTheme.text);
+    root.style.setProperty("--card", visualTheme.surfaceRaised);
+    root.style.setProperty("--surface", visualTheme.surface);
+    root.style.setProperty("--surface-raised", visualTheme.surfaceRaised);
+    root.style.setProperty("--surface-deep", visualTheme.surfaceDeep);
+    root.style.setProperty("--text", visualTheme.text);
+    root.style.setProperty("--text-soft", visualTheme.textSoft);
+    root.style.setProperty("--muted-foreground", visualTheme.textSoft);
+    root.style.setProperty("--interactive", visualTheme.accent);
+    root.style.setProperty("--accent-soft", visualTheme.accent);
+    root.style.setProperty("--ink", visualTheme.accentDeep);
+    root.style.setProperty("--border", visualTheme.border);
+    root.style.setProperty("--divider", visualTheme.divider);
+    root.style.setProperty("--grain-opacity", String(visualTheme.grainOpacity));
+    root.dataset.diarioTimeTheme = "continuous";
+  }, [visualTheme]);
+
+  return null;
+}
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
@@ -111,6 +138,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <VisualThemeSync />
         {children}
         <Scripts />
       </body>
