@@ -27,6 +27,19 @@ export type TimeMoodState = {
   greeting: string;
   homeLine: string;
   homeScene: HomeSceneBlend;
+  visualTheme: {
+    background: string;
+    surface: string;
+    surfaceRaised: string;
+    surfaceDeep: string;
+    text: string;
+    textSoft: string;
+    accent: string;
+    accentDeep: string;
+    border: string;
+    divider: string;
+    grainOpacity: number;
+  };
   homeLight: {
     phase: "late-night" | "morning" | "day" | "afternoon" | "golden" | "dusk" | "night";
     naturalLight: number;
@@ -63,6 +76,77 @@ const HOME_LIGHT_KEYFRAMES: HomeLightKeyframe[] = [
 
 function mix(a: number, b: number, amount: number) {
   return a + (b - a) * amount;
+}
+
+type Rgb = [number, number, number];
+
+type VisualThemeKeyframe = {
+  minute: number;
+  background: Rgb;
+  surface: Rgb;
+  surfaceRaised: Rgb;
+  surfaceDeep: Rgb;
+  text: Rgb;
+  textSoft: Rgb;
+  accent: Rgb;
+  accentDeep: Rgb;
+  border: Rgb;
+  divider: Rgb;
+  grainOpacity: number;
+};
+
+// Pinterest direction: paper/blush by day → dusty rose/wine → rich wood at night.
+// The final 26:00 keyframe lets midnight flow naturally back toward the 02:00 palette.
+const VISUAL_THEME_KEYFRAMES: VisualThemeKeyframe[] = [
+  { minute: 120, background: [42, 27, 27], surface: [52, 34, 33], surfaceRaised: [62, 40, 38], surfaceDeep: [73, 45, 42], text: [248, 237, 222], textSoft: [211, 187, 171], accent: [203, 116, 127], accentDeep: [125, 38, 45], border: [137, 92, 84], divider: [112, 72, 68], grainOpacity: .16 },
+  { minute: 420, background: [249, 240, 224], surface: [247, 235, 217], surfaceRaised: [252, 244, 231], surfaceDeep: [234, 215, 193], text: [78, 51, 45], textSoft: [122, 87, 78], accent: [185, 93, 104], accentDeep: [111, 31, 37], border: [184, 143, 128], divider: [198, 164, 150], grainOpacity: .10 },
+  { minute: 660, background: [251, 239, 226], surface: [248, 232, 217], surfaceRaised: [253, 244, 232], surfaceDeep: [237, 207, 198], text: [75, 47, 43], textSoft: [125, 82, 78], accent: [195, 100, 115], accentDeep: [122, 31, 42], border: [190, 139, 136], divider: [207, 169, 164], grainOpacity: .09 },
+  { minute: 930, background: [246, 218, 213], surface: [241, 207, 203], surfaceRaised: [250, 229, 219], surfaceDeep: [221, 173, 171], text: [82, 43, 43], textSoft: [126, 71, 73], accent: [177, 73, 88], accentDeep: [111, 25, 34], border: [169, 104, 106], divider: [190, 133, 134], grainOpacity: .11 },
+  { minute: 1060, background: [207, 139, 140], surface: [193, 116, 121], surfaceRaised: [226, 169, 165], surfaceDeep: [160, 82, 88], text: [255, 244, 228], textSoft: [244, 214, 199], accent: [255, 205, 203], accentDeep: [103, 22, 31], border: [235, 185, 176], divider: [218, 160, 157], grainOpacity: .13 },
+  { minute: 1110, background: [143, 55, 62], surface: [126, 43, 50], surfaceRaised: [159, 68, 73], surfaceDeep: [99, 31, 37], text: [255, 242, 224], textSoft: [237, 199, 184], accent: [241, 159, 166], accentDeep: [74, 19, 25], border: [206, 132, 132], divider: [179, 103, 108], grainOpacity: .14 },
+  { minute: 1150, background: [104, 37, 42], surface: [88, 31, 35], surfaceRaised: [119, 47, 51], surfaceDeep: [70, 26, 29], text: [250, 239, 222], textSoft: [224, 195, 179], accent: [224, 132, 143], accentDeep: [62, 18, 22], border: [178, 111, 111], divider: [145, 81, 84], grainOpacity: .15 },
+  { minute: 1260, background: [54, 31, 30], surface: [62, 35, 33], surfaceRaised: [73, 41, 38], surfaceDeep: [45, 27, 26], text: [247, 237, 221], textSoft: [207, 184, 168], accent: [202, 111, 123], accentDeep: [92, 28, 34], border: [133, 88, 82], divider: [108, 68, 65], grainOpacity: .16 },
+  { minute: 1560, background: [42, 27, 27], surface: [52, 34, 33], surfaceRaised: [62, 40, 38], surfaceDeep: [73, 45, 42], text: [248, 237, 222], textSoft: [211, 187, 171], accent: [203, 116, 127], accentDeep: [125, 38, 45], border: [137, 92, 84], divider: [112, 72, 68], grainOpacity: .16 },
+];
+
+function rgb([r, g, b]: Rgb) {
+  return `rgb(${Math.round(r)} ${Math.round(g)} ${Math.round(b)})`;
+}
+
+function mixRgb(a: Rgb, b: Rgb, amount: number): Rgb {
+  return [mix(a[0], b[0], amount), mix(a[1], b[1], amount), mix(a[2], b[2], amount)];
+}
+
+function getVisualTheme(totalMinutes: number): TimeMoodState["visualTheme"] {
+  const minute = totalMinutes < 120 ? totalMinutes + 1440 : totalMinutes;
+  let left = VISUAL_THEME_KEYFRAMES[0];
+  let right = VISUAL_THEME_KEYFRAMES[1];
+
+  for (let index = 0; index < VISUAL_THEME_KEYFRAMES.length - 1; index += 1) {
+    const current = VISUAL_THEME_KEYFRAMES[index];
+    const next = VISUAL_THEME_KEYFRAMES[index + 1];
+    if (minute >= current.minute && minute <= next.minute) {
+      left = current;
+      right = next;
+      break;
+    }
+  }
+
+  const span = Math.max(1, right.minute - left.minute);
+  const amount = smoothstep((minute - left.minute) / span);
+  return {
+    background: rgb(mixRgb(left.background, right.background, amount)),
+    surface: rgb(mixRgb(left.surface, right.surface, amount)),
+    surfaceRaised: rgb(mixRgb(left.surfaceRaised, right.surfaceRaised, amount)),
+    surfaceDeep: rgb(mixRgb(left.surfaceDeep, right.surfaceDeep, amount)),
+    text: rgb(mixRgb(left.text, right.text, amount)),
+    textSoft: rgb(mixRgb(left.textSoft, right.textSoft, amount)),
+    accent: rgb(mixRgb(left.accent, right.accent, amount)),
+    accentDeep: rgb(mixRgb(left.accentDeep, right.accentDeep, amount)),
+    border: rgb(mixRgb(left.border, right.border, amount)),
+    divider: rgb(mixRgb(left.divider, right.divider, amount)),
+    grainOpacity: mix(left.grainOpacity, right.grainOpacity, amount),
+  };
 }
 
 type HomeSceneKeyframe = {
@@ -161,6 +245,7 @@ export function getTimeMood(date = new Date()): TimeMoodState {
 const dayProgress = totalMinutes / (24 * 60);
   const homeLight = getHomeLight(totalMinutes);
   const homeScene = getHomeSceneBlend(totalMinutes);
+  const visualTheme = getVisualTheme(totalMinutes);
 
   let mood: TimeMood;
   if (hour >= 4 && hour < 8) mood = "early";
@@ -203,6 +288,7 @@ return {
   minute,
   dayProgress,
   homeScene,
+  visualTheme,
   homeLight,
   timeLabel: new Intl.DateTimeFormat("en-US", {
       timeZone: TIME_ZONE,
