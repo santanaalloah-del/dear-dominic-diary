@@ -13660,3 +13660,283 @@ select {
   }
 }
 
+
+/* =========================================================
+   HOME V2 · LIVING ROOM KEEPSAKES · PROOF OF CONCEPT
+   Home-only. Uses the existing keepsake data model.
+   App Shell / global scroll / Bottom Nav untouched.
+   ========================================================= */
+.home-v2-scene-system .apartment-room-things-trigger {
+  position: absolute;
+  z-index: 6;
+  left: 16px;
+  bottom: calc(
+    var(--app-nav-height) +
+    var(--app-nav-bottom) +
+    72px
+  );
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 8px 11px;
+  border: 1px solid rgb(255 255 255 / .42);
+  border-radius: 999px;
+  color: white;
+  background: rgb(45 22 27 / .52);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgb(0 0 0 / .14);
+  font: 700 8px var(--font-body);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.home-v2-scene-system .apartment-room-things-trigger svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.6;
+}
+
+.home-v2-scene-system .apartment-room-things-trigger b {
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 5px;
+  border-radius: 999px;
+  background: rgb(255 246 239 / .94);
+  color: var(--wine-deep);
+  font-size: 8px;
+  line-height: 1;
+}
+
+.apartment-room-things-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 91;
+  display: grid;
+  align-items: end;
+}
+
+.apartment-room-things-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(28 12 16 / .58);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.apartment-room-things-sheet {
+  position: relative;
+  z-index: 1;
+  max-height: min(74dvh, 660px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 18px calc(22px + env(safe-area-inset-bottom));
+  border-radius: 30px 30px 0 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--paper) 96%, white 4%),
+      var(--cream)
+    );
+  box-shadow: 0 -18px 50px rgb(28 12 16 / .24);
+}
+
+.apartment-room-things-sheet > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 4px 8px;
+}
+
+.apartment-room-things-sheet > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.apartment-room-things-sheet > header small,
+.apartment-room-thing-add > small {
+  color: var(--cherry);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .15em;
+}
+
+.apartment-room-things-sheet > header strong {
+  color: var(--wine-deep);
+  font: 400 30px/1 var(--font-display);
+}
+
+.apartment-room-things-sheet > header > button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--divider);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--wine);
+  font-size: 22px;
+}
+
+.apartment-room-things-intro {
+  margin: 0 4px 16px;
+  max-width: 310px;
+  color: var(--brown-soft);
+  font: italic 13px/1.4 var(--font-display);
+}
+
+.apartment-room-things-list {
+  display: grid;
+  gap: 9px;
+}
+
+.apartment-room-things-empty {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+  padding: 17px;
+  border: 1px dashed color-mix(in oklab, var(--wine) 24%, var(--divider));
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--paper) 76%, transparent);
+}
+
+.apartment-room-things-empty svg {
+  color: var(--cherry);
+}
+
+.apartment-room-things-empty strong {
+  color: var(--wine-deep);
+  font: 400 18px/1.1 var(--font-display);
+}
+
+.apartment-room-things-empty span {
+  color: var(--brown-soft);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.apartment-room-thing-card {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--paper) 88%, white 5%);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.apartment-room-thing-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--blush) 62%, var(--paper));
+  color: var(--cherry);
+}
+
+.apartment-room-thing-card > div:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.apartment-room-thing-card small {
+  color: var(--cherry);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.apartment-room-thing-card strong {
+  overflow: hidden;
+  color: var(--wine-deep);
+  font: 400 17px/1.08 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apartment-room-thing-card p {
+  margin: 2px 0 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--brown-soft);
+  font-size: 10px;
+  line-height: 1.35;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.apartment-room-thing-card > button {
+  border: 0;
+  background: transparent;
+  color: var(--brown-soft);
+  font-size: 9px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.apartment-room-thing-add {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 15px;
+  border: 1px solid var(--divider);
+  border-radius: 20px;
+  background: color-mix(in oklab, var(--paper) 82%, white 5%);
+}
+
+.apartment-room-thing-add input,
+.apartment-room-thing-add textarea {
+  width: 100%;
+  border: 1px solid var(--divider);
+  border-radius: 13px;
+  outline: none;
+  background: var(--cream);
+  color: var(--foreground);
+  font: 12px/1.4 var(--font-body);
+}
+
+.apartment-room-thing-add input {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.apartment-room-thing-add textarea {
+  min-height: 64px;
+  resize: vertical;
+  padding: 10px 12px;
+}
+
+.apartment-room-thing-add input:focus,
+.apartment-room-thing-add textarea:focus {
+  border-color: color-mix(in oklab, var(--wine) 42%, var(--divider));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--blush) 34%, transparent);
+}
+
+.apartment-room-thing-add > button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--wine-deep);
+  color: var(--cream);
+  font: 700 10px var(--font-body);
+  letter-spacing: .04em;
+}
+
+.apartment-room-thing-add > button:disabled {
+  opacity: .45;
+}
+
+.apartment-room-things-error {
+  margin: 10px 4px 0;
+  color: var(--cherry);
+  font-size: 10px;
+  line-height: 1.4;
+}
