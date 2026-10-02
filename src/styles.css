@@ -15054,3 +15054,157 @@ html[data-diario-time-theme="continuous"] .statusbar {
   .music-screen .spotify-live-info>strong{font-size:21px!important}
   .music-screen .spotify-top-rotation{margin-inline:22px!important}
 }
+
+/* =========================================================
+   VISUAL PASS 04B · NIGHT INK + PLAYER PAPER OBJECTS
+   Dark time themes use ivory ink; paper objects keep wine ink.
+   ========================================================= */
+
+/* 18h+ / night: deepen the world instead of only tinting it. */
+.phone-shell[data-time-theme="night"]{
+  --background:#351b20 !important;
+  --cream:#432229 !important;
+  --paper:#553039 !important;
+  --paper-deep:#2b171c !important;
+  --blush:#63323d !important;
+  --wine:#210f14 !important;
+  --foreground:#f7eadb !important;
+  --muted-foreground:#d8bfb5 !important;
+  --border:rgba(246,226,210,.18) !important;
+}
+.phone-shell[data-time-theme="late"]{
+  --background:#241317 !important;
+  --cream:#31191f !important;
+  --paper:#40242b !important;
+  --paper-deep:#1c0e12 !important;
+  --blush:#512832 !important;
+  --wine:#16090d !important;
+  --foreground:#f8ecdd !important;
+  --muted-foreground:#d4bbb2 !important;
+  --border:rgba(247,229,214,.16) !important;
+}
+
+/* Ivory ink across the living screens at night. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro h1,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro .intro-copy,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-rotation > header > div:first-child > span,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-rotation > header > div:first-child > strong,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy strong,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy span,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-track > span:first-child,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button:not(.active){
+  color:#f7eadb !important;
+  -webkit-text-fill-color:#f7eadb !important;
+  opacity:1 !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy span,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-track > span:first-child,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
+  color:#d8bfb5 !important;
+  -webkit-text-fill-color:#d8bfb5 !important;
+}
+
+/* The little record-shelf note stays physical cream paper. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .screen-intro::after{
+  background:#f3e3d4 !important;
+  color:#6b2d36 !important;
+  -webkit-text-fill-color:#6b2d36 !important;
+}
+
+/* Now-playing remains a cream record sleeve, so its ink must stay wine. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-player{
+  background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.055) 27px 28px),#f7eadc !important;
+  color:#56222a !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-player *{
+  -webkit-text-fill-color:initial;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > small{color:#a24d58 !important;-webkit-text-fill-color:#a24d58 !important}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > strong{color:#56222a !important;-webkit-text-fill-color:#56222a !important}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > span{color:#87595d !important;-webkit-text-fill-color:#87595d !important}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-controls button{color:#651923 !important;-webkit-text-fill-color:#651923 !important}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-controls .spotify-main-play{color:#fff5e8 !important;-webkit-text-fill-color:#fff5e8 !important}
+
+/* Most played is a real clipped paper list again — compact, not a dashboard card. */
+.music-screen .spotify-top-rotation{
+  position:relative !important;
+  margin:18px 24px 25px !important;
+  padding:17px 15px 12px !important;
+  background:#ead6c7 !important;
+  border:0 !important;
+  box-shadow:5px 7px 0 rgba(20,7,10,.13) !important;
+  transform:rotate(.25deg) !important;
+}
+.music-screen .spotify-top-rotation::before{
+  display:block !important;
+  content:"" !important;
+  position:absolute !important;
+  top:-9px !important;
+  left:28px !important;
+  width:64px !important;
+  height:18px !important;
+  background:rgba(225,181,176,.62) !important;
+  transform:rotate(-2deg) !important;
+}
+.music-screen .spotify-top-rotation > header{border-bottom:1px solid rgba(89,32,40,.18) !important}
+.music-screen .spotify-top-rotation > header > div:first-child > span{color:#9c4a55 !important;-webkit-text-fill-color:#9c4a55 !important}
+.music-screen .spotify-top-rotation > header > div:first-child > strong{color:#56222a !important;-webkit-text-fill-color:#56222a !important}
+.music-screen .spotify-top-copy strong{color:#57232b !important;-webkit-text-fill-color:#57232b !important}
+.music-screen .spotify-top-copy span{color:#875c60 !important;-webkit-text-fill-color:#875c60 !important}
+.music-screen .spotify-top-track > span:first-child{color:#9b6a6c !important;-webkit-text-fill-color:#9b6a6c !important}
+.music-screen .spotify-top-range-tabs button{color:#98676b !important;-webkit-text-fill-color:#98676b !important}
+.music-screen .spotify-top-range-tabs button.active{background:#f8eadc !important;color:#5b2029 !important;-webkit-text-fill-color:#5b2029 !important}
+.music-screen .spotify-top-track{border-bottom-color:rgba(89,32,40,.10) !important}
+
+/* Collection dividers stay readable against the dark page. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs{
+  border-color:rgba(247,234,219,.25) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button{
+  border-color:rgba(247,234,219,.16) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active{
+  background:#f1dfd0 !important;
+  color:#5c2029 !important;
+  -webkit-text-fill-color:#5c2029 !important;
+}
+
+/* Chat: time-adapted dark modes must be dark surfaces + ivory ink, regardless of base theme. */
+.messenger-chat.chat-adapt-time.chat-time-night{
+  --chat-bg:#351b20 !important;
+  --chat-panel:#432229 !important;
+  --chat-mine:#66323d !important;
+  --chat-theirs:#4c2931 !important;
+  --chat-ink:#f7eadb !important;
+  --chat-safe-ink:#f7eadb !important;
+  --chat-safe-muted:#d7bdb4 !important;
+  --chat-readable-ink:#f7eadb !important;
+  --chat-readable-muted:#d7bdb4 !important;
+  --chat-accent:#dc8b96 !important;
+}
+.messenger-chat.chat-adapt-time.chat-time-late{
+  --chat-bg:#241317 !important;
+  --chat-panel:#31191f !important;
+  --chat-mine:#542833 !important;
+  --chat-theirs:#3d2229 !important;
+  --chat-ink:#f8ecdd !important;
+  --chat-safe-ink:#f8ecdd !important;
+  --chat-safe-muted:#d4bbb2 !important;
+  --chat-readable-ink:#f8ecdd !important;
+  --chat-readable-muted:#d4bbb2 !important;
+  --chat-accent:#d98290 !important;
+}
+.messenger-chat.chat-theme-midnight{
+  --chat-bg:#241317 !important;
+  --chat-panel:#31191f !important;
+  --chat-mine:#542833 !important;
+  --chat-theirs:#3d2229 !important;
+  --chat-ink:#f8ecdd !important;
+  --chat-safe-ink:#f8ecdd !important;
+  --chat-safe-muted:#d4bbb2 !important;
+  --chat-readable-ink:#f8ecdd !important;
+  --chat-readable-muted:#d4bbb2 !important;
+}
