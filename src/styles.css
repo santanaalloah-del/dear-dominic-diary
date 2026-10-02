@@ -15506,3 +15506,295 @@ html[data-diario-time-theme="continuous"] .statusbar {
     height:38px !important;
   }
 }
+
+
+/* =========================================================
+   VISUAL PASS 04D · THE RECORD COLLECTION
+   The lower Player becomes an editorial music archive:
+   fewer cards, more liner-notes / record-index rhythm.
+   ========================================================= */
+
+/* Pull the collection closer to the player and make owner tabs feel like dividers. */
+.music-screen .music-tabs{
+  margin-top:18px !important;
+  min-height:48px !important;
+  gap:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+.music-screen .music-tabs button{
+  min-height:46px !important;
+  padding:0 16px !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(111,39,49,.22) !important;
+  letter-spacing:.14em !important;
+  font-size:10px !important;
+  box-shadow:none !important;
+}
+.music-screen .music-tabs button.active{
+  background:transparent !important;
+  color:#f7eadb !important;
+  -webkit-text-fill-color:#f7eadb !important;
+  border-bottom:2px solid currentColor !important;
+}
+.phone-shell:not([data-time-theme="night"]):not([data-time-theme="late"]) .music-screen .music-tabs button.active{
+  color:#681d28 !important;
+  -webkit-text-fill-color:#681d28 !important;
+}
+
+/* Tiny archive labels: readable, but secondary. */
+.music-screen .music-section-tabs{
+  margin:4px 0 16px !important;
+  min-height:38px !important;
+  gap:0 !important;
+  overflow-x:auto !important;
+  scrollbar-width:none;
+}
+.music-screen .music-section-tabs::-webkit-scrollbar{display:none}
+.music-screen .music-section-tabs button{
+  flex:1 0 auto !important;
+  min-width:max-content !important;
+  padding:0 10px 8px !important;
+  font-size:9px !important;
+  font-weight:650 !important;
+  letter-spacing:.12em !important;
+  opacity:.68 !important;
+}
+.music-screen .music-section-tabs button.active{
+  opacity:1 !important;
+}
+
+/* Saved-song library is one continuous sheet, not a stack of SaaS cards. */
+.music-screen .music-library{
+  position:relative !important;
+  display:block !important;
+  margin:0 8px 22px !important;
+  padding:12px 18px 16px !important;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 63px,rgba(103,35,44,.055) 63px 64px),
+    #f0ddcd !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  box-shadow:5px 7px 0 rgba(20,5,9,.12) !important;
+}
+.music-screen .music-library::before{
+  content:"saved songs · record index";
+  display:block;
+  padding:2px 0 11px !important;
+  margin-bottom:2px !important;
+  color:#a34b55 !important;
+  font-family:var(--font-sans,inherit);
+  font-size:8px !important;
+  font-weight:700 !important;
+  letter-spacing:.18em !important;
+  text-transform:uppercase !important;
+  border-bottom:1px solid rgba(101,34,43,.16);
+}
+
+/* Each track is a row in the archive. */
+.music-screen .music-library .music-track{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:50px minmax(0,1fr) auto !important;
+  grid-template-areas:
+    "cover copy actions"
+    "cover meta actions" !important;
+  align-items:center !important;
+  gap:2px 12px !important;
+  min-height:74px !important;
+  margin:0 !important;
+  padding:10px 0 !important;
+  background:transparent !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(91,30,39,.13) !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+.music-screen .music-library .music-track:last-child{
+  border-bottom:0 !important;
+}
+.music-screen .music-track-cover,
+.music-screen .music-track img:first-of-type{
+  grid-area:cover !important;
+  width:50px !important;
+  height:50px !important;
+  object-fit:cover !important;
+  border-radius:1px !important;
+  box-shadow:2px 3px 0 rgba(82,27,35,.12) !important;
+}
+.music-screen .music-track-copy,
+.music-screen .music-track-info{
+  grid-area:copy !important;
+  min-width:0 !important;
+}
+.music-screen .music-track-copy h3,
+.music-screen .music-track-info h3{
+  margin:0 0 2px !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:17px !important;
+  line-height:1.05 !important;
+  font-weight:500 !important;
+}
+.music-screen .music-track-copy p,
+.music-screen .music-track-info p{
+  margin:0 !important;
+  font-size:10px !important;
+  line-height:1.3 !important;
+}
+.music-screen .music-track .music-note,
+.music-screen .music-track .music-track-note{
+  display:none !important;
+}
+
+/* Actions collapse into a tiny record-player control cluster. */
+.music-screen .music-track-actions{
+  grid-area:actions !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:4px !important;
+  align-self:center !important;
+}
+.music-screen .music-track-actions button{
+  min-width:0 !important;
+  width:30px !important;
+  height:30px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  background:rgba(255,247,237,.42) !important;
+  color:#681e29 !important;
+  box-shadow:none !important;
+  font-size:0 !important;
+}
+.music-screen .music-track-actions button svg{
+  width:14px !important;
+  height:14px !important;
+}
+.music-screen .music-track-actions button:first-child{
+  background:#651923 !important;
+  color:#fff3e5 !important;
+}
+.music-screen .music-track-actions button[title*="queue" i],
+.music-screen .music-track-actions button[aria-label*="queue" i]{
+  background:transparent !important;
+  border:1px solid rgba(101,30,41,.22) !important;
+}
+
+/* Heart becomes a tiny margin annotation instead of its own square card. */
+.music-screen .music-track-favorite,
+.music-screen .music-track > button[aria-label*="favorite" i],
+.music-screen .music-track > button[title*="favorite" i]{
+  position:absolute !important;
+  right:4px !important;
+  bottom:5px !important;
+  width:24px !important;
+  height:24px !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+
+/* Connections are metadata: quiet handwritten underline, never the loudest CTA. */
+.music-screen .music-track .connection-button,
+.music-screen .music-track button[class*="connection"]{
+  width:auto !important;
+  min-width:0 !important;
+  height:auto !important;
+  padding:3px 0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(101,30,41,.30) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#8b5158 !important;
+  box-shadow:none !important;
+  font-size:7px !important;
+  letter-spacing:.10em !important;
+}
+
+/* Add-song is an archive footer, not a giant pill. */
+.music-screen .music-add-button,
+.music-screen button[class*="add-song"]{
+  margin:8px auto 18px !important;
+  width:auto !important;
+  min-height:34px !important;
+  padding:5px 18px !important;
+  border-radius:1px !important;
+  background:transparent !important;
+  border:1px solid rgba(246,234,219,.36) !important;
+  color:#f6eadb !important;
+  -webkit-text-fill-color:#f6eadb !important;
+  box-shadow:none !important;
+}
+
+/* Liner-note footer: a torn little note, not a rounded info card. */
+.music-screen .music-rule,
+.music-screen .music-library-note{
+  position:relative !important;
+  margin:12px 18px 28px !important;
+  padding:15px 17px !important;
+  border:0 !important;
+  border-radius:1px !important;
+  background:#e7cfbf !important;
+  color:#74454c !important;
+  box-shadow:3px 4px 0 rgba(22,6,10,.10) !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:11px !important;
+  line-height:1.5 !important;
+}
+.music-screen .music-rule::before,
+.music-screen .music-library-note::before{
+  content:"liner note";
+  display:block;
+  margin-bottom:5px;
+  color:#a64e58;
+  font-family:var(--font-sans,inherit);
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+/* Playlist covers get gallery breathing room; the art does the decorating. */
+.music-screen .spotify-playlist-grid{
+  gap:18px 12px !important;
+}
+.music-screen .spotify-playlist-card{
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-playlist-card img{
+  border-radius:1px !important;
+  box-shadow:3px 4px 0 rgba(62,17,25,.12) !important;
+}
+.music-screen .spotify-playlist-card strong{
+  margin-top:7px !important;
+  font-family:var(--font-serif,serif) !important;
+}
+
+/* On small phones, title gets space and action cluster stays genuinely tiny. */
+@media (max-width:420px){
+  .music-screen .music-library{
+    margin-inline:6px !important;
+    padding-inline:14px !important;
+  }
+  .music-screen .music-library .music-track{
+    grid-template-columns:46px minmax(0,1fr) auto !important;
+    gap:2px 9px !important;
+  }
+  .music-screen .music-track-cover,
+  .music-screen .music-track img:first-of-type{
+    width:46px !important;
+    height:46px !important;
+  }
+  .music-screen .music-track-actions button{
+    width:27px !important;
+    height:27px !important;
+  }
+}
