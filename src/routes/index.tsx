@@ -107,6 +107,7 @@ import {
    createMemory,
   createPlace,
   createSong,
+  archiveSong,
 setSongFavorite,
 getCalendarItems,
   getDates,
@@ -9549,7 +9550,21 @@ if (spotifyUrl) {
   }
 };
 
-  const playSpotifyTopTrack = (
+  const removeSavedSong = async (song: DiarioItem) => {
+  const title = song.title ?? "this song";
+  if (!window.confirm(`Remove “${title}” from the Diário record shelf?`)) return;
+
+  setMusicError(null);
+  try {
+    await archiveSong({ userId: session.user.id, songId: song.id });
+    setSongs((currentSongs) => currentSongs.filter((item) => item.id !== song.id));
+  } catch (error) {
+    console.error("Could not remove song:", error);
+    setMusicError("This song could not be removed.");
+  }
+};
+
+const playSpotifyTopTrack = (
   track: SpotifyTrack
 ) => {
   const artist =
@@ -10434,166 +10449,94 @@ const spotifyUri =
                     key={song.id}
                     className="music-track"
                   >
-                <div
-  className="music-record"
-  aria-hidden="true"
->
-  {coverUrl ? (
-    <img
-      src={coverUrl}
-      alt=""
-    />
-  ) : (
-    <Disc3
-      size={24}
-      strokeWidth={1.2}
-    />
-  )}
-</div>
-
-                    <div>
-                      <small>
-                        {musicView ===
-                        "ours"
-                          ? "ours"
-                          : musicView}
-                      </small>
-
-                      <strong>
-                        {song.title ??
-                          "Untitled song"}
-                      </strong>
-
-                      <span>
-                        {artist}
-                      </span>
-
-                      {album && (
-                        <em>
-                          {album}
-                        </em>
-                      )}
-
-                      {song.body && (
-                        <p>
-                          {song.body}
-                        </p>
+                    <div className="music-record" aria-hidden="true">
+                      {coverUrl ? (
+                        <img src={coverUrl} alt="" />
+                      ) : (
+                        <Disc3 size={24} strokeWidth={1.2} />
                       )}
                     </div>
 
-{onShareToChat && (
-  <button
-    type="button"
-    onClick={() =>
-      onShareToChat(
-        `I sent you a song: "${song.title ?? "Untitled song"}" by ${artist}.`,
-        song,
-        artist
-      )
-    }
-  >
-    Send to chat
-  </button>
-)}
+                    <div className="music-track-copy">
+                      <small>{musicView === "ours" ? "ours" : musicView}</small>
+                      <strong>{song.title ?? "Untitled song"}</strong>
+                      <span>{artist}</span>
+                      {album && <em>{album}</em>}
+                      {song.body && <p>{song.body}</p>}
 
-                    <button
-  type="button"
-  className={
-    song.data?.favorite === true
-      ? "music-favorite-button active"
-      : "music-favorite-button"
-  }
-  aria-label={
-    song.data?.favorite === true
-      ? "Remove from favorites"
-      : "Add to favorites"
-  }
-  aria-pressed={
-    song.data?.favorite === true
-  }
-  onClick={() =>
-    void toggleSongFavorite(song)
-  }
->
-  <Heart
-    size={16}
-    fill={
-      song.data?.favorite === true
-        ? "currentColor"
-        : "none"
-    }
-  />
-</button>
-                    
-<button
-  type="button"
-  aria-label="Listen now"
- disabled={!spotifyUri}
-  onClick={() =>
-    startListeningToSong({
-      song,
-      artist,
-      coverUrl,
-      spotifyUrl,
-      spotifyUri,
-      owner:
-        musicView === "mine"
-          ? "alloah"
-          : musicView === "dominic"
-            ? "dominic"
-            : "together",
-    })
-  }
->
- {spotifyPlayerLoading ? (
-  "…"
-) : (
-  <Play
-    size={16}
-    fill="currentColor"
-  />
-)}
-</button>
+                      <button
+                        type="button"
+                        className="music-connections-link"
+                        onClick={() => setSelectedSongId(song.id)}
+                      >
+                        ↳ connections
+                      </button>
+                    </div>
 
-                    <button
-  type="button"
-  aria-label="Add to queue"
-  disabled={!spotifyUri}
-  onClick={() => {
-    if (!spotifyUri) return;
+                    <div className="music-track-actions">
+                      <button
+                        type="button"
+                        className="music-listen-button"
+                        aria-label="Listen now"
+                        disabled={!spotifyUri}
+                        onClick={() =>
+                          startListeningToSong({
+                            song,
+                            artist,
+                            coverUrl,
+                            spotifyUrl,
+                            spotifyUri,
+                            owner:
+                              musicView === "mine"
+                                ? "alloah"
+                                : musicView === "dominic"
+                                  ? "dominic"
+                                  : "together",
+                          })
+                        }
+                      >
+                        {spotifyPlayerLoading ? "…" : <Play size={14} fill="currentColor" />}
+                      </button>
 
-    void addSpotifyUriToQueue(
-      spotifyUri
-    )
-      .then(() => {
-        setSpotifyQueueOpen(true);
+                      <button
+                        type="button"
+                        className={song.data?.favorite === true ? "music-favorite-button active" : "music-favorite-button"}
+                        aria-label={song.data?.favorite === true ? "Remove from favorites" : "Add to favorites"}
+                        aria-pressed={song.data?.favorite === true}
+                        onClick={() => void toggleSongFavorite(song)}
+                      >
+                        <Heart size={14} fill={song.data?.favorite === true ? "currentColor" : "none"} />
+                      </button>
 
-        return refreshSpotifyQueue();
-      })
-      .catch((error) => {
-        console.error(error);
+                      <button
+                        type="button"
+                        className="music-queue-button"
+                        aria-label="Add to queue"
+                        disabled={!spotifyUri}
+                        onClick={() => {
+                          if (!spotifyUri) return;
+                          void addSpotifyUriToQueue(spotifyUri)
+                            .then(() => {
+                              setSpotifyQueueOpen(true);
+                              return refreshSpotifyQueue();
+                            })
+                            .catch((error) => {
+                              console.error(error);
+                              setMusicError(error instanceof Error ? error.message : "Could not add to queue.");
+                            });
+                        }}
+                      >
+                        queue
+                      </button>
 
-        setMusicError(
-          error instanceof Error
-            ? error.message
-            : "Could not add to queue."
-        );
-      });
-  }}
->
-  queue
-</button>
-
-                    <button
-  type="button"
-  className="letter-connected-button"
-  onClick={() =>
-    setSelectedSongId(song.id)
-  }
->
-  View connections
-</button>
-                    
+                      <button
+                        type="button"
+                        className="music-remove-button"
+                        onClick={() => void removeSavedSong(song)}
+                      >
+                        remove
+                      </button>
+                    </div>
                   </article>
                 );
               }
