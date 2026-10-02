@@ -15938,3 +15938,100 @@ html[data-diario-time-theme="continuous"] .statusbar {
     width:28px !important;
   }
 }
+
+
+/* =========================================================
+   VISUAL PASS 04F · JEWELRY PASS
+   Keep the record-index structure; refine only spacing/actions.
+   ========================================================= */
+.music-screen .music-library .music-track{
+  grid-template-columns:52px minmax(0,1fr) 62px !important;
+  gap:12px !important;
+}
+.music-screen .music-track-actions{
+  grid-template-columns:29px 29px !important;
+  grid-auto-rows:29px !important;
+  gap:4px !important;
+}
+.music-screen .music-track-actions button,
+.music-screen .music-track-actions .music-queue-button,
+.music-screen .music-track-actions .music-remove-button{
+  width:29px !important;
+  height:29px !important;
+}
+.music-screen .music-track-actions .music-queue-button{
+  position:relative !important;
+  border:1px solid rgba(101,30,41,.16) !important;
+  color:transparent !important;
+  font-size:0 !important;
+}
+.music-screen .music-track-actions .music-queue-button::before{
+  content:"+" !important;
+  position:absolute !important;
+  inset:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  color:#7d3943 !important;
+  font-family:Georgia,serif !important;
+  font-size:17px !important;
+  line-height:1 !important;
+}
+.music-screen .music-track-actions .music-remove-button{
+  border:0 !important;
+  color:#a4666c !important;
+  font-family:Georgia,serif !important;
+  font-size:16px !important;
+  text-decoration:none !important;
+  opacity:.72 !important;
+}
+.music-screen .music-track-actions .music-remove-button:hover,
+.music-screen .music-track-actions .music-remove-button:focus-visible{
+  color:#711f2b !important;
+  opacity:1 !important;
+}
+.music-screen .music-connections-link{
+  margin-top:4px !important;
+  font-size:6.5px !important;
+}
+.music-screen .music-track-copy > strong{
+  font-size:16px !important;
+}
+.music-screen .music-track-copy > span{
+  font-size:8.5px !important;
+}
+.music-screen .music-track-copy > em{
+  margin-top:1px !important;
+  font-size:8px !important;
+}
+
+/* The owner + archive navigation stays safely below the phone header while scrolling. */
+.music-screen .music-tabs{
+  scroll-margin-top:92px !important;
+}
+.music-screen .music-section-tabs{
+  position:relative !important;
+  z-index:2 !important;
+  padding-top:3px !important;
+}
+
+/* Do not let the floating nav eat the final records. */
+.music-screen{
+  padding-bottom:132px !important;
+}
+
+@media (max-width:420px){
+  .music-screen .music-library .music-track{
+    grid-template-columns:48px minmax(0,1fr) 58px !important;
+    gap:9px !important;
+  }
+  .music-screen .music-track-actions{
+    grid-template-columns:27px 27px !important;
+    grid-auto-rows:27px !important;
+  }
+  .music-screen .music-track-actions button,
+  .music-screen .music-track-actions .music-queue-button,
+  .music-screen .music-track-actions .music-remove-button{
+    width:27px !important;
+    height:27px !important;
+  }
+}
