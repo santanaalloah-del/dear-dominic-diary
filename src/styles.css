@@ -16035,3 +16035,382 @@ html[data-diario-time-theme="continuous"] .statusbar {
     height:27px !important;
   }
 }
+
+
+/* =========================================================
+   VISUAL PASS 05 · COMPLETE PLAYER WORLD
+   One visual system for Library / Playlists / Recent / Queue /
+   Favorites and Mine / Dominic / Ours.
+   ========================================================= */
+
+/* --- navigation: make it readable and intentional at night --- */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button{
+  color:rgba(246,234,219,.58) !important;
+  -webkit-text-fill-color:rgba(246,234,219,.58) !important;
+  border-bottom-color:rgba(246,234,219,.14) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active{
+  color:#fff0df !important;
+  -webkit-text-fill-color:#fff0df !important;
+  border-bottom-color:#d8878f !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
+  color:rgba(246,234,219,.62) !important;
+  -webkit-text-fill-color:rgba(246,234,219,.62) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button.active{
+  color:#fff0df !important;
+  -webkit-text-fill-color:#fff0df !important;
+  border-bottom-color:#fff0df !important;
+}
+
+/* --- shared paper language for every lower-player section --- */
+.music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board){
+  position:relative !important;
+  margin:0 10px 24px !important;
+  padding:18px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 54px,rgba(103,35,44,.045) 54px 55px),
+    #f0ddcd !important;
+  box-shadow:5px 7px 0 rgba(20,5,9,.12) !important;
+  overflow:hidden !important;
+}
+.music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board)::before{
+  content:"";
+  position:absolute;
+  width:70px;
+  height:17px;
+  top:-7px;
+  left:50%;
+  transform:translateX(-50%) rotate(-1deg);
+  background:rgba(229,186,176,.50);
+  pointer-events:none;
+}
+
+/* --- headings feel like liner-note typography --- */
+.music-screen .spotify-library-heading,
+.music-screen .music-playlist-board > header,
+.music-screen .spotify-queue-panel > header{
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  margin:0 0 14px !important;
+  padding:3px 0 11px !important;
+  border-bottom:1px solid rgba(91,30,39,.15) !important;
+}
+.music-screen .spotify-library-heading > div,
+.music-screen .music-playlist-board > header > div{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:3px !important;
+}
+.music-screen .spotify-library-heading span,
+.music-screen .music-playlist-board header span,
+.music-screen .spotify-queue-panel > header > span{
+  color:#a24e58 !important;
+  -webkit-text-fill-color:#a24e58 !important;
+  font-size:7px !important;
+  font-weight:700 !important;
+  letter-spacing:.17em !important;
+  text-transform:uppercase !important;
+}
+.music-screen .spotify-library-heading strong,
+.music-screen .music-playlist-board header strong{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:25px !important;
+  line-height:1 !important;
+  font-weight:500 !important;
+}
+.music-screen .spotify-library-heading small,
+.music-screen .music-playlist-board header small{
+  color:#9a686b !important;
+  -webkit-text-fill-color:#9a686b !important;
+  font-size:8px !important;
+}
+
+/* --- playlists: actual record-cover gallery --- */
+.music-screen .spotify-playlist-grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:22px 14px !important;
+  padding:3px 0 6px !important;
+}
+.music-screen .spotify-playlist-grid > button{
+  min-width:0 !important;
+  padding:0 !important;
+  text-align:left !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  color:#57222b !important;
+}
+.music-screen .spotify-playlist-art{
+  position:relative !important;
+  width:100% !important;
+  aspect-ratio:1 !important;
+  overflow:hidden !important;
+  background:#dfc2b5 !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  box-shadow:3px 4px 0 rgba(62,17,25,.13) !important;
+}
+.music-screen .spotify-playlist-art img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-playlist-grid > button > strong{
+  display:block !important;
+  margin:8px 0 2px !important;
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+  line-height:1.15 !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-playlist-grid > button > span{
+  color:#9a686b !important;
+  -webkit-text-fill-color:#9a686b !important;
+  font-size:8px !important;
+}
+
+/* selected playlist = album sleeve header + compact track listing */
+.music-screen .spotify-library-back{
+  width:auto !important;
+  margin:0 0 12px !important;
+  padding:0 0 2px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(101,30,41,.24) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#8c5158 !important;
+  font-size:8px !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-selected-playlist{
+  display:grid !important;
+  grid-template-columns:74px minmax(0,1fr) !important;
+  gap:14px !important;
+  align-items:end !important;
+  margin-bottom:14px !important;
+}
+.music-screen .spotify-selected-playlist img{
+  width:74px !important;
+  height:74px !important;
+  object-fit:cover !important;
+  border-radius:1px !important;
+  box-shadow:3px 4px 0 rgba(62,17,25,.13) !important;
+}
+.music-screen .spotify-selected-playlist > div{
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.music-screen .spotify-selected-playlist small{
+  color:#a24e58 !important;
+  font-size:7px !important;
+  letter-spacing:.16em !important;
+}
+.music-screen .spotify-selected-playlist strong{
+  color:#57222b !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:21px !important;
+  line-height:1.05 !important;
+}
+.music-screen .spotify-selected-playlist span{
+  color:#956269 !important;
+  font-size:8px !important;
+}
+
+/* --- Recent + Liked songs: elegant compact track ledger --- */
+.music-screen .spotify-compact-track-list{
+  display:block !important;
+}
+.music-screen .spotify-compact-track-list > button{
+  display:grid !important;
+  grid-template-columns:38px minmax(0,1fr) 24px !important;
+  gap:10px !important;
+  align-items:center !important;
+  width:100% !important;
+  min-height:55px !important;
+  padding:8px 0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(91,30,39,.12) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  text-align:left !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-compact-track-list > button:last-child{border-bottom:0 !important}
+.music-screen .spotify-compact-track-list > button > img{
+  width:38px !important;
+  height:38px !important;
+  object-fit:cover !important;
+  border-radius:1px !important;
+}
+.music-screen .spotify-compact-track-list > button > span{
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.music-screen .spotify-compact-track-list > button strong{
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:13px !important;
+  font-weight:600 !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-compact-track-list > button small{
+  overflow:hidden !important;
+  color:#936268 !important;
+  -webkit-text-fill-color:#936268 !important;
+  font-size:8px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-compact-track-list > button > svg{
+  color:#6a1c28 !important;
+}
+
+/* --- queue: numbered record-session list --- */
+.music-screen .spotify-queue-panel > header button{
+  width:auto !important;
+  min-height:0 !important;
+  padding:3px 0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(101,30,41,.24) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#8b5158 !important;
+  font-size:7px !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-queue-list{
+  counter-reset:queue-track;
+}
+.music-screen .spotify-queue-item{
+  counter-increment:queue-track;
+  display:grid !important;
+  grid-template-columns:16px 38px minmax(0,1fr) !important;
+  gap:9px !important;
+  align-items:center !important;
+  min-height:55px !important;
+  padding:8px 0 !important;
+  border-bottom:1px solid rgba(91,30,39,.12) !important;
+}
+.music-screen .spotify-queue-item::before{
+  content:counter(queue-track);
+  color:#a16b70;
+  font-family:var(--font-serif,serif);
+  font-size:9px;
+}
+.music-screen .spotify-queue-item img{
+  width:38px !important;
+  height:38px !important;
+  object-fit:cover !important;
+  border-radius:1px !important;
+}
+.music-screen .spotify-queue-item > div{
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.music-screen .spotify-queue-item strong{
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:13px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-queue-item span{
+  overflow:hidden !important;
+  color:#936268 !important;
+  -webkit-text-fill-color:#936268 !important;
+  font-size:8px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+
+/* --- Dominic / Ours playlist placeholders are intentional journal pages --- */
+.music-screen .music-playlist-board{
+  min-height:150px !important;
+}
+.music-screen .music-playlist-board > p{
+  max-width:31ch !important;
+  margin:18px 0 8px !important;
+  color:#805159 !important;
+  -webkit-text-fill-color:#805159 !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:13px !important;
+  line-height:1.5 !important;
+  font-style:italic !important;
+}
+
+/* --- empty states belong to the scrapbook too --- */
+.music-screen .music-empty,
+.music-screen .music-empty-note{
+  margin:0 10px 24px !important;
+  padding:22px 18px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:#f0ddcd !important;
+  color:#704049 !important;
+  -webkit-text-fill-color:#704049 !important;
+  box-shadow:4px 5px 0 rgba(20,5,9,.11) !important;
+}
+.music-screen .music-empty h2{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-serif,serif) !important;
+}
+
+/* --- final saved-song action polish --- */
+.music-screen .music-track-actions{
+  grid-template-columns:27px 27px !important;
+  grid-auto-rows:27px !important;
+  gap:3px !important;
+}
+.music-screen .music-track-actions button,
+.music-screen .music-track-actions .music-queue-button,
+.music-screen .music-track-actions .music-remove-button{
+  width:27px !important;
+  height:27px !important;
+}
+.music-screen .music-track-actions .music-remove-button{
+  font-size:13px !important;
+  opacity:.55 !important;
+}
+.music-screen .music-track-actions .music-queue-button::before{
+  font-size:15px !important;
+}
+
+/* Keep bottom nav away from content on long music screens. */
+.music-screen :is(.music-library,.spotify-library-paper,.spotify-queue-panel,.music-playlist-board):last-of-type{
+  margin-bottom:34px !important;
+}
+
+@media (max-width:390px){
+  .music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board){
+    margin-inline:6px !important;
+    padding-inline:14px !important;
+  }
+  .music-screen .spotify-playlist-grid{gap:18px 11px !important}
+  .music-screen .spotify-library-heading strong{font-size:22px !important}
+}
