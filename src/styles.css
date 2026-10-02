@@ -14934,3 +14934,123 @@ html[data-diario-time-theme="continuous"] .statusbar {
  .screen-music .spotify-live-cover,.music-screen .spotify-live-cover{width:92px!important;height:92px!important}
  .screen-music .spotify-live-meta strong,.music-screen .spotify-live-meta strong{font-size:22px!important}
 }
+
+/* =========================================================
+   VISUAL PASS 04 · CURRENT ZIP / AUTHORITATIVE FIXES
+   Targets the classes that actually render in this build.
+   ========================================================= */
+
+/* CHAT — preserve every theme surface; make ink inherit correctly through Streamdown/markdown. */
+.messenger-chat { --chat-safe-ink:#55252b; --chat-safe-muted:#81565c; }
+.messenger-chat.chat-theme-diary { --chat-safe-ink:#55252b; --chat-safe-muted:#81565c; }
+.messenger-chat.chat-theme-cherry { --chat-safe-ink:#4b2028; --chat-safe-muted:#74464d; }
+.messenger-chat.chat-theme-old-letter { --chat-safe-ink:#493329; --chat-safe-muted:#765e50; }
+.messenger-chat.chat-theme-soft-rose { --chat-safe-ink:#542b31; --chat-safe-muted:#875d62; }
+.messenger-chat.chat-theme-midnight,
+.messenger-chat.chat-adapt-time.chat-time-night,
+.messenger-chat.chat-adapt-time.chat-time-late { --chat-safe-ink:#f7eadf; --chat-safe-muted:#d8beb8; }
+
+.screen-chat .messenger-bubble,
+.screen-chat .messenger-bubble *,
+.screen-chat .diario-message-content,
+.screen-chat .diario-message-content * {
+  color:var(--chat-safe-ink) !important;
+  -webkit-text-fill-color:var(--chat-safe-ink) !important;
+  opacity:1 !important;
+}
+.screen-chat .messenger-person h1 { color:var(--chat-safe-ink) !important; -webkit-text-fill-color:var(--chat-safe-ink) !important; }
+.screen-chat .messenger-person p,
+.screen-chat .messenger-message time { color:var(--chat-safe-muted) !important; -webkit-text-fill-color:var(--chat-safe-muted) !important; opacity:1 !important; }
+.screen-chat .messenger-header-actions button,
+.screen-chat .messenger-composer button { color:var(--chat-safe-ink) !important; }
+.screen-chat .messenger-composer textarea { color:var(--chat-safe-ink) !important; -webkit-text-fill-color:var(--chat-safe-ink) !important; }
+.screen-chat .messenger-composer textarea::placeholder { color:var(--chat-safe-muted) !important; -webkit-text-fill-color:var(--chat-safe-muted) !important; opacity:.9 !important; }
+/* restore the actual theme surfaces after old 03C rules */
+.screen-chat .messenger-bubble { background:var(--chat-theirs) !important; }
+.screen-chat .messenger-message.is-user .messenger-bubble { background:var(--chat-mine) !important; }
+
+/* Chat appearance is portaled outside .screen-chat, so it needs its own stable paper ink. */
+.chat-settings-sheet,
+.chat-settings-sheet * { --sheet-ink:#54262c; --sheet-muted:#956b6d; }
+.chat-settings-sheet { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; background:#f8eadc !important; }
+.chat-settings-sheet [data-slot=sheet-title],
+.chat-settings-sheet .settings-row-title strong,
+.chat-settings-sheet .theme-grid b,
+.chat-settings-sheet .bubble-choice-grid b,
+.chat-settings-sheet .settings-toggles strong { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; opacity:1 !important; }
+.chat-settings-sheet .settings-row-title small,
+.chat-settings-sheet .theme-grid small,
+.chat-settings-sheet .settings-toggles small { color:var(--sheet-muted) !important; -webkit-text-fill-color:var(--sheet-muted) !important; opacity:1 !important; }
+.chat-settings-sheet .settings-script { color:#a23f4c !important; -webkit-text-fill-color:#a23f4c !important; }
+.chat-settings-sheet .theme-grid button,
+.chat-settings-sheet .bubble-choice-grid button { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; }
+.chat-settings-sheet .bubble-preview { color:#57252d !important; -webkit-text-fill-color:#57252d !important; }
+
+/* PLAYER — actual DOM uses .spotify-live-info and .spotify-top-track. */
+.music-screen .spotify-live-player {
+  margin:24px 22px 26px !important;
+  padding:18px !important;
+  display:grid !important;
+  grid-template-columns:104px minmax(0,1fr) !important;
+  gap:14px 17px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.055) 27px 28px),#f7eadc !important;
+  box-shadow:7px 9px 0 rgba(87,29,37,.09) !important;
+  overflow:visible !important;
+  transform:rotate(-.25deg) !important;
+}
+.music-screen .spotify-live-player::before { content:"" !important; position:absolute !important; top:-11px !important; left:50% !important; width:86px !important; height:21px !important; transform:translateX(-50%) rotate(1.5deg) !important; background:rgba(229,190,184,.68) !important; border:0 !important; }
+.music-screen .spotify-live-cover { width:104px !important; height:104px !important; border-radius:0 !important; box-shadow:3px 4px 0 rgba(84,31,38,.12) !important; }
+.music-screen .spotify-live-info { min-width:0 !important; align-self:center !important; display:flex !important; flex-direction:column !important; }
+.music-screen .spotify-live-info > small { font-size:8px !important; letter-spacing:.18em !important; color:#a24d58 !important; opacity:1 !important; }
+.music-screen .spotify-live-info > strong { margin-top:8px !important; font:500 25px/.95 var(--font-display) !important; color:#56222a !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+.music-screen .spotify-live-info > span { margin-top:6px !important; font:italic 13px var(--font-display) !important; color:#87595d !important; opacity:1 !important; }
+.music-screen .spotify-live-progress { width:100% !important; margin-top:12px !important; height:14px !important; border:0 !important; border-bottom:2px solid rgba(92,35,43,.20) !important; background:transparent !important; border-radius:0 !important; padding:0 !important; position:relative !important; }
+.music-screen .spotify-live-progress > span { position:absolute !important; left:0 !important; bottom:-2px !important; height:2px !important; background:#a83f4c !important; }
+.music-screen .spotify-live-controls { grid-column:1/-1 !important; display:flex !important; align-items:center !important; justify-content:center !important; gap:11px !important; padding-top:13px !important; border-top:1px dashed rgba(90,32,40,.17) !important; }
+.music-screen .spotify-live-controls button { min-width:36px !important; width:36px !important; height:36px !important; border-radius:50% !important; padding:0 !important; display:grid !important; place-items:center !important; }
+.music-screen .spotify-live-controls .spotify-main-play { width:48px !important; height:48px !important; background:#651923 !important; color:#fff5e8 !important; }
+.music-screen .spotify-live-controls .spotify-queue-toggle { width:auto !important; min-width:82px !important; border-radius:18px !important; display:flex !important; gap:5px !important; padding:0 12px !important; }
+
+/* idle player gets the same object-like treatment */
+.music-screen .spotify-idle-state { grid-column:1/-1 !important; display:grid !important; grid-template-columns:72px minmax(0,1fr) !important; gap:12px 16px !important; align-items:center !important; }
+.music-screen .spotify-idle-record { width:72px !important; height:72px !important; border-radius:50% !important; border:1px solid rgba(100,35,43,.32) !important; display:grid !important; place-items:center !important; color:#7a303b !important; }
+.music-screen .spotify-idle-state > div:nth-child(2) small,
+.music-screen .spotify-idle-state > div:nth-child(2) strong,
+.music-screen .spotify-idle-state > div:nth-child(2) span { display:block !important; opacity:1 !important; }
+.music-screen .spotify-idle-state > div:nth-child(2) small { color:#a24d58 !important; letter-spacing:.15em !important; font-size:8px !important; }
+.music-screen .spotify-idle-state > div:nth-child(2) strong { color:#56222a !important; font:500 23px/1 var(--font-display) !important; margin-top:5px !important; }
+.music-screen .spotify-idle-state > div:nth-child(2) span { color:#87595d !important; font-size:11px !important; margin-top:5px !important; }
+.music-screen .spotify-idle-state > button { grid-column:2 !important; justify-self:start !important; border:1px solid rgba(101,25,35,.5) !important; border-radius:18px !important; background:transparent !important; color:#651923 !important; padding:8px 13px !important; }
+
+/* Most played: target the real .spotify-top-track markup, not nonexistent rows. */
+.music-screen .spotify-top-rotation { margin:8px 26px 24px !important; padding:0 0 8px !important; border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; transform:none !important; overflow:visible !important; max-height:none !important; }
+.music-screen .spotify-top-rotation::before,
+.music-screen .spotify-top-rotation::after { display:none !important; content:none !important; }
+.music-screen .spotify-top-rotation > header { padding:0 0 9px !important; border-bottom:1px solid rgba(92,34,42,.20) !important; align-items:end !important; }
+.music-screen .spotify-top-rotation > header > div:first-child > span { font-size:8px !important; letter-spacing:.18em !important; color:#a14b57 !important; }
+.music-screen .spotify-top-rotation > header > div:first-child > strong { font:500 29px/.95 var(--font-display) !important; color:#56222a !important; }
+.music-screen .spotify-top-range-tabs { background:transparent !important; gap:2px !important; }
+.music-screen .spotify-top-range-tabs button { border:0 !important; border-bottom:1px solid transparent !important; border-radius:0 !important; background:transparent !important; padding:5px 7px !important; color:#94666a !important; }
+.music-screen .spotify-top-range-tabs button.active { color:#5c2029 !important; border-bottom-color:#7a303b !important; background:#f7eadc !important; }
+.music-screen .spotify-top-list { margin-top:4px !important; display:flex !important; flex-direction:column !important; }
+.music-screen .spotify-top-track { min-height:51px !important; display:grid !important; grid-template-columns:20px 42px minmax(0,1fr) 34px !important; gap:9px !important; align-items:center !important; padding:5px 0 !important; border-bottom:1px solid rgba(91,34,42,.10) !important; background:transparent !important; }
+.music-screen .spotify-top-cover { width:42px !important; height:42px !important; border-radius:0 !important; overflow:hidden !important; }
+.music-screen .spotify-top-cover img { width:100% !important; height:100% !important; object-fit:cover !important; }
+.music-screen .spotify-top-copy strong { display:block !important; color:#5a222a !important; font-size:13px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+.music-screen .spotify-top-copy span { display:block !important; margin-top:2px !important; color:#8c5e62 !important; font-size:10px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+.music-screen .spotify-top-track > button { width:32px !important; height:32px !important; min-width:32px !important; border-radius:4px !important; }
+
+/* Owner tabs: slim archival dividers instead of three giant buttons. */
+.music-screen .music-tabs { margin:20px 26px 0 !important; padding:0 !important; display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:0 !important; border-top:1px solid rgba(91,34,42,.20) !important; border-bottom:1px solid rgba(91,34,42,.20) !important; background:transparent !important; }
+.music-screen .music-tabs button { min-height:43px !important; border:0 !important; border-right:1px solid rgba(91,34,42,.13) !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; color:#6d4548 !important; }
+.music-screen .music-tabs button:last-child { border-right:0 !important; }
+.music-screen .music-tabs button.active { background:#681a25 !important; color:#fff3e6 !important; transform:none !important; }
+
+@media (max-width:420px){
+  .music-screen .spotify-live-player{grid-template-columns:88px minmax(0,1fr)!important;padding:15px!important;margin-inline:17px!important}
+  .music-screen .spotify-live-cover{width:88px!important;height:88px!important}
+  .music-screen .spotify-live-info>strong{font-size:21px!important}
+  .music-screen .spotify-top-rotation{margin-inline:22px!important}
+}
