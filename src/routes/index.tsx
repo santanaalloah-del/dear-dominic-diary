@@ -10512,6 +10512,7 @@ const spotifyUri =
                         type="button"
                         className="music-queue-button"
                         aria-label="Add to queue"
+                        title="Add to queue"
                         disabled={!spotifyUri}
                         onClick={() => {
                           if (!spotifyUri) return;
@@ -10532,9 +10533,11 @@ const spotifyUri =
                       <button
                         type="button"
                         className="music-remove-button"
+                        aria-label="Remove saved song"
+                        title="Remove"
                         onClick={() => void removeSavedSong(song)}
                       >
-                        remove
+                        ×
                       </button>
                     </div>
                   </article>
