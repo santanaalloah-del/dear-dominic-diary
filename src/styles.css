@@ -15798,3 +15798,143 @@ html[data-diario-time-theme="continuous"] .statusbar {
     height:27px !important;
   }
 }
+
+
+/* =========================================================
+   VISUAL PASS 04E · CLEAN TRACK ROWS + REMOVE
+   ========================================================= */
+.music-screen .music-library .music-track{
+  grid-template-columns:52px minmax(0,1fr) 74px !important;
+  grid-template-areas:"cover copy actions" !important;
+  align-items:center !important;
+  min-height:86px !important;
+  padding:12px 0 !important;
+}
+.music-screen .music-track .music-record{
+  grid-area:cover !important;
+  width:52px !important;
+  height:52px !important;
+}
+.music-screen .music-track .music-record img{
+  width:52px !important;
+  height:52px !important;
+  object-fit:cover !important;
+  border-radius:1px !important;
+  box-shadow:2px 3px 0 rgba(82,27,35,.12) !important;
+}
+.music-screen .music-track-copy{
+  grid-area:copy !important;
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-start !important;
+}
+.music-screen .music-track-copy > small{
+  margin-bottom:3px !important;
+  color:#9b555d !important;
+  font-size:7px !important;
+  font-weight:700 !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+}
+.music-screen .music-track-copy > strong{
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  color:#57222b !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:17px !important;
+  font-weight:500 !important;
+}
+.music-screen .music-track-copy > span,
+.music-screen .music-track-copy > em{
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  color:#805159 !important;
+  font-size:9px !important;
+  font-style:normal !important;
+}
+.music-screen .music-track-copy > p{display:none !important}
+.music-screen .music-connections-link{
+  width:auto !important;
+  height:auto !important;
+  margin-top:5px !important;
+  padding:0 0 2px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(101,30,41,.24) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#945961 !important;
+  font-size:7px !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+  text-transform:lowercase !important;
+  box-shadow:none !important;
+}
+.music-screen .music-track-actions{
+  grid-area:actions !important;
+  display:grid !important;
+  grid-template-columns:30px 30px !important;
+  grid-auto-rows:28px !important;
+  justify-content:end !important;
+  align-content:center !important;
+  gap:4px !important;
+}
+.music-screen .music-track-actions button{
+  position:static !important;
+  width:30px !important;
+  min-width:0 !important;
+  height:28px !important;
+  margin:0 !important;
+  padding:0 !important;
+  border-radius:2px !important;
+  box-shadow:none !important;
+  font-size:0 !important;
+}
+.music-screen .music-track-actions .music-listen-button{
+  background:#651923 !important;
+  color:#fff3e5 !important;
+  border:0 !important;
+}
+.music-screen .music-track-actions .music-favorite-button{
+  background:transparent !important;
+  color:#711f2b !important;
+  border:1px solid rgba(101,30,41,.16) !important;
+}
+.music-screen .music-track-actions .music-queue-button,
+.music-screen .music-track-actions .music-remove-button{
+  width:30px !important;
+  background:transparent !important;
+  color:#8b5158 !important;
+  border:0 !important;
+  font-size:6px !important;
+  line-height:1 !important;
+  text-transform:lowercase !important;
+}
+.music-screen .music-track-actions .music-remove-button{
+  color:#a34a55 !important;
+  text-decoration:underline !important;
+  text-underline-offset:2px !important;
+}
+@media (max-width:420px){
+  .music-screen .music-library .music-track{
+    grid-template-columns:48px minmax(0,1fr) 68px !important;
+    gap:8px !important;
+  }
+  .music-screen .music-track .music-record,
+  .music-screen .music-track .music-record img{
+    width:48px !important;
+    height:48px !important;
+  }
+  .music-screen .music-track-actions{
+    grid-template-columns:28px 28px !important;
+  }
+  .music-screen .music-track-actions button,
+  .music-screen .music-track-actions .music-queue-button,
+  .music-screen .music-track-actions .music-remove-button{
+    width:28px !important;
+  }
+}
