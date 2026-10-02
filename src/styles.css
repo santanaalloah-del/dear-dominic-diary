@@ -15208,3 +15208,301 @@ html[data-diario-time-theme="continuous"] .statusbar {
   --chat-readable-ink:#f8ecdd !important;
   --chat-readable-muted:#d4bbb2 !important;
 }
+
+
+/* =========================================================
+   VISUAL PASS 04C · IVORY NIGHT SYSTEM + PLAYER FINISH
+   One rule: dark world = ivory ink; paper objects = wine ink.
+   ========================================================= */
+
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]){
+  --night-ivory:#f6eadb;
+  --night-ivory-soft:#dcc4b9;
+  --night-ivory-faint:#c8aaa4;
+  --night-wine:#5d1822;
+  --object-paper:#f5e6d7;
+  --object-paper-deep:#ead2c2;
+  color:var(--night-ivory);
+}
+
+/* Dark world: headings, navigation, labels and ordinary copy stay ivory. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) :is(
+  .screen-intro h1,
+  .screen-intro .intro-copy,
+  .screen-intro .eyebrow,
+  .music-screen > p,
+  .music-screen > small,
+  .music-section-tabs button,
+  .music-tabs button:not(.active),
+  .music-empty-note,
+  .music-playlist-board > p
+){
+  color:var(--night-ivory) !important;
+  -webkit-text-fill-color:var(--night-ivory) !important;
+  opacity:1 !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) :is(
+  .music-section-tabs button:not(.active),
+  .music-empty-note,
+  .music-playlist-board > p
+){
+  color:var(--night-ivory-soft) !important;
+  -webkit-text-fill-color:var(--night-ivory-soft) !important;
+}
+
+/* The tiny record-shelf scrap is paper, not night-world text. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .screen-intro::after{
+  background:var(--object-paper) !important;
+  color:#6a2a34 !important;
+  -webkit-text-fill-color:#6a2a34 !important;
+  box-shadow:3px 4px 0 rgba(10,3,5,.14) !important;
+}
+
+/* Now playing = a physical record sleeve. */
+.music-screen .spotify-live-player{
+  background:
+    repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.05) 27px 28px),
+    #f6e7d8 !important;
+  color:#55212a !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  box-shadow:6px 8px 0 rgba(26,7,11,.14) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-player{
+  color:#55212a !important;
+}
+.music-screen .spotify-live-player :is(button,small,strong,span){
+  opacity:1;
+}
+.music-screen .spotify-live-controls button:not(.spotify-main-play){
+  background:rgba(255,248,238,.58) !important;
+  border:0 !important;
+  color:#671b26 !important;
+}
+.music-screen .spotify-live-controls .spotify-queue-toggle{
+  background:transparent !important;
+}
+
+/* Most played = clipped listening note, never dark-on-dark. */
+.music-screen .spotify-top-rotation{
+  background:
+    linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.12)),
+    #ead4c4 !important;
+  color:#57222b !important;
+  border:1px solid rgba(91,30,39,.08) !important;
+  box-shadow:5px 7px 0 rgba(22,6,10,.13) !important;
+}
+.music-screen .spotify-top-rotation :is(.spotify-top-copy strong,.spotify-top-rank){
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+}
+.music-screen .spotify-top-rotation .spotify-top-copy span{
+  color:#85585d !important;
+  -webkit-text-fill-color:#85585d !important;
+}
+.music-screen .spotify-top-actions{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:4px !important;
+}
+.music-screen .spotify-top-actions button{
+  min-width:0 !important;
+  width:auto !important;
+  height:29px !important;
+  padding:0 7px !important;
+  border:0 !important;
+  border-radius:3px !important;
+  background:rgba(255,247,237,.42) !important;
+  color:#6a2932 !important;
+  font-size:8px !important;
+  text-transform:lowercase !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-top-actions button:first-child{
+  width:29px !important;
+  padding:0 !important;
+  background:#651923 !important;
+  color:#fff4e7 !important;
+}
+.music-screen .spotify-top-actions button:disabled{
+  opacity:.48 !important;
+}
+
+/* Owner dividers + subnav belong to the dark world. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs{
+  border-color:rgba(246,234,219,.24) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button:not(.active){
+  color:var(--night-ivory) !important;
+  -webkit-text-fill-color:var(--night-ivory) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active{
+  background:var(--object-paper) !important;
+  color:#5d2029 !important;
+  -webkit-text-fill-color:#5d2029 !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs{
+  border-bottom-color:rgba(246,234,219,.22) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button.active{
+  color:var(--night-ivory) !important;
+  -webkit-text-fill-color:var(--night-ivory) !important;
+  border-bottom-color:var(--night-ivory) !important;
+}
+
+/* Spotify library is another paper object: always wine ink. */
+.music-screen :is(.spotify-library-paper,.spotify-queue-panel,.music-section-panel,.music-playlist-board){
+  background:#f2dfd0 !important;
+  color:#57222b !important;
+}
+.music-screen :is(.spotify-library-paper,.spotify-queue-panel,.music-section-panel,.music-playlist-board) :is(strong,h2,h3){
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+}
+.music-screen :is(.spotify-library-paper,.spotify-queue-panel,.music-section-panel,.music-playlist-board) :is(span,small,p){
+  color:#86595d !important;
+  -webkit-text-fill-color:#86595d !important;
+}
+.music-screen .spotify-compact-track-list button{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+}
+
+/* Saved Diario songs: romantic index slips rather than dark dashboard cards. */
+.music-screen .music-library .music-track{
+  background:#ead4c4 !important;
+  color:#57222b !important;
+  border-color:rgba(91,30,39,.10) !important;
+  box-shadow:3px 4px 0 rgba(22,6,10,.10) !important;
+}
+.music-screen .music-library .music-track :is(h3,strong){
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+}
+.music-screen .music-library .music-track :is(p,span,small){
+  color:#85585d !important;
+  -webkit-text-fill-color:#85585d !important;
+}
+.music-screen .music-library .music-track button{
+  color:#65202a !important;
+}
+
+/* The explanatory copy becomes a liner note, not a floating rounded SaaS card. */
+.music-screen .music-rule,
+.music-screen .music-note,
+.music-screen .music-library-note{
+  border-radius:2px !important;
+  background:#ead4c4 !important;
+  color:#704049 !important;
+  box-shadow:3px 4px 0 rgba(22,6,10,.10) !important;
+}
+
+/* Login: cream page means wine ink. Fixes the washed-out title/note/labels. */
+.private-entry{
+  background:
+    radial-gradient(circle at 50% 20%,rgba(129,42,53,.24),transparent 42%),
+    #4b151d !important;
+}
+.private-login{
+  background:#f6e8d8 !important;
+  color:#5b2029 !important;
+}
+.private-login > svg,
+.private-login .private-kicker,
+.private-login h1,
+.private-login .private-note,
+.private-login form label{
+  opacity:1 !important;
+}
+.private-login > svg{ color:#b5404e !important; }
+.private-login .private-kicker{
+  color:#b5404e !important;
+  -webkit-text-fill-color:#b5404e !important;
+}
+.private-login h1{
+  color:#5b2029 !important;
+  -webkit-text-fill-color:#5b2029 !important;
+}
+.private-login .private-note{
+  color:#a35e64 !important;
+  -webkit-text-fill-color:#a35e64 !important;
+}
+.private-login form label{
+  color:#a65a61 !important;
+  -webkit-text-fill-color:#a65a61 !important;
+}
+.private-login input{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  caret-color:#7b2632 !important;
+  background:rgba(255,250,242,.42) !important;
+}
+.private-login input:-webkit-autofill{
+  -webkit-text-fill-color:#57222b !important;
+}
+.private-login button[type="submit"]{
+  background:#5d1721 !important;
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+}
+.private-login .private-error{
+  color:#9b2837 !important;
+  -webkit-text-fill-color:#9b2837 !important;
+}
+
+/* Bottom nav: readable at night without becoming another bright card. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav{
+  background:rgba(101,43,50,.90) !important;
+  border-color:rgba(247,233,218,.20) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button:not(.active){
+  color:var(--night-ivory-soft) !important;
+  -webkit-text-fill-color:var(--night-ivory-soft) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button.active{
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+}
+
+/* Chat keeps its chosen theme. Time adaptation changes mood, not legibility. */
+.messenger-chat.chat-adapt-time:is(.chat-time-night,.chat-time-late){
+  --chat-ink:#f7eadb !important;
+  --chat-safe-ink:#f7eadb !important;
+  --chat-readable-ink:#f7eadb !important;
+  --chat-safe-muted:#d7bdb4 !important;
+  --chat-readable-muted:#d7bdb4 !important;
+}
+.messenger-chat.chat-adapt-time:is(.chat-time-night,.chat-time-late) :is(
+  .chat-message-content,
+  .chat-message-content *,
+  .message-content,
+  .message-content *
+){
+  color:var(--chat-readable-ink) !important;
+  -webkit-text-fill-color:var(--chat-readable-ink) !important;
+}
+.messenger-chat.chat-theme-midnight :is(
+  .chat-message-content,
+  .chat-message-content *,
+  .message-content,
+  .message-content *
+){
+  color:#f8ecdd !important;
+  -webkit-text-fill-color:#f8ecdd !important;
+}
+
+/* Small phones: preserve breathing room and keep action labels from crushing titles. */
+@media (max-width:420px){
+  .music-screen .spotify-top-track{
+    grid-template-columns:18px 38px minmax(0,1fr) auto !important;
+    gap:7px !important;
+  }
+  .music-screen .spotify-top-actions button:not(:first-child){
+    padding-inline:5px !important;
+    font-size:7px !important;
+  }
+  .music-screen .spotify-top-cover{
+    width:38px !important;
+    height:38px !important;
+  }
+}
