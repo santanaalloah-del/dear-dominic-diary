@@ -1709,6 +1709,25 @@ data: {
   return data as DiarioItem;
 }
 
+export async function archiveSong({
+  userId,
+  songId,
+}: {
+  userId: string;
+  songId: string;
+}): Promise<void> {
+  const { error } = await diarioSupabase
+    .from("diario_items")
+    .update({ status: "archived" })
+    .eq("user_id", userId)
+    .eq("id", songId)
+    .eq("kind", "song");
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function setSongFavorite({
   userId,
   song,
