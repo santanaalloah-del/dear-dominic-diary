@@ -235,3 +235,90 @@ export function dateVenueActorTotal(
       0
     );
 }
+
+
+export function dateVenuePurchaseLifecycle(
+  purchase: DateVenuePurchase
+): "kept" | "consumed" {
+  return purchase.action === "ordered"
+    ? "consumed"
+    : "kept";
+}
+
+export async function materializeDateVenuePurchase({
+  userId,
+  date,
+  purchase,
+}: {
+  userId: string;
+  date: DiarioItem;
+  purchase: DateVenuePurchase;
+}): Promise<DiarioItem> {
+  const { data: existing, error: existingError } = await db
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "keepsake")
+    .eq("status", "active")
+    .eq("data->>source_purchase_id", purchase.id)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+
+  let keepsake = existing as DiarioItem | null;
+
+  if (!keepsake) {
+    const lifecycle = dateVenuePurchaseLifecycle(purchase);
+
+    const { data: created, error: createError } = await db
+      .from("diario_items")
+      .insert({
+        user_id: userId,
+        kind: "keepsake",
+        owner: "shared",
+        status: "active",
+        title: purchase.itemName,
+        body: purchase.description,
+        event_at: purchase.happenedAt,
+        data: {
+          keepsakeType: purchase.itemKind,
+          location: lifecycle === "consumed" ? "gone" : "home",
+          room: null,
+          origin: purchase.placeName,
+          source_date_id: date.id,
+          source_purchase_id: purchase.id,
+          consumed: lifecycle === "consumed",
+          date_venue_action: purchase.action,
+          price_usd_cents: purchase.priceUsdCents,
+        },
+      })
+      .select("*")
+      .single();
+
+    if (createError) throw createError;
+    keepsake = created as DiarioItem;
+  }
+
+  const { error: linkError } = await db
+    .from("diario_links")
+    .upsert(
+      {
+        user_id: userId,
+        source_item_id: date.id,
+        target_item_id: keepsake.id,
+        relation: "contains",
+        data: {
+          source: "date_venue",
+          purchase_id: purchase.id,
+        },
+      },
+      {
+        onConflict:
+          "user_id,source_item_id,target_item_id,relation",
+      }
+    );
+
+  if (linkError) throw linkError;
+
+  return keepsake;
+}
