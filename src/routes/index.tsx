@@ -768,6 +768,10 @@ function HomeScreen({
   const [dominicState, setDominicState] = useState<DominicState | null>(null);
   const [activeHomeRoom, setActiveHomeRoom] = useState("living");
   const [homeKeepsakes, setHomeKeepsakes] = useState<DiarioItem[]>([]);
+  const [
+    homeKeepsakeMediaById,
+    setHomeKeepsakeMediaById,
+  ] = useState<Record<string, string>>({});
   const [showRoomThings, setShowRoomThings] = useState(false);
   const [roomThingTitle, setRoomThingTitle] = useState("");
   const [roomThingNote, setRoomThingNote] = useState("");
@@ -810,6 +814,48 @@ function HomeScreen({
       cancelled = true;
     };
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!homeKeepsakes.length) {
+      setHomeKeepsakeMediaById({});
+      return;
+    }
+
+    hydrateDiaryItems(
+      homeKeepsakes
+    )
+      .then((views) => {
+        if (cancelled) return;
+
+        setHomeKeepsakeMediaById(
+          Object.fromEntries(
+            views
+              .filter(
+                (view) =>
+                  Boolean(
+                    view.mediaUrl
+                  )
+              )
+              .map((view) => [
+                view.item.id,
+                view.mediaUrl as string,
+              ])
+          )
+        );
+      })
+      .catch((error) => {
+        console.error(
+          "Could not load Home keepsake images:",
+          error
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [homeKeepsakes]);
 
   const rooms = [
     { id: "living", label: "Living", title: "Living Room", image: livingRoomEmpty },
@@ -1069,8 +1115,30 @@ function HomeScreen({
               ) : (
                 roomKeepsakes.map((item) => (
                   <article key={item.id} className="apartment-room-thing-card">
-                    <div className="apartment-room-thing-mark" aria-hidden="true">
-                      <BoxIcon size={15} />
+                    <div
+                      className={
+                        homeKeepsakeMediaById[
+                          item.id
+                        ]
+                          ? "apartment-room-thing-mark has-image"
+                          : "apartment-room-thing-mark"
+                      }
+                      aria-hidden="true"
+                    >
+                      {homeKeepsakeMediaById[
+                        item.id
+                      ] ? (
+                        <img
+                          src={
+                            homeKeepsakeMediaById[
+                              item.id
+                            ]
+                          }
+                          alt=""
+                        />
+                      ) : (
+                        <BoxIcon size={15} />
+                      )}
                     </div>
                     <div>
                       <small>{String(item.data?.keepsakeType ?? "object")}</small>
@@ -1476,7 +1544,7 @@ const addFurniture = async () => {
       onChange={(event) =>
         setNewName(event.target.value)
       }
-placeholder="Object name"
+placeholder="What are we adding?"
     />
     
     <select
@@ -1487,6 +1555,10 @@ placeholder="Object name"
 >
   <option value="furniture">Furniture</option>
   <option value="decor">Decor</option>
+  <option value="photo_frame">Photo frame</option>
+  <option value="wall_art">Wall art</option>
+  <option value="shelf">Shelf / storage</option>
+  <option value="keepsake">Keepsake display</option>
   <option value="plant">Plant</option>
   <option value="lighting">Lighting</option>
   <option value="other">Other</option>
