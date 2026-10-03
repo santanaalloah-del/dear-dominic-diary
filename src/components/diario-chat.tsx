@@ -48,6 +48,14 @@ import {
   type DominicState,
 } from "@/lib/dominic-state";
 import {
+  getChatProfiles,
+  removeChatProfilePhoto,
+  saveChatProfile,
+  uploadChatProfilePhoto,
+  type ChatProfile,
+  type ChatProfileOwner,
+} from "@/lib/chat-profile";
+import {
   loadDominicLiveDateContext,
   liveDateContextForPrompt,
 } from "@/lib/dominic-live-date-context";
@@ -474,6 +482,144 @@ function voiceDuration(content: string) {
   return `0:${String(Math.min(seconds, 59)).padStart(2, "0")}`;
 }
 
+function dominicPresenceCopy(
+  state:
+    DominicState | null
+) {
+  if (!state) {
+    return "a moment away";
+  }
+
+  const room: Record<
+    string,
+    string
+  > = {
+    living:
+      "living room",
+    bedroom:
+      "bedroom",
+    kitchen:
+      "kitchen",
+    bathroom:
+      "bathroom",
+    hall:
+      "hall",
+    out:
+      "out",
+  };
+
+  const activity: Record<
+    string,
+    string
+  > = {
+    sleeping:
+      "asleep",
+    waking_up:
+      "waking up",
+    showering:
+      "in the shower",
+    getting_dressed:
+      "getting dressed",
+    making_coffee:
+      "making coffee",
+    cooking:
+      "cooking",
+    eating:
+      "eating",
+    washing_dishes:
+      "doing the dishes",
+    cleaning:
+      "cleaning up",
+    doing_laundry:
+      "doing laundry",
+    watching_something:
+      "watching something",
+    listening_to_music:
+      "listening to music",
+    playing_guitar:
+      "playing guitar",
+    writing_music:
+      "writing music",
+    recording:
+      "recording",
+    reading:
+      "reading",
+    scrolling:
+      "on his phone",
+    on_the_phone:
+      "on a call",
+    relaxing:
+      "taking it easy",
+    napping:
+      "having a nap",
+    getting_ready:
+      "getting ready",
+    leaving_home:
+      "heading out",
+    coming_home:
+      "coming home",
+    walking:
+      "out walking",
+    getting_food:
+      "getting food",
+    shopping:
+      "out shopping",
+    at_a_cafe:
+      "at a café",
+    with_friends:
+      "with friends",
+    working:
+      "working",
+    driving:
+      "driving",
+    idle:
+      "around",
+  };
+
+  const action =
+    activity[
+      state.activity
+    ] ??
+    state.activity
+      .replaceAll(
+        "_",
+        " "
+      );
+
+  if (
+    state.detail?.trim()
+  ) {
+    return `${action} · ${state.detail.trim()}`;
+  }
+
+  const place =
+    room[
+      state.location
+    ] ??
+    state.location;
+
+  if (
+    state.location ===
+      "out" &&
+    [
+      "walking",
+      "getting_food",
+      "shopping",
+      "at_a_cafe",
+      "with_friends",
+      "working",
+      "recording",
+      "driving",
+    ].includes(
+      state.activity
+    )
+  ) {
+    return action;
+  }
+
+  return `${action} · ${place}`;
+}
+
 export function DiarioChat({
   onOpen,
 }: {
@@ -483,6 +629,11 @@ onOpen: (
     | "music"
     | "dates"
     | "photo-engine"
+    | "gallery"
+    | "memories"
+    | "wardrobe"
+    | "places"
+    | "settings"
 ) => void;
 }) {
   const { session, preferredName } = usePrivateDiario();
@@ -492,6 +643,19 @@ onOpen: (
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<ChatPreferences>(defaultPreferences);
+
+  const [
+    chatProfiles,
+    setChatProfiles,
+  ] = useState<{
+    alloah: ChatProfile;
+    dominic: ChatProfile;
+  } | null>(null);
+
+  const [
+    profileError,
+    setProfileError,
+  ] = useState<string | null>(null);
   const [voiceStatus, setVoiceStatus] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [openTranscript, setOpenTranscript] = useState<string | null>(null);
@@ -722,6 +886,40 @@ useEffect(() => {
 }, [loadNearbyCommitmentsNow]);
 
   
+  useEffect(() => {
+    let cancelled = false;
+
+    getChatProfiles(
+      session.user.id
+    )
+      .then((profiles) => {
+        if (!cancelled) {
+          setChatProfiles(
+            profiles
+          );
+          setProfileError(
+            null
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(
+          "Could not load chat profiles:",
+          error
+        );
+
+        if (!cancelled) {
+          setProfileError(
+            "Profile details could not be loaded."
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session.user.id]);
+
   useEffect(() => {
     setPreferences(readPreferences());
   }, []);
@@ -2988,24 +3186,13 @@ setMessages((current) => [
             )
         )
       : [];
- const statusCopy = useMemo(() => {
-  if (!dominicState) {
-return "checking where he is";
-  }
-
-  const activity =
-    dominicState.activity.replaceAll(
-      "_",
-      " "
-    );
-
-  const location =
-    dominicState.location === "living"
-      ? "living room"
-      : dominicState.location;
-
-  return `${activity} · ${location}`;
-}, [dominicState]);
+ const statusCopy = useMemo(
+  () =>
+    dominicPresenceCopy(
+      dominicState
+    ),
+  [dominicState]
+);
 
   const clearActiveListeningTrack = () => {
   if (typeof window !== "undefined") {
@@ -3063,6 +3250,84 @@ const recentConversationForPhoto = () =>
     .filter((line) => line.trim().length > 0)
     .join("\n");
   
+  const dominicProfile =
+    chatProfiles?.dominic ??
+    null;
+
+  const alloahProfile =
+    chatProfiles?.alloah ??
+    null;
+
+  const dominicAvatar =
+    dominicProfile
+      ?.photoUrl ??
+    dominic;
+
+  const alloahInitial =
+    (
+      alloahProfile
+        ?.displayName ??
+      preferredName ??
+      "A"
+    )
+      .trim()
+      .charAt(0)
+      .toUpperCase() ||
+    "A";
+
+  const updateProfile = (
+    profile:
+      ChatProfile
+  ) => {
+    setChatProfiles(
+      (current) => {
+        const fallback = {
+          alloah:
+            current
+              ?.alloah ??
+            ({
+              owner:
+                "alloah",
+              displayName:
+                preferredName ||
+                "Alloah",
+              bio:
+                null,
+              photoPath:
+                null,
+              photoUrl:
+                null,
+              updatedAt:
+                null,
+            } as ChatProfile),
+          dominic:
+            current
+              ?.dominic ??
+            ({
+              owner:
+                "dominic",
+              displayName:
+                "Dominic",
+              bio:
+                null,
+              photoPath:
+                null,
+              photoUrl:
+                null,
+              updatedAt:
+                null,
+            } as ChatProfile),
+        };
+
+        return {
+          ...fallback,
+          [profile.owner]:
+            profile,
+        };
+      }
+    );
+  };
+
   const chatClassName = [
     "live-chat-screen messenger-chat",
     `chat-theme-${preferences.theme}`,
@@ -3089,26 +3354,148 @@ const recentConversationForPhoto = () =>
   return (
     <section className={chatClassName}>
       <header className="messenger-header">
-        <button className="messenger-avatar" aria-label="Dominic profile">
-          <img src={dominic} alt="Dominic" />
-          <span className="presence-dot" />
-        </button>
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              className="messenger-avatar"
+              aria-label="Open Dominic profile"
+            >
+              <img
+                src={
+                  dominicAvatar
+                }
+                alt="Dominic"
+              />
+              <span className="presence-dot" />
+            </button>
+          </SheetTrigger>
+
+          <ChatProfileSheet
+            userId={
+              session.user.id
+            }
+            profile={
+              dominicProfile
+            }
+            owner="dominic"
+            fallbackPhoto={
+              dominic
+            }
+            statusCopy={
+              statusCopy
+            }
+            onSaved={
+              updateProfile
+            }
+            onOpen={
+              onOpen
+            }
+          />
+        </Sheet>
+
         <div className="messenger-person">
-         <h1>{DOMINIC_NAME} <span>♡</span></h1>
-          <p>{statusCopy}</p>
+          <h1>
+            {dominicProfile
+              ?.displayName ??
+              DOMINIC_NAME}
+            {" "}
+            <span>♡</span>
+          </h1>
+          <p>
+            {statusCopy}
+          </p>
         </div>
+
         <div className="messenger-header-actions">
-          <button aria-label="Call Dominic" title="Call"><Phone /></button>
-          <button aria-label="Video call Dominic" title="Video"><Video /></button>
+          <button
+            aria-label="Call Dominic"
+            title="Call"
+          >
+            <Phone />
+          </button>
+
+          <button
+            aria-label="Video call Dominic"
+            title="Video"
+          >
+            <Video />
+          </button>
+
           <Sheet>
             <SheetTrigger asChild>
-              <button aria-label="Customize chat" title="Customize chat"><Palette /></button>
+              <button
+                aria-label="Customize chat"
+                title="Customize chat"
+              >
+                <Palette />
+              </button>
             </SheetTrigger>
-            <ChatAppearanceSheet preferences={preferences} onChange={setPreferences} />
+
+            <ChatAppearanceSheet
+              preferences={
+                preferences
+              }
+              onChange={
+                setPreferences
+              }
+            />
           </Sheet>
-          <button aria-label="More chat options"><MoreVertical /></button>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                className="messenger-self-avatar"
+                aria-label="Open my profile"
+                title="My profile"
+              >
+                {alloahProfile
+                  ?.photoUrl ? (
+                  <img
+                    src={
+                      alloahProfile
+                        .photoUrl
+                    }
+                    alt={
+                      alloahProfile
+                        .displayName
+                    }
+                  />
+                ) : (
+                  <span>
+                    {alloahInitial}
+                  </span>
+                )}
+              </button>
+            </SheetTrigger>
+
+            <ChatProfileSheet
+              userId={
+                session.user.id
+              }
+              profile={
+                alloahProfile
+              }
+              owner="alloah"
+              fallbackPhoto={
+                null
+              }
+              statusCopy="your side of this conversation"
+              onSaved={
+                updateProfile
+              }
+              onOpen={
+                onOpen
+              }
+            />
+          </Sheet>
         </div>
       </header>
+
+{profileError && (
+  <div className="chat-profile-inline-error">
+    {profileError}
+  </div>
+)}
 
 <DateModeChatBridge
   userId={session.user.id}
@@ -3199,7 +3586,7 @@ const recentConversationForPhoto = () =>
                 className={`diario-message messenger-message ${message.kind === "voice" ? "voice-message" : ""}`}
               >
                 {message.role === "assistant" && preferences.showDominicAvatar && (
-                  <img className="message-avatar" src={dominic} alt="" aria-hidden="true" />
+                  <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />
                 )}
 {message.kind ===
 "agent_action" ? (
@@ -3338,7 +3725,7 @@ const recentConversationForPhoto = () =>
           )}
           {sending && (
             <Message from="assistant" className="diario-message messenger-message typing-message">
-              {preferences.showDominicAvatar && <img className="message-avatar" src={dominic} alt="" aria-hidden="true" />}
+              {preferences.showDominicAvatar && <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />}
               <MessageContent className="diario-message-content messenger-bubble">
                 <span className="ink-dots" aria-label="Dominic is typing"><i /><i /><i /></span>
               </MessageContent>
@@ -3639,6 +4026,520 @@ onPhotoFromConversation={() =>
   </SheetContent>
 </Sheet>
     </section>
+  );
+}
+
+function ChatProfileSheet({
+  userId,
+  profile,
+  owner,
+  fallbackPhoto,
+  statusCopy,
+  onSaved,
+  onOpen,
+}: {
+  userId:
+    string;
+  profile:
+    ChatProfile | null;
+  owner:
+    ChatProfileOwner;
+  fallbackPhoto:
+    string | null;
+  statusCopy:
+    string;
+  onSaved:
+    (
+      profile:
+        ChatProfile
+    ) => void;
+  onOpen:
+    (
+      screen:
+        | "letters"
+        | "music"
+        | "dates"
+        | "photo-engine"
+        | "gallery"
+        | "memories"
+        | "wardrobe"
+        | "places"
+        | "settings"
+    ) => void;
+}) {
+  const [
+    displayName,
+    setDisplayName,
+  ] =
+    useState(
+      profile
+        ?.displayName ??
+        (
+          owner ===
+          "dominic"
+            ? "Dominic"
+            : "Alloah"
+        )
+    );
+
+  const [
+    bio,
+    setBio,
+  ] =
+    useState(
+      profile?.bio ??
+      ""
+    );
+
+  const [
+    savingProfile,
+    setSavingProfile,
+  ] =
+    useState(false);
+
+  const [
+    profileNotice,
+    setProfileNotice,
+  ] =
+    useState<string | null>(
+      null
+    );
+
+  useEffect(() => {
+    setDisplayName(
+      profile
+        ?.displayName ??
+        (
+          owner ===
+          "dominic"
+            ? "Dominic"
+            : "Alloah"
+        )
+    );
+
+    setBio(
+      profile?.bio ??
+      ""
+    );
+  }, [
+    owner,
+    profile?.bio,
+    profile
+      ?.displayName,
+  ]);
+
+  const photo =
+    profile?.photoUrl ??
+    fallbackPhoto;
+
+  const initial =
+    displayName
+      .trim()
+      .charAt(0)
+      .toUpperCase() ||
+    (
+      owner ===
+      "dominic"
+        ? "D"
+        : "A"
+    );
+
+  const persistText =
+    async () => {
+      setSavingProfile(true);
+      setProfileNotice(
+        null
+      );
+
+      try {
+        const saved =
+          await saveChatProfile({
+            userId,
+            owner,
+            displayName,
+            bio,
+          });
+
+        onSaved(saved);
+        setProfileNotice(
+          "Profile saved."
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not save chat profile:",
+          error
+        );
+
+        setProfileNotice(
+          "Profile could not be saved."
+        );
+      } finally {
+        setSavingProfile(false);
+      }
+    };
+
+  const uploadPhoto =
+    async (
+      file:
+        File | null
+    ) => {
+      if (!file) {
+        return;
+      }
+
+      setSavingProfile(true);
+      setProfileNotice(
+        null
+      );
+
+      try {
+        const path =
+          await uploadChatProfilePhoto({
+            userId,
+            owner,
+            file,
+          });
+
+        const saved =
+          await saveChatProfile({
+            userId,
+            owner,
+            displayName,
+            bio,
+            photoPath:
+              path,
+          });
+
+        onSaved(saved);
+        setProfileNotice(
+          owner ===
+            "dominic"
+            ? "Dominic's current profile photo changed."
+            : "Your profile photo changed."
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not change chat profile photo:",
+          error
+        );
+
+        setProfileNotice(
+          "Profile photo could not be changed."
+        );
+      } finally {
+        setSavingProfile(false);
+      }
+    };
+
+  const clearPhoto =
+    async () => {
+      setSavingProfile(true);
+      setProfileNotice(
+        null
+      );
+
+      try {
+        const saved =
+          await removeChatProfilePhoto({
+            userId,
+            owner,
+          });
+
+        onSaved(saved);
+        setProfileNotice(
+          "Profile photo reset."
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not reset chat profile photo:",
+          error
+        );
+
+        setProfileNotice(
+          "Profile photo could not be reset."
+        );
+      } finally {
+        setSavingProfile(false);
+      }
+    };
+
+  const shortcuts =
+    owner ===
+    "dominic"
+      ? [
+          {
+            label:
+              "Photos",
+            screen:
+              "gallery",
+          },
+          {
+            label:
+              "Music",
+            screen:
+              "music",
+          },
+          {
+            label:
+              "Letters",
+            screen:
+              "letters",
+          },
+          {
+            label:
+              "Dates",
+            screen:
+              "dates",
+          },
+          {
+            label:
+              "Wardrobe",
+            screen:
+              "wardrobe",
+          },
+          {
+            label:
+              "Memories",
+            screen:
+              "memories",
+          },
+        ]
+      : [
+          {
+            label:
+              "Photos",
+            screen:
+              "gallery",
+          },
+          {
+            label:
+              "Wardrobe",
+            screen:
+              "wardrobe",
+          },
+          {
+            label:
+              "Memories",
+            screen:
+              "memories",
+          },
+          {
+            label:
+              "Places",
+            screen:
+              "places",
+          },
+          {
+            label:
+              "Settings",
+            screen:
+              "settings",
+          },
+        ];
+
+  return (
+    <SheetContent
+      side="bottom"
+      className="chat-profile-sheet"
+    >
+      <SheetHeader>
+        <SheetTitle>
+          {owner ===
+          "dominic"
+            ? "Dominic"
+            : "My profile"}
+        </SheetTitle>
+      </SheetHeader>
+
+      <section className="chat-profile-hero">
+        <div className="chat-profile-photo">
+          {photo ? (
+            <img
+              src={photo}
+              alt=""
+            />
+          ) : (
+            <span>
+              {initial}
+            </span>
+          )}
+        </div>
+
+        <div>
+          <strong>
+            {displayName}
+          </strong>
+
+          <small>
+            {statusCopy}
+          </small>
+        </div>
+      </section>
+
+      <div className="chat-profile-photo-actions">
+        <label>
+          <Image size={14} />
+          Change photo
+          <input
+            type="file"
+            accept="image/*"
+            disabled={
+              savingProfile
+            }
+            onChange={(event) =>
+              void uploadPhoto(
+                event.target
+                  .files?.[0] ??
+                  null
+              )
+            }
+          />
+        </label>
+
+        {profile
+          ?.photoPath && (
+          <button
+            type="button"
+            disabled={
+              savingProfile
+            }
+            onClick={() =>
+              void clearPhoto()
+            }
+          >
+            Reset photo
+          </button>
+        )}
+      </div>
+
+      <section className="chat-profile-fields">
+        <label>
+          <span>
+            Name
+          </span>
+
+          <input
+            value={
+              displayName
+            }
+            onChange={(
+              event
+            ) =>
+              setDisplayName(
+                event
+                  .target
+                  .value
+              )
+            }
+          />
+        </label>
+
+        <label>
+          <span>
+            About
+          </span>
+
+          <textarea
+            value={
+              bio
+            }
+            onChange={(
+              event
+            ) =>
+              setBio(
+                event
+                  .target
+                  .value
+              )
+            }
+            placeholder={
+              owner ===
+              "dominic"
+                ? "A small line on his profile…"
+                : "A small line on your profile…"
+            }
+            rows={2}
+          />
+        </label>
+
+        <button
+          type="button"
+          className="chat-profile-save"
+          disabled={
+            savingProfile ||
+            !displayName
+              .trim()
+          }
+          onClick={() =>
+            void persistText()
+          }
+        >
+          {savingProfile
+            ? "Saving…"
+            : "Save profile"}
+        </button>
+      </section>
+
+      <section className="chat-profile-shortcuts">
+        <small>
+          {owner ===
+          "dominic"
+            ? "his world"
+            : "my side"}
+        </small>
+
+        <div>
+          {shortcuts.map(
+            (shortcut) => (
+              <button
+                key={
+                  shortcut.label
+                }
+                type="button"
+                onClick={() =>
+                  onOpen(
+                    shortcut.screen as any
+                  )
+                }
+              >
+                <span>
+                  {shortcut.label}
+                </span>
+
+                <ChevronRight
+                  size={14}
+                />
+              </button>
+            )
+          )}
+        </div>
+      </section>
+
+      {owner ===
+        "dominic" && (
+        <p className="chat-profile-ownership-note">
+          This is Dominic's profile state.
+          His autonomy can update the same
+          photo, bio and presence instead of
+          creating a separate fake profile.
+        </p>
+      )}
+
+      {profileNotice && (
+        <p
+          className="chat-profile-notice"
+          role="status"
+        >
+          {profileNotice}
+        </p>
+      )}
+    </SheetContent>
   );
 }
 
