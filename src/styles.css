@@ -16414,3 +16414,124 @@ html[data-diario-time-theme="continuous"] .statusbar {
   .music-screen .spotify-playlist-grid{gap:18px 11px !important}
   .music-screen .spotify-library-heading strong{font-size:22px !important}
 }
+
+
+/* =========================================================
+   VISUAL PASS 05B · MOBILE PLAYER FIXES FROM DEVICE QA
+   Fix dark unreadable lower sections + nested scrollers.
+   ========================================================= */
+
+/* The archive tabs must stay legible on the burgundy night surface. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs{
+  color:#f2dfd0 !important;
+  -webkit-text-fill-color:#f2dfd0 !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
+  color:rgba(244,224,208,.72) !important;
+  -webkit-text-fill-color:rgba(244,224,208,.72) !important;
+  opacity:1 !important;
+  text-shadow:0 1px 0 rgba(0,0,0,.12) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active,
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button.active{
+  color:#fff4e8 !important;
+  -webkit-text-fill-color:#fff4e8 !important;
+  opacity:1 !important;
+}
+
+/* Saved-song Library was still inheriting dark/night colors. Keep it on ivory paper. */
+.music-screen .music-library{
+  margin:0 10px 24px !important;
+  padding:14px 18px 8px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 54px,rgba(103,35,44,.045) 54px 55px),
+    #f0ddcd !important;
+  box-shadow:5px 7px 0 rgba(20,5,9,.12) !important;
+}
+.music-screen .music-library::before{
+  content:"SAVED SONGS · RECORD INDEX" !important;
+  display:block !important;
+  padding:0 0 11px !important;
+  margin-bottom:2px !important;
+  border-bottom:1px solid rgba(91,30,39,.15) !important;
+  color:#a24e58 !important;
+  -webkit-text-fill-color:#a24e58 !important;
+  font-size:7px !important;
+  font-weight:700 !important;
+  letter-spacing:.18em !important;
+}
+.music-screen .music-library .music-track{
+  margin:0 !important;
+  padding:14px 0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(91,30,39,.12) !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+.music-screen .music-library .music-track:last-child{border-bottom:0 !important}
+.music-screen .music-library .music-track-copy small{
+  color:#9c5c62 !important;-webkit-text-fill-color:#9c5c62 !important;
+}
+.music-screen .music-library .music-track-copy strong{
+  color:#57222b !important;-webkit-text-fill-color:#57222b !important;
+}
+.music-screen .music-library .music-track-copy span,
+.music-screen .music-library .music-track-copy em{
+  color:#74464d !important;-webkit-text-fill-color:#74464d !important;
+}
+.music-screen .music-library .music-connections-link{
+  color:#7d3943 !important;-webkit-text-fill-color:#7d3943 !important;
+}
+
+/* Never create a second vertical scrollbar inside Spotify lists on mobile. */
+.music-screen .spotify-library-paper,
+.music-screen .spotify-compact-track-list,
+.music-screen .spotify-playlist-grid,
+.music-screen .spotify-queue-list{
+  max-height:none !important;
+  height:auto !important;
+  overflow:visible !important;
+  overscroll-behavior:auto !important;
+  scrollbar-width:none !important;
+}
+.music-screen .spotify-library-paper::-webkit-scrollbar,
+.music-screen .spotify-compact-track-list::-webkit-scrollbar,
+.music-screen .spotify-playlist-grid::-webkit-scrollbar,
+.music-screen .spotify-queue-list::-webkit-scrollbar{display:none !important}
+
+/* Liked songs should be part of the page, not a tiny scroll box. */
+.music-screen .spotify-library-paper .spotify-compact-track-list{
+  padding-bottom:4px !important;
+}
+
+/* Give the long Spotify pages enough breathing room above the floating nav. */
+.music-screen .spotify-library-paper,
+.music-screen .music-library{
+  padding-bottom:20px !important;
+}
+.music-screen{
+  padding-bottom:150px !important;
+}
+
+@media (max-width:420px){
+  .music-screen .music-tabs button{
+    min-height:42px !important;
+    font-size:9px !important;
+  }
+  .music-screen .music-section-tabs{
+    gap:0 !important;
+  }
+  .music-screen .music-section-tabs button{
+    padding:11px 5px 9px !important;
+    font-size:7px !important;
+    letter-spacing:.08em !important;
+  }
+  .music-screen .music-library{
+    margin-inline:6px !important;
+    padding-inline:14px !important;
+  }
+}
