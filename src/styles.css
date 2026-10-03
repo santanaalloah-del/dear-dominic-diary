@@ -16569,3 +16569,185 @@ html[data-diario-time-theme="continuous"] .statusbar {
   .wardrobe-live .wardrobe-item-grid,
   .wardrobe-live .wardrobe-look-list{gap:10px !important}
 }
+
+
+/* =========================================================
+   KEEPSAKES · VISUAL OBJECT DRAWER
+   Real photos, consumed traces, and physical object cards.
+   ========================================================= */
+
+.keepsakes-live .keepsakes-tabs{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+.keepsakes-live .keepsakes-tabs button{
+  padding-inline:5px !important;
+  font-size:8px !important;
+}
+.keepsakes-live .keepsakes-summary{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+.keepsakes-live .keepsakes-summary div{
+  padding:14px 11px !important;
+}
+.keepsakes-live .keepsakes-summary strong{
+  font-size:29px !important;
+}
+
+/* Add/preview an actual keepsake image. */
+.keepsake-image-picker{
+  display:block;
+  margin:12px 0;
+  cursor:pointer;
+}
+.keepsake-image-picker > span{
+  display:grid;
+  place-items:center;
+  min-height:190px;
+  padding:12px;
+  overflow:hidden;
+  border:1px dashed rgba(91,30,39,.24);
+  background:
+    linear-gradient(135deg,rgba(173,77,90,.06),transparent 42%),
+    #faede1;
+  color:#8c5560;
+  text-align:center;
+}
+.keepsake-image-picker > span img{
+  display:block;
+  width:100%;
+  max-height:270px;
+  object-fit:contain;
+}
+.keepsake-image-picker > span strong{
+  display:block;
+  margin-top:8px;
+  color:#57222b;
+  font:500 18px/1 var(--font-display);
+}
+.keepsake-image-picker > span small{
+  display:block;
+  max-width:220px;
+  margin-top:4px;
+  color:#8b5c61;
+  font:9px/1.4 var(--font-body);
+}
+.keepsake-image-picker input{
+  position:absolute;
+  inline-size:1px;
+  block-size:1px;
+  opacity:0;
+  pointer-events:none;
+}
+
+/* Archive rows show the real object instead of only a box icon. */
+.keepsakes-live .keepsake-index-card{
+  display:grid !important;
+  grid-template-columns:72px minmax(0,1fr) !important;
+  grid-template-areas:
+    "visual head"
+    "visual place"
+    "visual note" !important;
+  gap:5px 12px !important;
+  min-height:104px !important;
+  padding:14px !important;
+}
+.keepsakes-live .keepsake-index-card::before,
+.keepsakes-live .keepsake-index-card::after{
+  display:none !important;
+  content:none !important;
+}
+.keepsakes-live .keepsake-card-visual{
+  grid-area:visual;
+  display:grid;
+  place-items:center;
+  width:72px;
+  height:86px;
+  overflow:hidden;
+  border:1px solid rgba(91,30,39,.12);
+  background:#f9ece0;
+  color:#94525d;
+  box-shadow:2px 3px 0 rgba(62,18,25,.08);
+}
+.keepsakes-live .keepsake-card-visual img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.keepsakes-live .keepsake-index-card header{
+  grid-area:head;
+  min-width:0;
+}
+.keepsakes-live .keepsake-index-card .date-place{
+  grid-area:place;
+  margin-top:2px !important;
+}
+.keepsakes-live .keepsake-index-card > p{
+  grid-area:note;
+  margin:2px 0 0 !important;
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  font-size:9px !important;
+  line-height:1.35 !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"]{
+  opacity:1 !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 29px,rgba(103,45,52,.035) 29px 30px),
+    #ead6c7 !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"] .keepsake-card-visual{
+  filter:saturate(.72);
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"] .date-place::after{
+  content:" · lived, not stored";
+  font-style:italic;
+}
+
+/* Object detail: visual first. */
+.keepsakes-live .keepsake-detail-visual{
+  position:relative;
+  display:block;
+  width:calc(100% - 44px);
+  max-height:390px;
+  margin:16px 22px 0;
+  padding:8px 8px 23px;
+  overflow:hidden;
+  border:1px solid rgba(91,30,39,.12);
+  border-radius:1px;
+  background:#faede1;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09);
+  cursor:zoom-in;
+}
+.keepsakes-live .keepsake-detail-visual img{
+  display:block;
+  width:100%;
+  max-height:345px;
+  object-fit:contain;
+}
+.keepsakes-live .keepsake-detail-visual span{
+  position:absolute;
+  right:10px;
+  bottom:6px;
+  color:#8b5c61;
+  font:italic 8px var(--font-display);
+}
+
+@media(max-width:390px){
+  .keepsakes-live .keepsakes-tabs button{
+    font-size:7px !important;
+    letter-spacing:.02em !important;
+  }
+  .keepsakes-live .keepsakes-summary span{
+    font-size:6px !important;
+    letter-spacing:.08em !important;
+  }
+  .keepsakes-live .keepsake-index-card{
+    grid-template-columns:64px minmax(0,1fr) !important;
+  }
+  .keepsakes-live .keepsake-card-visual{
+    width:64px;
+    height:78px;
+  }
+}
