@@ -892,3 +892,14 @@
   -webkit-text-fill-color:#a77d78 !important;
   opacity:1 !important;
 }
+
+/* PHOTO ENGINE · FINAL CONTRAST OVERRIDE */
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-block{opacity:1 !important;filter:none !important;}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-block :is(h2,h3,strong,span,p,small,label,button,input,textarea,select){opacity:1 !important;filter:none !important;}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-block :is(h2,h3,strong,label){color:#642631 !important;-webkit-text-fill-color:#642631 !important;}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-subject-grid button,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-mode-grid button{color:#71343d !important;-webkit-text-fill-color:#71343d !important;}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-subject-grid button :is(span,strong,small),
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-mode-grid button :is(span,strong,small){color:#71343d !important;-webkit-text-fill-color:#71343d !important;opacity:1 !important;}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-subject-grid button svg,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-mode-grid button svg{color:#71343d !important;stroke:#71343d !important;opacity:1 !important;}
