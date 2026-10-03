@@ -7073,6 +7073,11 @@ function KeepsakesScreen() {
   const [editNote, setEditNote] =
     useState("");
 
+  const [
+    editKeepsakeImageFile,
+    setEditKeepsakeImageFile,
+  ] = useState<File | null>(null);
+
   const [connections, setConnections] =
     useState<DiarioItem[]>([]);
 
@@ -7416,6 +7421,10 @@ function KeepsakesScreen() {
       item.body ?? ""
     );
 
+    setEditKeepsakeImageFile(
+      null
+    );
+
     setEditingKeepsake(true);
   };
 
@@ -7433,6 +7442,18 @@ function KeepsakesScreen() {
       } = await import(
         "@/lib/keepsake-flow"
       );
+
+      const nextStoragePath =
+        editKeepsakeImageFile
+          ? await uploadDiarioItemImage({
+              userId:
+                session.user.id,
+              file:
+                editKeepsakeImageFile,
+              folder:
+                "keepsakes",
+            })
+          : undefined;
 
       const updated =
         await updateKeepsakeDetails({
@@ -7459,9 +7480,15 @@ function KeepsakesScreen() {
 
           note:
             editNote,
+
+          storagePath:
+            nextStoragePath,
         });
 
       replaceKeepsake(updated);
+      setEditKeepsakeImageFile(
+        null
+      );
       setEditingKeepsake(false);
     } catch (error) {
       console.error(
@@ -7770,6 +7797,55 @@ const openConnectionManager =
 
           {editingKeepsake ? (
             <>
+              <label className="keepsake-image-picker keepsake-edit-image-picker">
+                <span>
+                  {editKeepsakeImageFile ? (
+                    <img
+                      src={URL.createObjectURL(
+                        editKeepsakeImageFile
+                      )}
+                      alt="New keepsake preview"
+                    />
+                  ) : keepsakeMediaById[
+                      selectedKeepsake.id
+                    ] ? (
+                    <img
+                      src={
+                        keepsakeMediaById[
+                          selectedKeepsake.id
+                        ]
+                      }
+                      alt="Current keepsake"
+                    />
+                  ) : (
+                    <>
+                      <ImageIcon
+                        size={22}
+                        strokeWidth={1.2}
+                      />
+                      <strong>
+                        Add or change photo
+                      </strong>
+                      <small>
+                        make this object visible in the diary
+                      </small>
+                    </>
+                  )}
+                </span>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) =>
+                    setEditKeepsakeImageFile(
+                      event.target
+                        .files?.[0] ??
+                        null
+                    )
+                  }
+                />
+              </label>
+
               <input
                 type="text"
                 value={editTitle}
@@ -7985,24 +8061,24 @@ const openConnectionManager =
                   Edit
                 </button>
 
-                <button
-                  type="button"
-                  className="gallery-add-button"
-                  disabled={
-                    savingKeepsake
-                  }
-                  onClick={() =>
-                    void moveKeepsake(
-                      selectedKeepsake
-                    )
-                  }
-                >
-                  {location === "home"
-                    ? "Store away"
-                    : location === "gone"
-                      ? "Keep a physical trace"
+                {location !== "gone" && (
+                  <button
+                    type="button"
+                    className="gallery-add-button"
+                    disabled={
+                      savingKeepsake
+                    }
+                    onClick={() =>
+                      void moveKeepsake(
+                        selectedKeepsake
+                      )
+                    }
+                  >
+                    {location === "home"
+                      ? "Store away"
                       : "Bring home"}
-                </button>
+                  </button>
+                )}
               </div>
             </>
           )}
