@@ -44,6 +44,7 @@ import { ConnectedMemoriesScreen } from "@/components/connected-memories-screen"
 import { ConnectedCalendarScreen } from "@/components/connected-calendar-screen";
 import { ConnectedTimelineScreen } from "@/components/connected-timeline-screen";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
+import "@/components/world-objects-interaction.css";
 import { DatesExperienceScreen } from "@/components/dates-screen";
 import {
   PLACE_LIST_OPEN_EVENT,
