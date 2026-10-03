@@ -14696,7 +14696,7 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .spotify-selected-playlist img { width:66px; height:66px; object-fit:cover; box-shadow:0 5px 12px rgba(65,25,31,.13); }
 .spotify-selected-playlist strong { display:block; font-family:Georgia,serif; font-size:18px; margin:3px 0; }
 .spotify-selected-playlist span { font-size:10px; opacity:.62; }
-.spotify-compact-track-list { display:flex; flex-direction:column; gap:2px; max-height:340px; overflow:auto; }
+.spotify-compact-track-list { display:flex; flex-direction:column; gap:2px; }
 .spotify-compact-track-list > button { display:grid; grid-template-columns:38px minmax(0,1fr) 24px; align-items:center; gap:9px; width:100%; border:0; border-bottom:1px solid color-mix(in srgb,var(--ink) 10%,transparent); background:transparent; color:var(--ink); text-align:left; padding:6px 2px; }
 .spotify-compact-track-list img { width:38px; height:38px; object-fit:cover; }
 .spotify-compact-track-list span { min-width:0; }
