@@ -1215,3 +1215,145 @@
   font:italic 9px var(--font-display);
   text-align:center;
 }
+
+
+/* =========================================================
+   MEMORIES · SCRAPBOOK VISUAL PASS
+   Keeps the connected-memory model intact; presentation only.
+   ========================================================= */
+.connected-memories-screen .connected-screen-intro{
+  padding:20px 22px 14px;
+}
+.connected-memories-screen .connected-screen-intro > small{
+  color:#d9858e;
+  -webkit-text-fill-color:#d9858e;
+  font-weight:700;
+  letter-spacing:.18em;
+}
+.connected-memories-screen .connected-screen-intro h1{
+  color:#fff0df;
+  -webkit-text-fill-color:#fff0df;
+  font:500 44px/.95 var(--font-display);
+}
+.connected-memories-screen .connected-screen-intro p{
+  max-width:31rem;
+  color:#ead2c5;
+  -webkit-text-fill-color:#ead2c5;
+  font:11px/1.55 var(--font-body);
+}
+.connected-memories-screen .connected-memory-toolbar{
+  padding:6px 22px 18px;
+}
+.connected-memories-screen .connected-memory-toolbar > div{gap:7px}
+.connected-memories-screen .connected-memory-toolbar button{
+  min-height:34px;
+  padding:7px 11px;
+  border-color:rgba(247,226,209,.26);
+  border-radius:999px;
+  background:rgba(255,244,231,.08);
+  color:#ead2c5;
+  -webkit-text-fill-color:#ead2c5;
+}
+.connected-memories-screen .connected-memory-toolbar button.active,
+.connected-memories-screen .connected-memory-toolbar .connected-new-memory{
+  border-color:#f3ddc9;
+  background:#f5e8d8;
+  color:#642631 !important;
+  -webkit-text-fill-color:#642631 !important;
+}
+.connected-memories-screen .connected-memory-timeline{
+  gap:26px;
+  padding:4px 20px 34px;
+}
+.connected-memories-screen .connected-memory-timeline::before{
+  left:31px;
+  background:rgba(239,190,184,.42);
+}
+.connected-memories-screen .connected-memory-month{gap:13px}
+.connected-memories-screen .connected-memory-month > header{
+  padding-left:2px;
+}
+.connected-memories-screen .connected-memory-month > header span{
+  width:18px;
+  height:18px;
+  border:2px solid #f4dfca;
+  background:#6b2932;
+  box-shadow:0 0 0 4px rgba(244,223,202,.07);
+}
+.connected-memories-screen .connected-memory-month > header strong{
+  color:#efc3bc;
+  -webkit-text-fill-color:#efc3bc;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.connected-memories-screen .connected-memory-node{
+  gap:8px;
+  width:calc(100% - 34px);
+  margin-left:34px;
+  padding:15px 16px 14px;
+  overflow:visible;
+  border:1px solid rgba(91,30,39,.12);
+  border-radius:2px;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 31px,rgba(103,45,52,.035) 31px 32px),
+    #f6e9da;
+  color:#5b202a;
+  box-shadow:4px 5px 0 rgba(28,8,12,.10);
+}
+.connected-memories-screen .connected-memory-node::before{
+  content:"";
+  position:absolute;
+  top:-7px;
+  left:50%;
+  width:62px;
+  height:15px;
+  transform:translateX(-50%) rotate(-1.4deg);
+  background:rgba(224,177,169,.46);
+  pointer-events:none;
+}
+.connected-memories-screen .connected-memory-node.memory-node-right{
+  width:calc(94% - 34px);
+  margin-left:47px;
+}
+.connected-memories-screen .connected-memory-node time,
+.connected-memories-screen .connected-memory-node > small{
+  color:#9a6d69;
+  -webkit-text-fill-color:#9a6d69;
+  font-size:8px;
+}
+.connected-memories-screen .connected-memory-node > strong{
+  color:#5b202a;
+  -webkit-text-fill-color:#5b202a;
+  font:500 21px/1.05 var(--font-display);
+}
+.connected-memories-screen .connected-memory-node > p{
+  color:#8b5d5e;
+  -webkit-text-fill-color:#8b5d5e;
+  font:10px/1.5 var(--font-body);
+}
+.connected-memories-screen .connected-memory-previews{
+  min-height:56px;
+  gap:7px;
+  margin:5px 0 3px;
+}
+.connected-memories-screen .connected-memory-previews img{
+  width:58px;
+  height:58px;
+  border:5px solid #fff3e5;
+  border-bottom-width:11px;
+  box-shadow:2px 3px 0 rgba(73,22,29,.12);
+  transform:rotate(-2deg);
+}
+.connected-memories-screen .connected-memory-previews img:nth-child(2){transform:rotate(2.5deg)}
+.connected-memories-screen .connected-memory-previews img:nth-child(3){transform:rotate(-1deg)}
+.connected-memories-screen .connected-memory-previews span{
+  padding:6px 8px;
+  border-color:rgba(91,30,39,.20);
+  border-radius:999px;
+  background:#f0d8ca;
+  color:#702d37;
+  -webkit-text-fill-color:#702d37;
+  font-weight:600;
+}
