@@ -26,6 +26,10 @@ export type DateVenuePurchase = {
   placeId: string;
   placeName: string;
   happenedAt: string;
+  visualStorageBucket: string | null;
+  visualStoragePath: string | null;
+  visualProvider: string | null;
+  visualModel: string | null;
 };
 
 export type DateVenueWorld = {
@@ -77,6 +81,10 @@ function readPurchase(value: unknown): DateVenuePurchase | null {
     id, actor, action, itemId, itemName, itemKind, section,
     description: cleanString(raw.description),
     priceUsdCents, sourceTier, sourceLabel, placeId, placeName, happenedAt,
+    visualStorageBucket: cleanString(raw.visualStorageBucket),
+    visualStoragePath: cleanString(raw.visualStoragePath),
+    visualProvider: cleanString(raw.visualProvider),
+    visualModel: cleanString(raw.visualModel),
   };
 }
 
@@ -184,6 +192,10 @@ export async function recordDateVenuePurchase({
     placeId: place.id,
     placeName: place.title ?? "Untitled place",
     happenedAt: new Date().toISOString(),
+    visualStorageBucket: null,
+    visualStoragePath: null,
+    visualProvider: null,
+    visualModel: null,
   };
 
   return persistDateVenueWorld({
@@ -192,6 +204,55 @@ export async function recordDateVenuePurchase({
     venueWorld: {
       schemaVersion: 1,
       purchases: [...current.purchases, purchase],
+    },
+  });
+}
+
+export async function setDateVenuePurchaseVisual({
+  userId,
+  date,
+  purchaseId,
+  storageBucket,
+  storagePath,
+  provider,
+  model,
+}: {
+  userId: string;
+  date: DiarioItem;
+  purchaseId: string;
+  storageBucket: string;
+  storagePath: string;
+  provider?: string | null;
+  model?: string | null;
+}): Promise<DiarioItem> {
+  const current = readDateVenueWorld(date);
+
+  let changed = false;
+
+  const purchases = current.purchases.map((purchase) => {
+    if (purchase.id !== purchaseId) {
+      return purchase;
+    }
+
+    changed = true;
+
+    return {
+      ...purchase,
+      visualStorageBucket: storageBucket,
+      visualStoragePath: storagePath,
+      visualProvider: provider ?? null,
+      visualModel: model ?? null,
+    };
+  });
+
+  if (!changed) return date;
+
+  return persistDateVenueWorld({
+    userId,
+    date,
+    venueWorld: {
+      schemaVersion: 1,
+      purchases,
     },
   });
 }
@@ -290,6 +351,19 @@ export async function materializeDateVenuePurchase({
           consumed: lifecycle === "consumed",
           date_venue_action: purchase.action,
           price_usd_cents: purchase.priceUsdCents,
+          ...(purchase.visualStoragePath
+            ? {
+                storage_bucket:
+                  purchase.visualStorageBucket ?? "diario-media",
+                storage_path:
+                  purchase.visualStoragePath,
+                generated_object_visual: true,
+                object_visual_provider:
+                  purchase.visualProvider,
+                object_visual_model:
+                  purchase.visualModel,
+              }
+            : {}),
         },
       })
       .select("*")
