@@ -602,6 +602,16 @@ function dominicPresenceCopy(
       "with friends",
     working:
       "working",
+    at_the_studio:
+      "at the studio",
+    rehearsing:
+      "rehearsing",
+    performing:
+      "performing",
+    backstage:
+      "backstage",
+    traveling:
+      "traveling",
     driving:
       "driving",
     idle:
@@ -640,6 +650,11 @@ function dominicPresenceCopy(
       "at_a_cafe",
       "with_friends",
       "working",
+      "at_the_studio",
+      "rehearsing",
+      "performing",
+      "backstage",
+      "traveling",
       "recording",
       "driving",
     ].includes(
@@ -2802,6 +2817,52 @@ const liveDateContext =
 
                   nextChangeAt:
                     dominicState.nextChangeAt,
+
+                  detail:
+                    dominicState.detail ??
+                    null,
+
+                  wearing:
+                    dominicWearingLabel,
+
+                  listening:
+                    activeListeningTrack
+                      ? {
+                          title:
+                            activeListeningTrack.title,
+                          artist:
+                            activeListeningTrack.artist ??
+                            null,
+                          owner:
+                            activeListeningTrack.owner,
+                        }
+                      : null,
+
+                  isHome:
+                    dominicState.location !== "out",
+
+                  availability:
+                    [
+                      "sleeping",
+                      "showering",
+                      "performing",
+                      "rehearsing",
+                      "recording",
+                      "driving",
+                    ].includes(
+                      dominicState.activity
+                    )
+                      ? "low"
+                      : [
+                          "with_friends",
+                          "working",
+                          "at_the_studio",
+                          "traveling",
+                        ].includes(
+                          dominicState.activity
+                        )
+                        ? "medium"
+                        : "high",
                 }
               : null,
 
