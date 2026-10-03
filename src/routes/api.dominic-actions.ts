@@ -13,7 +13,8 @@ type ActionType =
   | "create_memory"
   | "create_place"
   | "create_song"
-  | "date_venue_action";
+  | "date_venue_action"
+  | "update_profile_photo";
 
 type DominicWorldAction =
   | {
@@ -56,6 +57,10 @@ type DominicWorldAction =
       dateId: string;
       itemId: string;
       venueAction: "ordered" | "bought";
+    }
+  | {
+      type: "update_profile_photo";
+      photoId: string;
     };
 
 type RequestBody = {
@@ -64,6 +69,7 @@ type RequestBody = {
   replies?: string[];
   nearbyCommitments?: unknown[];
   liveDateContext?: unknown;
+  profilePhotoCandidates?: unknown[];
 };
 
 type VerifiedUser = {
@@ -114,6 +120,7 @@ const ACTION_ITEM_SCHEMA = {
         "create_place",
         "create_song",
         "date_venue_action",
+        "update_profile_photo",
       ],
     },
 
@@ -186,6 +193,9 @@ body:
         },
       ],
     },
+
+    photoId:
+      nullableStringSchema,
   },
 } as const;
 
@@ -405,6 +415,25 @@ function normalizeAction(
 
 if (!type) {
   return null;
+}
+
+if (
+  type ===
+  "update_profile_photo"
+) {
+  const photoId =
+    cleanString(
+      raw.photoId
+    );
+
+  if (!photoId) {
+    return null;
+  }
+
+  return {
+    type,
+    photoId,
+  };
 }
 
 if (
@@ -706,6 +735,7 @@ async function interpretActions({
   replies,
   nearbyCommitments,
     liveDateContext,
+  profilePhotoCandidates,
 }: {
   apiKey: string;
   model: string;
@@ -713,6 +743,7 @@ async function interpretActions({
   replies: string[];
   nearbyCommitments: unknown[];
    liveDateContext: unknown;
+  profilePhotoCandidates: unknown[];
 }): Promise<
   DominicWorldAction[]
 > {
@@ -872,6 +903,19 @@ Use when Dominic actually sends, recommends, chooses, or adds a concrete song.
 
 Both the song title and artist must be known from the conversation.
 
+update_profile_photo
+
+Use only when Dominic's actual reply clearly says or unmistakably indicates that he is making one of the supplied profilePhotoCandidates his profile picture now.
+
+The photoId must exactly match an id from profilePhotoCandidates.
+
+Be conservative:
+- Do not change his profile picture merely because a photo exists.
+- Do not infer a change because the user compliments a photo.
+- A request alone is not enough unless Dominic clearly accepts and acts on it in his reply.
+- If it is ambiguous which candidate he means, return no update_profile_photo.
+- Never invent a photoId.
+
 date_venue_action
 
 Use only during an active Date when liveDateContext says locationMode is "place".
@@ -924,6 +968,8 @@ ${currentTime}`,
                       nearbyCommitments,
                       
                       liveDateContext,
+
+                      profilePhotoCandidates,
                     }
                   ),
               },
@@ -1043,6 +1089,33 @@ ${currentTime}`,
       ): action is DominicWorldAction => {
         if (!action) {
           return false;
+        }
+
+        if (
+          action.type ===
+          "update_profile_photo"
+        ) {
+          return (
+            Array.isArray(
+              profilePhotoCandidates
+            ) &&
+            profilePhotoCandidates.some(
+              (candidate) =>
+                candidate &&
+                typeof candidate ===
+                  "object" &&
+                !Array.isArray(
+                  candidate
+                ) &&
+                (
+                  candidate as Record<
+                    string,
+                    unknown
+                  >
+                ).id ===
+                  action.photoId
+            )
+          );
         }
 
         if (
@@ -1267,6 +1340,13 @@ export const Route =
 
                   liveDateContext:
   body.liveDateContext ?? null,
+
+                  profilePhotoCandidates:
+                    Array.isArray(
+                      body.profilePhotoCandidates
+                    )
+                      ? body.profilePhotoCandidates
+                      : [],
                 });
 
               return Response.json({
