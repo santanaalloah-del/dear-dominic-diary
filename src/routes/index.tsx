@@ -10137,7 +10137,7 @@ setAddingSong(false);
 {musicSection === "favorites" && musicView === "mine" && (
   <section className="spotify-library-paper">
     <header className="spotify-library-heading"><div><span>from your Spotify</span><strong>Liked Songs</strong></div><small>{spotifyLibraryLoading ? "loading…" : `${spotifyLikedTracks.length} liked`}</small></header>
-    <div className="spotify-compact-track-list">
+    <div className="spotify-compact-track-list spotify-liked-track-list">
       {spotifyLikedTracks.map((track) => <button key={track.id} type="button" onClick={() => playSpotifyTopTrack(track)}>{track.coverUrl ? <img src={track.coverUrl} alt="" /> : <Disc3 size={18} />}<span><strong>{track.name}</strong><small>{track.artists.join(", ")}</small></span><Play size={13} fill="currentColor" /></button>)}
     </div>
   </section>
