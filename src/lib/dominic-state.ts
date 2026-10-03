@@ -40,6 +40,11 @@ export type DominicActivity =
   | "at_a_cafe"
   | "with_friends"
   | "working"
+  | "at_the_studio"
+  | "rehearsing"
+  | "performing"
+  | "backstage"
+  | "traveling"
   | "driving"
   | "idle";
 
@@ -603,6 +608,11 @@ const ACTIVITY_DURATION: Partial<
   at_a_cafe: [30, 150],
   with_friends: [60, 300],
   working: [60, 300],
+  at_the_studio: [90, 360],
+  rehearsing: [60, 240],
+  performing: [45, 180],
+  backstage: [20, 120],
+  traveling: [60, 480],
   driving: [15, 120],
   idle: [10, 60],
 };
@@ -781,6 +791,10 @@ function applyInternalStateBias(
       if (
         [
           "working",
+          "at_the_studio",
+          "rehearsing",
+          "performing",
+          "traveling",
           "recording",
           "cleaning",
           "with_friends",
@@ -1102,6 +1116,10 @@ function evolveInternalState(
   } else if (
     [
       "working",
+      "at_the_studio",
+      "rehearsing",
+      "performing",
+      "traveling",
       "recording",
       "cleaning",
       "walking",
@@ -1149,6 +1167,9 @@ function evolveInternalState(
     [
       "writing_music",
       "recording",
+      "at_the_studio",
+      "rehearsing",
+      "performing",
       "reading",
       "working",
     ].includes(activity)
@@ -1366,6 +1387,31 @@ function outCandidates(
       activity: "recording",
       location: "out",
       weight: 2,
+    },
+    {
+      activity: "at_the_studio",
+      location: "out",
+      weight: hour >= 11 && hour < 23 ? 3.5 : 1,
+    },
+    {
+      activity: "rehearsing",
+      location: "out",
+      weight: hour >= 12 && hour < 22 ? 2 : 0.4,
+    },
+    {
+      activity: "backstage",
+      location: "out",
+      weight: hour >= 16 && hour < 24 ? 0.9 : 0.15,
+    },
+    {
+      activity: "performing",
+      location: "out",
+      weight: hour >= 18 && hour < 24 ? 0.65 : 0.05,
+    },
+    {
+      activity: "traveling",
+      location: "out",
+      weight: 0.55,
     },
     {
       activity: "driving",
