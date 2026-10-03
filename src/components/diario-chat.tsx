@@ -10,7 +10,6 @@ import {
   Image,
   Mail,
   Mic,
-  MoreVertical,
   Music2,
   Palette,
   Phone,
@@ -417,7 +416,6 @@ const PREFS_KEY = "diario-chat-preferences-v1";
 const VOICE_KEY = "diario-voice-markers-v1";
 
 const DOMINIC_NAME = "Dominic";
-const DOMINIC_STATUS = "home";
 
 const defaultPreferences: ChatPreferences = {
   theme: "diary",
