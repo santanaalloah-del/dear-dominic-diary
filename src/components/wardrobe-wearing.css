@@ -655,3 +655,115 @@
     height: 155px;
   }
 }
+
+
+/* =========================================================
+   WARDROBE · MANUAL CUTOUT EDITOR
+   ========================================================= */
+.wardrobe-manual-cutout{
+  margin:10px 0 14px;
+  padding:12px;
+  border:1px solid rgba(91,30,39,.14);
+  background:#efddcf;
+  box-shadow:3px 4px 0 rgba(62,18,25,.08);
+}
+.wardrobe-manual-cutout > header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:9px;
+  border-bottom:1px solid rgba(91,30,39,.12);
+}
+.wardrobe-manual-cutout > header > div{
+  display:grid;
+  gap:2px;
+}
+.wardrobe-manual-cutout > header small{
+  color:#a24e58;
+  font:700 7px var(--font-body);
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+.wardrobe-manual-cutout > header strong{
+  color:#57222b;
+  font:500 19px/1 var(--font-display);
+}
+.wardrobe-manual-cutout > header > button{
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  padding:0;
+  border:1px solid rgba(91,30,39,.14);
+  background:transparent;
+  color:#6c2c36;
+}
+.wardrobe-manual-cutout > p{
+  margin:9px 0 10px;
+  color:#83575c;
+  font:9px/1.45 var(--font-body);
+}
+.wardrobe-manual-cutout-canvas{
+  display:grid;
+  place-items:center;
+  min-height:260px;
+  max-height:430px;
+  overflow:auto;
+  padding:10px;
+  border:1px solid rgba(91,30,39,.12);
+  background:
+    linear-gradient(45deg,#ead8ca 25%,transparent 25%) 0 0/18px 18px,
+    linear-gradient(-45deg,#ead8ca 25%,transparent 25%) 0 9px/18px 18px,
+    linear-gradient(45deg,transparent 75%,#ead8ca 75%) 9px -9px/18px 18px,
+    linear-gradient(-45deg,transparent 75%,#ead8ca 75%) -9px 0/18px 18px,
+    #f8ebdf;
+  touch-action:none;
+}
+.wardrobe-manual-cutout-canvas canvas{
+  display:block;
+  max-width:100%;
+  max-height:400px;
+  width:auto;
+  height:auto;
+  touch-action:none;
+  cursor:crosshair;
+}
+.wardrobe-cutout-brush{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+  color:#74454d;
+}
+.wardrobe-cutout-brush span,
+.wardrobe-cutout-brush small{
+  font:8px var(--font-body);
+}
+.wardrobe-cutout-brush input{
+  width:100%;
+  accent-color:#7b1f2d;
+}
+.wardrobe-manual-cutout-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:7px;
+  margin-top:10px;
+}
+.wardrobe-manual-cutout-actions button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-height:34px;
+  padding:7px 11px;
+  border:1px solid rgba(91,30,39,.15);
+  background:transparent;
+  color:#6d333c;
+  font:9px var(--font-body);
+}
+.wardrobe-manual-cutout-actions button.primary{
+  background:#6b1b27;
+  color:#fff1e3;
+}
