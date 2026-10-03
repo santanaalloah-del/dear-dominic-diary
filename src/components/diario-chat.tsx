@@ -1381,6 +1381,25 @@ async function extractDominicActions({
 
               liveDateContext,
 
+              dominicContext:
+                dominicState
+                  ? {
+                      activity: dominicState.activity,
+                      location: dominicState.location,
+                      mood: dominicState.mood ?? null,
+                      energy: dominicState.energy ?? null,
+                      detail: dominicState.detail ?? null,
+                      wearing: dominicWearingLabel,
+                      listening: activeListeningTrack
+                        ? {
+                            title: activeListeningTrack.title,
+                            artist: activeListeningTrack.artist ?? null,
+                            owner: activeListeningTrack.owner,
+                          }
+                        : null,
+                    }
+                  : null,
+
               nearbyCommitments,
 
               profilePhotoCandidates,
