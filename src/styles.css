@@ -16903,3 +16903,34 @@ html[data-diario-time-theme="continuous"] .statusbar {
     padding:12px 9px !important;
   }
 }
+
+
+/* Keepsakes without photos still read as visual objects. */
+.keepsakes-live .keepsake-index-card:is(
+  [data-keepsake-type="food"],
+  [data-keepsake-type="drink"],
+  [data-keepsake-type="dessert"],
+  [data-keepsake-type="snack"],
+  [data-keepsake-type="ticket"],
+  [data-keepsake-type="flower"],
+  [data-keepsake-type="gift"],
+  [data-keepsake-type="receipt"],
+  [data-keepsake-type="souvenir"],
+  [data-keepsake-type="purchase"]
+) .keepsake-index-visual:not(.has-image) svg{
+  display:none !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="food"] .keepsake-index-visual:not(.has-image)::before{content:"🍜"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="drink"] .keepsake-index-visual:not(.has-image)::before{content:"☕"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="dessert"] .keepsake-index-visual:not(.has-image)::before{content:"🍰"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="snack"] .keepsake-index-visual:not(.has-image)::before{content:"🍪"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="ticket"] .keepsake-index-visual:not(.has-image)::before{content:"🎟"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="flower"] .keepsake-index-visual:not(.has-image)::before{content:"✿"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="gift"] .keepsake-index-visual:not(.has-image)::before{content:"♡"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="receipt"] .keepsake-index-visual:not(.has-image)::before{content:"▤"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="souvenir"] .keepsake-index-visual:not(.has-image)::before{content:"✦"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="purchase"] .keepsake-index-visual:not(.has-image)::before{content:"⌑"}
+.keepsakes-live .keepsake-index-card .keepsake-index-visual:not(.has-image)::before{
+  color:#7d3943;
+  font:24px/1 var(--font-display);
+}
