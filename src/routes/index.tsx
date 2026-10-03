@@ -758,7 +758,7 @@ function ScreenIntro({
 
 function HomeScreen({
   time,
-  onOpenRoom: _onOpenRoom,
+  onOpenRoom,
 }: {
   time: TimeMoodState;
   onOpenRoom: (roomId: string) => void;
@@ -1007,6 +1007,22 @@ function HomeScreen({
             </button>
           ))}
         </nav>
+
+        <button
+          type="button"
+          className="apartment-enter-room"
+          onClick={() =>
+            onOpenRoom(
+              activeRoom.id
+            )
+          }
+        >
+          <Home
+            size={14}
+            aria-hidden="true"
+          />
+          Enter {activeRoom.title}
+        </button>
       </section>
 
       {showRoomThings && (
@@ -2770,6 +2786,10 @@ const handleOpenLetter = async (
             opened
               ? "is-opened"
               : "is-sealed"
+          } ${
+            expanded
+              ? "is-expanded"
+              : ""
           }`}
         >
           <button
@@ -8855,6 +8875,103 @@ const openConnectionManager =
         </section>
       ) : (
         <>
+          <section className="keepsake-box">
+            <header>
+              <div>
+                <small>
+                  our little box
+                </small>
+
+                <strong>
+                  Things that stayed
+                </strong>
+              </div>
+
+              <span>
+                {visibleKeepsakes.length}
+              </span>
+            </header>
+
+            <div className="keepsake-box-lid" aria-hidden="true" />
+
+            <div className="keepsake-box-inside">
+              {visibleKeepsakes
+                .slice(0, 6)
+                .map(
+                  (
+                    item,
+                    index
+                  ) => {
+                    const type =
+                      typeof item
+                        .data
+                        ?.keepsakeType ===
+                      "string"
+                        ? item
+                            .data
+                            .keepsakeType
+                        : "object";
+
+                    return (
+                      <button
+                        type="button"
+                        key={
+                          item.id
+                        }
+                        className="keepsake-box-object"
+                        data-keepsake-type={
+                          type
+                        }
+                        data-slot={
+                          index
+                        }
+                        onClick={() =>
+                          setSelectedKeepsakeId(
+                            item.id
+                          )
+                        }
+                      >
+                        <span className="keepsake-box-object-visual">
+                          {keepsakeMediaById[
+                            item.id
+                          ] ? (
+                            <img
+                              src={
+                                keepsakeMediaById[
+                                  item.id
+                                ]
+                              }
+                              alt=""
+                            />
+                          ) : (
+                            <BoxIcon
+                              size={18}
+                              strokeWidth={1.2}
+                            />
+                          )}
+                        </span>
+
+                        <strong>
+                          {item.title ??
+                            "Untitled"}
+                        </strong>
+                      </button>
+                    );
+                  }
+                )}
+            </div>
+
+            {visibleKeepsakes.length >
+              6 && (
+              <p>
+                +{" "}
+                {visibleKeepsakes.length -
+                  6}{" "}
+                more in the drawer
+              </p>
+            )}
+          </section>
+
           <div className="dates-list keepsakes-archive">
             {visibleKeepsakes.map(
               (item) => {
