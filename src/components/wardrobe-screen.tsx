@@ -1923,7 +1923,7 @@ export function WardrobeExperienceScreen() {
                     setClothingOriginalFile(file);
                     setClothingImageFile(file);
                     setClothingCutoutMode("original");
-      setManualCutoutOpen(false);
+                    setManualCutoutOpen(false);
                   }}
                 />
               </label>
@@ -1977,6 +1977,9 @@ export function WardrobeExperienceScreen() {
                       );
                       setClothingCutoutMode(
                         "original"
+                      );
+                      setManualCutoutOpen(
+                        false
                       );
                     }}
                   >
@@ -2096,7 +2099,7 @@ export function WardrobeExperienceScreen() {
                     setClothingOriginalFile(null);
                     setClothingImageFile(null);
                     setClothingCutoutMode("original");
-      setManualCutoutOpen(false);
+                    setManualCutoutOpen(false);
                   }}
                 >
                   Cancel
