@@ -580,7 +580,7 @@ function WardrobeManualCutout({
         <canvas
           ref={canvasRef}
           style={{
-            width: \`\${zoom * 100}%\`,
+            width: `${zoom * 100}%`,
             maxWidth: "none",
           }}
           onPointerDown={(event) => {
