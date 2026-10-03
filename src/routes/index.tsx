@@ -4210,6 +4210,11 @@ function WardrobeScreen() {
       "closet" | "looks"
     >("closet");
 
+  const [
+    selectedWardrobeObjectId,
+    setSelectedWardrobeObjectId,
+  ] = useState<string | null>(null);
+
   const [wardrobeItems, setWardrobeItems] =
     useState<DiarioItem[]>([]);
 
@@ -4483,6 +4488,22 @@ setAddingLook(false);
       );
     }
   };
+
+  if (selectedWardrobeObjectId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={selectedWardrobeObjectId}
+        onOpenRelated={
+          setSelectedWardrobeObjectId
+        }
+        onBack={() =>
+          setSelectedWardrobeObjectId(
+            null
+          )
+        }
+      />
+    );
+  }
 
   return (
     <section className="wardrobe-screen wardrobe-live">
@@ -4782,6 +4803,11 @@ setAddingLook(false);
                         key={item.id}
                         type="button"
                         className="wardrobe-item"
+                        onClick={() =>
+                          setSelectedWardrobeObjectId(
+                            item.id
+                          )
+                        }
                       >
                         <div
                           className="wardrobe-item-image"
@@ -5026,9 +5052,15 @@ onClick={() => {
       );
 
     return (
-      <div
+      <button
         key={look.id}
+        type="button"
         className="wardrobe-look"
+        onClick={() =>
+          setSelectedWardrobeObjectId(
+            look.id
+          )
+        }
       >
         <div>
           <span>
@@ -5058,7 +5090,7 @@ onClick={() => {
                   .join(" · ")}
           </small>
         </div>
-      </div>
+      </button>
     );
   }
 )}
@@ -6016,7 +6048,7 @@ function PlacesScreen() {
     </button>
   )}
         
-        <section className="date-card">
+        <section className="date-card place-detail-card">
           <header>
             <div>
               <span>
@@ -6245,7 +6277,7 @@ function PlacesScreen() {
           )}
         </section>
 
-        <section className="date-life-cycle">
+        <section className="date-life-cycle place-history-sheet">
           <header>
             <span>
               history here
@@ -6755,7 +6787,7 @@ function PlacesScreen() {
         </section>
       ) : (
         <>
-          <div className="dates-list">
+          <div className="dates-list places-index">
             {visiblePlaces.map(
               (
                 place
@@ -6790,7 +6822,9 @@ function PlacesScreen() {
                     key={
                       place.id
                     }
-                    className="date-card"
+                    className="date-card place-index-card"
+                    data-place-status={status}
+                    data-place-type={type}
                     onClick={() =>
                       setSelectedPlaceId(
                         place.id
@@ -7582,7 +7616,7 @@ const openConnectionManager =
           </p>
         </ScreenIntro>
 
-        <section className="date-card">
+        <section className="date-card keepsake-detail-card">
           <header>
             <div>
               <span>
@@ -7804,7 +7838,7 @@ const openConnectionManager =
           )}
         </section>
 
-        <section className="date-life-cycle">
+        <section className="date-life-cycle keepsake-history-sheet">
           <header>
             <span>
               history
@@ -8273,7 +8307,7 @@ const openConnectionManager =
         </section>
       ) : (
         <>
-          <div className="dates-list">
+          <div className="dates-list keepsakes-archive">
             {visibleKeepsakes.map(
               (item) => {
                 const location =
@@ -8298,7 +8332,9 @@ const openConnectionManager =
                 return (
                   <article
                     key={item.id}
-                    className="date-card"
+                    className="date-card keepsake-index-card"
+                    data-keepsake-type={type}
+                    data-keepsake-location={location}
                     onClick={() =>
                       setSelectedKeepsakeId(
                         item.id
