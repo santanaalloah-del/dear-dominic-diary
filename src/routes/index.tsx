@@ -7078,6 +7078,11 @@ function KeepsakesScreen() {
     setEditKeepsakeImageFile,
   ] = useState<File | null>(null);
 
+  const [
+    editKeepsakePreviewUrl,
+    setEditKeepsakePreviewUrl,
+  ] = useState<string | null>(null);
+
   const [connections, setConnections] =
     useState<DiarioItem[]>([]);
 
@@ -7259,6 +7264,30 @@ function KeepsakesScreen() {
       active = false;
     };
   }, [keepsakes]);
+
+  useEffect(() => {
+    if (!editKeepsakeImageFile) {
+      setEditKeepsakePreviewUrl(
+        null
+      );
+      return;
+    }
+
+    const url =
+      URL.createObjectURL(
+        editKeepsakeImageFile
+      );
+
+    setEditKeepsakePreviewUrl(
+      url
+    );
+
+    return () => {
+      URL.revokeObjectURL(
+        url
+      );
+    };
+  }, [editKeepsakeImageFile]);
 
   useEffect(() => {
     if (!selectedKeepsakeId) {
@@ -7799,11 +7828,11 @@ const openConnectionManager =
             <>
               <label className="keepsake-image-picker keepsake-edit-image-picker">
                 <span>
-                  {editKeepsakeImageFile ? (
+                  {editKeepsakePreviewUrl ? (
                     <img
-                      src={URL.createObjectURL(
-                        editKeepsakeImageFile
-                      )}
+                      src={
+                        editKeepsakePreviewUrl
+                      }
                       alt="New keepsake preview"
                     />
                   ) : keepsakeMediaById[
