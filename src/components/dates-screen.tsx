@@ -3658,6 +3658,22 @@ export function DatesExperienceScreen({
                       .place
                   : "";
 
+              const dateObjects =
+                readDateVenueWorld(
+                  date
+                ).purchases;
+
+              const orderedCount =
+                dateObjects.filter(
+                  (item) =>
+                    item.action ===
+                    "ordered"
+                ).length;
+
+              const boughtCount =
+                dateObjects.length -
+                orderedCount;
+
               return (
                 <article
                   key={
@@ -3711,6 +3727,25 @@ export function DatesExperienceScreen({
                         date
                       )}
                     </span>
+
+                    {dateObjects.length >
+                      0 && (
+                      <span className="date-flow-card-traces">
+                        {orderedCount >
+                          0 && (
+                          <em>
+                            {orderedCount} had
+                          </em>
+                        )}
+
+                        {boughtCount >
+                          0 && (
+                          <em>
+                            {boughtCount} brought home
+                          </em>
+                        )}
+                      </span>
+                    )}
                   </div>
                 </article>
               );
