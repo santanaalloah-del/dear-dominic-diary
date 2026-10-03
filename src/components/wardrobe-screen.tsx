@@ -4,6 +4,10 @@ import {
   Calendar as CalendarIcon,
   Check,
   Image as ImageIcon,
+  Layers,
+  RotateCcw,
+  RotateCw,
+  Scissors,
   Shirt,
   Sparkles,
   X,
@@ -19,8 +23,14 @@ import {
   getLookClothingIds,
   getLooks,
   getWardrobeItems,
+  uploadDiarioItemImage,
   type DiarioItem,
+  type LookLayoutItem,
 } from "@/lib/diario-world";
+
+import {
+  hydrateDiaryItems,
+} from "@/lib/connected-diary";
 import {
   clearWearing,
   getWearingSelection,
@@ -33,7 +43,7 @@ import {
 import "./wardrobe-wearing.css";
 
 type WardrobeOwnerView = "mine" | "dominic";
-type WardrobeView = "closet" | "looks" | "wearing";
+type WardrobeView = "closet" | "looks" | "builder" | "wearing";
 
 function ownerToDb(owner: WardrobeOwnerView): WardrobeOwner {
   return owner === "mine" ? "alloah" : "dominic";
@@ -41,6 +51,186 @@ function ownerToDb(owner: WardrobeOwnerView): WardrobeOwner {
 
 function ownerLabel(owner: WardrobeOwnerView) {
   return owner === "mine" ? "My" : "Dominic's";
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function readLookLayout(look: DiarioItem): LookLayoutItem[] {
+  const raw = look.data?.layout;
+
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  return raw
+    .map((value): LookLayoutItem | null => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return null;
+      }
+
+      const item = value as Record<string, unknown>;
+
+      if (typeof item.clothingId !== "string") {
+        return null;
+      }
+
+      return {
+        clothingId: item.clothingId,
+        x: typeof item.x === "number" ? item.x : 50,
+        y: typeof item.y === "number" ? item.y : 50,
+        scale: typeof item.scale === "number" ? item.scale : 1,
+        rotation: typeof item.rotation === "number" ? item.rotation : 0,
+        z: typeof item.z === "number" ? item.z : 1,
+      };
+    })
+    .filter((item): item is LookLayoutItem => Boolean(item));
+}
+
+function defaultPieceLayout(item: DiarioItem, z: number): LookLayoutItem {
+  const category =
+    typeof item.data?.category === "string"
+      ? item.data.category
+      : "other";
+
+  const yByCategory: Record<string, number> = {
+    outerwear: 19,
+    top: 23,
+    dress: 37,
+    bottom: 52,
+    bag: 52,
+    shoes: 78,
+    accessory: 16,
+    other: 46,
+  };
+
+  return {
+    clothingId: item.id,
+    x: 50,
+    y: yByCategory[category] ?? 46,
+    scale:
+      category === "shoes" || category === "accessory"
+        ? 0.78
+        : category === "dress"
+          ? 1.08
+          : 0.92,
+    rotation: 0,
+    z,
+  };
+}
+
+async function imageElementFromFile(file: File): Promise<HTMLImageElement> {
+  const url = URL.createObjectURL(file);
+
+  try {
+    const image = new Image();
+
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () =>
+        reject(new Error("The clothing image could not be opened."));
+      image.src = url;
+    });
+
+    return image;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function autoCutoutClothing(file: File): Promise<File> {
+  const image = await imageElementFromFile(file);
+  const maxSide = 1400;
+  const scale = Math.min(
+    1,
+    maxSide / Math.max(image.naturalWidth, image.naturalHeight)
+  );
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+
+  if (!context) {
+    throw new Error("The cutout tool is not available in this browser.");
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const pixels = context.getImageData(0, 0, width, height);
+  const data = pixels.data;
+
+  const samplePoints = [
+    [2, 2],
+    [width - 3, 2],
+    [2, height - 3],
+    [width - 3, height - 3],
+    [Math.floor(width / 2), 2],
+    [Math.floor(width / 2), height - 3],
+  ];
+
+  const background = samplePoints
+    .reduce(
+      (acc, [x, y]) => {
+        const index =
+          (clamp(y, 0, height - 1) * width +
+            clamp(x, 0, width - 1)) *
+          4;
+
+        acc[0] += data[index];
+        acc[1] += data[index + 1];
+        acc[2] += data[index + 2];
+
+        return acc;
+      },
+      [0, 0, 0]
+    )
+    .map((value) => value / samplePoints.length);
+
+  const threshold = 58;
+  const feather = 26;
+
+  for (let index = 0; index < data.length; index += 4) {
+    if (data[index + 3] < 245) {
+      continue;
+    }
+
+    const distance = Math.sqrt(
+      (data[index] - background[0]) ** 2 +
+        (data[index + 1] - background[1]) ** 2 +
+        (data[index + 2] - background[2]) ** 2
+    );
+
+    if (distance <= threshold) {
+      data[index + 3] = 0;
+    } else if (distance < threshold + feather) {
+      data[index + 3] = Math.round(
+        255 * ((distance - threshold) / feather)
+      );
+    }
+  }
+
+  context.putImageData(pixels, 0, 0);
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (result) =>
+        result
+          ? resolve(result)
+          : reject(new Error("The cutout could not be created.")),
+      "image/png"
+    );
+  });
+
+  return new File(
+    [blob],
+    file.name.replace(/\.[^.]+$/, "") + "-cutout.png",
+    { type: "image/png" }
+  );
 }
 
 export function WardrobeExperienceScreen() {
@@ -83,6 +273,39 @@ export function WardrobeExperienceScreen() {
 
   const [clothingNote, setClothingNote] =
     useState("");
+
+  const [clothingOriginalFile, setClothingOriginalFile] =
+    useState<File | null>(null);
+
+  const [clothingImageFile, setClothingImageFile] =
+    useState<File | null>(null);
+
+  const [clothingPreviewUrl, setClothingPreviewUrl] =
+    useState<string | null>(null);
+
+  const [clothingCutoutMode, setClothingCutoutMode] =
+    useState<"original" | "auto">("original");
+
+  const [cutoutBusy, setCutoutBusy] =
+    useState(false);
+
+  const [mediaByItemId, setMediaByItemId] =
+    useState<Record<string, string>>({});
+
+  const [builderLayout, setBuilderLayout] =
+    useState<LookLayoutItem[]>([]);
+
+  const [builderSelectedId, setBuilderSelectedId] =
+    useState<string | null>(null);
+
+  const [builderTitle, setBuilderTitle] =
+    useState("");
+
+  const [builderNote, setBuilderNote] =
+    useState("");
+
+  const [savingBuilder, setSavingBuilder] =
+    useState(false);
 
   const [lookName, setLookName] =
     useState("");
@@ -171,6 +394,55 @@ export function WardrobeExperienceScreen() {
       active = false;
     };
   }, [session.user.id]);
+
+  useEffect(() => {
+    if (!clothingImageFile) {
+      setClothingPreviewUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(clothingImageFile);
+    setClothingPreviewUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [clothingImageFile]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!wardrobeItems.length) {
+      setMediaByItemId({});
+      return;
+    }
+
+    hydrateDiaryItems(wardrobeItems)
+      .then((views) => {
+        if (!active) return;
+
+        setMediaByItemId(
+          Object.fromEntries(
+            views
+              .filter((view) => Boolean(view.mediaUrl))
+              .map((view) => [
+                view.item.id,
+                view.mediaUrl as string,
+              ])
+          )
+        );
+      })
+      .catch((mediaError) => {
+        console.error(
+          "Could not hydrate wardrobe images:",
+          mediaError
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [wardrobeItems]);
 
   useEffect(() => {
     let active = true;
@@ -262,6 +534,15 @@ export function WardrobeExperienceScreen() {
     setWardrobeError(null);
 
     try {
+      const storagePath =
+        clothingImageFile
+          ? await uploadDiarioItemImage({
+              userId: session.user.id,
+              file: clothingImageFile,
+              folder: "wardrobe",
+            })
+          : null;
+
       const savedItem =
         await createClothing({
           userId: session.user.id,
@@ -269,6 +550,8 @@ export function WardrobeExperienceScreen() {
           title: clothingName,
           category: clothingCategory,
           note: clothingNote,
+          storagePath,
+          cutoutMode: clothingCutoutMode,
         });
 
       setWardrobeItems(
@@ -281,6 +564,9 @@ export function WardrobeExperienceScreen() {
       setClothingName("");
       setClothingCategory("top");
       setClothingNote("");
+      setClothingOriginalFile(null);
+      setClothingImageFile(null);
+      setClothingCutoutMode("original");
       setAddingClothing(false);
     } catch (saveError) {
       console.error(
@@ -347,6 +633,125 @@ export function WardrobeExperienceScreen() {
       setWardrobeError(
         "The look could not be saved."
       );
+    }
+  };
+
+  const resetBuilder = () => {
+    setBuilderLayout([]);
+    setBuilderSelectedId(null);
+    setBuilderTitle("");
+    setBuilderNote("");
+  };
+
+  const addPieceToBuilder = (item: DiarioItem) => {
+    setBuilderLayout((current) => {
+      if (
+        current.some(
+          (piece) =>
+            piece.clothingId === item.id
+        )
+      ) {
+        setBuilderSelectedId(item.id);
+        return current;
+      }
+
+      const next =
+        defaultPieceLayout(
+          item,
+          current.length + 1
+        );
+
+      setBuilderSelectedId(item.id);
+      return [...current, next];
+    });
+  };
+
+  const updateBuilderPiece = (
+    clothingId: string,
+    update:
+      | Partial<LookLayoutItem>
+      | ((piece: LookLayoutItem) => LookLayoutItem)
+  ) => {
+    setBuilderLayout((current) =>
+      current.map((piece) => {
+        if (piece.clothingId !== clothingId) {
+          return piece;
+        }
+
+        return typeof update === "function"
+          ? update(piece)
+          : { ...piece, ...update };
+      })
+    );
+  };
+
+  const removeBuilderPiece = (clothingId: string) => {
+    setBuilderLayout((current) =>
+      current.filter(
+        (piece) =>
+          piece.clothingId !== clothingId
+      )
+    );
+
+    setBuilderSelectedId((current) =>
+      current === clothingId ? null : current
+    );
+  };
+
+  const saveBuiltLook = async () => {
+    if (!builderTitle.trim() || !builderLayout.length) {
+      return;
+    }
+
+    setSavingBuilder(true);
+    setWardrobeError(null);
+
+    try {
+      const savedLook =
+        await createLook({
+          userId: session.user.id,
+          owner: dbOwner,
+          title: builderTitle,
+          note: builderNote,
+          layout: builderLayout,
+        });
+
+      await Promise.all(
+        builderLayout.map((piece) =>
+          addClothingToLook({
+            userId: session.user.id,
+            lookId: savedLook.id,
+            clothingId: piece.clothingId,
+          })
+        )
+      );
+
+      setLookClothingByLookId((current) => ({
+        ...current,
+        [savedLook.id]:
+          builderLayout.map(
+            (piece) => piece.clothingId
+          ),
+      }));
+
+      setSavedLooks((current) => [
+        savedLook,
+        ...current,
+      ]);
+
+      resetBuilder();
+      setWardrobeView("looks");
+    } catch (builderError) {
+      console.error(
+        "Could not save built look:",
+        builderError
+      );
+
+      setWardrobeError(
+        "The look could not be saved."
+      );
+    } finally {
+      setSavingBuilder(false);
     }
   };
 
@@ -554,7 +959,7 @@ export function WardrobeExperienceScreen() {
       </section>
 
       <div
-        className="wardrobe-view-tabs wardrobe-three-tabs"
+        className="wardrobe-view-tabs wardrobe-four-tabs"
         role="tablist"
         aria-label="Wardrobe view"
       >
@@ -598,6 +1003,24 @@ export function WardrobeExperienceScreen() {
           type="button"
           role="tab"
           aria-selected={
+            wardrobeView === "builder"
+          }
+          className={
+            wardrobeView === "builder"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setWardrobeView("builder")
+          }
+        >
+          Builder
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={
             wardrobeView === "wearing"
           }
           className={
@@ -618,6 +1041,382 @@ export function WardrobeExperienceScreen() {
           <p>
             Opening the wardrobe…
           </p>
+        </section>
+      ) : wardrobeView === "builder" ? (
+        <section className="wardrobe-builder">
+          <header>
+            <div>
+              <span>style board</span>
+              <strong>Build a look</strong>
+            </div>
+
+            <small>
+              {builderLayout.length} pieces
+            </small>
+          </header>
+
+          <div className="wardrobe-builder-stage">
+            {builderLayout.length === 0 && (
+              <div className="wardrobe-builder-placeholder">
+                <Layers size={28} strokeWidth={1.2} />
+                <strong>Start with a piece</strong>
+                <small>
+                  Scroll your closet below and tap anything to place it here.
+                </small>
+              </div>
+            )}
+
+            {builderLayout
+              .slice()
+              .sort((a, b) => a.z - b.z)
+              .map((piece) => {
+                const item =
+                  visibleItems.find(
+                    (candidate) =>
+                      candidate.id === piece.clothingId
+                  );
+
+                if (!item) return null;
+
+                const mediaUrl =
+                  mediaByItemId[item.id];
+
+                const selected =
+                  builderSelectedId === item.id;
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={
+                      selected
+                        ? "wardrobe-builder-piece selected"
+                        : "wardrobe-builder-piece"
+                    }
+                    style={{
+                      left: piece.x + "%",
+                      top: piece.y + "%",
+                      zIndex: piece.z,
+                      transform:
+                        "translate(-50%, -50%) rotate(" +
+                        piece.rotation +
+                        "deg) scale(" +
+                        piece.scale +
+                        ")",
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setBuilderSelectedId(item.id);
+                    }}
+                    onPointerDown={(event) => {
+                      event.currentTarget.setPointerCapture(
+                        event.pointerId
+                      );
+
+                      const stage =
+                        event.currentTarget
+                          .parentElement
+                          ?.getBoundingClientRect();
+
+                      if (!stage) return;
+
+                      const startX = event.clientX;
+                      const startY = event.clientY;
+                      const originalX = piece.x;
+                      const originalY = piece.y;
+
+                      const move = (
+                        moveEvent: PointerEvent
+                      ) => {
+                        const dx =
+                          ((moveEvent.clientX - startX) /
+                            stage.width) *
+                          100;
+                        const dy =
+                          ((moveEvent.clientY - startY) /
+                            stage.height) *
+                          100;
+
+                        updateBuilderPiece(
+                          item.id,
+                          {
+                            x: clamp(
+                              originalX + dx,
+                              7,
+                              93
+                            ),
+                            y: clamp(
+                              originalY + dy,
+                              7,
+                              93
+                            ),
+                          }
+                        );
+                      };
+
+                      const stop = () => {
+                        window.removeEventListener(
+                          "pointermove",
+                          move
+                        );
+                        window.removeEventListener(
+                          "pointerup",
+                          stop
+                        );
+                      };
+
+                      window.addEventListener(
+                        "pointermove",
+                        move
+                      );
+                      window.addEventListener(
+                        "pointerup",
+                        stop
+                      );
+                    }}
+                  >
+                    {mediaUrl ? (
+                      <img
+                        src={mediaUrl}
+                        alt={item.title ?? "Clothing"}
+                        draggable={false}
+                      />
+                    ) : (
+                      <Shirt
+                        size={46}
+                        strokeWidth={1.1}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+          </div>
+
+          {builderSelectedId && (
+            <div className="wardrobe-builder-tools">
+              <button
+                type="button"
+                aria-label="Smaller"
+                onClick={() =>
+                  updateBuilderPiece(
+                    builderSelectedId,
+                    (piece) => ({
+                      ...piece,
+                      scale: clamp(
+                        piece.scale - 0.08,
+                        0.45,
+                        1.8
+                      ),
+                    })
+                  )
+                }
+              >
+                −
+              </button>
+
+              <button
+                type="button"
+                aria-label="Bigger"
+                onClick={() =>
+                  updateBuilderPiece(
+                    builderSelectedId,
+                    (piece) => ({
+                      ...piece,
+                      scale: clamp(
+                        piece.scale + 0.08,
+                        0.45,
+                        1.8
+                      ),
+                    })
+                  )
+                }
+              >
+                ＋
+              </button>
+
+              <button
+                type="button"
+                aria-label="Rotate left"
+                onClick={() =>
+                  updateBuilderPiece(
+                    builderSelectedId,
+                    (piece) => ({
+                      ...piece,
+                      rotation:
+                        piece.rotation - 5,
+                    })
+                  )
+                }
+              >
+                <RotateCcw size={15} />
+              </button>
+
+              <button
+                type="button"
+                aria-label="Rotate right"
+                onClick={() =>
+                  updateBuilderPiece(
+                    builderSelectedId,
+                    (piece) => ({
+                      ...piece,
+                      rotation:
+                        piece.rotation + 5,
+                    })
+                  )
+                }
+              >
+                <RotateCw size={15} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateBuilderPiece(
+                    builderSelectedId,
+                    (piece) => ({
+                      ...piece,
+                      z: Math.max(
+                        1,
+                        piece.z - 1
+                      ),
+                    })
+                  )
+                }
+              >
+                back
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  updateBuilderPiece(
+                    builderSelectedId,
+                    (piece) => ({
+                      ...piece,
+                      z:
+                        Math.max(
+                          0,
+                          ...builderLayout.map(
+                            (candidate) =>
+                              candidate.z
+                          )
+                        ) + 1,
+                    })
+                  )
+                }
+              >
+                front
+              </button>
+
+              <button
+                type="button"
+                className="remove"
+                onClick={() =>
+                  removeBuilderPiece(
+                    builderSelectedId
+                  )
+                }
+              >
+                remove
+              </button>
+            </div>
+          )}
+
+          <div className="wardrobe-builder-rail">
+            {visibleItems.length === 0 ? (
+              <p>
+                Add clothing to the closet first.
+              </p>
+            ) : (
+              visibleItems.map((item) => {
+                const mediaUrl =
+                  mediaByItemId[item.id];
+
+                const onBoard =
+                  builderLayout.some(
+                    (piece) =>
+                      piece.clothingId ===
+                      item.id
+                  );
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={
+                      onBoard ? "active" : ""
+                    }
+                    onClick={() =>
+                      addPieceToBuilder(item)
+                    }
+                  >
+                    <span>
+                      {mediaUrl ? (
+                        <img src={mediaUrl} alt="" />
+                      ) : (
+                        <Shirt
+                          size={21}
+                          strokeWidth={1.2}
+                        />
+                      )}
+                    </span>
+
+                    <small>
+                      {item.title ??
+                        "Untitled"}
+                    </small>
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          <div className="wardrobe-builder-meta">
+            <input
+              value={builderTitle}
+              onChange={(event) =>
+                setBuilderTitle(
+                  event.target.value
+                )
+              }
+              placeholder="Look name"
+            />
+
+            <textarea
+              value={builderNote}
+              onChange={(event) =>
+                setBuilderNote(
+                  event.target.value
+                )
+              }
+              placeholder="Where would you wear this?"
+              rows={2}
+            />
+
+            <div className="diary-editor-actions">
+              <button
+                type="button"
+                onClick={resetBuilder}
+              >
+                Clear board
+              </button>
+
+              <button
+                type="button"
+                className="wardrobe-create-look"
+                disabled={
+                  savingBuilder ||
+                  !builderTitle.trim() ||
+                  builderLayout.length === 0
+                }
+                onClick={() =>
+                  void saveBuiltLook()
+                }
+              >
+                Save look
+              </button>
+            </div>
+          </div>
         </section>
       ) : wardrobeView === "wearing" ? (
         <section className="wardrobe-wearing-panel">
@@ -711,12 +1510,20 @@ export function WardrobeExperienceScreen() {
                           }
                           className="wardrobe-wearing-piece"
                         >
-                          <Shirt
-                            size={19}
-                            strokeWidth={
-                              1.3
-                            }
-                          />
+                          {mediaByItemId[item.id] ? (
+                            <img
+                              className="wardrobe-wearing-thumb"
+                              src={mediaByItemId[item.id]}
+                              alt=""
+                            />
+                          ) : (
+                            <Shirt
+                              size={19}
+                              strokeWidth={
+                                1.3
+                              }
+                            />
+                          )}
 
                           <span>
                             <strong>
@@ -777,6 +1584,98 @@ export function WardrobeExperienceScreen() {
                 Add clothing
               </h2>
 
+              <label className="wardrobe-image-picker">
+                <span>
+                  {clothingPreviewUrl ? (
+                    <img
+                      src={clothingPreviewUrl}
+                      alt="Clothing preview"
+                    />
+                  ) : (
+                    <>
+                      <ImageIcon size={24} strokeWidth={1.2} />
+                      <strong>
+                        Add the piece photo
+                      </strong>
+                      <small>
+                        PNG works best · photo is fine too
+                      </small>
+                    </>
+                  )}
+                </span>
+
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(event) => {
+                    const file =
+                      event.target.files?.[0] ??
+                      null;
+
+                    setClothingOriginalFile(file);
+                    setClothingImageFile(file);
+                    setClothingCutoutMode("original");
+                  }}
+                />
+              </label>
+
+              {clothingOriginalFile && (
+                <div className="wardrobe-cutout-tools">
+                  <button
+                    type="button"
+                    disabled={cutoutBusy}
+                    onClick={async () => {
+                      setCutoutBusy(true);
+                      setWardrobeError(null);
+
+                      try {
+                        const cutout =
+                          await autoCutoutClothing(
+                            clothingOriginalFile
+                          );
+
+                        setClothingImageFile(
+                          cutout
+                        );
+                        setClothingCutoutMode(
+                          "auto"
+                        );
+                      } catch (cutoutError) {
+                        console.error(
+                          "Could not cut out clothing:",
+                          cutoutError
+                        );
+
+                        setWardrobeError(
+                          "The automatic cutout could not be made. You can still keep the original photo."
+                        );
+                      } finally {
+                        setCutoutBusy(false);
+                      }
+                    }}
+                  >
+                    <Scissors size={14} />
+                    {cutoutBusy
+                      ? "Cutting…"
+                      : "Auto cutout"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setClothingImageFile(
+                        clothingOriginalFile
+                      );
+                      setClothingCutoutMode(
+                        "original"
+                      );
+                    }}
+                  >
+                    Use original
+                  </button>
+                </div>
+              )}
+
               <input
                 type="text"
                 value={clothingName}
@@ -814,6 +1713,9 @@ export function WardrobeExperienceScreen() {
                 <option value="shoes">
                   Shoes
                 </option>
+                <option value="bag">
+                  Bag
+                </option>
                 <option value="accessory">
                   Accessory
                 </option>
@@ -845,6 +1747,9 @@ export function WardrobeExperienceScreen() {
                       "top"
                     );
                     setClothingNote("");
+                    setClothingOriginalFile(null);
+                    setClothingImageFile(null);
+                    setClothingCutoutMode("original");
                   }}
                 >
                   Cancel
@@ -934,12 +1839,23 @@ export function WardrobeExperienceScreen() {
                           className="wardrobe-item-image"
                           aria-hidden="true"
                         >
-                          <Shirt
-                            size={23}
-                            strokeWidth={
-                              1.25
-                            }
-                          />
+                          {mediaByItemId[item.id] ? (
+                            <img
+                              src={
+                                mediaByItemId[
+                                  item.id
+                                ]
+                              }
+                              alt=""
+                            />
+                          ) : (
+                            <Shirt
+                              size={23}
+                              strokeWidth={
+                                1.25
+                              }
+                            />
+                          )}
                         </div>
 
                         <span>
@@ -1187,9 +2103,10 @@ export function WardrobeExperienceScreen() {
               <button
                 type="button"
                 className="wardrobe-create-look"
-                onClick={() =>
-                  setAddingLook(true)
-                }
+                onClick={() => {
+                  resetBuilder();
+                  setWardrobeView("builder");
+                }}
               >
                 <span aria-hidden="true">
                   ＋
@@ -1228,7 +2145,45 @@ export function WardrobeExperienceScreen() {
                             : "wardrobe-look"
                         }
                       >
-                        <div>
+                        <div
+                          className="wardrobe-look-preview"
+                          aria-hidden="true"
+                        >
+                          {readLookLayout(look)
+                            .slice()
+                            .sort((a, b) => a.z - b.z)
+                            .map((piece) => {
+                              const mediaUrl =
+                                mediaByItemId[
+                                  piece.clothingId
+                                ];
+
+                              if (!mediaUrl) {
+                                return null;
+                              }
+
+                              return (
+                                <img
+                                  key={piece.clothingId}
+                                  src={mediaUrl}
+                                  alt=""
+                                  style={{
+                                    left: piece.x + "%",
+                                    top: piece.y + "%",
+                                    zIndex: piece.z,
+                                    transform:
+                                      "translate(-50%, -50%) rotate(" +
+                                      piece.rotation +
+                                      "deg) scale(" +
+                                      piece.scale +
+                                      ")",
+                                  }}
+                                />
+                              );
+                            })}
+                        </div>
+
+                        <div className="wardrobe-look-copy">
                           <span>
                             {isWearing
                               ? "wearing now"
@@ -1316,9 +2271,10 @@ export function WardrobeExperienceScreen() {
               <button
                 type="button"
                 className="wardrobe-create-look"
-                onClick={() =>
-                  setAddingLook(true)
-                }
+                onClick={() => {
+                  resetBuilder();
+                  setWardrobeView("builder");
+                }}
               >
                 <span aria-hidden="true">
                   ＋
