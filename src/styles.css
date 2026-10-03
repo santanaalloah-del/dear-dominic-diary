@@ -17243,3 +17243,91 @@ html[data-diario-time-theme="continuous"] .statusbar {
     margin-inline:14px !important;
   }
 }
+
+
+/* =========================================================
+   LETTERS · ENVELOPE OPENING MOTION
+   ========================================================= */
+.letters-live .letter-envelope-visual{
+  position:relative !important;
+  perspective:500px !important;
+  transform-style:preserve-3d !important;
+  transition:transform 240ms ease,box-shadow 240ms ease !important;
+}
+.letters-live .letter-envelope-visual::before{
+  content:"";
+  position:absolute;
+  left:9px;
+  right:9px;
+  bottom:7px;
+  height:34px;
+  background:#faede0;
+  border:1px solid rgba(101,35,44,.09);
+  transform:translateY(14px);
+  opacity:0;
+  z-index:1;
+  transition:transform 360ms cubic-bezier(.2,.8,.2,1),opacity 220ms ease;
+}
+.letters-live .letter-envelope-flap{
+  position:absolute !important;
+  inset:0 0 auto !important;
+  height:50% !important;
+  transform-origin:50% 0% !important;
+  transform:rotateX(0deg) !important;
+  clip-path:polygon(0 0,100% 0,50% 100%) !important;
+  transition:transform 360ms cubic-bezier(.2,.75,.2,1) !important;
+  backface-visibility:hidden !important;
+  z-index:3 !important;
+}
+.letters-live .letter-envelope-visual > svg{
+  position:relative !important;
+  z-index:4 !important;
+  transition:opacity 180ms ease,transform 260ms ease !important;
+}
+.letters-live .letters-saved-item.is-expanded .letter-envelope-flap{
+  transform:rotateX(178deg) !important;
+}
+.letters-live .letters-saved-item.is-expanded .letter-envelope-visual::before{
+  transform:translateY(-14px) !important;
+  opacity:1 !important;
+}
+.letters-live .letters-saved-item.is-expanded .letter-envelope-visual > svg{
+  opacity:.18 !important;
+  transform:translateY(7px) scale(.88) !important;
+}
+.letters-live .letters-saved-item.is-expanded .letter-envelope-visual{
+  transform:translateY(3px) rotate(-1deg) !important;
+  box-shadow:2px 7px 10px rgba(79,24,32,.11) !important;
+}
+.letters-live .letter-open-content{
+  transform-origin:50% 0 !important;
+}
+.letters-live .letters-saved-item.is-expanded .letter-open-content{
+  animation:diario-letter-unfold 420ms cubic-bezier(.2,.75,.2,1) both !important;
+}
+@keyframes diario-letter-unfold{
+  0%{
+    opacity:0;
+    transform:translateY(-18px) scaleY(.72);
+    clip-path:inset(0 0 82% 0);
+  }
+  58%{
+    opacity:1;
+    clip-path:inset(0 0 0 0);
+  }
+  100%{
+    opacity:1;
+    transform:translateY(0) scaleY(1);
+    clip-path:inset(0 0 0 0);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .letters-live .letter-envelope-flap,
+  .letters-live .letter-envelope-visual::before,
+  .letters-live .letter-envelope-visual > svg{
+    transition:none !important;
+  }
+  .letters-live .letters-saved-item.is-expanded .letter-open-content{
+    animation:none !important;
+  }
+}
