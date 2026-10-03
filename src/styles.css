@@ -14386,801 +14386,100 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .diary-screen.diary-live .diary-empty-page p{font:19px/1.65 var(--font-display)!important;max-width:310px!important;color:#73534c!important}
 .diary-screen.diary-live .diary-write-button{border-radius:2px!important;transform:rotate(-1deg)!important;box-shadow:2px 3px 0 rgba(72,23,28,.14)!important}
 .diary-screen.diary-live .diary-page-footer{border-top:1px solid rgba(109,32,41,.35)!important;margin-top:38px!important;padding-top:12px!important;font-family:var(--font-hand)!important}
-
 /* =========================================================
-   VISUAL PASS 03 · PLAYER / RECORD SHELF
-   Keeps existing Spotify playback + library logic intact.
+   DIÁRIO · CONSOLIDATED VISUAL SYSTEM · 2026-10-03
+   Replaces experimental Player/contrast passes 03 → 05D.
+   Dark world = ivory ink. Paper objects = wine ink.
    ========================================================= */
 
-.screen-music.music-live {
-  --player-paper: color-mix(in oklab, var(--paper) 94%, #fff7ea 6%);
-  --player-ink: color-mix(in oklab, var(--wine) 84%, #2a1714 16%);
-  padding-bottom: 170px !important;
-}
-
-.screen-music .screen-intro {
-  position: relative;
-  padding-bottom: 16px !important;
-}
-
-.screen-music .screen-intro::after {
-  content: "a little record shelf for two";
-  display: inline-block;
-  margin: 12px 0 0 2px;
-  padding: 5px 11px 6px;
-  background: color-mix(in oklab, var(--paper) 72%, transparent);
-  border: 1px solid color-mix(in oklab, var(--wine) 18%, transparent);
-  box-shadow: 0 5px 12px rgb(64 34 29 / 8%);
-  color: color-mix(in oklab, var(--wine) 72%, transparent);
-  font: italic 12px/1 var(--font-script);
-  transform: rotate(-1.5deg);
-}
-
-/* Spotify is the actual player: compact, always first, like a record sleeve. */
-.screen-music .spotify-live-player {
-  display: grid !important;
-  grid-template-columns: 86px minmax(0, 1fr) !important;
-  grid-template-rows: auto auto !important;
-  column-gap: 14px !important;
-  row-gap: 10px !important;
-  margin: 8px 18px 20px !important;
-  padding: 14px !important;
-  border-radius: 5px !important;
-  overflow: visible !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 22%, transparent) !important;
-  background:
-    linear-gradient(90deg, transparent 0 17px, color-mix(in oklab, var(--rose) 18%, transparent) 17px 18px, transparent 18px),
-    repeating-linear-gradient(0deg, transparent 0 25px, color-mix(in oklab, var(--wine) 5%, transparent) 25px 26px),
-    var(--player-paper) !important;
-  box-shadow: 7px 9px 0 color-mix(in oklab, var(--wine) 7%, transparent), 0 18px 34px rgb(54 28 24 / 12%) !important;
-  transform: rotate(.25deg);
-}
-
-.screen-music .spotify-live-player::before {
-  content: "NOW PLAYING · SPOTIFY" !important;
-  position: absolute !important;
-  width: auto !important;
-  height: auto !important;
-  inset: -11px auto auto 112px !important;
-  padding: 4px 9px !important;
-  background: color-mix(in oklab, #ead8ca 86%, transparent) !important;
-  color: color-mix(in oklab, var(--wine) 72%, transparent) !important;
-  font: 8px/1 var(--font-body) !important;
-  letter-spacing: .15em !important;
-  transform: rotate(-1deg) !important;
-  opacity: .96 !important;
-  pointer-events: none;
-}
-
-.screen-music .spotify-live-cover {
-  grid-column: 1;
-  grid-row: 1;
-  width: 86px !important;
-  height: 86px !important;
-  margin: 0 !important;
-  border-radius: 2px !important;
-  box-shadow: 0 6px 14px rgb(48 25 22 / 16%) !important;
-  transform: rotate(-1deg);
-}
-
-.screen-music .spotify-live-info {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
-  padding: 3px 4px 0 0 !important;
-  text-align: left !important;
-}
-
-.screen-music .spotify-live-info small { margin-bottom: 5px !important; font-size: 8px !important; }
-.screen-music .spotify-live-info strong { font-size: 22px !important; line-height: 1.02 !important; }
-.screen-music .spotify-live-info span { margin-top: 5px !important; font-size: 11px !important; }
-.screen-music .spotify-live-progress { width: 100% !important; height: 4px !important; margin: 11px 0 0 !important; }
-
-.screen-music .spotify-live-controls {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  justify-content: flex-start !important;
-  gap: 7px !important;
-  margin: 0 !important;
-  padding-top: 9px;
-  border-top: 1px dashed color-mix(in oklab, var(--wine) 18%, transparent);
-}
-
-.screen-music .spotify-live-controls button {
-  min-width: 34px !important;
-  height: 34px !important;
-  padding: 0 10px !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
-  font-size: 10px !important;
-}
-
-.screen-music .spotify-live-controls button:nth-child(3) {
-  min-width: 50px !important;
-  height: 34px !important;
-  font-size: 10px !important;
-}
-
-/* Most played becomes a compact chart slip, not a huge app card. */
-.spotify-top-rotation {
-  position: relative;
-  margin: 0 18px 18px !important;
-  padding: 16px 14px 13px !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 18%, transparent) !important;
-  border-radius: 3px !important;
-  background:
-    linear-gradient(90deg, color-mix(in oklab, var(--rose) 10%, transparent), transparent 32%),
-    var(--player-paper) !important;
-  box-shadow: 4px 6px 0 color-mix(in oklab, var(--wine) 6%, transparent) !important;
-  transform: rotate(-.18deg);
-}
-
-.spotify-top-rotation::after {
-  content: "MOST PLAYED";
-  position: absolute;
-  right: 11px;
-  bottom: 9px;
-  color: color-mix(in oklab, var(--wine) 16%, transparent);
-  font: 700 17px/1 var(--font-body);
-  letter-spacing: .08em;
-  transform: rotate(-90deg) translateX(100%);
-  transform-origin: right bottom;
-  pointer-events: none;
-}
-
-.spotify-top-rotation header strong { font-size: 26px !important; }
-.spotify-top-range-tabs { border-radius: 3px !important; padding: 2px !important; }
-.spotify-top-range-tabs button { border-radius: 2px !important; padding: 6px 7px !important; }
-.spotify-top-list { gap: 2px !important; }
-.spotify-top-track {
-  grid-template-columns: 20px 34px minmax(0, 1fr) auto !important;
-  padding: 6px 4px !important;
-  border-radius: 0 !important;
-  border-bottom: 1px solid color-mix(in oklab, var(--wine) 9%, transparent);
-  background: transparent !important;
-}
-.spotify-top-cover { width: 34px !important; height: 34px !important; border-radius: 2px !important; }
-.spotify-top-copy strong { font: 13px/1.05 var(--font-body) !important; font-weight: 600 !important; }
-.spotify-top-actions { grid-column: 4 !important; display: flex !important; gap: 3px !important; }
-.spotify-top-actions button { min-height: 27px !important; padding: 0 7px !important; font-size: 8px !important; border-radius: 3px !important; }
-.spotify-top-actions button:first-child { width: 27px !important; }
-
-/* Mine / Dominic / Ours reads like three labelled record drawers. */
-.screen-music .music-tabs {
-  position: relative;
-  margin: 4px 18px 9px !important;
-  padding: 4px !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 22%, transparent) !important;
-  border-radius: 3px !important;
-  background: color-mix(in oklab, var(--paper) 82%, transparent) !important;
-  box-shadow: 0 8px 20px rgb(57 29 25 / 8%);
-}
-.screen-music .music-tabs button { border-radius: 2px !important; letter-spacing: .13em !important; text-transform: uppercase; }
-.screen-music .music-tabs button.active {
-  background: var(--wine) !important;
-  color: var(--cream) !important;
-  box-shadow: 0 4px 10px rgb(48 25 22 / 14%) !important;
-}
-
-.music-section-tabs {
-  margin: 0 18px 18px !important;
-  padding: 0 4px 7px !important;
-  gap: 12px !important;
-  border-bottom: 1px solid color-mix(in oklab, var(--wine) 20%, transparent);
-  border-radius: 0 !important;
-  background: transparent !important;
-}
-.music-section-tabs button {
-  position: relative;
-  padding: 7px 0 5px !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  font-size: 9px !important;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.music-section-tabs button.active { box-shadow: none !important; color: var(--wine) !important; }
-.music-section-tabs button.active::after {
-  content: "";
-  position: absolute;
-  left: 20%; right: 20%; bottom: -8px;
-  height: 2px;
-  background: var(--wine);
-}
-
-/* Saved songs = compact record index cards. */
-.music-library {
-  display: grid !important;
-  gap: 9px !important;
-  margin: 0 18px 16px !important;
-}
-.music-track {
-  position: relative;
-  display: grid !important;
-  grid-template-columns: 54px minmax(0, 1fr) auto auto !important;
-  align-items: center !important;
-  gap: 10px !important;
-  min-height: 74px !important;
-  padding: 10px 10px 10px 12px !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 15%, transparent) !important;
-  border-radius: 2px !important;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 22px, color-mix(in oklab, var(--wine) 4%, transparent) 22px 23px),
-    var(--player-paper) !important;
-  box-shadow: 3px 4px 0 color-mix(in oklab, var(--wine) 5%, transparent) !important;
-}
-.music-track:nth-child(even) { transform: rotate(.18deg); }
-.music-track:nth-child(odd) { transform: rotate(-.12deg); }
-.music-record { width: 54px !important; height: 54px !important; border-radius: 2px !important; overflow: hidden; }
-.music-record img { width: 100%; height: 100%; object-fit: cover; }
-.music-track > div:nth-child(2) { min-width: 0; }
-.music-track > div:nth-child(2) small { font-size: 8px !important; letter-spacing: .14em; text-transform: uppercase; }
-.music-track > div:nth-child(2) strong { display: block; margin-top: 2px; font: 17px/1.05 var(--font-display) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.music-track > div:nth-child(2) span,
-.music-track > div:nth-child(2) em { display: block; margin-top: 2px; font-size: 10px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.music-track > div:nth-child(2) p { display: none !important; }
-.music-track > button { min-width: 31px !important; min-height: 31px !important; padding: 0 8px !important; border-radius: 3px !important; font-size: 8px !important; }
-.music-track > button:not(.music-favorite-button):not([aria-label="Listen now"]):not([aria-label="Add to queue"]):not(.letter-connected-button) { display: none !important; }
-.music-track .music-favorite-button { width: 31px !important; height: 31px !important; }
-.music-track button[aria-label="Listen now"] { grid-column: 3; grid-row: 1; background: var(--wine) !important; color: var(--cream) !important; }
-.music-track button[aria-label="Add to queue"] { grid-column: 4; grid-row: 1; }
-.music-track .letter-connected-button { grid-column: 2 / -1 !important; width: max-content !important; margin: 0 !important; min-height: 25px !important; border: 0 !important; border-bottom: 1px solid color-mix(in oklab, var(--wine) 30%, transparent) !important; background: transparent !important; }
-
-.music-playlist-board,
-.spotify-queue-panel.music-section-panel,
-.music-empty {
-  border-radius: 3px !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 17%, transparent) !important;
-  background: var(--player-paper) !important;
-  box-shadow: 5px 7px 0 color-mix(in oklab, var(--wine) 6%, transparent) !important;
-}
-
-.music-playlist-cover { border-radius: 2px !important; }
-.music-rule { opacity: .72; }
-
-@media (max-width: 390px) {
-  .screen-music .spotify-live-player { grid-template-columns: 74px minmax(0, 1fr) !important; }
-  .screen-music .spotify-live-cover { width: 74px !important; height: 74px !important; }
-  .spotify-top-actions button:not(:first-child) { display: none !important; }
-  .music-track { grid-template-columns: 48px minmax(0, 1fr) auto auto !important; gap: 7px !important; }
-  .music-record { width: 48px !important; height: 48px !important; }
-}
-
-/* Visual Pass 03B — Spotify as playback, Diário as meaning */
-.screen-music { padding-bottom: 150px !important; }
-.screen-music .spotify-live-player {
-  position: relative !important; display: grid !important; grid-template-columns: 82px minmax(0,1fr) !important;
-  gap: 14px !important; min-height: 118px !important; margin: 12px 0 18px !important; padding: 15px !important;
-  border: 1px solid color-mix(in srgb, var(--ink) 28%, transparent) !important; border-radius: 4px 14px 5px 12px !important;
-  background: color-mix(in srgb, var(--paper) 93%, #ead4d7) !important; box-shadow: 0 12px 26px rgba(74,29,36,.11) !important;
-  transform: rotate(-.25deg); overflow: hidden !important;
-}
-.screen-music .spotify-live-player::after { content:""; position:absolute; width:70px; height:18px; top:-7px; left:50%; transform:translateX(-50%) rotate(1deg); background:rgba(220,185,179,.62); box-shadow:0 1px 2px rgba(60,30,30,.08); }
-.screen-music .spotify-live-cover { width:82px !important; height:82px !important; border-radius:3px !important; overflow:hidden; align-self:center; box-shadow:0 5px 13px rgba(57,24,30,.18); }
-.screen-music .spotify-live-cover img { width:100%; height:100%; object-fit:cover; }
-.screen-music .spotify-live-info { min-width:0; align-self:center; padding-top:4px; }
-.screen-music .spotify-live-info small, .spotify-library-heading span, .spotify-selected-playlist small { display:block; font-size:8px !important; letter-spacing:.17em; text-transform:uppercase; opacity:.6; }
-.screen-music .spotify-live-info strong { display:block; margin-top:5px; font-family:Georgia,serif; font-size:18px !important; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.screen-music .spotify-live-info > span { display:block; margin-top:4px; font-size:11px; opacity:.72; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.screen-music .spotify-live-progress { width:100% !important; height:12px !important; padding:5px 0 !important; margin:7px 0 0 !important; background:transparent !important; border:0 !important; position:relative; }
-.screen-music .spotify-live-progress::before { content:""; position:absolute; left:0; right:0; top:5px; height:2px; background:color-mix(in srgb,var(--ink) 18%,transparent); }
-.screen-music .spotify-live-progress span { display:block; position:relative; height:2px; background:var(--ink); }
-.screen-music .spotify-live-controls { grid-column:1/-1; display:flex !important; align-items:center; justify-content:center; gap:9px !important; margin-top:-3px; }
-.screen-music .spotify-live-controls button { width:32px !important; height:30px !important; min-width:0 !important; border:0 !important; background:transparent !important; color:var(--ink) !important; padding:0 !important; border-radius:50% !important; display:grid; place-items:center; }
-.screen-music .spotify-live-controls .spotify-main-play { background:var(--ink) !important; color:var(--paper) !important; width:38px !important; height:38px !important; }
-.screen-music .spotify-live-controls .spotify-queue-toggle { width:auto !important; border-radius:999px !important; padding:0 8px !important; gap:4px; display:flex; font-size:9px; }
-.spotify-idle-state { grid-column:1/-1; display:grid; grid-template-columns:58px minmax(0,1fr); gap:12px; align-items:center; width:100%; }
-.spotify-idle-record { width:58px; height:58px; border-radius:50%; display:grid; place-items:center; border:1px solid color-mix(in srgb,var(--ink) 30%,transparent); background:radial-gradient(circle,transparent 0 9%,color-mix(in srgb,var(--ink) 18%,transparent) 10% 12%,transparent 13% 30%,color-mix(in srgb,var(--ink) 12%,transparent) 31% 33%,transparent 34%); }
-.spotify-idle-state small { font-size:8px; letter-spacing:.15em; opacity:.58; }
-.spotify-idle-state strong { display:block; font-family:Georgia,serif; font-size:18px; margin:3px 0; }
-.spotify-idle-state span { display:block; font-size:10px; line-height:1.35; opacity:.7; }
-.spotify-idle-state > button { grid-column:1/-1; justify-self:start; border:1px solid color-mix(in srgb,var(--ink) 35%,transparent); background:transparent; color:var(--ink); border-radius:999px; padding:7px 12px; font-size:10px; }
-.screen-music .spotify-top-rotation { max-height:330px !important; overflow:hidden !important; margin-bottom:18px !important; }
-.screen-music .spotify-top-list { max-height:220px !important; overflow:auto !important; }
-.screen-music .spotify-top-track { min-height:42px !important; padding:5px 7px !important; grid-template-columns:20px 34px minmax(0,1fr) auto !important; }
-.screen-music .spotify-top-cover { width:34px !important; height:34px !important; }
-.screen-music .spotify-top-copy strong { font-size:11px !important; }
-.screen-music .spotify-top-copy span { font-size:9px !important; }
-.spotify-library-paper { margin:14px 0 20px; padding:14px 12px 16px; background:color-mix(in srgb,var(--paper) 94%,#ecd8d5); border:1px solid color-mix(in srgb,var(--ink) 22%,transparent); border-radius:3px 10px 4px 8px; box-shadow:0 8px 18px rgba(70,25,35,.08); }
-.spotify-library-heading { display:flex; align-items:end; justify-content:space-between; gap:10px; margin-bottom:12px; }
-.spotify-library-heading strong { display:block; font-family:Georgia,serif; font-size:20px; margin-top:2px; }
-.spotify-library-heading small { font-size:9px; opacity:.55; }
-.spotify-playlist-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-.spotify-playlist-grid > button { border:0; background:transparent; color:var(--ink); text-align:left; padding:0; min-width:0; }
-.spotify-playlist-art { aspect-ratio:1; width:100%; overflow:hidden; display:grid; place-items:center; background:color-mix(in srgb,var(--paper) 80%,var(--ink) 5%); border:1px solid color-mix(in srgb,var(--ink) 15%,transparent); box-shadow:0 5px 12px rgba(65,25,31,.10); }
-.spotify-playlist-art img { width:100%; height:100%; object-fit:cover; }
-.spotify-playlist-grid strong { display:block; margin-top:6px; font-family:Georgia,serif; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.spotify-playlist-grid span { display:block; margin-top:2px; font-size:9px; opacity:.58; }
-.spotify-library-back { border:0; background:transparent; color:var(--ink); padding:0 0 10px; font-size:10px; }
-.spotify-selected-playlist { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-.spotify-selected-playlist img { width:66px; height:66px; object-fit:cover; box-shadow:0 5px 12px rgba(65,25,31,.13); }
-.spotify-selected-playlist strong { display:block; font-family:Georgia,serif; font-size:18px; margin:3px 0; }
-.spotify-selected-playlist span { font-size:10px; opacity:.62; }
-.spotify-compact-track-list { display:flex; flex-direction:column; gap:2px; }
-.spotify-compact-track-list > button { display:grid; grid-template-columns:38px minmax(0,1fr) 24px; align-items:center; gap:9px; width:100%; border:0; border-bottom:1px solid color-mix(in srgb,var(--ink) 10%,transparent); background:transparent; color:var(--ink); text-align:left; padding:6px 2px; }
-.spotify-compact-track-list img { width:38px; height:38px; object-fit:cover; }
-.spotify-compact-track-list span { min-width:0; }
-.spotify-compact-track-list strong { display:block; font-family:Georgia,serif; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.spotify-compact-track-list small { display:block; margin-top:2px; font-size:9px; opacity:.58; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.music-empty-note { font-size:11px; line-height:1.5; opacity:.65; }
-@media (max-width:420px) { .screen-music .spotify-live-player { grid-template-columns:70px minmax(0,1fr) !important; padding:13px !important; } .screen-music .spotify-live-cover { width:70px !important; height:70px !important; } }
-
-/* =========================================================
-   VISUAL PASS 03C · CONTRAST + ROMANTIC PLAYER POLISH
-   ========================================================= */
-
-/* CHAT — atmosphere may fade, text never does */
-.screen-chat .messenger-chat {
-  --chat-readable-ink: #54252a;
-  --chat-readable-muted: #8a5d5d;
-}
-.screen-chat .messenger-person h1,
-.screen-chat .messenger-bubble,
-.screen-chat .diario-message-content,
-.screen-chat .messenger-composer textarea,
-.screen-chat .chat-now-playing-main { color: var(--chat-readable-ink) !important; opacity: 1 !important; }
-.screen-chat .messenger-person p,
-.screen-chat .messenger-message time,
-.screen-chat .messenger-day-divider span,
-.screen-chat .chat-now-playing small { color: var(--chat-readable-muted) !important; opacity: 1 !important; }
-.screen-chat .messenger-header-actions button,
-.screen-chat .messenger-composer [data-align=block-end] button { color: #754047 !important; opacity: 1 !important; }
-.screen-chat .messenger-bubble { background: #f7eadc !important; }
-.screen-chat .messenger-message.is-user .messenger-bubble { background: #efd0d0 !important; }
-.screen-chat .messenger-composer textarea::placeholder { color: #9a7171 !important; opacity: 1 !important; }
-.screen-chat .messenger-composer [data-slot=input-group] { border-color: rgba(94,42,48,.25) !important; background: rgba(246,226,219,.72) !important; }
-.screen-chat .messenger-person h1 span { color:#7a303b !important; }
-
-/* MORE — Music must stay readable in every time mood */
-.more-screen .richer-index .index-record {
-  border-radius: 2px !important;
-  aspect-ratio: auto !important;
-  min-height: 132px !important;
-  padding: 44px 15px 16px !important;
-  background: #f3dfd5 !important;
-  text-align: left !important;
-  clip-path: none !important;
-}
-.more-screen .richer-index .index-record::before {
-  inset: 7px !important;
-  border-radius: 0 !important;
-  border: 1px solid rgba(116,42,45,.16) !important;
-  background: radial-gradient(circle at 88% 22%, transparent 0 8px, rgba(109,32,41,.12) 9px 10px, transparent 11px 15px, rgba(109,32,41,.08) 16px 17px, transparent 18px) !important;
-}
-.more-screen .richer-index .index-record::after { display:block !important; }
-.more-screen .richer-index .index-record strong { color:#4b171c !important; }
-.more-screen .richer-index .index-record small { color:#855c57 !important; }
-.more-screen .richer-index .index-record .index-number { color:#9d5558 !important; }
-.more-screen .richer-index .index-record .index-icon { color:#6d2029 !important; }
-
-/* PLAYER — less app-card, more record sleeve / love-letter object */
-.screen-music .spotify-live-player {
-  border-radius: 2px !important;
-  background:
-    linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)),
-    repeating-linear-gradient(0deg, transparent 0 24px, rgba(109,32,41,.035) 25px),
-    #f7eadc !important;
-  border: 1px solid rgba(91,35,42,.18) !important;
-  box-shadow: 4px 7px 0 rgba(93,38,45,.06), 0 14px 30px rgba(74,29,36,.08) !important;
-}
-.screen-music .spotify-live-player::before {
-  content:"our record, right now" !important;
-  position:absolute !important; right:13px !important; bottom:9px !important; top:auto !important; left:auto !important;
-  font: italic 11px/1 var(--font-hand) !important; letter-spacing:.02em !important;
-  color:#a46d6c !important; opacity:.72 !important; transform:rotate(-3deg) !important;
-}
-.screen-music .spotify-live-info small { color:#9c5960 !important; opacity:1 !important; }
-.screen-music .spotify-live-info strong { color:#511b23 !important; font-family:var(--font-display),Georgia,serif !important; font-size:20px !important; }
-.screen-music .spotify-live-info > span { color:#80585a !important; opacity:1 !important; }
-.screen-music .spotify-live-controls { border-top:1px dashed rgba(92,40,47,.18); padding-top:9px; }
-.screen-music .spotify-live-controls .spotify-main-play { background:#6b1722 !important; color:#fff3e8 !important; box-shadow:0 4px 10px rgba(80,22,31,.18); }
-.screen-music .spotify-live-controls button { color:#6b2630 !important; }
-
-/* Most played becomes a slim chart clipping instead of the giant box */
-.screen-music .spotify-top-rotation {
-  position:relative !important;
-  max-height:none !important;
-  overflow:visible !important;
-  margin:14px 8px 20px !important;
-  padding:15px 13px 12px !important;
-  border-radius:2px !important;
-  background:#f2dfd5 !important;
-  border:0 !important;
-  box-shadow:3px 5px 0 rgba(91,35,42,.06) !important;
-  transform:rotate(.25deg);
-}
-.screen-music .spotify-top-rotation::before { content:""; position:absolute; top:-7px; left:34px; width:58px; height:16px; background:rgba(224,190,183,.66); transform:rotate(-2deg); }
-.screen-music .spotify-top-rotation::after { content:"top rotation" !important; position:absolute !important; right:12px !important; bottom:8px !important; top:auto !important; writing-mode:horizontal-tb !important; transform:rotate(-4deg) !important; font:italic 10px var(--font-hand) !important; letter-spacing:.02em !important; color:#a26c6c !important; opacity:.6 !important; }
-.screen-music .spotify-top-rotation header strong { font-family:var(--font-display),Georgia,serif !important; font-size:25px !important; color:#551b24 !important; }
-.screen-music .spotify-top-list { max-height:none !important; overflow:visible !important; }
-.screen-music .spotify-top-track { min-height:38px !important; grid-template-columns:18px 31px minmax(0,1fr) 31px !important; padding:4px 3px !important; }
-.screen-music .spotify-top-cover { width:31px !important; height:31px !important; border-radius:1px !important; }
-.screen-music .spotify-top-copy strong { color:#64242c !important; }
-.screen-music .spotify-top-actions button { width:30px !important; height:30px !important; border-radius:3px !important; }
-
-/* Spotify library: album art does the decoration; surrounding UI stays quiet */
-.spotify-library-paper { border-radius:2px !important; background:#f7eadc !important; border-color:rgba(91,35,42,.14) !important; box-shadow:3px 6px 0 rgba(91,35,42,.05) !important; }
-.spotify-library-heading strong, .spotify-playlist-grid strong, .spotify-selected-playlist strong, .spotify-compact-track-list strong { color:#572029 !important; font-family:var(--font-display),Georgia,serif !important; }
-.spotify-library-heading span, .spotify-library-heading small, .spotify-playlist-grid span, .spotify-compact-track-list small { color:#8c5e5e !important; opacity:1 !important; }
-.spotify-playlist-grid > button:nth-child(odd) .spotify-playlist-art { transform:rotate(-.5deg); }
-.spotify-playlist-grid > button:nth-child(even) .spotify-playlist-art { transform:rotate(.45deg); }
-
-/* Navigation must not cover the last useful content */
-.screen-music { padding-bottom:190px !important; }
-.more-screen { padding-bottom:190px !important; }
-
-/* =========================================================
-   VISUAL PASS 03D · REAL THEME-SAFE CHAT + PLAYER RECOMPOSE
-   ========================================================= */
-
-/* IMPORTANT: contrast belongs to each chat theme. Never flatten theme surfaces. */
-.messenger-chat {
-  --chat-readable-ink: #54252a;
-  --chat-readable-muted: #80575b;
-}
-.chat-theme-cherry { --chat-readable-ink:#4d2028; --chat-readable-muted:#74454d; }
-.chat-theme-old-letter { --chat-readable-ink:#493329; --chat-readable-muted:#765e50; }
-.chat-theme-soft-rose { --chat-readable-ink:#542b31; --chat-readable-muted:#875d62; }
-.chat-theme-midnight,
-.chat-theme-midnight.chat-adapt-time { --chat-readable-ink:#f5e8dc; --chat-readable-muted:#d7bdb7; }
-.chat-adapt-time.chat-time-night,
-.chat-adapt-time.chat-time-late { --chat-readable-ink:#f5e8dc; --chat-readable-muted:#d7bdb7; }
-
-.messenger-chat .messenger-person h1,
-.messenger-chat .messenger-bubble,
-.messenger-chat .diario-message-content,
-.messenger-chat .messenger-composer textarea,
-.messenger-chat .chat-now-playing-main {
-  color:var(--chat-readable-ink) !important;
-  opacity:1 !important;
-}
-.messenger-chat .messenger-person p,
-.messenger-chat .messenger-message time,
-.messenger-chat .messenger-day-divider span,
-.messenger-chat .chat-now-playing small {
-  color:var(--chat-readable-muted) !important;
-  opacity:1 !important;
-}
-.messenger-chat .messenger-header-actions button,
-.messenger-chat .messenger-composer [data-align=block-end] button { color:var(--chat-readable-ink) !important; opacity:.82 !important; }
-.messenger-chat .messenger-composer textarea::placeholder { color:var(--chat-readable-muted) !important; opacity:.85 !important; }
-
-/* undo 03C's accidental theme flattening */
-.messenger-chat .messenger-bubble { background:var(--chat-theirs) !important; }
-.messenger-chat .messenger-message.is-user .messenger-bubble { background:var(--chat-mine) !important; }
-.messenger-chat .messenger-composer [data-slot=input-group] {
-  border-color:color-mix(in oklab,var(--chat-readable-ink) 18%,transparent) !important;
-  background:color-mix(in oklab,var(--chat-bg) 68%,var(--chat-panel)) !important;
-}
-.messenger-chat .messenger-person h1 span { color:var(--chat-accent) !important; }
-
-/* PLAYER — a record sleeve, not another app card */
-.screen-music .spotify-live-player,
-.music-screen .spotify-live-player {
-  position:relative !important;
-  grid-template-columns:112px minmax(0,1fr) !important;
-  column-gap:18px !important;
-  row-gap:8px !important;
-  margin:26px 18px 20px !important;
-  padding:20px 18px 17px !important;
-  border:0 !important;
-  border-radius:1px !important;
-  background:
-    linear-gradient(90deg, transparent 0 13px, rgba(117,48,54,.08) 13px 14px, transparent 14px),
-    repeating-linear-gradient(0deg, transparent 0 25px, rgba(117,48,54,.055) 25px 26px),
-    #f6eadc !important;
-  box-shadow:7px 9px 0 rgba(91,36,43,.09), 0 18px 30px rgba(91,36,43,.08) !important;
-  transform:rotate(-.35deg);
-  overflow:visible !important;
-}
-.screen-music .spotify-live-player::before,
-.music-screen .spotify-live-player::before {
-  content:"" !important; position:absolute !important; width:92px !important; height:22px !important;
-  left:50% !important; top:-12px !important; transform:translateX(-50%) rotate(1.5deg) !important;
-  background:rgba(239,205,194,.68) !important; border:0 !important; border-radius:0 !important;
-}
-.screen-music .spotify-live-cover,
-.music-screen .spotify-live-cover { width:112px !important; height:112px !important; border-radius:0 !important; box-shadow:3px 4px 0 rgba(82,34,40,.13) !important; transform:rotate(-1.2deg); }
-.screen-music .spotify-live-meta,
-.music-screen .spotify-live-meta { align-self:center !important; }
-.screen-music .spotify-live-meta small,
-.music-screen .spotify-live-meta small { letter-spacing:.18em !important; font-size:8px !important; color:#a14d58 !important; }
-.screen-music .spotify-live-meta strong,
-.music-screen .spotify-live-meta strong { margin-top:7px !important; font:500 27px/1 var(--font-display) !important; color:#5a252d !important; }
-.screen-music .spotify-live-meta span,
-.music-screen .spotify-live-meta span { margin-top:5px !important; font:italic 13px var(--font-display) !important; color:#8b5c5d !important; }
-.screen-music .spotify-live-progress,
-.music-screen .spotify-live-progress { grid-column:2 !important; margin:4px 0 0 !important; }
-.screen-music .spotify-live-controls,
-.music-screen .spotify-live-controls { grid-column:1/-1 !important; border-top:1px dashed rgba(91,36,43,.18) !important; margin-top:5px !important; padding-top:12px !important; justify-content:center !important; gap:12px !important; }
-.screen-music .spotify-live-controls button,
-.music-screen .spotify-live-controls button { border-radius:50% !important; width:38px !important; height:38px !important; min-width:38px !important; padding:0 !important; }
-.screen-music .spotify-live-controls button:nth-child(3),
-.music-screen .spotify-live-controls button:nth-child(3) { width:48px !important; height:48px !important; background:#6a1722 !important; color:#fff6ea !important; }
-
-/* Most played becomes a torn chart clipping and loses the oversized dead space */
-.screen-music .spotify-top-rotation,
-.music-screen .spotify-top-rotation {
-  margin:18px 24px 24px !important;
-  padding:16px 15px 12px !important;
-  border:0 !important;
-  border-left:3px solid rgba(109,31,41,.72) !important;
-  border-radius:0 !important;
-  background:rgba(247,231,216,.64) !important;
-  box-shadow:3px 5px 0 rgba(92,38,44,.06) !important;
-  transform:rotate(.2deg);
-}
-.screen-music .spotify-top-rotation::after,
-.music-screen .spotify-top-rotation::after { display:none !important; content:none !important; }
-.screen-music .spotify-top-header h3,
-.music-screen .spotify-top-header h3 { font-size:32px !important; line-height:.9 !important; }
-.screen-music .spotify-top-list,
-.music-screen .spotify-top-list { margin-top:10px !important; }
-.screen-music .spotify-top-row,
-.music-screen .spotify-top-row { min-height:48px !important; grid-template-columns:20px 44px minmax(0,1fr) 34px !important; padding:5px 0 !important; }
-.screen-music .spotify-top-row img,
-.music-screen .spotify-top-row img { width:44px !important; height:44px !important; border-radius:0 !important; }
-
-/* tabs read as little archive labels */
-.screen-music .music-tabs,
-.music-screen .music-tabs { margin:12px 24px 0 !important; gap:5px !important; background:transparent !important; border:0 !important; padding:0 !important; }
-.screen-music .music-tabs button,
-.music-screen .music-tabs button { background:#f5e6d7 !important; border:1px solid rgba(96,38,45,.13) !important; box-shadow:2px 3px 0 rgba(96,38,45,.06) !important; min-height:48px !important; }
-.screen-music .music-tabs button.active,
-.music-screen .music-tabs button.active { background:#651923 !important; color:#fff5e8 !important; transform:translateY(-2px) rotate(-.4deg); }
-
-@media (max-width:420px){
- .screen-music .spotify-live-player,.music-screen .spotify-live-player{grid-template-columns:92px minmax(0,1fr)!important;padding:17px 14px!important;column-gap:14px!important}
- .screen-music .spotify-live-cover,.music-screen .spotify-live-cover{width:92px!important;height:92px!important}
- .screen-music .spotify-live-meta strong,.music-screen .spotify-live-meta strong{font-size:22px!important}
-}
-
-/* =========================================================
-   VISUAL PASS 04 · CURRENT ZIP / AUTHORITATIVE FIXES
-   Targets the classes that actually render in this build.
-   ========================================================= */
-
-/* CHAT — preserve every theme surface; make ink inherit correctly through Streamdown/markdown. */
-.messenger-chat { --chat-safe-ink:#55252b; --chat-safe-muted:#81565c; }
-.messenger-chat.chat-theme-diary { --chat-safe-ink:#55252b; --chat-safe-muted:#81565c; }
-.messenger-chat.chat-theme-cherry { --chat-safe-ink:#4b2028; --chat-safe-muted:#74464d; }
-.messenger-chat.chat-theme-old-letter { --chat-safe-ink:#493329; --chat-safe-muted:#765e50; }
-.messenger-chat.chat-theme-soft-rose { --chat-safe-ink:#542b31; --chat-safe-muted:#875d62; }
-.messenger-chat.chat-theme-midnight,
-.messenger-chat.chat-adapt-time.chat-time-night,
-.messenger-chat.chat-adapt-time.chat-time-late { --chat-safe-ink:#f7eadf; --chat-safe-muted:#d8beb8; }
-
-.screen-chat .messenger-bubble,
-.screen-chat .messenger-bubble *,
-.screen-chat .diario-message-content,
-.screen-chat .diario-message-content * {
-  color:var(--chat-safe-ink) !important;
-  -webkit-text-fill-color:var(--chat-safe-ink) !important;
-  opacity:1 !important;
-}
-.screen-chat .messenger-person h1 { color:var(--chat-safe-ink) !important; -webkit-text-fill-color:var(--chat-safe-ink) !important; }
-.screen-chat .messenger-person p,
-.screen-chat .messenger-message time { color:var(--chat-safe-muted) !important; -webkit-text-fill-color:var(--chat-safe-muted) !important; opacity:1 !important; }
-.screen-chat .messenger-header-actions button,
-.screen-chat .messenger-composer button { color:var(--chat-safe-ink) !important; }
-.screen-chat .messenger-composer textarea { color:var(--chat-safe-ink) !important; -webkit-text-fill-color:var(--chat-safe-ink) !important; }
-.screen-chat .messenger-composer textarea::placeholder { color:var(--chat-safe-muted) !important; -webkit-text-fill-color:var(--chat-safe-muted) !important; opacity:.9 !important; }
-/* restore the actual theme surfaces after old 03C rules */
-.screen-chat .messenger-bubble { background:var(--chat-theirs) !important; }
-.screen-chat .messenger-message.is-user .messenger-bubble { background:var(--chat-mine) !important; }
-
-/* Chat appearance is portaled outside .screen-chat, so it needs its own stable paper ink. */
-.chat-settings-sheet,
-.chat-settings-sheet * { --sheet-ink:#54262c; --sheet-muted:#956b6d; }
-.chat-settings-sheet { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; background:#f8eadc !important; }
-.chat-settings-sheet [data-slot=sheet-title],
-.chat-settings-sheet .settings-row-title strong,
-.chat-settings-sheet .theme-grid b,
-.chat-settings-sheet .bubble-choice-grid b,
-.chat-settings-sheet .settings-toggles strong { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; opacity:1 !important; }
-.chat-settings-sheet .settings-row-title small,
-.chat-settings-sheet .theme-grid small,
-.chat-settings-sheet .settings-toggles small { color:var(--sheet-muted) !important; -webkit-text-fill-color:var(--sheet-muted) !important; opacity:1 !important; }
-.chat-settings-sheet .settings-script { color:#a23f4c !important; -webkit-text-fill-color:#a23f4c !important; }
-.chat-settings-sheet .theme-grid button,
-.chat-settings-sheet .bubble-choice-grid button { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; }
-.chat-settings-sheet .bubble-preview { color:#57252d !important; -webkit-text-fill-color:#57252d !important; }
-
-/* PLAYER — actual DOM uses .spotify-live-info and .spotify-top-track. */
-.music-screen .spotify-live-player {
-  margin:24px 22px 26px !important;
-  padding:18px !important;
-  display:grid !important;
-  grid-template-columns:104px minmax(0,1fr) !important;
-  gap:14px 17px !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.055) 27px 28px),#f7eadc !important;
-  box-shadow:7px 9px 0 rgba(87,29,37,.09) !important;
-  overflow:visible !important;
-  transform:rotate(-.25deg) !important;
-}
-.music-screen .spotify-live-player::before { content:"" !important; position:absolute !important; top:-11px !important; left:50% !important; width:86px !important; height:21px !important; transform:translateX(-50%) rotate(1.5deg) !important; background:rgba(229,190,184,.68) !important; border:0 !important; }
-.music-screen .spotify-live-cover { width:104px !important; height:104px !important; border-radius:0 !important; box-shadow:3px 4px 0 rgba(84,31,38,.12) !important; }
-.music-screen .spotify-live-info { min-width:0 !important; align-self:center !important; display:flex !important; flex-direction:column !important; }
-.music-screen .spotify-live-info > small { font-size:8px !important; letter-spacing:.18em !important; color:#a24d58 !important; opacity:1 !important; }
-.music-screen .spotify-live-info > strong { margin-top:8px !important; font:500 25px/.95 var(--font-display) !important; color:#56222a !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
-.music-screen .spotify-live-info > span { margin-top:6px !important; font:italic 13px var(--font-display) !important; color:#87595d !important; opacity:1 !important; }
-.music-screen .spotify-live-progress { width:100% !important; margin-top:12px !important; height:14px !important; border:0 !important; border-bottom:2px solid rgba(92,35,43,.20) !important; background:transparent !important; border-radius:0 !important; padding:0 !important; position:relative !important; }
-.music-screen .spotify-live-progress > span { position:absolute !important; left:0 !important; bottom:-2px !important; height:2px !important; background:#a83f4c !important; }
-.music-screen .spotify-live-controls { grid-column:1/-1 !important; display:flex !important; align-items:center !important; justify-content:center !important; gap:11px !important; padding-top:13px !important; border-top:1px dashed rgba(90,32,40,.17) !important; }
-.music-screen .spotify-live-controls button { min-width:36px !important; width:36px !important; height:36px !important; border-radius:50% !important; padding:0 !important; display:grid !important; place-items:center !important; }
-.music-screen .spotify-live-controls .spotify-main-play { width:48px !important; height:48px !important; background:#651923 !important; color:#fff5e8 !important; }
-.music-screen .spotify-live-controls .spotify-queue-toggle { width:auto !important; min-width:82px !important; border-radius:18px !important; display:flex !important; gap:5px !important; padding:0 12px !important; }
-
-/* idle player gets the same object-like treatment */
-.music-screen .spotify-idle-state { grid-column:1/-1 !important; display:grid !important; grid-template-columns:72px minmax(0,1fr) !important; gap:12px 16px !important; align-items:center !important; }
-.music-screen .spotify-idle-record { width:72px !important; height:72px !important; border-radius:50% !important; border:1px solid rgba(100,35,43,.32) !important; display:grid !important; place-items:center !important; color:#7a303b !important; }
-.music-screen .spotify-idle-state > div:nth-child(2) small,
-.music-screen .spotify-idle-state > div:nth-child(2) strong,
-.music-screen .spotify-idle-state > div:nth-child(2) span { display:block !important; opacity:1 !important; }
-.music-screen .spotify-idle-state > div:nth-child(2) small { color:#a24d58 !important; letter-spacing:.15em !important; font-size:8px !important; }
-.music-screen .spotify-idle-state > div:nth-child(2) strong { color:#56222a !important; font:500 23px/1 var(--font-display) !important; margin-top:5px !important; }
-.music-screen .spotify-idle-state > div:nth-child(2) span { color:#87595d !important; font-size:11px !important; margin-top:5px !important; }
-.music-screen .spotify-idle-state > button { grid-column:2 !important; justify-self:start !important; border:1px solid rgba(101,25,35,.5) !important; border-radius:18px !important; background:transparent !important; color:#651923 !important; padding:8px 13px !important; }
-
-/* Most played: target the real .spotify-top-track markup, not nonexistent rows. */
-.music-screen .spotify-top-rotation { margin:8px 26px 24px !important; padding:0 0 8px !important; border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; transform:none !important; overflow:visible !important; max-height:none !important; }
-.music-screen .spotify-top-rotation::before,
-.music-screen .spotify-top-rotation::after { display:none !important; content:none !important; }
-.music-screen .spotify-top-rotation > header { padding:0 0 9px !important; border-bottom:1px solid rgba(92,34,42,.20) !important; align-items:end !important; }
-.music-screen .spotify-top-rotation > header > div:first-child > span { font-size:8px !important; letter-spacing:.18em !important; color:#a14b57 !important; }
-.music-screen .spotify-top-rotation > header > div:first-child > strong { font:500 29px/.95 var(--font-display) !important; color:#56222a !important; }
-.music-screen .spotify-top-range-tabs { background:transparent !important; gap:2px !important; }
-.music-screen .spotify-top-range-tabs button { border:0 !important; border-bottom:1px solid transparent !important; border-radius:0 !important; background:transparent !important; padding:5px 7px !important; color:#94666a !important; }
-.music-screen .spotify-top-range-tabs button.active { color:#5c2029 !important; border-bottom-color:#7a303b !important; background:#f7eadc !important; }
-.music-screen .spotify-top-list { margin-top:4px !important; display:flex !important; flex-direction:column !important; }
-.music-screen .spotify-top-track { min-height:51px !important; display:grid !important; grid-template-columns:20px 42px minmax(0,1fr) 34px !important; gap:9px !important; align-items:center !important; padding:5px 0 !important; border-bottom:1px solid rgba(91,34,42,.10) !important; background:transparent !important; }
-.music-screen .spotify-top-cover { width:42px !important; height:42px !important; border-radius:0 !important; overflow:hidden !important; }
-.music-screen .spotify-top-cover img { width:100% !important; height:100% !important; object-fit:cover !important; }
-.music-screen .spotify-top-copy strong { display:block !important; color:#5a222a !important; font-size:13px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
-.music-screen .spotify-top-copy span { display:block !important; margin-top:2px !important; color:#8c5e62 !important; font-size:10px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
-.music-screen .spotify-top-track > button { width:32px !important; height:32px !important; min-width:32px !important; border-radius:4px !important; }
-
-/* Owner tabs: slim archival dividers instead of three giant buttons. */
-.music-screen .music-tabs { margin:20px 26px 0 !important; padding:0 !important; display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:0 !important; border-top:1px solid rgba(91,34,42,.20) !important; border-bottom:1px solid rgba(91,34,42,.20) !important; background:transparent !important; }
-.music-screen .music-tabs button { min-height:43px !important; border:0 !important; border-right:1px solid rgba(91,34,42,.13) !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; color:#6d4548 !important; }
-.music-screen .music-tabs button:last-child { border-right:0 !important; }
-.music-screen .music-tabs button.active { background:#681a25 !important; color:#fff3e6 !important; transform:none !important; }
-
-@media (max-width:420px){
-  .music-screen .spotify-live-player{grid-template-columns:88px minmax(0,1fr)!important;padding:15px!important;margin-inline:17px!important}
-  .music-screen .spotify-live-cover{width:88px!important;height:88px!important}
-  .music-screen .spotify-live-info>strong{font-size:21px!important}
-  .music-screen .spotify-top-rotation{margin-inline:22px!important}
-}
-
-/* =========================================================
-   VISUAL PASS 04B · NIGHT INK + PLAYER PAPER OBJECTS
-   Dark time themes use ivory ink; paper objects keep wine ink.
-   ========================================================= */
-
-/* 18h+ / night: deepen the world instead of only tinting it. */
+/* ---------- TIME / INK ---------- */
 .phone-shell[data-time-theme="night"]{
-  --background:#351b20 !important;
-  --cream:#432229 !important;
-  --paper:#553039 !important;
-  --paper-deep:#2b171c !important;
-  --blush:#63323d !important;
-  --wine:#210f14 !important;
-  --foreground:#f7eadb !important;
-  --muted-foreground:#d8bfb5 !important;
-  --border:rgba(246,226,210,.18) !important;
+  --background:#351b20;
+  --cream:#432229;
+  --paper:#553039;
+  --paper-deep:#2b171c;
+  --blush:#63323d;
+  --wine:#210f14;
+  --foreground:#f7eadb;
+  --muted-foreground:#d8bfb5;
+  --border:rgba(246,226,210,.18);
 }
 .phone-shell[data-time-theme="late"]{
-  --background:#241317 !important;
-  --cream:#31191f !important;
-  --paper:#40242b !important;
-  --paper-deep:#1c0e12 !important;
-  --blush:#512832 !important;
-  --wine:#16090d !important;
-  --foreground:#f8ecdd !important;
-  --muted-foreground:#d4bbb2 !important;
-  --border:rgba(247,229,214,.16) !important;
+  --background:#241317;
+  --cream:#31191f;
+  --paper:#40242b;
+  --paper-deep:#1c0e12;
+  --blush:#512832;
+  --wine:#16090d;
+  --foreground:#f8ecdd;
+  --muted-foreground:#d4bbb2;
+  --border:rgba(247,229,214,.16);
 }
-
-/* Ivory ink across the living screens at night. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]){
+  --night-ivory:#f6eadb;
+  --night-ivory-soft:#dcc4b9;
+  color:var(--night-ivory);
+}
 .phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro,
 .phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro h1,
 .phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro .intro-copy,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-rotation > header > div:first-child > span,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-rotation > header > div:first-child > strong,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy strong,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy span,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-track > span:first-child,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button:not(.active){
-  color:#f7eadb !important;
-  -webkit-text-fill-color:#f7eadb !important;
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro .eyebrow{
+  color:var(--night-ivory) !important;
+  -webkit-text-fill-color:var(--night-ivory) !important;
   opacity:1 !important;
 }
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy span,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-track > span:first-child,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
-  color:#d8bfb5 !important;
-  -webkit-text-fill-color:#d8bfb5 !important;
-}
 
-/* The little record-shelf note stays physical cream paper. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .screen-intro::after{
-  background:#f3e3d4 !important;
-  color:#6b2d36 !important;
-  -webkit-text-fill-color:#6b2d36 !important;
+/* ---------- LOGIN PAPER ---------- */
+.private-entry{
+  background:
+    radial-gradient(circle at 50% 20%,rgba(129,42,53,.24),transparent 42%),
+    #4b151d !important;
 }
+.private-login{
+  background:#f6e8d8 !important;
+  color:#5b2029 !important;
+}
+.private-login > svg{color:#b5404e !important}
+.private-login .private-kicker,
+.private-login h1,
+.private-login .private-note,
+.private-login form label{opacity:1 !important}
+.private-login .private-kicker{color:#b5404e !important;-webkit-text-fill-color:#b5404e !important}
+.private-login h1{color:#5b2029 !important;-webkit-text-fill-color:#5b2029 !important}
+.private-login .private-note{color:#a35e64 !important;-webkit-text-fill-color:#a35e64 !important}
+.private-login form label{color:#a65a61 !important;-webkit-text-fill-color:#a65a61 !important}
+.private-login input{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  caret-color:#7b2632 !important;
+  background:rgba(255,250,242,.42) !important;
+}
+.private-login input:-webkit-autofill{-webkit-text-fill-color:#57222b !important}
+.private-login button[type="submit"]{
+  background:#5d1721 !important;
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+}
+.private-login .private-error{color:#9b2837 !important;-webkit-text-fill-color:#9b2837 !important}
 
-/* Now-playing remains a cream record sleeve, so its ink must stay wine. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-player{
-  background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.055) 27px 28px),#f7eadc !important;
-  color:#56222a !important;
+/* ---------- CHAT: THEMES KEEP THEIR IDENTITY, TEXT STAYS READABLE ---------- */
+.messenger-chat{
+  --chat-readable-ink:var(--chat-ink);
+  --chat-readable-muted:color-mix(in oklab,var(--chat-ink) 58%,transparent);
 }
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-player *{
-  -webkit-text-fill-color:initial;
+.chat-theme-cherry{--chat-readable-ink:#4d2028;--chat-readable-muted:#74454d}
+.chat-theme-old-letter{--chat-readable-ink:#4b352a;--chat-readable-muted:#745f50}
+.chat-theme-soft-rose{--chat-readable-ink:#54252a;--chat-readable-muted:#80575b}
+.chat-theme-midnight{
+  --chat-readable-ink:#f8ecdd;
+  --chat-readable-muted:#d4bbb2;
 }
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > small{color:#a24d58 !important;-webkit-text-fill-color:#a24d58 !important}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > strong{color:#56222a !important;-webkit-text-fill-color:#56222a !important}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > span{color:#87595d !important;-webkit-text-fill-color:#87595d !important}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-controls button{color:#651923 !important;-webkit-text-fill-color:#651923 !important}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-controls .spotify-main-play{color:#fff5e8 !important;-webkit-text-fill-color:#fff5e8 !important}
-
-/* Most played is a real clipped paper list again — compact, not a dashboard card. */
-.music-screen .spotify-top-rotation{
-  position:relative !important;
-  margin:18px 24px 25px !important;
-  padding:17px 15px 12px !important;
-  background:#ead6c7 !important;
-  border:0 !important;
-  box-shadow:5px 7px 0 rgba(20,7,10,.13) !important;
-  transform:rotate(.25deg) !important;
-}
-.music-screen .spotify-top-rotation::before{
-  display:block !important;
-  content:"" !important;
-  position:absolute !important;
-  top:-9px !important;
-  left:28px !important;
-  width:64px !important;
-  height:18px !important;
-  background:rgba(225,181,176,.62) !important;
-  transform:rotate(-2deg) !important;
-}
-.music-screen .spotify-top-rotation > header{border-bottom:1px solid rgba(89,32,40,.18) !important}
-.music-screen .spotify-top-rotation > header > div:first-child > span{color:#9c4a55 !important;-webkit-text-fill-color:#9c4a55 !important}
-.music-screen .spotify-top-rotation > header > div:first-child > strong{color:#56222a !important;-webkit-text-fill-color:#56222a !important}
-.music-screen .spotify-top-copy strong{color:#57232b !important;-webkit-text-fill-color:#57232b !important}
-.music-screen .spotify-top-copy span{color:#875c60 !important;-webkit-text-fill-color:#875c60 !important}
-.music-screen .spotify-top-track > span:first-child{color:#9b6a6c !important;-webkit-text-fill-color:#9b6a6c !important}
-.music-screen .spotify-top-range-tabs button{color:#98676b !important;-webkit-text-fill-color:#98676b !important}
-.music-screen .spotify-top-range-tabs button.active{background:#f8eadc !important;color:#5b2029 !important;-webkit-text-fill-color:#5b2029 !important}
-.music-screen .spotify-top-track{border-bottom-color:rgba(89,32,40,.10) !important}
-
-/* Collection dividers stay readable against the dark page. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs{
-  border-color:rgba(247,234,219,.25) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button{
-  border-color:rgba(247,234,219,.16) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active{
-  background:#f1dfd0 !important;
-  color:#5c2029 !important;
-  -webkit-text-fill-color:#5c2029 !important;
-}
-
-/* Chat: time-adapted dark modes must be dark surfaces + ivory ink, regardless of base theme. */
 .messenger-chat.chat-adapt-time.chat-time-night{
   --chat-bg:#351b20 !important;
   --chat-panel:#432229 !important;
   --chat-mine:#66323d !important;
   --chat-theirs:#4c2931 !important;
   --chat-ink:#f7eadb !important;
-  --chat-safe-ink:#f7eadb !important;
-  --chat-safe-muted:#d7bdb4 !important;
   --chat-readable-ink:#f7eadb !important;
   --chat-readable-muted:#d7bdb4 !important;
   --chat-accent:#dc8b96 !important;
@@ -15191,123 +14490,342 @@ html[data-diario-time-theme="continuous"] .statusbar {
   --chat-mine:#542833 !important;
   --chat-theirs:#3d2229 !important;
   --chat-ink:#f8ecdd !important;
-  --chat-safe-ink:#f8ecdd !important;
-  --chat-safe-muted:#d4bbb2 !important;
   --chat-readable-ink:#f8ecdd !important;
   --chat-readable-muted:#d4bbb2 !important;
   --chat-accent:#d98290 !important;
 }
-.messenger-chat.chat-theme-midnight{
-  --chat-bg:#241317 !important;
-  --chat-panel:#31191f !important;
-  --chat-mine:#542833 !important;
-  --chat-theirs:#3d2229 !important;
-  --chat-ink:#f8ecdd !important;
-  --chat-safe-ink:#f8ecdd !important;
-  --chat-safe-muted:#d4bbb2 !important;
-  --chat-readable-ink:#f8ecdd !important;
-  --chat-readable-muted:#d4bbb2 !important;
+.messenger-chat .messenger-bubble,
+.messenger-chat .messenger-bubble [data-streamdown],
+.messenger-chat .diario-message-content,
+.messenger-chat .diario-message-content *{
+  color:var(--chat-readable-ink) !important;
+  -webkit-text-fill-color:var(--chat-readable-ink) !important;
 }
-
-
-/* =========================================================
-   VISUAL PASS 04C · IVORY NIGHT SYSTEM + PLAYER FINISH
-   One rule: dark world = ivory ink; paper objects = wine ink.
-   ========================================================= */
-
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]){
-  --night-ivory:#f6eadb;
-  --night-ivory-soft:#dcc4b9;
-  --night-ivory-faint:#c8aaa4;
-  --night-wine:#5d1822;
-  --object-paper:#f5e6d7;
-  --object-paper-deep:#ead2c2;
-  color:var(--night-ivory);
-}
-
-/* Dark world: headings, navigation, labels and ordinary copy stay ivory. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) :is(
-  .screen-intro h1,
-  .screen-intro .intro-copy,
-  .screen-intro .eyebrow,
-  .music-screen > p,
-  .music-screen > small,
-  .music-section-tabs button,
-  .music-tabs button:not(.active),
-  .music-empty-note,
-  .music-playlist-board > p
-){
-  color:var(--night-ivory) !important;
-  -webkit-text-fill-color:var(--night-ivory) !important;
+.messenger-chat .messenger-message time,
+.messenger-chat .messenger-person p,
+.messenger-chat .messenger-composer textarea::placeholder{
+  color:var(--chat-readable-muted) !important;
+  -webkit-text-fill-color:var(--chat-readable-muted) !important;
   opacity:1 !important;
 }
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) :is(
-  .music-section-tabs button:not(.active),
-  .music-empty-note,
-  .music-playlist-board > p
-){
-  color:var(--night-ivory-soft) !important;
-  -webkit-text-fill-color:var(--night-ivory-soft) !important;
+.chat-settings-sheet,
+.chat-actions-sheet{
+  --foreground:#57222b;
+  --muted-foreground:#9a686b;
+  --border:rgba(103,35,44,.18);
+  --paper:#f6e8d8;
+  --cream:#f2dfd0;
+  --blush:#edc7ca;
+  --wine:#651923;
+  --cherry:#b44d5b;
+  background:#f6e8d8 !important;
+  color:#57222b !important;
+}
+.chat-settings-sheet [data-slot=sheet-title],
+.chat-actions-sheet [data-slot=sheet-title],
+.chat-settings-sheet .settings-row-title strong,
+.chat-settings-sheet .theme-grid b,
+.chat-settings-sheet .bubble-choice-grid b,
+.chat-settings-sheet .settings-toggles strong{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+}
+.chat-settings-sheet .settings-row-title small,
+.chat-settings-sheet .theme-grid small,
+.chat-settings-sheet .settings-toggles small{
+  color:#9a686b !important;
+  -webkit-text-fill-color:#9a686b !important;
+}
+.chat-settings-sheet .theme-grid button,
+.chat-settings-sheet .bubble-choice-grid button{
+  color:#57222b !important;
+  background:#f4e4d6 !important;
+}
+.chat-settings-sheet .bubble-preview{color:#57222b !important;-webkit-text-fill-color:#57222b !important}
+
+/* ---------- PLAYER: INTRO ---------- */
+.music-screen{
+  --music-paper:#f0ddcd;
+  --music-paper-light:#f7eadc;
+  --music-ink:#57222b;
+  --music-muted:#936268;
+  --music-accent:#a24e58;
+  --music-wine:#651923;
+  padding-bottom:170px !important;
+}
+.music-screen .screen-intro{
+  position:relative;
+  padding-bottom:72px !important;
+}
+.music-screen .screen-intro::after{
+  content:"a little record shelf for two";
+  position:absolute;
+  left:24px;
+  bottom:12px;
+  padding:8px 12px 7px;
+  background:#f3e3d4;
+  color:#6b2d36;
+  -webkit-text-fill-color:#6b2d36;
+  font:15px/1 var(--font-hand);
+  transform:rotate(-1.2deg);
+  box-shadow:3px 4px 0 rgba(10,3,5,.10);
 }
 
-/* The tiny record-shelf scrap is paper, not night-world text. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .screen-intro::after{
-  background:var(--object-paper) !important;
-  color:#6a2a34 !important;
-  -webkit-text-fill-color:#6a2a34 !important;
-  box-shadow:3px 4px 0 rgba(10,3,5,.14) !important;
-}
-
-/* Now playing = a physical record sleeve. */
+/* ---------- PLAYER: NOW PLAYING ---------- */
 .music-screen .spotify-live-player{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:104px minmax(0,1fr) !important;
+  gap:14px 16px !important;
+  align-items:center !important;
+  margin:18px 22px 24px !important;
+  padding:18px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  overflow:visible !important;
   background:
     repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.05) 27px 28px),
     #f6e7d8 !important;
   color:#55212a !important;
-  border:1px solid rgba(91,30,39,.10) !important;
   box-shadow:6px 8px 0 rgba(26,7,11,.14) !important;
 }
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-player{
-  color:#55212a !important;
+.music-screen .spotify-live-player::before{
+  content:"";
+  position:absolute;
+  top:-10px;
+  left:50%;
+  width:86px;
+  height:21px;
+  transform:translateX(-50%) rotate(1.5deg);
+  background:rgba(229,190,184,.68);
 }
-.music-screen .spotify-live-player :is(button,small,strong,span){
-  opacity:1;
+.music-screen .spotify-live-cover{
+  width:104px !important;
+  height:104px !important;
+  border-radius:0 !important;
+  overflow:hidden !important;
+  box-shadow:3px 4px 0 rgba(84,31,38,.12) !important;
 }
-.music-screen .spotify-live-controls button:not(.spotify-main-play){
-  background:rgba(255,248,238,.58) !important;
+.music-screen .spotify-live-cover img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+.music-screen .spotify-live-info{
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.music-screen .spotify-live-info > small{
+  color:#a24d58 !important;
+  -webkit-text-fill-color:#a24d58 !important;
+  font-size:8px !important;
+  letter-spacing:.18em !important;
+}
+.music-screen .spotify-live-info > strong{
+  margin-top:8px !important;
+  overflow:hidden !important;
+  color:#56222a !important;
+  -webkit-text-fill-color:#56222a !important;
+  font:500 25px/.95 var(--font-display) !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-live-info > span{
+  margin-top:6px !important;
+  color:#87595d !important;
+  -webkit-text-fill-color:#87595d !important;
+  font:italic 13px var(--font-display) !important;
+}
+.music-screen .spotify-live-progress{
+  position:relative !important;
+  width:100% !important;
+  height:14px !important;
+  margin-top:12px !important;
+  padding:0 !important;
   border:0 !important;
-  color:#671b26 !important;
-}
-.music-screen .spotify-live-controls .spotify-queue-toggle{
+  border-bottom:2px solid rgba(92,35,43,.20) !important;
+  border-radius:0 !important;
   background:transparent !important;
 }
-
-/* Most played = clipped listening note, never dark-on-dark. */
-.music-screen .spotify-top-rotation{
-  background:
-    linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.12)),
-    #ead4c4 !important;
-  color:#57222b !important;
-  border:1px solid rgba(91,30,39,.08) !important;
-  box-shadow:5px 7px 0 rgba(22,6,10,.13) !important;
+.music-screen .spotify-live-progress > span{
+  position:absolute !important;
+  left:0 !important;
+  bottom:-2px !important;
+  height:2px !important;
+  background:#a83f4c !important;
 }
-.music-screen .spotify-top-rotation :is(.spotify-top-copy strong,.spotify-top-rank){
-  color:#57222b !important;
-  -webkit-text-fill-color:#57222b !important;
-}
-.music-screen .spotify-top-rotation .spotify-top-copy span{
-  color:#85585d !important;
-  -webkit-text-fill-color:#85585d !important;
-}
-.music-screen .spotify-top-actions{
+.music-screen .spotify-live-controls{
+  grid-column:1/-1 !important;
   display:flex !important;
   align-items:center !important;
-  justify-content:flex-end !important;
-  gap:4px !important;
+  justify-content:center !important;
+  gap:11px !important;
+  padding-top:13px !important;
+  border-top:1px dashed rgba(90,32,40,.17) !important;
 }
-.music-screen .spotify-top-actions button{
-  min-width:0 !important;
+.music-screen .spotify-live-controls button{
+  width:36px !important;
+  min-width:36px !important;
+  height:36px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  display:grid !important;
+  place-items:center !important;
+  background:rgba(255,248,238,.58) !important;
+  color:#651923 !important;
+}
+.music-screen .spotify-live-controls .spotify-main-play{
+  width:48px !important;
+  height:48px !important;
+  background:#651923 !important;
+  color:#fff5e8 !important;
+}
+.music-screen .spotify-live-controls .spotify-queue-toggle{
   width:auto !important;
+  min-width:82px !important;
+  padding:0 12px !important;
+  border-radius:18px !important;
+  display:flex !important;
+  gap:5px !important;
+  background:transparent !important;
+}
+.music-screen .spotify-idle-state{
+  grid-column:1/-1 !important;
+  display:grid !important;
+  grid-template-columns:72px minmax(0,1fr) !important;
+  gap:12px 16px !important;
+  align-items:center !important;
+}
+.music-screen .spotify-idle-record{
+  width:72px !important;
+  height:72px !important;
+  display:grid !important;
+  place-items:center !important;
+  border:1px solid rgba(100,35,43,.32) !important;
+  border-radius:50% !important;
+  color:#7a303b !important;
+}
+.music-screen .spotify-idle-state small,
+.music-screen .spotify-idle-state strong,
+.music-screen .spotify-idle-state span{display:block !important;opacity:1 !important}
+.music-screen .spotify-idle-state small{color:#a24d58 !important;font-size:8px !important;letter-spacing:.15em !important}
+.music-screen .spotify-idle-state strong{margin-top:5px !important;color:#56222a !important;font:500 23px/1 var(--font-display) !important}
+.music-screen .spotify-idle-state span{margin-top:5px !important;color:#87595d !important;font-size:11px !important}
+.music-screen .spotify-idle-state > button{
+  grid-column:2 !important;
+  justify-self:start !important;
+  padding:8px 13px !important;
+  border:1px solid rgba(101,25,35,.5) !important;
+  border-radius:18px !important;
+  background:transparent !important;
+  color:#651923 !important;
+}
+
+/* ---------- PLAYER: MOST PLAYED ---------- */
+.music-screen .spotify-top-rotation{
+  position:relative !important;
+  max-height:none !important;
+  overflow:visible !important;
+  margin:18px 24px 25px !important;
+  padding:17px 15px 12px !important;
+  border:1px solid rgba(91,30,39,.08) !important;
+  border-radius:0 !important;
+  background:#ead6c7 !important;
+  color:#57222b !important;
+  box-shadow:5px 7px 0 rgba(20,7,10,.13) !important;
+  transform:rotate(.25deg) !important;
+}
+.music-screen .spotify-top-rotation::before{
+  content:"";
+  position:absolute;
+  top:-9px;
+  left:28px;
+  width:64px;
+  height:18px;
+  background:rgba(225,181,176,.62);
+  transform:rotate(-2deg);
+}
+.music-screen .spotify-top-rotation::after{display:none !important;content:none !important}
+.music-screen .spotify-top-rotation > header{
+  display:flex !important;
+  align-items:end !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+  padding:0 0 9px !important;
+  border-bottom:1px solid rgba(92,34,42,.18) !important;
+}
+.music-screen .spotify-top-rotation > header span{
+  color:#9c4a55 !important;
+  -webkit-text-fill-color:#9c4a55 !important;
+  font-size:8px !important;
+  letter-spacing:.18em !important;
+}
+.music-screen .spotify-top-rotation > header strong{
+  color:#56222a !important;
+  -webkit-text-fill-color:#56222a !important;
+  font:500 29px/.95 var(--font-display) !important;
+}
+.music-screen .spotify-top-range-tabs{display:flex !important;gap:2px !important;background:transparent !important}
+.music-screen .spotify-top-range-tabs button{
+  padding:5px 7px !important;
+  border:0 !important;
+  border-bottom:1px solid transparent !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#98676b !important;
+}
+.music-screen .spotify-top-range-tabs button.active{
+  background:#f8eadc !important;
+  color:#5b2029 !important;
+  -webkit-text-fill-color:#5b2029 !important;
+  border-bottom-color:#7a303b !important;
+}
+.music-screen .spotify-top-list{
+  display:flex !important;
+  flex-direction:column !important;
+  max-height:none !important;
+  overflow:visible !important;
+  margin-top:4px !important;
+}
+.music-screen .spotify-top-track{
+  display:grid !important;
+  grid-template-columns:20px 42px minmax(0,1fr) auto !important;
+  gap:9px !important;
+  align-items:center !important;
+  min-height:51px !important;
+  padding:5px 0 !important;
+  border-bottom:1px solid rgba(91,34,42,.10) !important;
+  background:transparent !important;
+}
+.music-screen .spotify-top-cover{width:42px !important;height:42px !important;border-radius:0 !important;overflow:hidden !important}
+.music-screen .spotify-top-cover img{width:100% !important;height:100% !important;object-fit:cover !important}
+.music-screen .spotify-top-rank{color:#9b6a6c !important;-webkit-text-fill-color:#9b6a6c !important}
+.music-screen .spotify-top-copy{min-width:0 !important}
+.music-screen .spotify-top-copy strong{
+  display:block !important;
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-size:13px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-top-copy span{
+  display:block !important;
+  margin-top:2px !important;
+  overflow:hidden !important;
+  color:#875c60 !important;
+  -webkit-text-fill-color:#875c60 !important;
+  font-size:10px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-top-actions{display:flex !important;align-items:center !important;justify-content:flex-end !important;gap:4px !important}
+.music-screen .spotify-top-actions button{
+  width:auto !important;
+  min-width:0 !important;
   height:29px !important;
   padding:0 7px !important;
   border:0 !important;
@@ -15315,7 +14833,6 @@ html[data-diario-time-theme="continuous"] .statusbar {
   background:rgba(255,247,237,.42) !important;
   color:#6a2932 !important;
   font-size:8px !important;
-  text-transform:lowercase !important;
   box-shadow:none !important;
 }
 .music-screen .spotify-top-actions button:first-child{
@@ -15324,498 +14841,133 @@ html[data-diario-time-theme="continuous"] .statusbar {
   background:#651923 !important;
   color:#fff4e7 !important;
 }
-.music-screen .spotify-top-actions button:disabled{
-  opacity:.48 !important;
-}
+.music-screen .spotify-top-actions button:disabled{opacity:.48 !important}
 
-/* Owner dividers + subnav belong to the dark world. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs{
-  border-color:rgba(246,234,219,.24) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button:not(.active){
-  color:var(--night-ivory) !important;
-  -webkit-text-fill-color:var(--night-ivory) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active{
-  background:var(--object-paper) !important;
-  color:#5d2029 !important;
-  -webkit-text-fill-color:#5d2029 !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs{
-  border-bottom-color:rgba(246,234,219,.22) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button.active{
-  color:var(--night-ivory) !important;
-  -webkit-text-fill-color:var(--night-ivory) !important;
-  border-bottom-color:var(--night-ivory) !important;
-}
-
-/* Spotify library is another paper object: always wine ink. */
-.music-screen :is(.spotify-library-paper,.spotify-queue-panel,.music-section-panel,.music-playlist-board){
-  background:#f2dfd0 !important;
-  color:#57222b !important;
-}
-.music-screen :is(.spotify-library-paper,.spotify-queue-panel,.music-section-panel,.music-playlist-board) :is(strong,h2,h3){
-  color:#57222b !important;
-  -webkit-text-fill-color:#57222b !important;
-}
-.music-screen :is(.spotify-library-paper,.spotify-queue-panel,.music-section-panel,.music-playlist-board) :is(span,small,p){
-  color:#86595d !important;
-  -webkit-text-fill-color:#86595d !important;
-}
-.music-screen .spotify-compact-track-list button{
-  color:#57222b !important;
-  -webkit-text-fill-color:#57222b !important;
-}
-
-/* Saved Diario songs: romantic index slips rather than dark dashboard cards. */
-.music-screen .music-library .music-track{
-  background:#ead4c4 !important;
-  color:#57222b !important;
-  border-color:rgba(91,30,39,.10) !important;
-  box-shadow:3px 4px 0 rgba(22,6,10,.10) !important;
-}
-.music-screen .music-library .music-track :is(h3,strong){
-  color:#57222b !important;
-  -webkit-text-fill-color:#57222b !important;
-}
-.music-screen .music-library .music-track :is(p,span,small){
-  color:#85585d !important;
-  -webkit-text-fill-color:#85585d !important;
-}
-.music-screen .music-library .music-track button{
-  color:#65202a !important;
-}
-
-/* The explanatory copy becomes a liner note, not a floating rounded SaaS card. */
-.music-screen .music-rule,
-.music-screen .music-note,
-.music-screen .music-library-note{
-  border-radius:2px !important;
-  background:#ead4c4 !important;
-  color:#704049 !important;
-  box-shadow:3px 4px 0 rgba(22,6,10,.10) !important;
-}
-
-/* Login: cream page means wine ink. Fixes the washed-out title/note/labels. */
-.private-entry{
-  background:
-    radial-gradient(circle at 50% 20%,rgba(129,42,53,.24),transparent 42%),
-    #4b151d !important;
-}
-.private-login{
-  background:#f6e8d8 !important;
-  color:#5b2029 !important;
-}
-.private-login > svg,
-.private-login .private-kicker,
-.private-login h1,
-.private-login .private-note,
-.private-login form label{
-  opacity:1 !important;
-}
-.private-login > svg{ color:#b5404e !important; }
-.private-login .private-kicker{
-  color:#b5404e !important;
-  -webkit-text-fill-color:#b5404e !important;
-}
-.private-login h1{
-  color:#5b2029 !important;
-  -webkit-text-fill-color:#5b2029 !important;
-}
-.private-login .private-note{
-  color:#a35e64 !important;
-  -webkit-text-fill-color:#a35e64 !important;
-}
-.private-login form label{
-  color:#a65a61 !important;
-  -webkit-text-fill-color:#a65a61 !important;
-}
-.private-login input{
-  color:#57222b !important;
-  -webkit-text-fill-color:#57222b !important;
-  caret-color:#7b2632 !important;
-  background:rgba(255,250,242,.42) !important;
-}
-.private-login input:-webkit-autofill{
-  -webkit-text-fill-color:#57222b !important;
-}
-.private-login button[type="submit"]{
-  background:#5d1721 !important;
-  color:#fff4e7 !important;
-  -webkit-text-fill-color:#fff4e7 !important;
-}
-.private-login .private-error{
-  color:#9b2837 !important;
-  -webkit-text-fill-color:#9b2837 !important;
-}
-
-/* Bottom nav: readable at night without becoming another bright card. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav{
-  background:rgba(101,43,50,.90) !important;
-  border-color:rgba(247,233,218,.20) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button:not(.active){
-  color:var(--night-ivory-soft) !important;
-  -webkit-text-fill-color:var(--night-ivory-soft) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button.active{
-  color:#fff4e7 !important;
-  -webkit-text-fill-color:#fff4e7 !important;
-}
-
-/* Chat keeps its chosen theme. Time adaptation changes mood, not legibility. */
-.messenger-chat.chat-adapt-time:is(.chat-time-night,.chat-time-late){
-  --chat-ink:#f7eadb !important;
-  --chat-safe-ink:#f7eadb !important;
-  --chat-readable-ink:#f7eadb !important;
-  --chat-safe-muted:#d7bdb4 !important;
-  --chat-readable-muted:#d7bdb4 !important;
-}
-.messenger-chat.chat-adapt-time:is(.chat-time-night,.chat-time-late) :is(
-  .chat-message-content,
-  .chat-message-content *,
-  .message-content,
-  .message-content *
-){
-  color:var(--chat-readable-ink) !important;
-  -webkit-text-fill-color:var(--chat-readable-ink) !important;
-}
-.messenger-chat.chat-theme-midnight :is(
-  .chat-message-content,
-  .chat-message-content *,
-  .message-content,
-  .message-content *
-){
-  color:#f8ecdd !important;
-  -webkit-text-fill-color:#f8ecdd !important;
-}
-
-/* Small phones: preserve breathing room and keep action labels from crushing titles. */
-@media (max-width:420px){
-  .music-screen .spotify-top-track{
-    grid-template-columns:18px 38px minmax(0,1fr) auto !important;
-    gap:7px !important;
-  }
-  .music-screen .spotify-top-actions button:not(:first-child){
-    padding-inline:5px !important;
-    font-size:7px !important;
-  }
-  .music-screen .spotify-top-cover{
-    width:38px !important;
-    height:38px !important;
-  }
-}
-
-
-/* =========================================================
-   VISUAL PASS 04D · THE RECORD COLLECTION
-   The lower Player becomes an editorial music archive:
-   fewer cards, more liner-notes / record-index rhythm.
-   ========================================================= */
-
-/* Pull the collection closer to the player and make owner tabs feel like dividers. */
+/* ---------- PLAYER: OWNER + SECTION NAV ---------- */
 .music-screen .music-tabs{
-  margin-top:18px !important;
-  min-height:48px !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,1fr) !important;
   gap:0 !important;
-  background:transparent !important;
+  margin:18px 24px 0 !important;
+  padding:0 !important;
   border:0 !important;
+  background:transparent !important;
   box-shadow:none !important;
 }
 .music-screen .music-tabs button{
   min-height:46px !important;
   padding:0 16px !important;
-  border-radius:0 !important;
-  background:transparent !important;
   border:0 !important;
   border-bottom:1px solid rgba(111,39,49,.22) !important;
-  letter-spacing:.14em !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#7a4a50 !important;
   font-size:10px !important;
+  font-weight:800 !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
   box-shadow:none !important;
 }
 .music-screen .music-tabs button.active{
-  background:transparent !important;
-  color:#f7eadb !important;
-  -webkit-text-fill-color:#f7eadb !important;
-  border-bottom:2px solid currentColor !important;
+  background:#7b1f2d !important;
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+  border-bottom-color:#d88a92 !important;
 }
-.phone-shell:not([data-time-theme="night"]):not([data-time-theme="late"]) .music-screen .music-tabs button.active{
-  color:#681d28 !important;
-  -webkit-text-fill-color:#681d28 !important;
-}
-
-/* Tiny archive labels: readable, but secondary. */
 .music-screen .music-section-tabs{
-  margin:4px 0 16px !important;
-  min-height:38px !important;
+  display:flex !important;
   gap:0 !important;
+  min-height:38px !important;
+  margin:4px 24px 16px !important;
   overflow-x:auto !important;
-  scrollbar-width:none;
+  overflow-y:hidden !important;
+  border-bottom:1px solid rgba(111,39,49,.16) !important;
+  scrollbar-width:none !important;
 }
-.music-screen .music-section-tabs::-webkit-scrollbar{display:none}
+.music-screen .music-section-tabs::-webkit-scrollbar{display:none !important}
 .music-screen .music-section-tabs button{
   flex:1 0 auto !important;
   min-width:max-content !important;
-  padding:0 10px 8px !important;
-  font-size:9px !important;
+  padding:10px 9px 8px !important;
+  border:0 !important;
+  border-bottom:2px solid transparent !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#8f5960 !important;
+  font-size:8px !important;
   font-weight:650 !important;
-  letter-spacing:.12em !important;
-  opacity:.68 !important;
+  letter-spacing:.10em !important;
+  text-transform:uppercase !important;
+  opacity:.82 !important;
 }
 .music-screen .music-section-tabs button.active{
+  color:#651923 !important;
+  -webkit-text-fill-color:#651923 !important;
+  border-bottom-color:#651923 !important;
   opacity:1 !important;
 }
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button:not(.active),
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
+  color:rgba(249,233,217,.72) !important;
+  -webkit-text-fill-color:rgba(249,233,217,.72) !important;
+  opacity:1 !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button.active{
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+  border-bottom-color:#d88a92 !important;
+}
 
-/* Saved-song library is one continuous sheet, not a stack of SaaS cards. */
+/* ---------- PLAYER: SAVED RECORD INDEX ---------- */
 .music-screen .music-library{
   position:relative !important;
   display:block !important;
-  margin:0 8px 22px !important;
-  padding:12px 18px 16px !important;
-  background:
-    repeating-linear-gradient(0deg,transparent 0 63px,rgba(103,35,44,.055) 63px 64px),
-    #f0ddcd !important;
+  margin:0 10px 24px !important;
+  padding:14px 18px 20px !important;
   border:1px solid rgba(91,30,39,.10) !important;
   border-radius:1px !important;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 54px,rgba(103,35,44,.045) 54px 55px),
+    #f0ddcd !important;
   box-shadow:5px 7px 0 rgba(20,5,9,.12) !important;
 }
 .music-screen .music-library::before{
-  content:"saved songs · record index";
+  content:"SAVED SONGS · RECORD INDEX";
   display:block;
-  padding:2px 0 11px !important;
-  margin-bottom:2px !important;
-  color:#a34b55 !important;
-  font-family:var(--font-sans,inherit);
-  font-size:8px !important;
-  font-weight:700 !important;
-  letter-spacing:.18em !important;
-  text-transform:uppercase !important;
-  border-bottom:1px solid rgba(101,34,43,.16);
-}
-
-/* Each track is a row in the archive. */
-.music-screen .music-library .music-track{
-  position:relative !important;
-  display:grid !important;
-  grid-template-columns:50px minmax(0,1fr) auto !important;
-  grid-template-areas:
-    "cover copy actions"
-    "cover meta actions" !important;
-  align-items:center !important;
-  gap:2px 12px !important;
-  min-height:74px !important;
-  margin:0 !important;
-  padding:10px 0 !important;
-  background:transparent !important;
-  border:0 !important;
-  border-bottom:1px solid rgba(91,30,39,.13) !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-  transform:none !important;
-}
-.music-screen .music-library .music-track:last-child{
-  border-bottom:0 !important;
-}
-.music-screen .music-track-cover,
-.music-screen .music-track img:first-of-type{
-  grid-area:cover !important;
-  width:50px !important;
-  height:50px !important;
-  object-fit:cover !important;
-  border-radius:1px !important;
-  box-shadow:2px 3px 0 rgba(82,27,35,.12) !important;
-}
-.music-screen .music-track-copy,
-.music-screen .music-track-info{
-  grid-area:copy !important;
-  min-width:0 !important;
-}
-.music-screen .music-track-copy h3,
-.music-screen .music-track-info h3{
-  margin:0 0 2px !important;
-  font-family:var(--font-serif,serif) !important;
-  font-size:17px !important;
-  line-height:1.05 !important;
-  font-weight:500 !important;
-}
-.music-screen .music-track-copy p,
-.music-screen .music-track-info p{
-  margin:0 !important;
-  font-size:10px !important;
-  line-height:1.3 !important;
-}
-.music-screen .music-track .music-note,
-.music-screen .music-track .music-track-note{
-  display:none !important;
-}
-
-/* Actions collapse into a tiny record-player control cluster. */
-.music-screen .music-track-actions{
-  grid-area:actions !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-end !important;
-  gap:4px !important;
-  align-self:center !important;
-}
-.music-screen .music-track-actions button{
-  min-width:0 !important;
-  width:30px !important;
-  height:30px !important;
-  padding:0 !important;
-  border:0 !important;
-  border-radius:50% !important;
-  background:rgba(255,247,237,.42) !important;
-  color:#681e29 !important;
-  box-shadow:none !important;
-  font-size:0 !important;
-}
-.music-screen .music-track-actions button svg{
-  width:14px !important;
-  height:14px !important;
-}
-.music-screen .music-track-actions button:first-child{
-  background:#651923 !important;
-  color:#fff3e5 !important;
-}
-.music-screen .music-track-actions button[title*="queue" i],
-.music-screen .music-track-actions button[aria-label*="queue" i]{
-  background:transparent !important;
-  border:1px solid rgba(101,30,41,.22) !important;
-}
-
-/* Heart becomes a tiny margin annotation instead of its own square card. */
-.music-screen .music-track-favorite,
-.music-screen .music-track > button[aria-label*="favorite" i],
-.music-screen .music-track > button[title*="favorite" i]{
-  position:absolute !important;
-  right:4px !important;
-  bottom:5px !important;
-  width:24px !important;
-  height:24px !important;
-  padding:0 !important;
-  background:transparent !important;
-  border:0 !important;
-  box-shadow:none !important;
-}
-
-/* Connections are metadata: quiet handwritten underline, never the loudest CTA. */
-.music-screen .music-track .connection-button,
-.music-screen .music-track button[class*="connection"]{
-  width:auto !important;
-  min-width:0 !important;
-  height:auto !important;
-  padding:3px 0 !important;
-  border:0 !important;
-  border-bottom:1px solid rgba(101,30,41,.30) !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  color:#8b5158 !important;
-  box-shadow:none !important;
-  font-size:7px !important;
-  letter-spacing:.10em !important;
-}
-
-/* Add-song is an archive footer, not a giant pill. */
-.music-screen .music-add-button,
-.music-screen button[class*="add-song"]{
-  margin:8px auto 18px !important;
-  width:auto !important;
-  min-height:34px !important;
-  padding:5px 18px !important;
-  border-radius:1px !important;
-  background:transparent !important;
-  border:1px solid rgba(246,234,219,.36) !important;
-  color:#f6eadb !important;
-  -webkit-text-fill-color:#f6eadb !important;
-  box-shadow:none !important;
-}
-
-/* Liner-note footer: a torn little note, not a rounded info card. */
-.music-screen .music-rule,
-.music-screen .music-library-note{
-  position:relative !important;
-  margin:12px 18px 28px !important;
-  padding:15px 17px !important;
-  border:0 !important;
-  border-radius:1px !important;
-  background:#e7cfbf !important;
-  color:#74454c !important;
-  box-shadow:3px 4px 0 rgba(22,6,10,.10) !important;
-  font-family:var(--font-serif,serif) !important;
-  font-size:11px !important;
-  line-height:1.5 !important;
-}
-.music-screen .music-rule::before,
-.music-screen .music-library-note::before{
-  content:"liner note";
-  display:block;
-  margin-bottom:5px;
-  color:#a64e58;
-  font-family:var(--font-sans,inherit);
+  margin-bottom:2px;
+  padding:0 0 11px;
+  border-bottom:1px solid rgba(91,30,39,.15);
+  color:#a24e58;
+  -webkit-text-fill-color:#a24e58;
   font-size:7px;
   font-weight:700;
   letter-spacing:.18em;
-  text-transform:uppercase;
 }
-
-/* Playlist covers get gallery breathing room; the art does the decorating. */
-.music-screen .spotify-playlist-grid{
-  gap:18px 12px !important;
-}
-.music-screen .spotify-playlist-card{
-  background:transparent !important;
-  border:0 !important;
-  box-shadow:none !important;
-}
-.music-screen .spotify-playlist-card img{
-  border-radius:1px !important;
-  box-shadow:3px 4px 0 rgba(62,17,25,.12) !important;
-}
-.music-screen .spotify-playlist-card strong{
-  margin-top:7px !important;
-  font-family:var(--font-serif,serif) !important;
-}
-
-/* On small phones, title gets space and action cluster stays genuinely tiny. */
-@media (max-width:420px){
-  .music-screen .music-library{
-    margin-inline:6px !important;
-    padding-inline:14px !important;
-  }
-  .music-screen .music-library .music-track{
-    grid-template-columns:46px minmax(0,1fr) auto !important;
-    gap:2px 9px !important;
-  }
-  .music-screen .music-track-cover,
-  .music-screen .music-track img:first-of-type{
-    width:46px !important;
-    height:46px !important;
-  }
-  .music-screen .music-track-actions button{
-    width:27px !important;
-    height:27px !important;
-  }
-}
-
-
-/* =========================================================
-   VISUAL PASS 04E · CLEAN TRACK ROWS + REMOVE
-   ========================================================= */
 .music-screen .music-library .music-track{
-  grid-template-columns:52px minmax(0,1fr) 74px !important;
+  display:grid !important;
+  grid-template-columns:52px minmax(0,1fr) 62px !important;
   grid-template-areas:"cover copy actions" !important;
+  gap:12px !important;
   align-items:center !important;
   min-height:86px !important;
-  padding:12px 0 !important;
+  margin:0 !important;
+  padding:14px 0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(91,30,39,.12) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transform:none !important;
 }
-.music-screen .music-track .music-record{
+.music-screen .music-library .music-track:last-child{border-bottom:0 !important}
+.music-screen .music-record{
   grid-area:cover !important;
   width:52px !important;
   height:52px !important;
+  display:grid !important;
+  place-items:center !important;
 }
-.music-screen .music-track .music-record img{
+.music-screen .music-record img{
   width:52px !important;
   height:52px !important;
   object-fit:cover !important;
@@ -15831,7 +14983,8 @@ html[data-diario-time-theme="continuous"] .statusbar {
 }
 .music-screen .music-track-copy > small{
   margin-bottom:3px !important;
-  color:#9b555d !important;
+  color:#9c5c62 !important;
+  -webkit-text-fill-color:#9c5c62 !important;
   font-size:7px !important;
   font-weight:700 !important;
   letter-spacing:.16em !important;
@@ -15840,54 +14993,57 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .music-screen .music-track-copy > strong{
   max-width:100% !important;
   overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-display) !important;
+  font-size:16px !important;
+  font-weight:500 !important;
+  line-height:1.05 !important;
   text-overflow:ellipsis !important;
   white-space:nowrap !important;
-  color:#57222b !important;
-  font-family:var(--font-serif,serif) !important;
-  font-size:17px !important;
-  font-weight:500 !important;
 }
 .music-screen .music-track-copy > span,
 .music-screen .music-track-copy > em{
   max-width:100% !important;
   overflow:hidden !important;
+  color:#74464d !important;
+  -webkit-text-fill-color:#74464d !important;
+  font-size:8.5px !important;
+  font-style:normal !important;
   text-overflow:ellipsis !important;
   white-space:nowrap !important;
-  color:#805159 !important;
-  font-size:9px !important;
-  font-style:normal !important;
 }
 .music-screen .music-track-copy > p{display:none !important}
 .music-screen .music-connections-link{
   width:auto !important;
   height:auto !important;
-  margin-top:5px !important;
+  margin-top:4px !important;
   padding:0 0 2px !important;
   border:0 !important;
   border-bottom:1px solid rgba(101,30,41,.24) !important;
   border-radius:0 !important;
   background:transparent !important;
-  color:#945961 !important;
-  font-size:7px !important;
+  color:#7d3943 !important;
+  -webkit-text-fill-color:#7d3943 !important;
+  font-size:6.5px !important;
   font-weight:600 !important;
   letter-spacing:.08em !important;
-  text-transform:lowercase !important;
   box-shadow:none !important;
 }
 .music-screen .music-track-actions{
   grid-area:actions !important;
   display:grid !important;
-  grid-template-columns:30px 30px !important;
-  grid-auto-rows:28px !important;
+  grid-template-columns:27px 27px !important;
+  grid-auto-rows:27px !important;
   justify-content:end !important;
   align-content:center !important;
-  gap:4px !important;
+  gap:3px !important;
 }
 .music-screen .music-track-actions button{
   position:static !important;
-  width:30px !important;
+  width:27px !important;
   min-width:0 !important;
-  height:28px !important;
+  height:27px !important;
   margin:0 !important;
   padding:0 !important;
   border-radius:2px !important;
@@ -15895,201 +15051,66 @@ html[data-diario-time-theme="continuous"] .statusbar {
   font-size:0 !important;
 }
 .music-screen .music-track-actions .music-listen-button{
+  border:0 !important;
   background:#651923 !important;
   color:#fff3e5 !important;
-  border:0 !important;
 }
 .music-screen .music-track-actions .music-favorite-button{
+  border:1px solid rgba(101,30,41,.16) !important;
   background:transparent !important;
   color:#711f2b !important;
-  border:1px solid rgba(101,30,41,.16) !important;
-}
-.music-screen .music-track-actions .music-queue-button,
-.music-screen .music-track-actions .music-remove-button{
-  width:30px !important;
-  background:transparent !important;
-  color:#8b5158 !important;
-  border:0 !important;
-  font-size:6px !important;
-  line-height:1 !important;
-  text-transform:lowercase !important;
-}
-.music-screen .music-track-actions .music-remove-button{
-  color:#a34a55 !important;
-  text-decoration:underline !important;
-  text-underline-offset:2px !important;
-}
-@media (max-width:420px){
-  .music-screen .music-library .music-track{
-    grid-template-columns:48px minmax(0,1fr) 68px !important;
-    gap:8px !important;
-  }
-  .music-screen .music-track .music-record,
-  .music-screen .music-track .music-record img{
-    width:48px !important;
-    height:48px !important;
-  }
-  .music-screen .music-track-actions{
-    grid-template-columns:28px 28px !important;
-  }
-  .music-screen .music-track-actions button,
-  .music-screen .music-track-actions .music-queue-button,
-  .music-screen .music-track-actions .music-remove-button{
-    width:28px !important;
-  }
-}
-
-
-/* =========================================================
-   VISUAL PASS 04F · JEWELRY PASS
-   Keep the record-index structure; refine only spacing/actions.
-   ========================================================= */
-.music-screen .music-library .music-track{
-  grid-template-columns:52px minmax(0,1fr) 62px !important;
-  gap:12px !important;
-}
-.music-screen .music-track-actions{
-  grid-template-columns:29px 29px !important;
-  grid-auto-rows:29px !important;
-  gap:4px !important;
-}
-.music-screen .music-track-actions button,
-.music-screen .music-track-actions .music-queue-button,
-.music-screen .music-track-actions .music-remove-button{
-  width:29px !important;
-  height:29px !important;
 }
 .music-screen .music-track-actions .music-queue-button{
   position:relative !important;
   border:1px solid rgba(101,30,41,.16) !important;
+  background:transparent !important;
   color:transparent !important;
-  font-size:0 !important;
 }
 .music-screen .music-track-actions .music-queue-button::before{
-  content:"+" !important;
-  position:absolute !important;
-  inset:0 !important;
-  display:grid !important;
-  place-items:center !important;
-  color:#7d3943 !important;
-  font-family:Georgia,serif !important;
-  font-size:17px !important;
-  line-height:1 !important;
+  content:"+";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#7d3943;
+  font:15px/1 Georgia,serif;
 }
 .music-screen .music-track-actions .music-remove-button{
   border:0 !important;
+  background:transparent !important;
   color:#a4666c !important;
-  font-family:Georgia,serif !important;
-  font-size:16px !important;
-  text-decoration:none !important;
-  opacity:.72 !important;
+  font:13px/1 Georgia,serif !important;
+  opacity:.55 !important;
 }
-.music-screen .music-track-actions .music-remove-button:hover,
-.music-screen .music-track-actions .music-remove-button:focus-visible{
-  color:#711f2b !important;
-  opacity:1 !important;
-}
-.music-screen .music-connections-link{
-  margin-top:4px !important;
-  font-size:6.5px !important;
-}
-.music-screen .music-track-copy > strong{
-  font-size:16px !important;
-}
-.music-screen .music-track-copy > span{
-  font-size:8.5px !important;
-}
-.music-screen .music-track-copy > em{
-  margin-top:1px !important;
-  font-size:8px !important;
-}
+.music-screen .music-track-actions button:disabled{opacity:.42 !important}
 
-/* The owner + archive navigation stays safely below the phone header while scrolling. */
-.music-screen .music-tabs{
-  scroll-margin-top:92px !important;
-}
-.music-screen .music-section-tabs{
-  position:relative !important;
-  z-index:2 !important;
-  padding-top:3px !important;
-}
-
-/* Do not let the floating nav eat the final records. */
-.music-screen{
-  padding-bottom:132px !important;
-}
-
-@media (max-width:420px){
-  .music-screen .music-library .music-track{
-    grid-template-columns:48px minmax(0,1fr) 58px !important;
-    gap:9px !important;
-  }
-  .music-screen .music-track-actions{
-    grid-template-columns:27px 27px !important;
-    grid-auto-rows:27px !important;
-  }
-  .music-screen .music-track-actions button,
-  .music-screen .music-track-actions .music-queue-button,
-  .music-screen .music-track-actions .music-remove-button{
-    width:27px !important;
-    height:27px !important;
-  }
-}
-
-
-/* =========================================================
-   VISUAL PASS 05 · COMPLETE PLAYER WORLD
-   One visual system for Library / Playlists / Recent / Queue /
-   Favorites and Mine / Dominic / Ours.
-   ========================================================= */
-
-/* --- navigation: make it readable and intentional at night --- */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button{
-  color:rgba(246,234,219,.58) !important;
-  -webkit-text-fill-color:rgba(246,234,219,.58) !important;
-  border-bottom-color:rgba(246,234,219,.14) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active{
-  color:#fff0df !important;
-  -webkit-text-fill-color:#fff0df !important;
-  border-bottom-color:#d8878f !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
-  color:rgba(246,234,219,.62) !important;
-  -webkit-text-fill-color:rgba(246,234,219,.62) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button.active{
-  color:#fff0df !important;
-  -webkit-text-fill-color:#fff0df !important;
-  border-bottom-color:#fff0df !important;
-}
-
-/* --- shared paper language for every lower-player section --- */
+/* ---------- PLAYER: SPOTIFY PAPER SECTIONS ---------- */
 .music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board){
   position:relative !important;
+  height:auto !important;
+  max-height:none !important;
   margin:0 10px 24px !important;
-  padding:18px !important;
+  padding:18px 18px 20px !important;
+  overflow:visible !important;
   border:1px solid rgba(91,30,39,.10) !important;
   border-radius:1px !important;
   background:
     repeating-linear-gradient(0deg,transparent 0 54px,rgba(103,35,44,.045) 54px 55px),
     #f0ddcd !important;
+  color:#57222b !important;
   box-shadow:5px 7px 0 rgba(20,5,9,.12) !important;
-  overflow:hidden !important;
 }
 .music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board)::before{
   content:"";
   position:absolute;
-  width:70px;
-  height:17px;
   top:-7px;
   left:50%;
+  width:70px;
+  height:17px;
   transform:translateX(-50%) rotate(-1deg);
   background:rgba(229,186,176,.50);
   pointer-events:none;
 }
-
-/* --- headings feel like liner-note typography --- */
 .music-screen .spotify-library-heading,
 .music-screen .music-playlist-board > header,
 .music-screen .spotify-queue-panel > header{
@@ -16121,10 +15142,10 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .music-screen .music-playlist-board header strong{
   color:#57222b !important;
   -webkit-text-fill-color:#57222b !important;
-  font-family:var(--font-serif,serif) !important;
+  font-family:var(--font-display) !important;
   font-size:25px !important;
-  line-height:1 !important;
   font-weight:500 !important;
+  line-height:1 !important;
 }
 .music-screen .spotify-library-heading small,
 .music-screen .music-playlist-board header small{
@@ -16133,47 +15154,43 @@ html[data-diario-time-theme="continuous"] .statusbar {
   font-size:8px !important;
 }
 
-/* --- playlists: actual record-cover gallery --- */
+/* playlists */
 .music-screen .spotify-playlist-grid{
   display:grid !important;
   grid-template-columns:repeat(2,minmax(0,1fr)) !important;
   gap:22px 14px !important;
+  height:auto !important;
+  max-height:none !important;
   padding:3px 0 6px !important;
+  overflow:visible !important;
 }
 .music-screen .spotify-playlist-grid > button{
   min-width:0 !important;
   padding:0 !important;
-  text-align:left !important;
-  background:transparent !important;
   border:0 !important;
   border-radius:0 !important;
-  box-shadow:none !important;
+  background:transparent !important;
   color:#57222b !important;
+  text-align:left !important;
+  box-shadow:none !important;
 }
 .music-screen .spotify-playlist-art{
-  position:relative !important;
   width:100% !important;
   aspect-ratio:1 !important;
   overflow:hidden !important;
-  background:#dfc2b5 !important;
   border:1px solid rgba(91,30,39,.10) !important;
   border-radius:1px !important;
+  background:#dfc2b5 !important;
   box-shadow:3px 4px 0 rgba(62,17,25,.13) !important;
 }
-.music-screen .spotify-playlist-art img{
-  width:100% !important;
-  height:100% !important;
-  object-fit:cover !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-}
+.music-screen .spotify-playlist-art img{width:100% !important;height:100% !important;object-fit:cover !important}
 .music-screen .spotify-playlist-grid > button > strong{
   display:block !important;
   margin:8px 0 2px !important;
   overflow:hidden !important;
   color:#57222b !important;
   -webkit-text-fill-color:#57222b !important;
-  font-family:var(--font-serif,serif) !important;
+  font-family:var(--font-display) !important;
   font-size:14px !important;
   font-weight:600 !important;
   line-height:1.15 !important;
@@ -16185,8 +15202,6 @@ html[data-diario-time-theme="continuous"] .statusbar {
   -webkit-text-fill-color:#9a686b !important;
   font-size:8px !important;
 }
-
-/* selected playlist = album sleeve header + compact track listing */
 .music-screen .spotify-library-back{
   width:auto !important;
   margin:0 0 12px !important;
@@ -16213,31 +15228,24 @@ html[data-diario-time-theme="continuous"] .statusbar {
   border-radius:1px !important;
   box-shadow:3px 4px 0 rgba(62,17,25,.13) !important;
 }
-.music-screen .spotify-selected-playlist > div{
-  min-width:0 !important;
-  display:flex !important;
-  flex-direction:column !important;
-}
-.music-screen .spotify-selected-playlist small{
-  color:#a24e58 !important;
-  font-size:7px !important;
-  letter-spacing:.16em !important;
-}
-.music-screen .spotify-selected-playlist strong{
-  color:#57222b !important;
-  font-family:var(--font-serif,serif) !important;
-  font-size:21px !important;
-  line-height:1.05 !important;
-}
-.music-screen .spotify-selected-playlist span{
-  color:#956269 !important;
-  font-size:8px !important;
-}
+.music-screen .spotify-selected-playlist > div{min-width:0 !important;display:flex !important;flex-direction:column !important}
+.music-screen .spotify-selected-playlist small{color:#a24e58 !important;font-size:7px !important;letter-spacing:.16em !important}
+.music-screen .spotify-selected-playlist strong{color:#57222b !important;font:500 21px/1.05 var(--font-display) !important}
+.music-screen .spotify-selected-playlist span{color:#956269 !important;font-size:8px !important}
 
-/* --- Recent + Liked songs: elegant compact track ledger --- */
-.music-screen .spotify-compact-track-list{
+/* recent / liked / playlist track listing — deliberately no nested scrolling */
+.music-screen .spotify-compact-track-list,
+.music-screen .spotify-liked-track-list{
   display:block !important;
+  position:static !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow:visible !important;
+  scrollbar-width:none !important;
 }
+.music-screen .spotify-compact-track-list::-webkit-scrollbar,
+.music-screen .spotify-liked-track-list::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important}
 .music-screen .spotify-compact-track-list > button{
   display:grid !important;
   grid-template-columns:38px minmax(0,1fr) 24px !important;
@@ -16245,7 +15253,9 @@ html[data-diario-time-theme="continuous"] .statusbar {
   align-items:center !important;
   width:100% !important;
   min-height:55px !important;
+  max-height:none !important;
   padding:8px 0 !important;
+  overflow:visible !important;
   border:0 !important;
   border-bottom:1px solid rgba(91,30,39,.12) !important;
   border-radius:0 !important;
@@ -16254,22 +15264,13 @@ html[data-diario-time-theme="continuous"] .statusbar {
   box-shadow:none !important;
 }
 .music-screen .spotify-compact-track-list > button:last-child{border-bottom:0 !important}
-.music-screen .spotify-compact-track-list > button > img{
-  width:38px !important;
-  height:38px !important;
-  object-fit:cover !important;
-  border-radius:1px !important;
-}
-.music-screen .spotify-compact-track-list > button > span{
-  min-width:0 !important;
-  display:flex !important;
-  flex-direction:column !important;
-}
+.music-screen .spotify-compact-track-list > button > img{width:38px !important;height:38px !important;object-fit:cover !important;border-radius:1px !important}
+.music-screen .spotify-compact-track-list > button > span{min-width:0 !important;display:flex !important;flex-direction:column !important}
 .music-screen .spotify-compact-track-list > button strong{
   overflow:hidden !important;
   color:#57222b !important;
   -webkit-text-fill-color:#57222b !important;
-  font-family:var(--font-serif,serif) !important;
+  font-family:var(--font-display) !important;
   font-size:13px !important;
   font-weight:600 !important;
   text-overflow:ellipsis !important;
@@ -16283,11 +15284,9 @@ html[data-diario-time-theme="continuous"] .statusbar {
   text-overflow:ellipsis !important;
   white-space:nowrap !important;
 }
-.music-screen .spotify-compact-track-list > button > svg{
-  color:#6a1c28 !important;
-}
+.music-screen .spotify-compact-track-list > button > svg{color:#6a1c28 !important}
 
-/* --- queue: numbered record-session list --- */
+/* queue */
 .music-screen .spotify-queue-panel > header button{
   width:auto !important;
   min-height:0 !important;
@@ -16302,6 +15301,9 @@ html[data-diario-time-theme="continuous"] .statusbar {
 }
 .music-screen .spotify-queue-list{
   counter-reset:queue-track;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
 }
 .music-screen .spotify-queue-item{
   counter-increment:queue-track;
@@ -16316,25 +15318,16 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .music-screen .spotify-queue-item::before{
   content:counter(queue-track);
   color:#a16b70;
-  font-family:var(--font-serif,serif);
+  font-family:var(--font-display);
   font-size:9px;
 }
-.music-screen .spotify-queue-item img{
-  width:38px !important;
-  height:38px !important;
-  object-fit:cover !important;
-  border-radius:1px !important;
-}
-.music-screen .spotify-queue-item > div{
-  min-width:0 !important;
-  display:flex !important;
-  flex-direction:column !important;
-}
+.music-screen .spotify-queue-item img{width:38px !important;height:38px !important;object-fit:cover !important;border-radius:1px !important}
+.music-screen .spotify-queue-item > div{min-width:0 !important;display:flex !important;flex-direction:column !important}
 .music-screen .spotify-queue-item strong{
   overflow:hidden !important;
   color:#57222b !important;
   -webkit-text-fill-color:#57222b !important;
-  font-family:var(--font-serif,serif) !important;
+  font-family:var(--font-display) !important;
   font-size:13px !important;
   text-overflow:ellipsis !important;
   white-space:nowrap !important;
@@ -16348,22 +15341,17 @@ html[data-diario-time-theme="continuous"] .statusbar {
   white-space:nowrap !important;
 }
 
-/* --- Dominic / Ours playlist placeholders are intentional journal pages --- */
-.music-screen .music-playlist-board{
-  min-height:150px !important;
-}
+/* Dominic / Ours empty playlist page */
+.music-screen .music-playlist-board{min-height:150px !important}
 .music-screen .music-playlist-board > p{
   max-width:31ch !important;
   margin:18px 0 8px !important;
   color:#805159 !important;
   -webkit-text-fill-color:#805159 !important;
-  font-family:var(--font-serif,serif) !important;
-  font-size:13px !important;
-  line-height:1.5 !important;
-  font-style:italic !important;
+  font:italic 13px/1.5 var(--font-display) !important;
 }
 
-/* --- empty states belong to the scrapbook too --- */
+/* add / empty */
 .music-screen .music-empty,
 .music-screen .music-empty-note{
   margin:0 10px 24px !important;
@@ -16375,312 +15363,86 @@ html[data-diario-time-theme="continuous"] .statusbar {
   -webkit-text-fill-color:#704049 !important;
   box-shadow:4px 5px 0 rgba(20,5,9,.11) !important;
 }
-.music-screen .music-empty h2{
-  color:#57222b !important;
-  -webkit-text-fill-color:#57222b !important;
-  font-family:var(--font-serif,serif) !important;
-}
-
-/* --- final saved-song action polish --- */
-.music-screen .music-track-actions{
-  grid-template-columns:27px 27px !important;
-  grid-auto-rows:27px !important;
-  gap:3px !important;
-}
-.music-screen .music-track-actions button,
-.music-screen .music-track-actions .music-queue-button,
-.music-screen .music-track-actions .music-remove-button{
-  width:27px !important;
-  height:27px !important;
-}
-.music-screen .music-track-actions .music-remove-button{
-  font-size:13px !important;
-  opacity:.55 !important;
-}
-.music-screen .music-track-actions .music-queue-button::before{
-  font-size:15px !important;
-}
-
-/* Keep bottom nav away from content on long music screens. */
-.music-screen :is(.music-library,.spotify-library-paper,.spotify-queue-panel,.music-playlist-board):last-of-type{
-  margin-bottom:34px !important;
-}
-
-@media (max-width:390px){
-  .music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board){
-    margin-inline:6px !important;
-    padding-inline:14px !important;
-  }
-  .music-screen .spotify-playlist-grid{gap:18px 11px !important}
-  .music-screen .spotify-library-heading strong{font-size:22px !important}
-}
-
-
-/* =========================================================
-   VISUAL PASS 05B · MOBILE PLAYER FIXES FROM DEVICE QA
-   Fix dark unreadable lower sections + nested scrollers.
-   ========================================================= */
-
-/* The archive tabs must stay legible on the burgundy night surface. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs{
-  color:#f2dfd0 !important;
-  -webkit-text-fill-color:#f2dfd0 !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
-  color:rgba(244,224,208,.72) !important;
-  -webkit-text-fill-color:rgba(244,224,208,.72) !important;
-  opacity:1 !important;
-  text-shadow:0 1px 0 rgba(0,0,0,.12) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button.active{
-  color:#fff4e8 !important;
-  -webkit-text-fill-color:#fff4e8 !important;
-  opacity:1 !important;
-}
-
-/* Saved-song Library was still inheriting dark/night colors. Keep it on ivory paper. */
-.music-screen .music-library{
-  margin:0 10px 24px !important;
-  padding:14px 18px 8px !important;
-  border:1px solid rgba(91,30,39,.10) !important;
-  background:
-    repeating-linear-gradient(0deg,transparent 0 54px,rgba(103,35,44,.045) 54px 55px),
-    #f0ddcd !important;
-  box-shadow:5px 7px 0 rgba(20,5,9,.12) !important;
-}
-.music-screen .music-library::before{
-  content:"SAVED SONGS · RECORD INDEX" !important;
+.music-screen .music-empty h2{color:#57222b !important;-webkit-text-fill-color:#57222b !important;font-family:var(--font-display) !important}
+.music-screen > .gallery-add-button{
   display:block !important;
-  padding:0 0 11px !important;
-  margin-bottom:2px !important;
-  border-bottom:1px solid rgba(91,30,39,.15) !important;
-  color:#a24e58 !important;
-  -webkit-text-fill-color:#a24e58 !important;
-  font-size:7px !important;
-  font-weight:700 !important;
-  letter-spacing:.18em !important;
-}
-.music-screen .music-library .music-track{
-  margin:0 !important;
-  padding:14px 0 !important;
-  border:0 !important;
-  border-bottom:1px solid rgba(91,30,39,.12) !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  transform:none !important;
-}
-.music-screen .music-library .music-track:last-child{border-bottom:0 !important}
-.music-screen .music-library .music-track-copy small{
-  color:#9c5c62 !important;-webkit-text-fill-color:#9c5c62 !important;
-}
-.music-screen .music-library .music-track-copy strong{
-  color:#57222b !important;-webkit-text-fill-color:#57222b !important;
-}
-.music-screen .music-library .music-track-copy span,
-.music-screen .music-library .music-track-copy em{
-  color:#74464d !important;-webkit-text-fill-color:#74464d !important;
-}
-.music-screen .music-library .music-connections-link{
-  color:#7d3943 !important;-webkit-text-fill-color:#7d3943 !important;
+  width:calc(100% - 48px) !important;
+  margin:10px auto 22px !important;
 }
 
-/* Never create a second vertical scrollbar inside Spotify lists on mobile. */
-.music-screen .spotify-library-paper,
-.music-screen .spotify-compact-track-list,
-.music-screen .spotify-playlist-grid,
-.music-screen .spotify-queue-list{
-  max-height:none !important;
-  height:auto !important;
-  overflow:visible !important;
-  overscroll-behavior:auto !important;
-  scrollbar-width:none !important;
-}
-.music-screen .spotify-library-paper::-webkit-scrollbar,
-.music-screen .spotify-compact-track-list::-webkit-scrollbar,
-.music-screen .spotify-playlist-grid::-webkit-scrollbar,
-.music-screen .spotify-queue-list::-webkit-scrollbar{display:none !important}
-
-/* Liked songs should be part of the page, not a tiny scroll box. */
-.music-screen .spotify-library-paper .spotify-compact-track-list{
-  padding-bottom:4px !important;
-}
-
-/* Give the long Spotify pages enough breathing room above the floating nav. */
-.music-screen .spotify-library-paper,
-.music-screen .music-library{
-  padding-bottom:20px !important;
-}
-.music-screen{
-  padding-bottom:150px !important;
-}
-
-@media (max-width:420px){
-  .music-screen .music-tabs button{
-    min-height:42px !important;
-    font-size:9px !important;
-  }
-  .music-screen .music-section-tabs{
-    gap:0 !important;
-  }
-  .music-screen .music-section-tabs button{
-    padding:11px 5px 9px !important;
-    font-size:7px !important;
-    letter-spacing:.08em !important;
-  }
-  .music-screen .music-library{
-    margin-inline:6px !important;
-    padding-inline:14px !important;
-  }
-}
-
-
-/* =========================================================
-   VISUAL PASS 05C · FINAL MOBILE OVERRIDES
-   Device screenshots showed older max-height/contrast rules
-   still winning in the cascade. Force the intended result.
-   ========================================================= */
-
-/* Owner + section navigation: ivory first, burgundy only for active accent. */
-.music-screen .music-tabs button,
-.music-screen .music-section-tabs button{
-  color:rgba(249,233,217,.68) !important;
-  -webkit-text-fill-color:rgba(249,233,217,.68) !important;
-  opacity:1 !important;
-}
-.music-screen .music-tabs button.active{
-  color:#fff4e7 !important;
-  -webkit-text-fill-color:#fff4e7 !important;
-  background:#7b1f2d !important;
-  border-color:#d88a92 !important;
-}
-.music-screen .music-section-tabs button.active{
-  color:#fff4e7 !important;
-  -webkit-text-fill-color:#fff4e7 !important;
-  border-bottom-color:#d88a92 !important;
-}
-
-/* Spotify lists: absolutely no nested vertical scrolling. */
-.music-screen .spotify-library-paper,
-.music-screen .spotify-library-paper *,
-.music-screen .spotify-compact-track-list,
-.music-screen .spotify-compact-track-list *,
-.music-screen .spotify-queue-list,
-.music-screen .spotify-playlist-grid{
-  max-height:none !important;
-}
-.music-screen .spotify-library-paper,
-.music-screen .spotify-compact-track-list,
-.music-screen .spotify-queue-list,
-.music-screen .spotify-playlist-grid{
-  height:auto !important;
-  overflow-y:visible !important;
-  overflow-x:visible !important;
-  contain:none !important;
-  clip-path:none !important;
-}
-
-/* Liked Songs specifically had a legacy scroll viewport. */
-.music-screen .spotify-library-paper:has(.spotify-compact-track-list){
-  max-height:none !important;
-  height:auto !important;
-  overflow:visible !important;
-}
-.music-screen .spotify-library-paper .spotify-compact-track-list{
-  display:block !important;
-  max-height:none !important;
-  height:auto !important;
-  overflow:visible !important;
-  padding-bottom:18px !important;
-}
-
-/* Hide any legacy scrollbar decoration that survived WebKit. */
-.music-screen .spotify-library-paper::-webkit-scrollbar,
-.music-screen .spotify-compact-track-list::-webkit-scrollbar,
-.music-screen .spotify-queue-list::-webkit-scrollbar{
-  width:0 !important;
-  height:0 !important;
-  display:none !important;
-}
-
-/* Liner note belongs to the same paper family as the music archive. */
+/* liner note */
 .music-screen .music-rule{
+  position:relative !important;
   margin:0 10px 34px !important;
   padding:15px 18px !important;
   border:1px solid rgba(91,30,39,.10) !important;
   border-radius:1px !important;
   background:#ead6c7 !important;
+  color:#704049 !important;
   box-shadow:4px 5px 0 rgba(20,5,9,.10) !important;
 }
 .music-screen .music-rule::before{
-  content:"LINER NOTE" !important;
-  display:block !important;
-  margin-bottom:6px !important;
-  color:#a24e58 !important;
-  -webkit-text-fill-color:#a24e58 !important;
-  font-size:6px !important;
-  font-weight:700 !important;
-  letter-spacing:.18em !important;
+  content:"LINER NOTE";
+  display:block;
+  margin-bottom:6px;
+  color:#a24e58;
+  -webkit-text-fill-color:#a24e58;
+  font-size:6px;
+  font-weight:700;
+  letter-spacing:.18em;
 }
 .music-screen .music-rule p{
   margin:0 !important;
   color:#704049 !important;
   -webkit-text-fill-color:#704049 !important;
-  font-family:var(--font-serif,serif) !important;
-  font-size:10px !important;
-  line-height:1.45 !important;
+  font:10px/1.45 var(--font-display) !important;
 }
 
-/* More breathing room before the floating navigation on long Spotify pages. */
-.music-screen{padding-bottom:170px !important}
+/* ---------- NIGHT NAV ---------- */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav{
+  background:rgba(101,43,50,.90) !important;
+  border-color:rgba(247,233,218,.20) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button:not(.active){
+  color:var(--night-ivory-soft) !important;
+  -webkit-text-fill-color:var(--night-ivory-soft) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button.active{
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+}
 
+/* ---------- MOBILE ---------- */
 @media (max-width:420px){
+  .music-screen .spotify-live-player{
+    grid-template-columns:88px minmax(0,1fr) !important;
+    margin-inline:17px !important;
+    padding:15px !important;
+  }
+  .music-screen .spotify-live-cover{width:88px !important;height:88px !important}
+  .music-screen .spotify-live-info > strong{font-size:21px !important}
+  .music-screen .spotify-top-rotation{margin-inline:18px !important}
+  .music-screen .spotify-top-track{
+    grid-template-columns:18px 38px minmax(0,1fr) auto !important;
+    gap:7px !important;
+  }
+  .music-screen .spotify-top-cover{width:38px !important;height:38px !important}
+  .music-screen .spotify-top-actions button:not(:first-child){padding-inline:5px !important;font-size:7px !important}
+  .music-screen .music-tabs{margin-inline:18px !important}
+  .music-screen .music-tabs button{min-height:42px !important;padding-inline:8px !important;font-size:9px !important}
+  .music-screen .music-section-tabs{margin-inline:18px !important}
+  .music-screen .music-section-tabs button{padding:11px 5px 9px !important;font-size:7px !important;letter-spacing:.08em !important}
+  .music-screen .music-library,
+  .music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board),
   .music-screen .music-rule{margin-inline:6px !important}
+  .music-screen .music-library{padding-inline:14px !important}
+  .music-screen .music-library .music-track{
+    grid-template-columns:48px minmax(0,1fr) 58px !important;
+    gap:9px !important;
+  }
+  .music-screen .music-record,
+  .music-screen .music-record img{width:48px !important;height:48px !important}
+  .music-screen .spotify-playlist-grid{gap:18px 11px !important}
+  .music-screen .spotify-library-heading strong{font-size:22px !important}
 }
 
-
-/* =========================================================
-   VISUAL PASS 05D · LIKED SONGS: REMOVE LEGACY VIEWPORT
-   Dedicated class added in JSX so old generic rules cannot win.
-   ========================================================= */
-.music-screen .spotify-library-paper:has(.spotify-liked-track-list){
-  display:block !important;
-  height:auto !important;
-  min-height:0 !important;
-  max-height:none !important;
-  overflow:visible !important;
-}
-.music-screen .spotify-liked-track-list{
-  display:block !important;
-  position:static !important;
-  height:auto !important;
-  min-height:0 !important;
-  max-height:none !important;
-  overflow:visible !important;
-  overflow-y:visible !important;
-  overflow-x:visible !important;
-  scrollbar-width:none !important;
-  -webkit-overflow-scrolling:auto !important;
-}
-.music-screen .spotify-liked-track-list::-webkit-scrollbar{
-  display:none !important;
-  width:0 !important;
-  height:0 !important;
-}
-.music-screen .spotify-liked-track-list > button{
-  position:relative !important;
-  flex:none !important;
-  height:auto !important;
-  min-height:55px !important;
-  max-height:none !important;
-  overflow:visible !important;
-}
-
-/* If an old decorative scrollbar rail was generated on the generic list, kill it here. */
-.music-screen .spotify-liked-track-list::before,
-.music-screen .spotify-liked-track-list::after{
-  display:none !important;
-  content:none !important;
-}
