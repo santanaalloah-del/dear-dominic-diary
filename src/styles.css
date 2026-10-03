@@ -16639,3 +16639,48 @@ html[data-diario-time-theme="continuous"] .statusbar {
 @media (max-width:420px){
   .music-screen .music-rule{margin-inline:6px !important}
 }
+
+
+/* =========================================================
+   VISUAL PASS 05D · LIKED SONGS: REMOVE LEGACY VIEWPORT
+   Dedicated class added in JSX so old generic rules cannot win.
+   ========================================================= */
+.music-screen .spotify-library-paper:has(.spotify-liked-track-list){
+  display:block !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+.music-screen .spotify-liked-track-list{
+  display:block !important;
+  position:static !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow:visible !important;
+  overflow-y:visible !important;
+  overflow-x:visible !important;
+  scrollbar-width:none !important;
+  -webkit-overflow-scrolling:auto !important;
+}
+.music-screen .spotify-liked-track-list::-webkit-scrollbar{
+  display:none !important;
+  width:0 !important;
+  height:0 !important;
+}
+.music-screen .spotify-liked-track-list > button{
+  position:relative !important;
+  flex:none !important;
+  height:auto !important;
+  min-height:55px !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+
+/* If an old decorative scrollbar rail was generated on the generic list, kill it here. */
+.music-screen .spotify-liked-track-list::before,
+.music-screen .spotify-liked-track-list::after{
+  display:none !important;
+  content:none !important;
+}
