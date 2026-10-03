@@ -8634,6 +8634,35 @@ const openConnectionManager =
                       )
                     }
                   >
+                    <div
+                      className={
+                        keepsakeMediaById[
+                          item.id
+                        ]
+                          ? "keepsake-index-visual has-image"
+                          : "keepsake-index-visual"
+                      }
+                      aria-hidden="true"
+                    >
+                      {keepsakeMediaById[
+                        item.id
+                      ] ? (
+                        <img
+                          src={
+                            keepsakeMediaById[
+                              item.id
+                            ]
+                          }
+                          alt=""
+                        />
+                      ) : (
+                        <BoxIcon
+                          size={21}
+                          strokeWidth={1.2}
+                        />
+                      )}
+                    </div>
+
                     <header>
                       <div>
                         <span>
@@ -8659,7 +8688,9 @@ const openConnectionManager =
                       <span>
                         {location === "home"
                           ? "At home"
-                          : "Stored"}
+                          : location === "gone"
+                            ? "Consumed · only the trace stayed"
+                            : "Stored"}
 
                         {origin
                           ? ` · From ${origin}`
