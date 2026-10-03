@@ -1612,7 +1612,9 @@ export async function createLook({
         note?.trim() || null,
       event_at:
         new Date().toISOString(),
-      data: {},
+      data: {
+        layout,
+      },
     })
     .select("*")
     .single();
