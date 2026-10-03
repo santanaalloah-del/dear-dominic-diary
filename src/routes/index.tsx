@@ -7054,6 +7054,17 @@ function KeepsakesScreen() {
   const [keepsakeMediaById, setKeepsakeMediaById] =
     useState<Record<string, string>>({});
 
+  const [
+    keepsakeVisualBusy,
+    setKeepsakeVisualBusy,
+  ] = useState<Record<string, boolean>>({});
+
+  const keepsakeVisualInFlight =
+    useRef(new Set<string>());
+
+  const keepsakeVisualFailed =
+    useRef(new Set<string>());
+
 
   const [editTitle, setEditTitle] =
     useState("");
@@ -7264,6 +7275,145 @@ function KeepsakesScreen() {
       active = false;
     };
   }, [keepsakes]);
+
+  useEffect(() => {
+    const next = keepsakes.find(
+      (item) =>
+        item.title?.trim() &&
+        !(
+          typeof item.data
+            ?.storage_path ===
+          "string"
+        ) &&
+        !keepsakeVisualInFlight.current.has(
+          item.id
+        ) &&
+        !keepsakeVisualFailed.current.has(
+          item.id
+        )
+    );
+
+    if (!next) {
+      return;
+    }
+
+    keepsakeVisualInFlight.current.add(
+      next.id
+    );
+
+    setKeepsakeVisualBusy(
+      (current) => ({
+        ...current,
+        [next.id]:
+          true,
+      })
+    );
+
+    const type =
+      typeof next.data
+        ?.keepsakeType ===
+      "string"
+        ? next.data
+            .keepsakeType
+        : "object";
+
+    const origin =
+      typeof next.data
+        ?.origin ===
+      "string"
+        ? next.data
+            .origin
+        : null;
+
+    void import(
+      "@/lib/object-visual"
+    )
+      .then(
+        ({
+          generateObjectVisual,
+        }) =>
+          generateObjectVisual({
+            userId:
+              session.user.id,
+            name:
+              next.title ??
+              "Keepsake",
+            kind:
+              type,
+            description:
+              next.body,
+            placeName:
+              origin,
+          })
+      )
+      .then(
+        async (
+          generated
+        ) => {
+          const {
+            setKeepsakeGeneratedVisual,
+          } = await import(
+            "@/lib/keepsake-flow"
+          );
+
+          const updated =
+            await setKeepsakeGeneratedVisual({
+              userId:
+                session.user.id,
+              keepsake:
+                next,
+              storageBucket:
+                generated.storageBucket,
+              storagePath:
+                generated.storagePath,
+              provider:
+                generated.provider,
+              model:
+                generated.model,
+            });
+
+          setKeepsakeMediaById(
+            (current) => ({
+              ...current,
+              [next.id]:
+                generated.url,
+            })
+          );
+
+          replaceKeepsake(
+            updated
+          );
+        }
+      )
+      .catch(
+        (visualError) => {
+          console.error(
+            "Could not make automatic Keepsake visual:",
+            visualError
+          );
+
+          keepsakeVisualFailed.current.add(
+            next.id
+          );
+        }
+      )
+      .finally(() => {
+        keepsakeVisualInFlight.current.delete(
+          next.id
+        );
+
+        setKeepsakeVisualBusy(
+          (current) => ({
+            ...current,
+            [next.id]:
+              false,
+          })
+        );
+      });
+  }, [
+    keepsakes,
+    session.user.id,
+  ]);
 
   useEffect(() => {
     if (!editKeepsakeImageFile) {
@@ -7853,10 +8003,10 @@ const openConnectionManager =
                         strokeWidth={1.2}
                       />
                       <strong>
-                        Add or change photo
+                        Replace the visual
                       </strong>
                       <small>
-                        make this object visible in the diary
+                        optional · keep the generated one or use your real photo
                       </small>
                     </>
                   )}
@@ -8472,11 +8622,11 @@ const openConnectionManager =
                   />
 
                   <strong>
-                    Add a photo
+                    Use your own photo
                   </strong>
 
                   <small>
-                    ticket, cup, food, gift, wrapper, anything
+                    optional · otherwise Diário makes the object visual automatically
                   </small>
                 </>
               )}
@@ -8745,7 +8895,11 @@ const openConnectionManager =
                           item.id
                         ]
                           ? "keepsake-index-visual has-image"
-                          : "keepsake-index-visual"
+                          : keepsakeVisualBusy[
+                                item.id
+                              ]
+                            ? "keepsake-index-visual generating"
+                            : "keepsake-index-visual"
                       }
                       aria-hidden="true"
                     >
@@ -8761,10 +8915,20 @@ const openConnectionManager =
                           alt=""
                         />
                       ) : (
-                        <BoxIcon
-                          size={21}
-                          strokeWidth={1.2}
-                        />
+                        <>
+                          <BoxIcon
+                            size={21}
+                            strokeWidth={1.2}
+                          />
+
+                          {keepsakeVisualBusy[
+                            item.id
+                          ] && (
+                            <small>
+                              developing…
+                            </small>
+                          )}
+                        </>
                       )}
                     </div>
 
