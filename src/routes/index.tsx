@@ -7853,6 +7853,7 @@ const openConnectionManager =
                     event.target.value as
                       | "home"
                       | "stored"
+                      | "gone"
                   )
                 }
               >
@@ -8566,7 +8567,13 @@ const openConnectionManager =
           />
 
           <small>
-            objects
+            {keepsakeView === "gone"
+              ? "things we had"
+              : keepsakeView === "stored"
+                ? "stored away"
+                : keepsakeView === "home"
+                  ? "at home"
+                  : "objects"}
           </small>
 
           <h2>
