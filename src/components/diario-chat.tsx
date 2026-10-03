@@ -63,6 +63,7 @@ import {
   removeChatSticker,
   uploadChatSticker,
   type ChatStickerAsset,
+  type ChatStickerOwner,
 } from "@/lib/chat-stickers";
 import {
   loadDominicLiveDateContext,
@@ -733,6 +734,20 @@ const photoInputRef =
     stickerNotice,
     setStickerNotice,
   ] = useState<string | null>(null);
+
+  const [
+    stickerOwnerView,
+    setStickerOwnerView,
+  ] = useState<
+    ChatStickerOwner | "all"
+  >("all");
+
+  const [
+    stickerUploadOwner,
+    setStickerUploadOwner,
+  ] = useState<ChatStickerOwner>(
+    "alloah"
+  );
 
   const stickerInputRef =
     useRef<HTMLInputElement | null>(
@@ -3427,7 +3442,7 @@ setMessages((current) => [
             userId:
               session.user.id,
             owner:
-              "alloah",
+              stickerUploadOwner,
             file,
           });
 
@@ -3439,7 +3454,13 @@ setMessages((current) => [
         );
 
         setStickerNotice(
-          "Sticker added to your tray."
+          stickerUploadOwner ===
+            "dominic"
+            ? "Sticker added to Dominic's tray."
+            : stickerUploadOwner ===
+                "shared"
+              ? "Sticker added to the shared tray."
+              : "Sticker added to your tray."
         );
       } catch (
         error
@@ -4309,8 +4330,68 @@ onPhotoFromConversation={() =>
     </SheetHeader>
 
     <p className="settings-script">
-      your tray · Dominic can use the same visual language later.
+      yours, his and shared — one visual language, three little trays.
     </p>
+
+    <div
+      className="chat-sticker-owner-tabs"
+      role="tablist"
+      aria-label="Sticker owner"
+    >
+      {[
+        ["all", "All"],
+        ["alloah", "Mine"],
+        ["dominic", "Dominic"],
+        ["shared", "Ours"],
+      ].map(([id, label]) => (
+        <button
+          key={id}
+          type="button"
+          role="tab"
+          aria-selected={
+            stickerOwnerView === id
+          }
+          className={
+            stickerOwnerView === id
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setStickerOwnerView(
+              id as
+                | ChatStickerOwner
+                | "all"
+            )
+          }
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+
+    <div className="chat-sticker-upload-owner">
+      <span>Add new sticker to</span>
+
+      <select
+        value={stickerUploadOwner}
+        onChange={(event) =>
+          setStickerUploadOwner(
+            event.target
+              .value as ChatStickerOwner
+          )
+        }
+      >
+        <option value="alloah">
+          My tray
+        </option>
+        <option value="dominic">
+          Dominic's tray
+        </option>
+        <option value="shared">
+          Our tray
+        </option>
+      </select>
+    </div>
 
     <div className="chat-sticker-toolbar">
       <button
@@ -4329,7 +4410,13 @@ onPhotoFromConversation={() =>
       </button>
 
       <span>
-        {customStickers.length} custom
+        {customStickers.filter(
+          (sticker) =>
+            stickerOwnerView ===
+              "all" ||
+            sticker.owner ===
+              stickerOwnerView
+        ).length} visible
       </span>
     </div>
 
@@ -4341,7 +4428,15 @@ onPhotoFromConversation={() =>
         </small>
 
         <div>
-          {customStickers.map(
+          {customStickers
+            .filter(
+              (sticker) =>
+                stickerOwnerView ===
+                  "all" ||
+                sticker.owner ===
+                  stickerOwnerView
+            )
+            .map(
             (sticker) => (
               <article
                 key={
