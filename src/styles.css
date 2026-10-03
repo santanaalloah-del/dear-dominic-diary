@@ -14386,801 +14386,100 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .diary-screen.diary-live .diary-empty-page p{font:19px/1.65 var(--font-display)!important;max-width:310px!important;color:#73534c!important}
 .diary-screen.diary-live .diary-write-button{border-radius:2px!important;transform:rotate(-1deg)!important;box-shadow:2px 3px 0 rgba(72,23,28,.14)!important}
 .diary-screen.diary-live .diary-page-footer{border-top:1px solid rgba(109,32,41,.35)!important;margin-top:38px!important;padding-top:12px!important;font-family:var(--font-hand)!important}
-
 /* =========================================================
-   VISUAL PASS 03 · PLAYER / RECORD SHELF
-   Keeps existing Spotify playback + library logic intact.
+   DIÁRIO · CONSOLIDATED VISUAL SYSTEM · 2026-10-03
+   Replaces experimental Player/contrast passes 03 → 05D.
+   Dark world = ivory ink. Paper objects = wine ink.
    ========================================================= */
 
-.screen-music.music-live {
-  --player-paper: color-mix(in oklab, var(--paper) 94%, #fff7ea 6%);
-  --player-ink: color-mix(in oklab, var(--wine) 84%, #2a1714 16%);
-  padding-bottom: 170px !important;
-}
-
-.screen-music .screen-intro {
-  position: relative;
-  padding-bottom: 16px !important;
-}
-
-.screen-music .screen-intro::after {
-  content: "a little record shelf for two";
-  display: inline-block;
-  margin: 12px 0 0 2px;
-  padding: 5px 11px 6px;
-  background: color-mix(in oklab, var(--paper) 72%, transparent);
-  border: 1px solid color-mix(in oklab, var(--wine) 18%, transparent);
-  box-shadow: 0 5px 12px rgb(64 34 29 / 8%);
-  color: color-mix(in oklab, var(--wine) 72%, transparent);
-  font: italic 12px/1 var(--font-script);
-  transform: rotate(-1.5deg);
-}
-
-/* Spotify is the actual player: compact, always first, like a record sleeve. */
-.screen-music .spotify-live-player {
-  display: grid !important;
-  grid-template-columns: 86px minmax(0, 1fr) !important;
-  grid-template-rows: auto auto !important;
-  column-gap: 14px !important;
-  row-gap: 10px !important;
-  margin: 8px 18px 20px !important;
-  padding: 14px !important;
-  border-radius: 5px !important;
-  overflow: visible !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 22%, transparent) !important;
-  background:
-    linear-gradient(90deg, transparent 0 17px, color-mix(in oklab, var(--rose) 18%, transparent) 17px 18px, transparent 18px),
-    repeating-linear-gradient(0deg, transparent 0 25px, color-mix(in oklab, var(--wine) 5%, transparent) 25px 26px),
-    var(--player-paper) !important;
-  box-shadow: 7px 9px 0 color-mix(in oklab, var(--wine) 7%, transparent), 0 18px 34px rgb(54 28 24 / 12%) !important;
-  transform: rotate(.25deg);
-}
-
-.screen-music .spotify-live-player::before {
-  content: "NOW PLAYING · SPOTIFY" !important;
-  position: absolute !important;
-  width: auto !important;
-  height: auto !important;
-  inset: -11px auto auto 112px !important;
-  padding: 4px 9px !important;
-  background: color-mix(in oklab, #ead8ca 86%, transparent) !important;
-  color: color-mix(in oklab, var(--wine) 72%, transparent) !important;
-  font: 8px/1 var(--font-body) !important;
-  letter-spacing: .15em !important;
-  transform: rotate(-1deg) !important;
-  opacity: .96 !important;
-  pointer-events: none;
-}
-
-.screen-music .spotify-live-cover {
-  grid-column: 1;
-  grid-row: 1;
-  width: 86px !important;
-  height: 86px !important;
-  margin: 0 !important;
-  border-radius: 2px !important;
-  box-shadow: 0 6px 14px rgb(48 25 22 / 16%) !important;
-  transform: rotate(-1deg);
-}
-
-.screen-music .spotify-live-info {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
-  padding: 3px 4px 0 0 !important;
-  text-align: left !important;
-}
-
-.screen-music .spotify-live-info small { margin-bottom: 5px !important; font-size: 8px !important; }
-.screen-music .spotify-live-info strong { font-size: 22px !important; line-height: 1.02 !important; }
-.screen-music .spotify-live-info span { margin-top: 5px !important; font-size: 11px !important; }
-.screen-music .spotify-live-progress { width: 100% !important; height: 4px !important; margin: 11px 0 0 !important; }
-
-.screen-music .spotify-live-controls {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  justify-content: flex-start !important;
-  gap: 7px !important;
-  margin: 0 !important;
-  padding-top: 9px;
-  border-top: 1px dashed color-mix(in oklab, var(--wine) 18%, transparent);
-}
-
-.screen-music .spotify-live-controls button {
-  min-width: 34px !important;
-  height: 34px !important;
-  padding: 0 10px !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
-  font-size: 10px !important;
-}
-
-.screen-music .spotify-live-controls button:nth-child(3) {
-  min-width: 50px !important;
-  height: 34px !important;
-  font-size: 10px !important;
-}
-
-/* Most played becomes a compact chart slip, not a huge app card. */
-.spotify-top-rotation {
-  position: relative;
-  margin: 0 18px 18px !important;
-  padding: 16px 14px 13px !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 18%, transparent) !important;
-  border-radius: 3px !important;
-  background:
-    linear-gradient(90deg, color-mix(in oklab, var(--rose) 10%, transparent), transparent 32%),
-    var(--player-paper) !important;
-  box-shadow: 4px 6px 0 color-mix(in oklab, var(--wine) 6%, transparent) !important;
-  transform: rotate(-.18deg);
-}
-
-.spotify-top-rotation::after {
-  content: "MOST PLAYED";
-  position: absolute;
-  right: 11px;
-  bottom: 9px;
-  color: color-mix(in oklab, var(--wine) 16%, transparent);
-  font: 700 17px/1 var(--font-body);
-  letter-spacing: .08em;
-  transform: rotate(-90deg) translateX(100%);
-  transform-origin: right bottom;
-  pointer-events: none;
-}
-
-.spotify-top-rotation header strong { font-size: 26px !important; }
-.spotify-top-range-tabs { border-radius: 3px !important; padding: 2px !important; }
-.spotify-top-range-tabs button { border-radius: 2px !important; padding: 6px 7px !important; }
-.spotify-top-list { gap: 2px !important; }
-.spotify-top-track {
-  grid-template-columns: 20px 34px minmax(0, 1fr) auto !important;
-  padding: 6px 4px !important;
-  border-radius: 0 !important;
-  border-bottom: 1px solid color-mix(in oklab, var(--wine) 9%, transparent);
-  background: transparent !important;
-}
-.spotify-top-cover { width: 34px !important; height: 34px !important; border-radius: 2px !important; }
-.spotify-top-copy strong { font: 13px/1.05 var(--font-body) !important; font-weight: 600 !important; }
-.spotify-top-actions { grid-column: 4 !important; display: flex !important; gap: 3px !important; }
-.spotify-top-actions button { min-height: 27px !important; padding: 0 7px !important; font-size: 8px !important; border-radius: 3px !important; }
-.spotify-top-actions button:first-child { width: 27px !important; }
-
-/* Mine / Dominic / Ours reads like three labelled record drawers. */
-.screen-music .music-tabs {
-  position: relative;
-  margin: 4px 18px 9px !important;
-  padding: 4px !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 22%, transparent) !important;
-  border-radius: 3px !important;
-  background: color-mix(in oklab, var(--paper) 82%, transparent) !important;
-  box-shadow: 0 8px 20px rgb(57 29 25 / 8%);
-}
-.screen-music .music-tabs button { border-radius: 2px !important; letter-spacing: .13em !important; text-transform: uppercase; }
-.screen-music .music-tabs button.active {
-  background: var(--wine) !important;
-  color: var(--cream) !important;
-  box-shadow: 0 4px 10px rgb(48 25 22 / 14%) !important;
-}
-
-.music-section-tabs {
-  margin: 0 18px 18px !important;
-  padding: 0 4px 7px !important;
-  gap: 12px !important;
-  border-bottom: 1px solid color-mix(in oklab, var(--wine) 20%, transparent);
-  border-radius: 0 !important;
-  background: transparent !important;
-}
-.music-section-tabs button {
-  position: relative;
-  padding: 7px 0 5px !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  font-size: 9px !important;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.music-section-tabs button.active { box-shadow: none !important; color: var(--wine) !important; }
-.music-section-tabs button.active::after {
-  content: "";
-  position: absolute;
-  left: 20%; right: 20%; bottom: -8px;
-  height: 2px;
-  background: var(--wine);
-}
-
-/* Saved songs = compact record index cards. */
-.music-library {
-  display: grid !important;
-  gap: 9px !important;
-  margin: 0 18px 16px !important;
-}
-.music-track {
-  position: relative;
-  display: grid !important;
-  grid-template-columns: 54px minmax(0, 1fr) auto auto !important;
-  align-items: center !important;
-  gap: 10px !important;
-  min-height: 74px !important;
-  padding: 10px 10px 10px 12px !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 15%, transparent) !important;
-  border-radius: 2px !important;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 22px, color-mix(in oklab, var(--wine) 4%, transparent) 22px 23px),
-    var(--player-paper) !important;
-  box-shadow: 3px 4px 0 color-mix(in oklab, var(--wine) 5%, transparent) !important;
-}
-.music-track:nth-child(even) { transform: rotate(.18deg); }
-.music-track:nth-child(odd) { transform: rotate(-.12deg); }
-.music-record { width: 54px !important; height: 54px !important; border-radius: 2px !important; overflow: hidden; }
-.music-record img { width: 100%; height: 100%; object-fit: cover; }
-.music-track > div:nth-child(2) { min-width: 0; }
-.music-track > div:nth-child(2) small { font-size: 8px !important; letter-spacing: .14em; text-transform: uppercase; }
-.music-track > div:nth-child(2) strong { display: block; margin-top: 2px; font: 17px/1.05 var(--font-display) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.music-track > div:nth-child(2) span,
-.music-track > div:nth-child(2) em { display: block; margin-top: 2px; font-size: 10px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.music-track > div:nth-child(2) p { display: none !important; }
-.music-track > button { min-width: 31px !important; min-height: 31px !important; padding: 0 8px !important; border-radius: 3px !important; font-size: 8px !important; }
-.music-track > button:not(.music-favorite-button):not([aria-label="Listen now"]):not([aria-label="Add to queue"]):not(.letter-connected-button) { display: none !important; }
-.music-track .music-favorite-button { width: 31px !important; height: 31px !important; }
-.music-track button[aria-label="Listen now"] { grid-column: 3; grid-row: 1; background: var(--wine) !important; color: var(--cream) !important; }
-.music-track button[aria-label="Add to queue"] { grid-column: 4; grid-row: 1; }
-.music-track .letter-connected-button { grid-column: 2 / -1 !important; width: max-content !important; margin: 0 !important; min-height: 25px !important; border: 0 !important; border-bottom: 1px solid color-mix(in oklab, var(--wine) 30%, transparent) !important; background: transparent !important; }
-
-.music-playlist-board,
-.spotify-queue-panel.music-section-panel,
-.music-empty {
-  border-radius: 3px !important;
-  border: 1px solid color-mix(in oklab, var(--wine) 17%, transparent) !important;
-  background: var(--player-paper) !important;
-  box-shadow: 5px 7px 0 color-mix(in oklab, var(--wine) 6%, transparent) !important;
-}
-
-.music-playlist-cover { border-radius: 2px !important; }
-.music-rule { opacity: .72; }
-
-@media (max-width: 390px) {
-  .screen-music .spotify-live-player { grid-template-columns: 74px minmax(0, 1fr) !important; }
-  .screen-music .spotify-live-cover { width: 74px !important; height: 74px !important; }
-  .spotify-top-actions button:not(:first-child) { display: none !important; }
-  .music-track { grid-template-columns: 48px minmax(0, 1fr) auto auto !important; gap: 7px !important; }
-  .music-record { width: 48px !important; height: 48px !important; }
-}
-
-/* Visual Pass 03B — Spotify as playback, Diário as meaning */
-.screen-music { padding-bottom: 150px !important; }
-.screen-music .spotify-live-player {
-  position: relative !important; display: grid !important; grid-template-columns: 82px minmax(0,1fr) !important;
-  gap: 14px !important; min-height: 118px !important; margin: 12px 0 18px !important; padding: 15px !important;
-  border: 1px solid color-mix(in srgb, var(--ink) 28%, transparent) !important; border-radius: 4px 14px 5px 12px !important;
-  background: color-mix(in srgb, var(--paper) 93%, #ead4d7) !important; box-shadow: 0 12px 26px rgba(74,29,36,.11) !important;
-  transform: rotate(-.25deg); overflow: hidden !important;
-}
-.screen-music .spotify-live-player::after { content:""; position:absolute; width:70px; height:18px; top:-7px; left:50%; transform:translateX(-50%) rotate(1deg); background:rgba(220,185,179,.62); box-shadow:0 1px 2px rgba(60,30,30,.08); }
-.screen-music .spotify-live-cover { width:82px !important; height:82px !important; border-radius:3px !important; overflow:hidden; align-self:center; box-shadow:0 5px 13px rgba(57,24,30,.18); }
-.screen-music .spotify-live-cover img { width:100%; height:100%; object-fit:cover; }
-.screen-music .spotify-live-info { min-width:0; align-self:center; padding-top:4px; }
-.screen-music .spotify-live-info small, .spotify-library-heading span, .spotify-selected-playlist small { display:block; font-size:8px !important; letter-spacing:.17em; text-transform:uppercase; opacity:.6; }
-.screen-music .spotify-live-info strong { display:block; margin-top:5px; font-family:Georgia,serif; font-size:18px !important; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.screen-music .spotify-live-info > span { display:block; margin-top:4px; font-size:11px; opacity:.72; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.screen-music .spotify-live-progress { width:100% !important; height:12px !important; padding:5px 0 !important; margin:7px 0 0 !important; background:transparent !important; border:0 !important; position:relative; }
-.screen-music .spotify-live-progress::before { content:""; position:absolute; left:0; right:0; top:5px; height:2px; background:color-mix(in srgb,var(--ink) 18%,transparent); }
-.screen-music .spotify-live-progress span { display:block; position:relative; height:2px; background:var(--ink); }
-.screen-music .spotify-live-controls { grid-column:1/-1; display:flex !important; align-items:center; justify-content:center; gap:9px !important; margin-top:-3px; }
-.screen-music .spotify-live-controls button { width:32px !important; height:30px !important; min-width:0 !important; border:0 !important; background:transparent !important; color:var(--ink) !important; padding:0 !important; border-radius:50% !important; display:grid; place-items:center; }
-.screen-music .spotify-live-controls .spotify-main-play { background:var(--ink) !important; color:var(--paper) !important; width:38px !important; height:38px !important; }
-.screen-music .spotify-live-controls .spotify-queue-toggle { width:auto !important; border-radius:999px !important; padding:0 8px !important; gap:4px; display:flex; font-size:9px; }
-.spotify-idle-state { grid-column:1/-1; display:grid; grid-template-columns:58px minmax(0,1fr); gap:12px; align-items:center; width:100%; }
-.spotify-idle-record { width:58px; height:58px; border-radius:50%; display:grid; place-items:center; border:1px solid color-mix(in srgb,var(--ink) 30%,transparent); background:radial-gradient(circle,transparent 0 9%,color-mix(in srgb,var(--ink) 18%,transparent) 10% 12%,transparent 13% 30%,color-mix(in srgb,var(--ink) 12%,transparent) 31% 33%,transparent 34%); }
-.spotify-idle-state small { font-size:8px; letter-spacing:.15em; opacity:.58; }
-.spotify-idle-state strong { display:block; font-family:Georgia,serif; font-size:18px; margin:3px 0; }
-.spotify-idle-state span { display:block; font-size:10px; line-height:1.35; opacity:.7; }
-.spotify-idle-state > button { grid-column:1/-1; justify-self:start; border:1px solid color-mix(in srgb,var(--ink) 35%,transparent); background:transparent; color:var(--ink); border-radius:999px; padding:7px 12px; font-size:10px; }
-.screen-music .spotify-top-rotation { max-height:330px !important; overflow:hidden !important; margin-bottom:18px !important; }
-.screen-music .spotify-top-list { max-height:220px !important; overflow:auto !important; }
-.screen-music .spotify-top-track { min-height:42px !important; padding:5px 7px !important; grid-template-columns:20px 34px minmax(0,1fr) auto !important; }
-.screen-music .spotify-top-cover { width:34px !important; height:34px !important; }
-.screen-music .spotify-top-copy strong { font-size:11px !important; }
-.screen-music .spotify-top-copy span { font-size:9px !important; }
-.spotify-library-paper { margin:14px 0 20px; padding:14px 12px 16px; background:color-mix(in srgb,var(--paper) 94%,#ecd8d5); border:1px solid color-mix(in srgb,var(--ink) 22%,transparent); border-radius:3px 10px 4px 8px; box-shadow:0 8px 18px rgba(70,25,35,.08); }
-.spotify-library-heading { display:flex; align-items:end; justify-content:space-between; gap:10px; margin-bottom:12px; }
-.spotify-library-heading strong { display:block; font-family:Georgia,serif; font-size:20px; margin-top:2px; }
-.spotify-library-heading small { font-size:9px; opacity:.55; }
-.spotify-playlist-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-.spotify-playlist-grid > button { border:0; background:transparent; color:var(--ink); text-align:left; padding:0; min-width:0; }
-.spotify-playlist-art { aspect-ratio:1; width:100%; overflow:hidden; display:grid; place-items:center; background:color-mix(in srgb,var(--paper) 80%,var(--ink) 5%); border:1px solid color-mix(in srgb,var(--ink) 15%,transparent); box-shadow:0 5px 12px rgba(65,25,31,.10); }
-.spotify-playlist-art img { width:100%; height:100%; object-fit:cover; }
-.spotify-playlist-grid strong { display:block; margin-top:6px; font-family:Georgia,serif; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.spotify-playlist-grid span { display:block; margin-top:2px; font-size:9px; opacity:.58; }
-.spotify-library-back { border:0; background:transparent; color:var(--ink); padding:0 0 10px; font-size:10px; }
-.spotify-selected-playlist { display:flex; gap:12px; align-items:center; margin-bottom:12px; }
-.spotify-selected-playlist img { width:66px; height:66px; object-fit:cover; box-shadow:0 5px 12px rgba(65,25,31,.13); }
-.spotify-selected-playlist strong { display:block; font-family:Georgia,serif; font-size:18px; margin:3px 0; }
-.spotify-selected-playlist span { font-size:10px; opacity:.62; }
-.spotify-compact-track-list { display:flex; flex-direction:column; gap:2px; max-height:340px; overflow:auto; }
-.spotify-compact-track-list > button { display:grid; grid-template-columns:38px minmax(0,1fr) 24px; align-items:center; gap:9px; width:100%; border:0; border-bottom:1px solid color-mix(in srgb,var(--ink) 10%,transparent); background:transparent; color:var(--ink); text-align:left; padding:6px 2px; }
-.spotify-compact-track-list img { width:38px; height:38px; object-fit:cover; }
-.spotify-compact-track-list span { min-width:0; }
-.spotify-compact-track-list strong { display:block; font-family:Georgia,serif; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.spotify-compact-track-list small { display:block; margin-top:2px; font-size:9px; opacity:.58; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.music-empty-note { font-size:11px; line-height:1.5; opacity:.65; }
-@media (max-width:420px) { .screen-music .spotify-live-player { grid-template-columns:70px minmax(0,1fr) !important; padding:13px !important; } .screen-music .spotify-live-cover { width:70px !important; height:70px !important; } }
-
-/* =========================================================
-   VISUAL PASS 03C · CONTRAST + ROMANTIC PLAYER POLISH
-   ========================================================= */
-
-/* CHAT — atmosphere may fade, text never does */
-.screen-chat .messenger-chat {
-  --chat-readable-ink: #54252a;
-  --chat-readable-muted: #8a5d5d;
-}
-.screen-chat .messenger-person h1,
-.screen-chat .messenger-bubble,
-.screen-chat .diario-message-content,
-.screen-chat .messenger-composer textarea,
-.screen-chat .chat-now-playing-main { color: var(--chat-readable-ink) !important; opacity: 1 !important; }
-.screen-chat .messenger-person p,
-.screen-chat .messenger-message time,
-.screen-chat .messenger-day-divider span,
-.screen-chat .chat-now-playing small { color: var(--chat-readable-muted) !important; opacity: 1 !important; }
-.screen-chat .messenger-header-actions button,
-.screen-chat .messenger-composer [data-align=block-end] button { color: #754047 !important; opacity: 1 !important; }
-.screen-chat .messenger-bubble { background: #f7eadc !important; }
-.screen-chat .messenger-message.is-user .messenger-bubble { background: #efd0d0 !important; }
-.screen-chat .messenger-composer textarea::placeholder { color: #9a7171 !important; opacity: 1 !important; }
-.screen-chat .messenger-composer [data-slot=input-group] { border-color: rgba(94,42,48,.25) !important; background: rgba(246,226,219,.72) !important; }
-.screen-chat .messenger-person h1 span { color:#7a303b !important; }
-
-/* MORE — Music must stay readable in every time mood */
-.more-screen .richer-index .index-record {
-  border-radius: 2px !important;
-  aspect-ratio: auto !important;
-  min-height: 132px !important;
-  padding: 44px 15px 16px !important;
-  background: #f3dfd5 !important;
-  text-align: left !important;
-  clip-path: none !important;
-}
-.more-screen .richer-index .index-record::before {
-  inset: 7px !important;
-  border-radius: 0 !important;
-  border: 1px solid rgba(116,42,45,.16) !important;
-  background: radial-gradient(circle at 88% 22%, transparent 0 8px, rgba(109,32,41,.12) 9px 10px, transparent 11px 15px, rgba(109,32,41,.08) 16px 17px, transparent 18px) !important;
-}
-.more-screen .richer-index .index-record::after { display:block !important; }
-.more-screen .richer-index .index-record strong { color:#4b171c !important; }
-.more-screen .richer-index .index-record small { color:#855c57 !important; }
-.more-screen .richer-index .index-record .index-number { color:#9d5558 !important; }
-.more-screen .richer-index .index-record .index-icon { color:#6d2029 !important; }
-
-/* PLAYER — less app-card, more record sleeve / love-letter object */
-.screen-music .spotify-live-player {
-  border-radius: 2px !important;
-  background:
-    linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)),
-    repeating-linear-gradient(0deg, transparent 0 24px, rgba(109,32,41,.035) 25px),
-    #f7eadc !important;
-  border: 1px solid rgba(91,35,42,.18) !important;
-  box-shadow: 4px 7px 0 rgba(93,38,45,.06), 0 14px 30px rgba(74,29,36,.08) !important;
-}
-.screen-music .spotify-live-player::before {
-  content:"our record, right now" !important;
-  position:absolute !important; right:13px !important; bottom:9px !important; top:auto !important; left:auto !important;
-  font: italic 11px/1 var(--font-hand) !important; letter-spacing:.02em !important;
-  color:#a46d6c !important; opacity:.72 !important; transform:rotate(-3deg) !important;
-}
-.screen-music .spotify-live-info small { color:#9c5960 !important; opacity:1 !important; }
-.screen-music .spotify-live-info strong { color:#511b23 !important; font-family:var(--font-display),Georgia,serif !important; font-size:20px !important; }
-.screen-music .spotify-live-info > span { color:#80585a !important; opacity:1 !important; }
-.screen-music .spotify-live-controls { border-top:1px dashed rgba(92,40,47,.18); padding-top:9px; }
-.screen-music .spotify-live-controls .spotify-main-play { background:#6b1722 !important; color:#fff3e8 !important; box-shadow:0 4px 10px rgba(80,22,31,.18); }
-.screen-music .spotify-live-controls button { color:#6b2630 !important; }
-
-/* Most played becomes a slim chart clipping instead of the giant box */
-.screen-music .spotify-top-rotation {
-  position:relative !important;
-  max-height:none !important;
-  overflow:visible !important;
-  margin:14px 8px 20px !important;
-  padding:15px 13px 12px !important;
-  border-radius:2px !important;
-  background:#f2dfd5 !important;
-  border:0 !important;
-  box-shadow:3px 5px 0 rgba(91,35,42,.06) !important;
-  transform:rotate(.25deg);
-}
-.screen-music .spotify-top-rotation::before { content:""; position:absolute; top:-7px; left:34px; width:58px; height:16px; background:rgba(224,190,183,.66); transform:rotate(-2deg); }
-.screen-music .spotify-top-rotation::after { content:"top rotation" !important; position:absolute !important; right:12px !important; bottom:8px !important; top:auto !important; writing-mode:horizontal-tb !important; transform:rotate(-4deg) !important; font:italic 10px var(--font-hand) !important; letter-spacing:.02em !important; color:#a26c6c !important; opacity:.6 !important; }
-.screen-music .spotify-top-rotation header strong { font-family:var(--font-display),Georgia,serif !important; font-size:25px !important; color:#551b24 !important; }
-.screen-music .spotify-top-list { max-height:none !important; overflow:visible !important; }
-.screen-music .spotify-top-track { min-height:38px !important; grid-template-columns:18px 31px minmax(0,1fr) 31px !important; padding:4px 3px !important; }
-.screen-music .spotify-top-cover { width:31px !important; height:31px !important; border-radius:1px !important; }
-.screen-music .spotify-top-copy strong { color:#64242c !important; }
-.screen-music .spotify-top-actions button { width:30px !important; height:30px !important; border-radius:3px !important; }
-
-/* Spotify library: album art does the decoration; surrounding UI stays quiet */
-.spotify-library-paper { border-radius:2px !important; background:#f7eadc !important; border-color:rgba(91,35,42,.14) !important; box-shadow:3px 6px 0 rgba(91,35,42,.05) !important; }
-.spotify-library-heading strong, .spotify-playlist-grid strong, .spotify-selected-playlist strong, .spotify-compact-track-list strong { color:#572029 !important; font-family:var(--font-display),Georgia,serif !important; }
-.spotify-library-heading span, .spotify-library-heading small, .spotify-playlist-grid span, .spotify-compact-track-list small { color:#8c5e5e !important; opacity:1 !important; }
-.spotify-playlist-grid > button:nth-child(odd) .spotify-playlist-art { transform:rotate(-.5deg); }
-.spotify-playlist-grid > button:nth-child(even) .spotify-playlist-art { transform:rotate(.45deg); }
-
-/* Navigation must not cover the last useful content */
-.screen-music { padding-bottom:190px !important; }
-.more-screen { padding-bottom:190px !important; }
-
-/* =========================================================
-   VISUAL PASS 03D · REAL THEME-SAFE CHAT + PLAYER RECOMPOSE
-   ========================================================= */
-
-/* IMPORTANT: contrast belongs to each chat theme. Never flatten theme surfaces. */
-.messenger-chat {
-  --chat-readable-ink: #54252a;
-  --chat-readable-muted: #80575b;
-}
-.chat-theme-cherry { --chat-readable-ink:#4d2028; --chat-readable-muted:#74454d; }
-.chat-theme-old-letter { --chat-readable-ink:#493329; --chat-readable-muted:#765e50; }
-.chat-theme-soft-rose { --chat-readable-ink:#542b31; --chat-readable-muted:#875d62; }
-.chat-theme-midnight,
-.chat-theme-midnight.chat-adapt-time { --chat-readable-ink:#f5e8dc; --chat-readable-muted:#d7bdb7; }
-.chat-adapt-time.chat-time-night,
-.chat-adapt-time.chat-time-late { --chat-readable-ink:#f5e8dc; --chat-readable-muted:#d7bdb7; }
-
-.messenger-chat .messenger-person h1,
-.messenger-chat .messenger-bubble,
-.messenger-chat .diario-message-content,
-.messenger-chat .messenger-composer textarea,
-.messenger-chat .chat-now-playing-main {
-  color:var(--chat-readable-ink) !important;
-  opacity:1 !important;
-}
-.messenger-chat .messenger-person p,
-.messenger-chat .messenger-message time,
-.messenger-chat .messenger-day-divider span,
-.messenger-chat .chat-now-playing small {
-  color:var(--chat-readable-muted) !important;
-  opacity:1 !important;
-}
-.messenger-chat .messenger-header-actions button,
-.messenger-chat .messenger-composer [data-align=block-end] button { color:var(--chat-readable-ink) !important; opacity:.82 !important; }
-.messenger-chat .messenger-composer textarea::placeholder { color:var(--chat-readable-muted) !important; opacity:.85 !important; }
-
-/* undo 03C's accidental theme flattening */
-.messenger-chat .messenger-bubble { background:var(--chat-theirs) !important; }
-.messenger-chat .messenger-message.is-user .messenger-bubble { background:var(--chat-mine) !important; }
-.messenger-chat .messenger-composer [data-slot=input-group] {
-  border-color:color-mix(in oklab,var(--chat-readable-ink) 18%,transparent) !important;
-  background:color-mix(in oklab,var(--chat-bg) 68%,var(--chat-panel)) !important;
-}
-.messenger-chat .messenger-person h1 span { color:var(--chat-accent) !important; }
-
-/* PLAYER — a record sleeve, not another app card */
-.screen-music .spotify-live-player,
-.music-screen .spotify-live-player {
-  position:relative !important;
-  grid-template-columns:112px minmax(0,1fr) !important;
-  column-gap:18px !important;
-  row-gap:8px !important;
-  margin:26px 18px 20px !important;
-  padding:20px 18px 17px !important;
-  border:0 !important;
-  border-radius:1px !important;
-  background:
-    linear-gradient(90deg, transparent 0 13px, rgba(117,48,54,.08) 13px 14px, transparent 14px),
-    repeating-linear-gradient(0deg, transparent 0 25px, rgba(117,48,54,.055) 25px 26px),
-    #f6eadc !important;
-  box-shadow:7px 9px 0 rgba(91,36,43,.09), 0 18px 30px rgba(91,36,43,.08) !important;
-  transform:rotate(-.35deg);
-  overflow:visible !important;
-}
-.screen-music .spotify-live-player::before,
-.music-screen .spotify-live-player::before {
-  content:"" !important; position:absolute !important; width:92px !important; height:22px !important;
-  left:50% !important; top:-12px !important; transform:translateX(-50%) rotate(1.5deg) !important;
-  background:rgba(239,205,194,.68) !important; border:0 !important; border-radius:0 !important;
-}
-.screen-music .spotify-live-cover,
-.music-screen .spotify-live-cover { width:112px !important; height:112px !important; border-radius:0 !important; box-shadow:3px 4px 0 rgba(82,34,40,.13) !important; transform:rotate(-1.2deg); }
-.screen-music .spotify-live-meta,
-.music-screen .spotify-live-meta { align-self:center !important; }
-.screen-music .spotify-live-meta small,
-.music-screen .spotify-live-meta small { letter-spacing:.18em !important; font-size:8px !important; color:#a14d58 !important; }
-.screen-music .spotify-live-meta strong,
-.music-screen .spotify-live-meta strong { margin-top:7px !important; font:500 27px/1 var(--font-display) !important; color:#5a252d !important; }
-.screen-music .spotify-live-meta span,
-.music-screen .spotify-live-meta span { margin-top:5px !important; font:italic 13px var(--font-display) !important; color:#8b5c5d !important; }
-.screen-music .spotify-live-progress,
-.music-screen .spotify-live-progress { grid-column:2 !important; margin:4px 0 0 !important; }
-.screen-music .spotify-live-controls,
-.music-screen .spotify-live-controls { grid-column:1/-1 !important; border-top:1px dashed rgba(91,36,43,.18) !important; margin-top:5px !important; padding-top:12px !important; justify-content:center !important; gap:12px !important; }
-.screen-music .spotify-live-controls button,
-.music-screen .spotify-live-controls button { border-radius:50% !important; width:38px !important; height:38px !important; min-width:38px !important; padding:0 !important; }
-.screen-music .spotify-live-controls button:nth-child(3),
-.music-screen .spotify-live-controls button:nth-child(3) { width:48px !important; height:48px !important; background:#6a1722 !important; color:#fff6ea !important; }
-
-/* Most played becomes a torn chart clipping and loses the oversized dead space */
-.screen-music .spotify-top-rotation,
-.music-screen .spotify-top-rotation {
-  margin:18px 24px 24px !important;
-  padding:16px 15px 12px !important;
-  border:0 !important;
-  border-left:3px solid rgba(109,31,41,.72) !important;
-  border-radius:0 !important;
-  background:rgba(247,231,216,.64) !important;
-  box-shadow:3px 5px 0 rgba(92,38,44,.06) !important;
-  transform:rotate(.2deg);
-}
-.screen-music .spotify-top-rotation::after,
-.music-screen .spotify-top-rotation::after { display:none !important; content:none !important; }
-.screen-music .spotify-top-header h3,
-.music-screen .spotify-top-header h3 { font-size:32px !important; line-height:.9 !important; }
-.screen-music .spotify-top-list,
-.music-screen .spotify-top-list { margin-top:10px !important; }
-.screen-music .spotify-top-row,
-.music-screen .spotify-top-row { min-height:48px !important; grid-template-columns:20px 44px minmax(0,1fr) 34px !important; padding:5px 0 !important; }
-.screen-music .spotify-top-row img,
-.music-screen .spotify-top-row img { width:44px !important; height:44px !important; border-radius:0 !important; }
-
-/* tabs read as little archive labels */
-.screen-music .music-tabs,
-.music-screen .music-tabs { margin:12px 24px 0 !important; gap:5px !important; background:transparent !important; border:0 !important; padding:0 !important; }
-.screen-music .music-tabs button,
-.music-screen .music-tabs button { background:#f5e6d7 !important; border:1px solid rgba(96,38,45,.13) !important; box-shadow:2px 3px 0 rgba(96,38,45,.06) !important; min-height:48px !important; }
-.screen-music .music-tabs button.active,
-.music-screen .music-tabs button.active { background:#651923 !important; color:#fff5e8 !important; transform:translateY(-2px) rotate(-.4deg); }
-
-@media (max-width:420px){
- .screen-music .spotify-live-player,.music-screen .spotify-live-player{grid-template-columns:92px minmax(0,1fr)!important;padding:17px 14px!important;column-gap:14px!important}
- .screen-music .spotify-live-cover,.music-screen .spotify-live-cover{width:92px!important;height:92px!important}
- .screen-music .spotify-live-meta strong,.music-screen .spotify-live-meta strong{font-size:22px!important}
-}
-
-/* =========================================================
-   VISUAL PASS 04 · CURRENT ZIP / AUTHORITATIVE FIXES
-   Targets the classes that actually render in this build.
-   ========================================================= */
-
-/* CHAT — preserve every theme surface; make ink inherit correctly through Streamdown/markdown. */
-.messenger-chat { --chat-safe-ink:#55252b; --chat-safe-muted:#81565c; }
-.messenger-chat.chat-theme-diary { --chat-safe-ink:#55252b; --chat-safe-muted:#81565c; }
-.messenger-chat.chat-theme-cherry { --chat-safe-ink:#4b2028; --chat-safe-muted:#74464d; }
-.messenger-chat.chat-theme-old-letter { --chat-safe-ink:#493329; --chat-safe-muted:#765e50; }
-.messenger-chat.chat-theme-soft-rose { --chat-safe-ink:#542b31; --chat-safe-muted:#875d62; }
-.messenger-chat.chat-theme-midnight,
-.messenger-chat.chat-adapt-time.chat-time-night,
-.messenger-chat.chat-adapt-time.chat-time-late { --chat-safe-ink:#f7eadf; --chat-safe-muted:#d8beb8; }
-
-.screen-chat .messenger-bubble,
-.screen-chat .messenger-bubble *,
-.screen-chat .diario-message-content,
-.screen-chat .diario-message-content * {
-  color:var(--chat-safe-ink) !important;
-  -webkit-text-fill-color:var(--chat-safe-ink) !important;
-  opacity:1 !important;
-}
-.screen-chat .messenger-person h1 { color:var(--chat-safe-ink) !important; -webkit-text-fill-color:var(--chat-safe-ink) !important; }
-.screen-chat .messenger-person p,
-.screen-chat .messenger-message time { color:var(--chat-safe-muted) !important; -webkit-text-fill-color:var(--chat-safe-muted) !important; opacity:1 !important; }
-.screen-chat .messenger-header-actions button,
-.screen-chat .messenger-composer button { color:var(--chat-safe-ink) !important; }
-.screen-chat .messenger-composer textarea { color:var(--chat-safe-ink) !important; -webkit-text-fill-color:var(--chat-safe-ink) !important; }
-.screen-chat .messenger-composer textarea::placeholder { color:var(--chat-safe-muted) !important; -webkit-text-fill-color:var(--chat-safe-muted) !important; opacity:.9 !important; }
-/* restore the actual theme surfaces after old 03C rules */
-.screen-chat .messenger-bubble { background:var(--chat-theirs) !important; }
-.screen-chat .messenger-message.is-user .messenger-bubble { background:var(--chat-mine) !important; }
-
-/* Chat appearance is portaled outside .screen-chat, so it needs its own stable paper ink. */
-.chat-settings-sheet,
-.chat-settings-sheet * { --sheet-ink:#54262c; --sheet-muted:#956b6d; }
-.chat-settings-sheet { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; background:#f8eadc !important; }
-.chat-settings-sheet [data-slot=sheet-title],
-.chat-settings-sheet .settings-row-title strong,
-.chat-settings-sheet .theme-grid b,
-.chat-settings-sheet .bubble-choice-grid b,
-.chat-settings-sheet .settings-toggles strong { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; opacity:1 !important; }
-.chat-settings-sheet .settings-row-title small,
-.chat-settings-sheet .theme-grid small,
-.chat-settings-sheet .settings-toggles small { color:var(--sheet-muted) !important; -webkit-text-fill-color:var(--sheet-muted) !important; opacity:1 !important; }
-.chat-settings-sheet .settings-script { color:#a23f4c !important; -webkit-text-fill-color:#a23f4c !important; }
-.chat-settings-sheet .theme-grid button,
-.chat-settings-sheet .bubble-choice-grid button { color:var(--sheet-ink) !important; -webkit-text-fill-color:var(--sheet-ink) !important; }
-.chat-settings-sheet .bubble-preview { color:#57252d !important; -webkit-text-fill-color:#57252d !important; }
-
-/* PLAYER — actual DOM uses .spotify-live-info and .spotify-top-track. */
-.music-screen .spotify-live-player {
-  margin:24px 22px 26px !important;
-  padding:18px !important;
-  display:grid !important;
-  grid-template-columns:104px minmax(0,1fr) !important;
-  gap:14px 17px !important;
-  border:0 !important;
-  border-radius:0 !important;
-  background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.055) 27px 28px),#f7eadc !important;
-  box-shadow:7px 9px 0 rgba(87,29,37,.09) !important;
-  overflow:visible !important;
-  transform:rotate(-.25deg) !important;
-}
-.music-screen .spotify-live-player::before { content:"" !important; position:absolute !important; top:-11px !important; left:50% !important; width:86px !important; height:21px !important; transform:translateX(-50%) rotate(1.5deg) !important; background:rgba(229,190,184,.68) !important; border:0 !important; }
-.music-screen .spotify-live-cover { width:104px !important; height:104px !important; border-radius:0 !important; box-shadow:3px 4px 0 rgba(84,31,38,.12) !important; }
-.music-screen .spotify-live-info { min-width:0 !important; align-self:center !important; display:flex !important; flex-direction:column !important; }
-.music-screen .spotify-live-info > small { font-size:8px !important; letter-spacing:.18em !important; color:#a24d58 !important; opacity:1 !important; }
-.music-screen .spotify-live-info > strong { margin-top:8px !important; font:500 25px/.95 var(--font-display) !important; color:#56222a !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
-.music-screen .spotify-live-info > span { margin-top:6px !important; font:italic 13px var(--font-display) !important; color:#87595d !important; opacity:1 !important; }
-.music-screen .spotify-live-progress { width:100% !important; margin-top:12px !important; height:14px !important; border:0 !important; border-bottom:2px solid rgba(92,35,43,.20) !important; background:transparent !important; border-radius:0 !important; padding:0 !important; position:relative !important; }
-.music-screen .spotify-live-progress > span { position:absolute !important; left:0 !important; bottom:-2px !important; height:2px !important; background:#a83f4c !important; }
-.music-screen .spotify-live-controls { grid-column:1/-1 !important; display:flex !important; align-items:center !important; justify-content:center !important; gap:11px !important; padding-top:13px !important; border-top:1px dashed rgba(90,32,40,.17) !important; }
-.music-screen .spotify-live-controls button { min-width:36px !important; width:36px !important; height:36px !important; border-radius:50% !important; padding:0 !important; display:grid !important; place-items:center !important; }
-.music-screen .spotify-live-controls .spotify-main-play { width:48px !important; height:48px !important; background:#651923 !important; color:#fff5e8 !important; }
-.music-screen .spotify-live-controls .spotify-queue-toggle { width:auto !important; min-width:82px !important; border-radius:18px !important; display:flex !important; gap:5px !important; padding:0 12px !important; }
-
-/* idle player gets the same object-like treatment */
-.music-screen .spotify-idle-state { grid-column:1/-1 !important; display:grid !important; grid-template-columns:72px minmax(0,1fr) !important; gap:12px 16px !important; align-items:center !important; }
-.music-screen .spotify-idle-record { width:72px !important; height:72px !important; border-radius:50% !important; border:1px solid rgba(100,35,43,.32) !important; display:grid !important; place-items:center !important; color:#7a303b !important; }
-.music-screen .spotify-idle-state > div:nth-child(2) small,
-.music-screen .spotify-idle-state > div:nth-child(2) strong,
-.music-screen .spotify-idle-state > div:nth-child(2) span { display:block !important; opacity:1 !important; }
-.music-screen .spotify-idle-state > div:nth-child(2) small { color:#a24d58 !important; letter-spacing:.15em !important; font-size:8px !important; }
-.music-screen .spotify-idle-state > div:nth-child(2) strong { color:#56222a !important; font:500 23px/1 var(--font-display) !important; margin-top:5px !important; }
-.music-screen .spotify-idle-state > div:nth-child(2) span { color:#87595d !important; font-size:11px !important; margin-top:5px !important; }
-.music-screen .spotify-idle-state > button { grid-column:2 !important; justify-self:start !important; border:1px solid rgba(101,25,35,.5) !important; border-radius:18px !important; background:transparent !important; color:#651923 !important; padding:8px 13px !important; }
-
-/* Most played: target the real .spotify-top-track markup, not nonexistent rows. */
-.music-screen .spotify-top-rotation { margin:8px 26px 24px !important; padding:0 0 8px !important; border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; transform:none !important; overflow:visible !important; max-height:none !important; }
-.music-screen .spotify-top-rotation::before,
-.music-screen .spotify-top-rotation::after { display:none !important; content:none !important; }
-.music-screen .spotify-top-rotation > header { padding:0 0 9px !important; border-bottom:1px solid rgba(92,34,42,.20) !important; align-items:end !important; }
-.music-screen .spotify-top-rotation > header > div:first-child > span { font-size:8px !important; letter-spacing:.18em !important; color:#a14b57 !important; }
-.music-screen .spotify-top-rotation > header > div:first-child > strong { font:500 29px/.95 var(--font-display) !important; color:#56222a !important; }
-.music-screen .spotify-top-range-tabs { background:transparent !important; gap:2px !important; }
-.music-screen .spotify-top-range-tabs button { border:0 !important; border-bottom:1px solid transparent !important; border-radius:0 !important; background:transparent !important; padding:5px 7px !important; color:#94666a !important; }
-.music-screen .spotify-top-range-tabs button.active { color:#5c2029 !important; border-bottom-color:#7a303b !important; background:#f7eadc !important; }
-.music-screen .spotify-top-list { margin-top:4px !important; display:flex !important; flex-direction:column !important; }
-.music-screen .spotify-top-track { min-height:51px !important; display:grid !important; grid-template-columns:20px 42px minmax(0,1fr) 34px !important; gap:9px !important; align-items:center !important; padding:5px 0 !important; border-bottom:1px solid rgba(91,34,42,.10) !important; background:transparent !important; }
-.music-screen .spotify-top-cover { width:42px !important; height:42px !important; border-radius:0 !important; overflow:hidden !important; }
-.music-screen .spotify-top-cover img { width:100% !important; height:100% !important; object-fit:cover !important; }
-.music-screen .spotify-top-copy strong { display:block !important; color:#5a222a !important; font-size:13px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
-.music-screen .spotify-top-copy span { display:block !important; margin-top:2px !important; color:#8c5e62 !important; font-size:10px !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
-.music-screen .spotify-top-track > button { width:32px !important; height:32px !important; min-width:32px !important; border-radius:4px !important; }
-
-/* Owner tabs: slim archival dividers instead of three giant buttons. */
-.music-screen .music-tabs { margin:20px 26px 0 !important; padding:0 !important; display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:0 !important; border-top:1px solid rgba(91,34,42,.20) !important; border-bottom:1px solid rgba(91,34,42,.20) !important; background:transparent !important; }
-.music-screen .music-tabs button { min-height:43px !important; border:0 !important; border-right:1px solid rgba(91,34,42,.13) !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; color:#6d4548 !important; }
-.music-screen .music-tabs button:last-child { border-right:0 !important; }
-.music-screen .music-tabs button.active { background:#681a25 !important; color:#fff3e6 !important; transform:none !important; }
-
-@media (max-width:420px){
-  .music-screen .spotify-live-player{grid-template-columns:88px minmax(0,1fr)!important;padding:15px!important;margin-inline:17px!important}
-  .music-screen .spotify-live-cover{width:88px!important;height:88px!important}
-  .music-screen .spotify-live-info>strong{font-size:21px!important}
-  .music-screen .spotify-top-rotation{margin-inline:22px!important}
-}
-
-/* =========================================================
-   VISUAL PASS 04B · NIGHT INK + PLAYER PAPER OBJECTS
-   Dark time themes use ivory ink; paper objects keep wine ink.
-   ========================================================= */
-
-/* 18h+ / night: deepen the world instead of only tinting it. */
+/* ---------- TIME / INK ---------- */
 .phone-shell[data-time-theme="night"]{
-  --background:#351b20 !important;
-  --cream:#432229 !important;
-  --paper:#553039 !important;
-  --paper-deep:#2b171c !important;
-  --blush:#63323d !important;
-  --wine:#210f14 !important;
-  --foreground:#f7eadb !important;
-  --muted-foreground:#d8bfb5 !important;
-  --border:rgba(246,226,210,.18) !important;
+  --background:#351b20;
+  --cream:#432229;
+  --paper:#553039;
+  --paper-deep:#2b171c;
+  --blush:#63323d;
+  --wine:#210f14;
+  --foreground:#f7eadb;
+  --muted-foreground:#d8bfb5;
+  --border:rgba(246,226,210,.18);
 }
 .phone-shell[data-time-theme="late"]{
-  --background:#241317 !important;
-  --cream:#31191f !important;
-  --paper:#40242b !important;
-  --paper-deep:#1c0e12 !important;
-  --blush:#512832 !important;
-  --wine:#16090d !important;
-  --foreground:#f8ecdd !important;
-  --muted-foreground:#d4bbb2 !important;
-  --border:rgba(247,229,214,.16) !important;
+  --background:#241317;
+  --cream:#31191f;
+  --paper:#40242b;
+  --paper-deep:#1c0e12;
+  --blush:#512832;
+  --wine:#16090d;
+  --foreground:#f8ecdd;
+  --muted-foreground:#d4bbb2;
+  --border:rgba(247,229,214,.16);
 }
-
-/* Ivory ink across the living screens at night. */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]){
+  --night-ivory:#f6eadb;
+  --night-ivory-soft:#dcc4b9;
+  color:var(--night-ivory);
+}
 .phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro,
 .phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro h1,
 .phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro .intro-copy,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-rotation > header > div:first-child > span,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-rotation > header > div:first-child > strong,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy strong,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy span,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-track > span:first-child,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button:not(.active){
-  color:#f7eadb !important;
-  -webkit-text-fill-color:#f7eadb !important;
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .screen-intro .eyebrow{
+  color:var(--night-ivory) !important;
+  -webkit-text-fill-color:var(--night-ivory) !important;
   opacity:1 !important;
 }
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-copy span,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-top-track > span:first-child,
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
-  color:#d8bfb5 !important;
-  -webkit-text-fill-color:#d8bfb5 !important;
-}
 
-/* The little record-shelf note stays physical cream paper. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .screen-intro::after{
-  background:#f3e3d4 !important;
-  color:#6b2d36 !important;
-  -webkit-text-fill-color:#6b2d36 !important;
+/* ---------- LOGIN PAPER ---------- */
+.private-entry{
+  background:
+    radial-gradient(circle at 50% 20%,rgba(129,42,53,.24),transparent 42%),
+    #4b151d !important;
 }
+.private-login{
+  background:#f6e8d8 !important;
+  color:#5b2029 !important;
+}
+.private-login > svg{color:#b5404e !important}
+.private-login .private-kicker,
+.private-login h1,
+.private-login .private-note,
+.private-login form label{opacity:1 !important}
+.private-login .private-kicker{color:#b5404e !important;-webkit-text-fill-color:#b5404e !important}
+.private-login h1{color:#5b2029 !important;-webkit-text-fill-color:#5b2029 !important}
+.private-login .private-note{color:#a35e64 !important;-webkit-text-fill-color:#a35e64 !important}
+.private-login form label{color:#a65a61 !important;-webkit-text-fill-color:#a65a61 !important}
+.private-login input{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  caret-color:#7b2632 !important;
+  background:rgba(255,250,242,.42) !important;
+}
+.private-login input:-webkit-autofill{-webkit-text-fill-color:#57222b !important}
+.private-login button[type="submit"]{
+  background:#5d1721 !important;
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+}
+.private-login .private-error{color:#9b2837 !important;-webkit-text-fill-color:#9b2837 !important}
 
-/* Now-playing remains a cream record sleeve, so its ink must stay wine. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-player{
-  background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.055) 27px 28px),#f7eadc !important;
-  color:#56222a !important;
+/* ---------- CHAT: THEMES KEEP THEIR IDENTITY, TEXT STAYS READABLE ---------- */
+.messenger-chat{
+  --chat-readable-ink:var(--chat-ink);
+  --chat-readable-muted:color-mix(in oklab,var(--chat-ink) 58%,transparent);
 }
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-player *{
-  -webkit-text-fill-color:initial;
+.chat-theme-cherry{--chat-readable-ink:#4d2028;--chat-readable-muted:#74454d}
+.chat-theme-old-letter{--chat-readable-ink:#4b352a;--chat-readable-muted:#745f50}
+.chat-theme-soft-rose{--chat-readable-ink:#54252a;--chat-readable-muted:#80575b}
+.chat-theme-midnight{
+  --chat-readable-ink:#f8ecdd;
+  --chat-readable-muted:#d4bbb2;
 }
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > small{color:#a24d58 !important;-webkit-text-fill-color:#a24d58 !important}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > strong{color:#56222a !important;-webkit-text-fill-color:#56222a !important}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-info > span{color:#87595d !important;-webkit-text-fill-color:#87595d !important}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-controls button{color:#651923 !important;-webkit-text-fill-color:#651923 !important}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .spotify-live-controls .spotify-main-play{color:#fff5e8 !important;-webkit-text-fill-color:#fff5e8 !important}
-
-/* Most played is a real clipped paper list again — compact, not a dashboard card. */
-.music-screen .spotify-top-rotation{
-  position:relative !important;
-  margin:18px 24px 25px !important;
-  padding:17px 15px 12px !important;
-  background:#ead6c7 !important;
-  border:0 !important;
-  box-shadow:5px 7px 0 rgba(20,7,10,.13) !important;
-  transform:rotate(.25deg) !important;
-}
-.music-screen .spotify-top-rotation::before{
-  display:block !important;
-  content:"" !important;
-  position:absolute !important;
-  top:-9px !important;
-  left:28px !important;
-  width:64px !important;
-  height:18px !important;
-  background:rgba(225,181,176,.62) !important;
-  transform:rotate(-2deg) !important;
-}
-.music-screen .spotify-top-rotation > header{border-bottom:1px solid rgba(89,32,40,.18) !important}
-.music-screen .spotify-top-rotation > header > div:first-child > span{color:#9c4a55 !important;-webkit-text-fill-color:#9c4a55 !important}
-.music-screen .spotify-top-rotation > header > div:first-child > strong{color:#56222a !important;-webkit-text-fill-color:#56222a !important}
-.music-screen .spotify-top-copy strong{color:#57232b !important;-webkit-text-fill-color:#57232b !important}
-.music-screen .spotify-top-copy span{color:#875c60 !important;-webkit-text-fill-color:#875c60 !important}
-.music-screen .spotify-top-track > span:first-child{color:#9b6a6c !important;-webkit-text-fill-color:#9b6a6c !important}
-.music-screen .spotify-top-range-tabs button{color:#98676b !important;-webkit-text-fill-color:#98676b !important}
-.music-screen .spotify-top-range-tabs button.active{background:#f8eadc !important;color:#5b2029 !important;-webkit-text-fill-color:#5b2029 !important}
-.music-screen .spotify-top-track{border-bottom-color:rgba(89,32,40,.10) !important}
-
-/* Collection dividers stay readable against the dark page. */
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs{
-  border-color:rgba(247,234,219,.25) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button{
-  border-color:rgba(247,234,219,.16) !important;
-}
-.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button.active{
-  background:#f1dfd0 !important;
-  color:#5c2029 !important;
-  -webkit-text-fill-color:#5c2029 !important;
-}
-
-/* Chat: time-adapted dark modes must be dark surfaces + ivory ink, regardless of base theme. */
 .messenger-chat.chat-adapt-time.chat-time-night{
   --chat-bg:#351b20 !important;
   --chat-panel:#432229 !important;
   --chat-mine:#66323d !important;
   --chat-theirs:#4c2931 !important;
   --chat-ink:#f7eadb !important;
-  --chat-safe-ink:#f7eadb !important;
-  --chat-safe-muted:#d7bdb4 !important;
   --chat-readable-ink:#f7eadb !important;
   --chat-readable-muted:#d7bdb4 !important;
   --chat-accent:#dc8b96 !important;
@@ -15191,20 +14490,2756 @@ html[data-diario-time-theme="continuous"] .statusbar {
   --chat-mine:#542833 !important;
   --chat-theirs:#3d2229 !important;
   --chat-ink:#f8ecdd !important;
-  --chat-safe-ink:#f8ecdd !important;
-  --chat-safe-muted:#d4bbb2 !important;
   --chat-readable-ink:#f8ecdd !important;
   --chat-readable-muted:#d4bbb2 !important;
   --chat-accent:#d98290 !important;
 }
-.messenger-chat.chat-theme-midnight{
-  --chat-bg:#241317 !important;
-  --chat-panel:#31191f !important;
-  --chat-mine:#542833 !important;
-  --chat-theirs:#3d2229 !important;
-  --chat-ink:#f8ecdd !important;
-  --chat-safe-ink:#f8ecdd !important;
-  --chat-safe-muted:#d4bbb2 !important;
-  --chat-readable-ink:#f8ecdd !important;
-  --chat-readable-muted:#d4bbb2 !important;
+.messenger-chat .messenger-bubble,
+.messenger-chat .messenger-bubble [data-streamdown],
+.messenger-chat .diario-message-content,
+.messenger-chat .diario-message-content *{
+  color:var(--chat-readable-ink) !important;
+  -webkit-text-fill-color:var(--chat-readable-ink) !important;
+}
+.messenger-chat .messenger-message time,
+.messenger-chat .messenger-person p,
+.messenger-chat .messenger-composer textarea::placeholder{
+  color:var(--chat-readable-muted) !important;
+  -webkit-text-fill-color:var(--chat-readable-muted) !important;
+  opacity:1 !important;
+}
+.chat-settings-sheet,
+.chat-actions-sheet{
+  --foreground:#57222b;
+  --muted-foreground:#9a686b;
+  --border:rgba(103,35,44,.18);
+  --paper:#f6e8d8;
+  --cream:#f2dfd0;
+  --blush:#edc7ca;
+  --wine:#651923;
+  --cherry:#b44d5b;
+  background:#f6e8d8 !important;
+  color:#57222b !important;
+}
+.chat-settings-sheet [data-slot=sheet-title],
+.chat-actions-sheet [data-slot=sheet-title],
+.chat-settings-sheet .settings-row-title strong,
+.chat-settings-sheet .theme-grid b,
+.chat-settings-sheet .bubble-choice-grid b,
+.chat-settings-sheet .settings-toggles strong{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+}
+.chat-settings-sheet .settings-row-title small,
+.chat-settings-sheet .theme-grid small,
+.chat-settings-sheet .settings-toggles small{
+  color:#9a686b !important;
+  -webkit-text-fill-color:#9a686b !important;
+}
+.chat-settings-sheet .theme-grid button,
+.chat-settings-sheet .bubble-choice-grid button{
+  color:#57222b !important;
+  background:#f4e4d6 !important;
+}
+.chat-settings-sheet .bubble-preview{color:#57222b !important;-webkit-text-fill-color:#57222b !important}
+
+/* ---------- PLAYER: INTRO ---------- */
+.music-screen{
+  --music-paper:#f0ddcd;
+  --music-paper-light:#f7eadc;
+  --music-ink:#57222b;
+  --music-muted:#936268;
+  --music-accent:#a24e58;
+  --music-wine:#651923;
+  padding-bottom:170px !important;
+}
+.music-screen .screen-intro{
+  position:relative;
+  padding-bottom:72px !important;
+}
+.music-screen .screen-intro::after{
+  content:"a little record shelf for two";
+  position:absolute;
+  left:24px;
+  bottom:12px;
+  padding:8px 12px 7px;
+  background:#f3e3d4;
+  color:#6b2d36;
+  -webkit-text-fill-color:#6b2d36;
+  font:15px/1 var(--font-hand);
+  transform:rotate(-1.2deg);
+  box-shadow:3px 4px 0 rgba(10,3,5,.10);
+}
+
+/* ---------- PLAYER: NOW PLAYING ---------- */
+.music-screen .spotify-live-player{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:104px minmax(0,1fr) !important;
+  gap:14px 16px !important;
+  align-items:center !important;
+  margin:18px 22px 24px !important;
+  padding:18px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  overflow:visible !important;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 27px,rgba(101,35,43,.05) 27px 28px),
+    #f6e7d8 !important;
+  color:#55212a !important;
+  box-shadow:6px 8px 0 rgba(26,7,11,.14) !important;
+}
+.music-screen .spotify-live-player::before{
+  content:"";
+  position:absolute;
+  top:-10px;
+  left:50%;
+  width:86px;
+  height:21px;
+  transform:translateX(-50%) rotate(1.5deg);
+  background:rgba(229,190,184,.68);
+}
+.music-screen .spotify-live-cover{
+  width:104px !important;
+  height:104px !important;
+  border-radius:0 !important;
+  overflow:hidden !important;
+  box-shadow:3px 4px 0 rgba(84,31,38,.12) !important;
+}
+.music-screen .spotify-live-cover img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+.music-screen .spotify-live-info{
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.music-screen .spotify-live-info > small{
+  color:#a24d58 !important;
+  -webkit-text-fill-color:#a24d58 !important;
+  font-size:8px !important;
+  letter-spacing:.18em !important;
+}
+.music-screen .spotify-live-info > strong{
+  margin-top:8px !important;
+  overflow:hidden !important;
+  color:#56222a !important;
+  -webkit-text-fill-color:#56222a !important;
+  font:500 25px/.95 var(--font-display) !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-live-info > span{
+  margin-top:6px !important;
+  color:#87595d !important;
+  -webkit-text-fill-color:#87595d !important;
+  font:italic 13px var(--font-display) !important;
+}
+.music-screen .spotify-live-progress{
+  position:relative !important;
+  width:100% !important;
+  height:14px !important;
+  margin-top:12px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-bottom:2px solid rgba(92,35,43,.20) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+}
+.music-screen .spotify-live-progress > span{
+  position:absolute !important;
+  left:0 !important;
+  bottom:-2px !important;
+  height:2px !important;
+  background:#a83f4c !important;
+}
+.music-screen .spotify-live-controls{
+  grid-column:1/-1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:11px !important;
+  padding-top:13px !important;
+  border-top:1px dashed rgba(90,32,40,.17) !important;
+}
+.music-screen .spotify-live-controls button{
+  width:36px !important;
+  min-width:36px !important;
+  height:36px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  display:grid !important;
+  place-items:center !important;
+  background:rgba(255,248,238,.58) !important;
+  color:#651923 !important;
+}
+.music-screen .spotify-live-controls .spotify-main-play{
+  width:48px !important;
+  height:48px !important;
+  background:#651923 !important;
+  color:#fff5e8 !important;
+}
+.music-screen .spotify-live-controls .spotify-queue-toggle{
+  width:auto !important;
+  min-width:82px !important;
+  padding:0 12px !important;
+  border-radius:18px !important;
+  display:flex !important;
+  gap:5px !important;
+  background:transparent !important;
+}
+.music-screen .spotify-idle-state{
+  grid-column:1/-1 !important;
+  display:grid !important;
+  grid-template-columns:72px minmax(0,1fr) !important;
+  gap:12px 16px !important;
+  align-items:center !important;
+}
+.music-screen .spotify-idle-record{
+  width:72px !important;
+  height:72px !important;
+  display:grid !important;
+  place-items:center !important;
+  border:1px solid rgba(100,35,43,.32) !important;
+  border-radius:50% !important;
+  color:#7a303b !important;
+}
+.music-screen .spotify-idle-state small,
+.music-screen .spotify-idle-state strong,
+.music-screen .spotify-idle-state span{display:block !important;opacity:1 !important}
+.music-screen .spotify-idle-state small{color:#a24d58 !important;font-size:8px !important;letter-spacing:.15em !important}
+.music-screen .spotify-idle-state strong{margin-top:5px !important;color:#56222a !important;font:500 23px/1 var(--font-display) !important}
+.music-screen .spotify-idle-state span{margin-top:5px !important;color:#87595d !important;font-size:11px !important}
+.music-screen .spotify-idle-state > button{
+  grid-column:2 !important;
+  justify-self:start !important;
+  padding:8px 13px !important;
+  border:1px solid rgba(101,25,35,.5) !important;
+  border-radius:18px !important;
+  background:transparent !important;
+  color:#651923 !important;
+}
+
+/* ---------- PLAYER: MOST PLAYED ---------- */
+.music-screen .spotify-top-rotation{
+  position:relative !important;
+  max-height:none !important;
+  overflow:visible !important;
+  margin:18px 24px 25px !important;
+  padding:17px 15px 12px !important;
+  border:1px solid rgba(91,30,39,.08) !important;
+  border-radius:0 !important;
+  background:#ead6c7 !important;
+  color:#57222b !important;
+  box-shadow:5px 7px 0 rgba(20,7,10,.13) !important;
+  transform:rotate(.25deg) !important;
+}
+.music-screen .spotify-top-rotation::before{
+  content:"";
+  position:absolute;
+  top:-9px;
+  left:28px;
+  width:64px;
+  height:18px;
+  background:rgba(225,181,176,.62);
+  transform:rotate(-2deg);
+}
+.music-screen .spotify-top-rotation::after{display:none !important;content:none !important}
+.music-screen .spotify-top-rotation > header{
+  display:flex !important;
+  align-items:end !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+  padding:0 0 9px !important;
+  border-bottom:1px solid rgba(92,34,42,.18) !important;
+}
+.music-screen .spotify-top-rotation > header span{
+  color:#9c4a55 !important;
+  -webkit-text-fill-color:#9c4a55 !important;
+  font-size:8px !important;
+  letter-spacing:.18em !important;
+}
+.music-screen .spotify-top-rotation > header strong{
+  color:#56222a !important;
+  -webkit-text-fill-color:#56222a !important;
+  font:500 29px/.95 var(--font-display) !important;
+}
+.music-screen .spotify-top-range-tabs{display:flex !important;gap:2px !important;background:transparent !important}
+.music-screen .spotify-top-range-tabs button{
+  padding:5px 7px !important;
+  border:0 !important;
+  border-bottom:1px solid transparent !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#98676b !important;
+}
+.music-screen .spotify-top-range-tabs button.active{
+  background:#f8eadc !important;
+  color:#5b2029 !important;
+  -webkit-text-fill-color:#5b2029 !important;
+  border-bottom-color:#7a303b !important;
+}
+.music-screen .spotify-top-list{
+  display:flex !important;
+  flex-direction:column !important;
+  max-height:none !important;
+  overflow:visible !important;
+  margin-top:4px !important;
+}
+.music-screen .spotify-top-track{
+  display:grid !important;
+  grid-template-columns:20px 42px minmax(0,1fr) auto !important;
+  gap:9px !important;
+  align-items:center !important;
+  min-height:51px !important;
+  padding:5px 0 !important;
+  border-bottom:1px solid rgba(91,34,42,.10) !important;
+  background:transparent !important;
+}
+.music-screen .spotify-top-cover{width:42px !important;height:42px !important;border-radius:0 !important;overflow:hidden !important}
+.music-screen .spotify-top-cover img{width:100% !important;height:100% !important;object-fit:cover !important}
+.music-screen .spotify-top-rank{color:#9b6a6c !important;-webkit-text-fill-color:#9b6a6c !important}
+.music-screen .spotify-top-copy{min-width:0 !important}
+.music-screen .spotify-top-copy strong{
+  display:block !important;
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-size:13px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-top-copy span{
+  display:block !important;
+  margin-top:2px !important;
+  overflow:hidden !important;
+  color:#875c60 !important;
+  -webkit-text-fill-color:#875c60 !important;
+  font-size:10px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-top-actions{display:flex !important;align-items:center !important;justify-content:flex-end !important;gap:4px !important}
+.music-screen .spotify-top-actions button{
+  width:auto !important;
+  min-width:0 !important;
+  height:29px !important;
+  padding:0 7px !important;
+  border:0 !important;
+  border-radius:3px !important;
+  background:rgba(255,247,237,.42) !important;
+  color:#6a2932 !important;
+  font-size:8px !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-top-actions button:first-child{
+  width:29px !important;
+  padding:0 !important;
+  background:#651923 !important;
+  color:#fff4e7 !important;
+}
+.music-screen .spotify-top-actions button:disabled{opacity:.48 !important}
+
+/* ---------- PLAYER: OWNER + SECTION NAV ---------- */
+.music-screen .music-tabs{
+  display:grid !important;
+  grid-template-columns:repeat(3,1fr) !important;
+  gap:0 !important;
+  margin:18px 24px 0 !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.music-screen .music-tabs button{
+  min-height:46px !important;
+  padding:0 16px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(111,39,49,.22) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#7a4a50 !important;
+  font-size:10px !important;
+  font-weight:800 !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+  box-shadow:none !important;
+}
+.music-screen .music-tabs button.active{
+  background:#7b1f2d !important;
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+  border-bottom-color:#d88a92 !important;
+}
+.music-screen .music-section-tabs{
+  display:flex !important;
+  gap:0 !important;
+  min-height:38px !important;
+  margin:4px 24px 16px !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  border-bottom:1px solid rgba(111,39,49,.16) !important;
+  scrollbar-width:none !important;
+}
+.music-screen .music-section-tabs::-webkit-scrollbar{display:none !important}
+.music-screen .music-section-tabs button{
+  flex:1 0 auto !important;
+  min-width:max-content !important;
+  padding:10px 9px 8px !important;
+  border:0 !important;
+  border-bottom:2px solid transparent !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#8f5960 !important;
+  font-size:8px !important;
+  font-weight:650 !important;
+  letter-spacing:.10em !important;
+  text-transform:uppercase !important;
+  opacity:.82 !important;
+}
+.music-screen .music-section-tabs button.active{
+  color:#651923 !important;
+  -webkit-text-fill-color:#651923 !important;
+  border-bottom-color:#651923 !important;
+  opacity:1 !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-tabs button:not(.active),
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button{
+  color:rgba(249,233,217,.72) !important;
+  -webkit-text-fill-color:rgba(249,233,217,.72) !important;
+  opacity:1 !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .music-screen .music-section-tabs button.active{
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+  border-bottom-color:#d88a92 !important;
+}
+
+/* ---------- PLAYER: SAVED RECORD INDEX ---------- */
+.music-screen .music-library{
+  position:relative !important;
+  display:block !important;
+  margin:0 10px 24px !important;
+  padding:14px 18px 20px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 54px,rgba(103,35,44,.045) 54px 55px),
+    #f0ddcd !important;
+  box-shadow:5px 7px 0 rgba(20,5,9,.12) !important;
+}
+.music-screen .music-library::before{
+  content:"SAVED SONGS · RECORD INDEX";
+  display:block;
+  margin-bottom:2px;
+  padding:0 0 11px;
+  border-bottom:1px solid rgba(91,30,39,.15);
+  color:#a24e58;
+  -webkit-text-fill-color:#a24e58;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.18em;
+}
+.music-screen .music-library .music-track{
+  display:grid !important;
+  grid-template-columns:52px minmax(0,1fr) 62px !important;
+  grid-template-areas:"cover copy actions" !important;
+  gap:12px !important;
+  align-items:center !important;
+  min-height:86px !important;
+  margin:0 !important;
+  padding:14px 0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(91,30,39,.12) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transform:none !important;
+}
+.music-screen .music-library .music-track:last-child{border-bottom:0 !important}
+.music-screen .music-record{
+  grid-area:cover !important;
+  width:52px !important;
+  height:52px !important;
+  display:grid !important;
+  place-items:center !important;
+}
+.music-screen .music-record img{
+  width:52px !important;
+  height:52px !important;
+  object-fit:cover !important;
+  border-radius:1px !important;
+  box-shadow:2px 3px 0 rgba(82,27,35,.12) !important;
+}
+.music-screen .music-track-copy{
+  grid-area:copy !important;
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-start !important;
+}
+.music-screen .music-track-copy > small{
+  margin-bottom:3px !important;
+  color:#9c5c62 !important;
+  -webkit-text-fill-color:#9c5c62 !important;
+  font-size:7px !important;
+  font-weight:700 !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+}
+.music-screen .music-track-copy > strong{
+  max-width:100% !important;
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-display) !important;
+  font-size:16px !important;
+  font-weight:500 !important;
+  line-height:1.05 !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .music-track-copy > span,
+.music-screen .music-track-copy > em{
+  max-width:100% !important;
+  overflow:hidden !important;
+  color:#74464d !important;
+  -webkit-text-fill-color:#74464d !important;
+  font-size:8.5px !important;
+  font-style:normal !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .music-track-copy > p{display:none !important}
+.music-screen .music-connections-link{
+  width:auto !important;
+  height:auto !important;
+  margin-top:4px !important;
+  padding:0 0 2px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(101,30,41,.24) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#7d3943 !important;
+  -webkit-text-fill-color:#7d3943 !important;
+  font-size:6.5px !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+  box-shadow:none !important;
+}
+.music-screen .music-track-actions{
+  grid-area:actions !important;
+  display:grid !important;
+  grid-template-columns:27px 27px !important;
+  grid-auto-rows:27px !important;
+  justify-content:end !important;
+  align-content:center !important;
+  gap:3px !important;
+}
+.music-screen .music-track-actions button{
+  position:static !important;
+  width:27px !important;
+  min-width:0 !important;
+  height:27px !important;
+  margin:0 !important;
+  padding:0 !important;
+  border-radius:2px !important;
+  box-shadow:none !important;
+  font-size:0 !important;
+}
+.music-screen .music-track-actions .music-listen-button{
+  border:0 !important;
+  background:#651923 !important;
+  color:#fff3e5 !important;
+}
+.music-screen .music-track-actions .music-favorite-button{
+  border:1px solid rgba(101,30,41,.16) !important;
+  background:transparent !important;
+  color:#711f2b !important;
+}
+.music-screen .music-track-actions .music-queue-button{
+  position:relative !important;
+  border:1px solid rgba(101,30,41,.16) !important;
+  background:transparent !important;
+  color:transparent !important;
+}
+.music-screen .music-track-actions .music-queue-button::before{
+  content:"+";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#7d3943;
+  font:15px/1 Georgia,serif;
+}
+.music-screen .music-track-actions .music-remove-button{
+  border:0 !important;
+  background:transparent !important;
+  color:#a4666c !important;
+  font:13px/1 Georgia,serif !important;
+  opacity:.55 !important;
+}
+.music-screen .music-track-actions button:disabled{opacity:.42 !important}
+
+/* ---------- PLAYER: SPOTIFY PAPER SECTIONS ---------- */
+.music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board){
+  position:relative !important;
+  height:auto !important;
+  max-height:none !important;
+  margin:0 10px 24px !important;
+  padding:18px 18px 20px !important;
+  overflow:visible !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 54px,rgba(103,35,44,.045) 54px 55px),
+    #f0ddcd !important;
+  color:#57222b !important;
+  box-shadow:5px 7px 0 rgba(20,5,9,.12) !important;
+}
+.music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board)::before{
+  content:"";
+  position:absolute;
+  top:-7px;
+  left:50%;
+  width:70px;
+  height:17px;
+  transform:translateX(-50%) rotate(-1deg);
+  background:rgba(229,186,176,.50);
+  pointer-events:none;
+}
+.music-screen .spotify-library-heading,
+.music-screen .music-playlist-board > header,
+.music-screen .spotify-queue-panel > header{
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+  margin:0 0 14px !important;
+  padding:3px 0 11px !important;
+  border-bottom:1px solid rgba(91,30,39,.15) !important;
+}
+.music-screen .spotify-library-heading > div,
+.music-screen .music-playlist-board > header > div{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:3px !important;
+}
+.music-screen .spotify-library-heading span,
+.music-screen .music-playlist-board header span,
+.music-screen .spotify-queue-panel > header > span{
+  color:#a24e58 !important;
+  -webkit-text-fill-color:#a24e58 !important;
+  font-size:7px !important;
+  font-weight:700 !important;
+  letter-spacing:.17em !important;
+  text-transform:uppercase !important;
+}
+.music-screen .spotify-library-heading strong,
+.music-screen .music-playlist-board header strong{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-display) !important;
+  font-size:25px !important;
+  font-weight:500 !important;
+  line-height:1 !important;
+}
+.music-screen .spotify-library-heading small,
+.music-screen .music-playlist-board header small{
+  color:#9a686b !important;
+  -webkit-text-fill-color:#9a686b !important;
+  font-size:8px !important;
+}
+
+/* playlists */
+.music-screen .spotify-playlist-grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:22px 14px !important;
+  height:auto !important;
+  max-height:none !important;
+  padding:3px 0 6px !important;
+  overflow:visible !important;
+}
+.music-screen .spotify-playlist-grid > button{
+  min-width:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#57222b !important;
+  text-align:left !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-playlist-art{
+  width:100% !important;
+  aspect-ratio:1 !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:#dfc2b5 !important;
+  box-shadow:3px 4px 0 rgba(62,17,25,.13) !important;
+}
+.music-screen .spotify-playlist-art img{width:100% !important;height:100% !important;object-fit:cover !important}
+.music-screen .spotify-playlist-grid > button > strong{
+  display:block !important;
+  margin:8px 0 2px !important;
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-display) !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+  line-height:1.15 !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-playlist-grid > button > span{
+  color:#9a686b !important;
+  -webkit-text-fill-color:#9a686b !important;
+  font-size:8px !important;
+}
+.music-screen .spotify-library-back{
+  width:auto !important;
+  margin:0 0 12px !important;
+  padding:0 0 2px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(101,30,41,.24) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#8c5158 !important;
+  font-size:8px !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-selected-playlist{
+  display:grid !important;
+  grid-template-columns:74px minmax(0,1fr) !important;
+  gap:14px !important;
+  align-items:end !important;
+  margin-bottom:14px !important;
+}
+.music-screen .spotify-selected-playlist img{
+  width:74px !important;
+  height:74px !important;
+  object-fit:cover !important;
+  border-radius:1px !important;
+  box-shadow:3px 4px 0 rgba(62,17,25,.13) !important;
+}
+.music-screen .spotify-selected-playlist > div{min-width:0 !important;display:flex !important;flex-direction:column !important}
+.music-screen .spotify-selected-playlist small{color:#a24e58 !important;font-size:7px !important;letter-spacing:.16em !important}
+.music-screen .spotify-selected-playlist strong{color:#57222b !important;font:500 21px/1.05 var(--font-display) !important}
+.music-screen .spotify-selected-playlist span{color:#956269 !important;font-size:8px !important}
+
+/* recent / liked / playlist track listing — deliberately no nested scrolling */
+.music-screen .spotify-compact-track-list,
+.music-screen .spotify-liked-track-list{
+  display:block !important;
+  position:static !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow:visible !important;
+  scrollbar-width:none !important;
+}
+.music-screen .spotify-compact-track-list::-webkit-scrollbar,
+.music-screen .spotify-liked-track-list::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important}
+.music-screen .spotify-compact-track-list > button{
+  display:grid !important;
+  grid-template-columns:38px minmax(0,1fr) 24px !important;
+  gap:10px !important;
+  align-items:center !important;
+  width:100% !important;
+  min-height:55px !important;
+  max-height:none !important;
+  padding:8px 0 !important;
+  overflow:visible !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(91,30,39,.12) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  text-align:left !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-compact-track-list > button:last-child{border-bottom:0 !important}
+.music-screen .spotify-compact-track-list > button > img{width:38px !important;height:38px !important;object-fit:cover !important;border-radius:1px !important}
+.music-screen .spotify-compact-track-list > button > span{min-width:0 !important;display:flex !important;flex-direction:column !important}
+.music-screen .spotify-compact-track-list > button strong{
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-display) !important;
+  font-size:13px !important;
+  font-weight:600 !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-compact-track-list > button small{
+  overflow:hidden !important;
+  color:#936268 !important;
+  -webkit-text-fill-color:#936268 !important;
+  font-size:8px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-compact-track-list > button > svg{color:#6a1c28 !important}
+
+/* queue */
+.music-screen .spotify-queue-panel > header button{
+  width:auto !important;
+  min-height:0 !important;
+  padding:3px 0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(101,30,41,.24) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#8b5158 !important;
+  font-size:7px !important;
+  box-shadow:none !important;
+}
+.music-screen .spotify-queue-list{
+  counter-reset:queue-track;
+  height:auto !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+.music-screen .spotify-queue-item{
+  counter-increment:queue-track;
+  display:grid !important;
+  grid-template-columns:16px 38px minmax(0,1fr) !important;
+  gap:9px !important;
+  align-items:center !important;
+  min-height:55px !important;
+  padding:8px 0 !important;
+  border-bottom:1px solid rgba(91,30,39,.12) !important;
+}
+.music-screen .spotify-queue-item::before{
+  content:counter(queue-track);
+  color:#a16b70;
+  font-family:var(--font-display);
+  font-size:9px;
+}
+.music-screen .spotify-queue-item img{width:38px !important;height:38px !important;object-fit:cover !important;border-radius:1px !important}
+.music-screen .spotify-queue-item > div{min-width:0 !important;display:flex !important;flex-direction:column !important}
+.music-screen .spotify-queue-item strong{
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-family:var(--font-display) !important;
+  font-size:13px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.music-screen .spotify-queue-item span{
+  overflow:hidden !important;
+  color:#936268 !important;
+  -webkit-text-fill-color:#936268 !important;
+  font-size:8px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+
+/* Dominic / Ours empty playlist page */
+.music-screen .music-playlist-board{min-height:150px !important}
+.music-screen .music-playlist-board > p{
+  max-width:31ch !important;
+  margin:18px 0 8px !important;
+  color:#805159 !important;
+  -webkit-text-fill-color:#805159 !important;
+  font:italic 13px/1.5 var(--font-display) !important;
+}
+
+/* add / empty */
+.music-screen .music-empty,
+.music-screen .music-empty-note{
+  margin:0 10px 24px !important;
+  padding:22px 18px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:#f0ddcd !important;
+  color:#704049 !important;
+  -webkit-text-fill-color:#704049 !important;
+  box-shadow:4px 5px 0 rgba(20,5,9,.11) !important;
+}
+.music-screen .music-empty h2{color:#57222b !important;-webkit-text-fill-color:#57222b !important;font-family:var(--font-display) !important}
+.music-screen > .gallery-add-button{
+  display:block !important;
+  width:calc(100% - 48px) !important;
+  margin:10px auto 22px !important;
+}
+
+/* liner note */
+.music-screen .music-rule{
+  position:relative !important;
+  margin:0 10px 34px !important;
+  padding:15px 18px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  color:#704049 !important;
+  box-shadow:4px 5px 0 rgba(20,5,9,.10) !important;
+}
+.music-screen .music-rule::before{
+  content:"LINER NOTE";
+  display:block;
+  margin-bottom:6px;
+  color:#a24e58;
+  -webkit-text-fill-color:#a24e58;
+  font-size:6px;
+  font-weight:700;
+  letter-spacing:.18em;
+}
+.music-screen .music-rule p{
+  margin:0 !important;
+  color:#704049 !important;
+  -webkit-text-fill-color:#704049 !important;
+  font:10px/1.45 var(--font-display) !important;
+}
+
+/* ---------- NIGHT NAV ---------- */
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav{
+  background:rgba(101,43,50,.90) !important;
+  border-color:rgba(247,233,218,.20) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button:not(.active){
+  color:var(--night-ivory-soft) !important;
+  -webkit-text-fill-color:var(--night-ivory-soft) !important;
+}
+.phone-shell:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button.active{
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+}
+
+/* ---------- MOBILE ---------- */
+@media (max-width:420px){
+  .music-screen .spotify-live-player{
+    grid-template-columns:88px minmax(0,1fr) !important;
+    margin-inline:17px !important;
+    padding:15px !important;
+  }
+  .music-screen .spotify-live-cover{width:88px !important;height:88px !important}
+  .music-screen .spotify-live-info > strong{font-size:21px !important}
+  .music-screen .spotify-top-rotation{margin-inline:18px !important}
+  .music-screen .spotify-top-track{
+    grid-template-columns:18px 38px minmax(0,1fr) auto !important;
+    gap:7px !important;
+  }
+  .music-screen .spotify-top-cover{width:38px !important;height:38px !important}
+  .music-screen .spotify-top-actions button:not(:first-child){padding-inline:5px !important;font-size:7px !important}
+  .music-screen .music-tabs{margin-inline:18px !important}
+  .music-screen .music-tabs button{min-height:42px !important;padding-inline:8px !important;font-size:9px !important}
+  .music-screen .music-section-tabs{margin-inline:18px !important}
+  .music-screen .music-section-tabs button{padding:11px 5px 9px !important;font-size:7px !important;letter-spacing:.08em !important}
+  .music-screen .music-library,
+  .music-screen :is(.spotify-library-paper,.spotify-queue-panel.music-section-panel,.music-playlist-board),
+  .music-screen .music-rule{margin-inline:6px !important}
+  .music-screen .music-library{padding-inline:14px !important}
+  .music-screen .music-library .music-track{
+    grid-template-columns:48px minmax(0,1fr) 58px !important;
+    gap:9px !important;
+  }
+  .music-screen .music-record,
+  .music-screen .music-record img{width:48px !important;height:48px !important}
+  .music-screen .spotify-playlist-grid{gap:18px 11px !important}
+  .music-screen .spotify-library-heading strong{font-size:22px !important}
+}
+
+
+
+
+/* =========================================================
+   DIÁRIO · ARCHIVE ROOMS · GALLERY / LETTERS / MEMORIES
+   Paper always keeps dark ink while the world darkens around it.
+   ========================================================= */
+
+/* Golden hour: the world can turn rose without making cream objects illegible. */
+.prototype-stage[data-time-theme="golden"] .messenger-chat:not(.chat-theme-midnight){
+  --chat-readable-ink:#54262d !important;
+  --chat-readable-muted:#80575c !important;
+}
+.prototype-stage[data-time-theme="golden"] .messenger-chat:not(.chat-theme-midnight) .messenger-bubble,
+.prototype-stage[data-time-theme="golden"] .messenger-chat:not(.chat-theme-midnight) .messenger-bubble *,
+.prototype-stage[data-time-theme="golden"] .messenger-chat:not(.chat-theme-midnight) .diario-message-content,
+.prototype-stage[data-time-theme="golden"] .messenger-chat:not(.chat-theme-midnight) .diario-message-content *{
+  color:#54262d !important;
+  -webkit-text-fill-color:#54262d !important;
+}
+.prototype-stage:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav{
+  background:rgba(88,39,47,.90) !important;
+  border-color:rgba(247,233,218,.20) !important;
+}
+.prototype-stage:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button:not(.active){
+  color:#dcc4b9 !important;
+  -webkit-text-fill-color:#dcc4b9 !important;
+}
+.prototype-stage:is([data-time-theme="night"],[data-time-theme="late"]) .bottom-nav button.active{
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+}
+
+/* Shared archive-paper ink: these are physical objects, not the surrounding sky. */
+.gallery-library,
+.letters-drawer,
+.memories-empty,
+.memory-entry,
+.memory-connected-item{
+  --archive-paper:#f5e7d8;
+  --archive-paper-deep:#ead2c2;
+  --archive-ink:#57222b;
+  --archive-muted:#8c5d61;
+  --archive-accent:#a84d59;
+}
+
+/* ---------------- GALLERY · real camera roll ---------------- */
+.gallery-live .gallery-live-tabs{
+  margin:15px 22px 18px !important;
+  padding:0 !important;
+  gap:0 !important;
+  border:1px solid color-mix(in oklab,var(--text) 13%,transparent) !important;
+  border-radius:1px !important;
+  background:color-mix(in oklab,var(--surface-raised) 44%,transparent) !important;
+  box-shadow:none !important;
+}
+.gallery-live .gallery-live-tabs button{
+  min-height:43px !important;
+  border-radius:0 !important;
+  color:var(--text-soft) !important;
+  font:600 9px/1 var(--font-body) !important;
+  letter-spacing:.12em !important;
+}
+.gallery-live .gallery-live-tabs button + button{
+  border-left:1px solid color-mix(in oklab,var(--text) 10%,transparent) !important;
+}
+.gallery-live .gallery-live-tabs button.active{
+  background:#f5e7d8 !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  box-shadow:inset 0 -2px #8a2d3b !important;
+}
+
+.gallery-live .gallery-library{
+  position:relative !important;
+  margin:0 18px 26px !important;
+  padding:16px 12px 14px !important;
+  overflow:visible !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:2px !important;
+  background:var(--archive-paper) !important;
+  color:var(--archive-ink) !important;
+  box-shadow:5px 7px 0 rgba(35,10,14,.10) !important;
+}
+.gallery-live .gallery-library::before{
+  content:"";
+  position:absolute;
+  top:-8px;
+  left:50%;
+  width:76px;
+  height:18px;
+  transform:translateX(-50%) rotate(-1.5deg);
+  background:rgba(225,184,176,.54);
+  pointer-events:none;
+}
+.gallery-live .gallery-library > header{
+  margin:0 3px 13px !important;
+  padding:2px 2px 12px !important;
+  border-bottom:1px solid rgba(87,34,43,.14) !important;
+}
+.gallery-live .gallery-library > header span{
+  color:var(--archive-accent) !important;
+  -webkit-text-fill-color:var(--archive-accent) !important;
+}
+.gallery-live .gallery-library > header strong{
+  color:var(--archive-ink) !important;
+  -webkit-text-fill-color:var(--archive-ink) !important;
+  font:500 27px/.95 var(--font-display) !important;
+}
+.gallery-live .gallery-library > header small,
+.gallery-live .gallery-library > header button{
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:var(--archive-muted) !important;
+  -webkit-text-fill-color:var(--archive-muted) !important;
+  font-size:8px !important;
+  box-shadow:none !important;
+}
+.gallery-live .gallery-photo-grid{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:3px !important;
+}
+.gallery-live .gallery-photo-item{
+  position:relative !important;
+  aspect-ratio:1 !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:#e8d6c8 !important;
+  box-shadow:none !important;
+}
+.gallery-live .gallery-photo-media{
+  width:100% !important;
+  height:100% !important;
+  aspect-ratio:1 !important;
+  overflow:hidden !important;
+}
+.gallery-live .gallery-photo-item img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  background:#e8d6c8 !important;
+}
+.gallery-live .gallery-photo-item figcaption{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  z-index:2 !important;
+  padding:13px 5px 4px !important;
+  background:linear-gradient(transparent,rgba(31,9,12,.58)) !important;
+  pointer-events:none !important;
+}
+.gallery-live .gallery-photo-item figcaption small{
+  color:#fff5ea !important;
+  -webkit-text-fill-color:#fff5ea !important;
+  font-size:6px !important;
+  letter-spacing:.02em !important;
+}
+.gallery-live .gallery-favorite-button{
+  right:5px !important;
+  top:5px !important;
+  width:25px !important;
+  height:25px !important;
+  border-radius:50% !important;
+  background:rgba(250,238,225,.84) !important;
+  color:#6b1f2a !important;
+  box-shadow:0 2px 8px rgba(44,11,16,.14) !important;
+}
+.gallery-live .gallery-favorite-button svg{width:14px !important;height:14px !important}
+.gallery-live .gallery-album-list{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:10px !important;
+}
+.gallery-live .gallery-album-item{
+  position:relative !important;
+  min-height:128px !important;
+  padding:72px 12px 12px !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:
+    linear-gradient(135deg,rgba(142,50,63,.16),transparent 42%),
+    #ead6c6 !important;
+  box-shadow:2px 3px 0 rgba(72,22,30,.10) !important;
+}
+.gallery-live .gallery-album-item::before{
+  content:"";
+  position:absolute;
+  inset:10px 10px auto;
+  height:52px;
+  background:
+    linear-gradient(135deg,#d9a8a8 0 48%,#f2e2d2 48% 100%);
+  opacity:.65;
+}
+.gallery-live .gallery-album-item small{
+  color:var(--archive-accent) !important;
+  -webkit-text-fill-color:var(--archive-accent) !important;
+}
+.gallery-live .gallery-album-item strong{
+  color:var(--archive-ink) !important;
+  -webkit-text-fill-color:var(--archive-ink) !important;
+  font-size:20px !important;
+}
+.gallery-live > .gallery-add-button{
+  margin-inline:22px !important;
+}
+
+/* ---------------- LETTERS · actual envelope drawer ---------------- */
+.letters-live .letters-filter{
+  margin:16px 22px 19px !important;
+  padding:0 !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,1fr) !important;
+  gap:0 !important;
+  border:1px solid color-mix(in oklab,var(--text) 13%,transparent) !important;
+  border-radius:1px !important;
+  background:color-mix(in oklab,var(--surface-raised) 42%,transparent) !important;
+  box-shadow:none !important;
+}
+.letters-live .letters-filter button{
+  min-height:43px !important;
+  padding:0 7px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:var(--text-soft) !important;
+  font:600 9px/1 var(--font-body) !important;
+  letter-spacing:.08em !important;
+  text-transform:uppercase !important;
+}
+.letters-live .letters-filter button + button{
+  border-left:1px solid color-mix(in oklab,var(--text) 10%,transparent) !important;
+}
+.letters-live .letters-filter button.active{
+  background:#6b1a25 !important;
+  color:#fff2e4 !important;
+  -webkit-text-fill-color:#fff2e4 !important;
+}
+
+.letters-live .letters-drawer{
+  position:relative !important;
+  margin:0 22px 28px !important;
+  padding:18px 17px 20px !important;
+  overflow:visible !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:2px !important;
+  background:var(--archive-paper) !important;
+  color:var(--archive-ink) !important;
+  box-shadow:6px 8px 0 rgba(35,10,14,.11) !important;
+}
+.letters-live .letters-drawer::before{
+  content:"";
+  position:absolute;
+  top:-8px;
+  right:58px;
+  width:78px;
+  height:18px;
+  transform:rotate(2deg);
+  background:rgba(225,184,176,.54);
+}
+.letters-live .letters-drawer > header{
+  margin:0 0 13px !important;
+  padding:2px 2px 13px !important;
+  border-bottom:1px solid rgba(87,34,43,.14) !important;
+}
+.letters-live .letters-drawer > header span{
+  color:var(--archive-accent) !important;
+  -webkit-text-fill-color:var(--archive-accent) !important;
+}
+.letters-live .letters-drawer > header strong{
+  color:var(--archive-ink) !important;
+  -webkit-text-fill-color:var(--archive-ink) !important;
+  font:500 30px/.95 var(--font-display) !important;
+}
+.letters-live .letters-drawer > header > small{
+  border-radius:0 !important;
+  background:transparent !important;
+  color:var(--archive-muted) !important;
+  -webkit-text-fill-color:var(--archive-muted) !important;
+}
+.letters-live .letters-saved-list{
+  display:grid !important;
+  gap:13px !important;
+}
+.letters-live .letters-saved-item{
+  position:relative !important;
+  overflow:visible !important;
+  border:1px solid rgba(104,38,48,.18) !important;
+  border-radius:2px !important;
+  background:#ead4c4 !important;
+  box-shadow:2px 3px 0 rgba(62,18,25,.09) !important;
+  transform:rotate(-.25deg) !important;
+}
+.letters-live .letters-saved-item:nth-child(even){transform:rotate(.3deg) !important}
+.letters-live .letters-saved-item.is-sealed::after{
+  content:"♡";
+  position:absolute;
+  right:14px;
+  bottom:11px;
+  width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#7a2632;
+  color:#f7e9da;
+  font-family:var(--font-display);
+  box-shadow:0 2px 5px rgba(60,15,22,.18);
+}
+.letters-live .letter-envelope-button{
+  grid-template-columns:76px minmax(0,1fr) !important;
+  gap:14px !important;
+  padding:15px !important;
+}
+.letters-live .letter-envelope-visual{
+  width:76px !important;
+  height:54px !important;
+  border:1px solid rgba(101,35,44,.20) !important;
+  border-radius:1px !important;
+  background:#f3e3d4 !important;
+  color:#8c3340 !important;
+  box-shadow:2px 2px 0 rgba(79,24,32,.08) !important;
+}
+.letters-live .letter-envelope-flap{
+  background:linear-gradient(155deg,#ecd5c5 0 49%,#e3c5b7 50% 100%) !important;
+}
+.letters-live .letter-envelope-copy small{
+  color:var(--archive-accent) !important;
+  -webkit-text-fill-color:var(--archive-accent) !important;
+}
+.letters-live .letter-envelope-copy strong{
+  color:var(--archive-ink) !important;
+  -webkit-text-fill-color:var(--archive-ink) !important;
+  font-size:24px !important;
+}
+.letters-live .letter-envelope-copy span{
+  color:var(--archive-muted) !important;
+  -webkit-text-fill-color:var(--archive-muted) !important;
+  font-size:9px !important;
+}
+.letters-live .letter-open-content{
+  position:relative !important;
+  margin:0 12px 13px !important;
+  padding:20px 18px 18px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 27px,rgba(104,46,52,.09) 27px 28px),
+    #f7e9da !important;
+  color:#55252c !important;
+  box-shadow:inset 0 0 0 1px rgba(100,36,45,.08) !important;
+}
+.letters-live .letter-open-content::before{
+  content:"opened";
+  position:absolute;
+  top:7px;
+  right:10px;
+  color:#a6656b;
+  font:italic 10px var(--font-display);
+  transform:rotate(4deg);
+}
+.letters-live .letter-open-content p{
+  color:#55252c !important;
+  -webkit-text-fill-color:#55252c !important;
+  font:15px/1.62 var(--font-display) !important;
+}
+.letters-live .letter-open-content time{
+  color:#8b5b60 !important;
+  -webkit-text-fill-color:#8b5b60 !important;
+}
+.letters-live .letter-connected-button{
+  margin-top:12px !important;
+  padding:3px 0 !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(101,30,41,.24) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#8b5158 !important;
+  box-shadow:none !important;
+  font-size:8px !important;
+}
+.letters-live .letters-write-button{
+  border-radius:2px !important;
+}
+
+/* ---------------- MEMORIES · scrapbook timeline ---------------- */
+.memories-live .memories-filter{
+  margin:14px 22px 20px !important;
+  padding:0 0 7px !important;
+  gap:5px !important;
+  border:0 !important;
+  border-bottom:1px solid color-mix(in oklab,var(--text) 15%,transparent) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.memories-live .memories-filter button{
+  min-height:31px !important;
+  padding:0 10px !important;
+  border:1px solid color-mix(in oklab,var(--text) 14%,transparent) !important;
+  border-radius:1px !important;
+  background:color-mix(in oklab,var(--surface-raised) 32%,transparent) !important;
+  color:var(--text-soft) !important;
+  font-size:8px !important;
+}
+.memories-live .memories-filter button.active{
+  background:#f3e3d4 !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  border-color:#8d3945 !important;
+  box-shadow:2px 2px 0 rgba(55,16,23,.08) !important;
+}
+
+.memories-live .memories-timeline{
+  position:relative !important;
+  display:grid !important;
+  gap:18px !important;
+  padding:8px 20px 30px 52px !important;
+}
+.memories-live .memories-timeline::before{
+  left:30px !important;
+  width:2px !important;
+  background:#7e2b39 !important;
+  opacity:.72 !important;
+}
+.memories-live .memory-entry{
+  position:relative !important;
+  width:100% !important;
+  padding:18px 17px 19px !important;
+  overflow:visible !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:2px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 30px,rgba(103,45,52,.045) 30px 31px),
+    #f3e2d3 !important;
+  color:var(--archive-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.10) !important;
+  transform:rotate(-.25deg) !important;
+}
+.memories-live .memory-entry:nth-child(even){
+  margin-left:5px !important;
+  transform:rotate(.35deg) !important;
+  background:#ead5c6 !important;
+}
+.memories-live .memory-entry:nth-child(3n){
+  margin-left:-3px !important;
+}
+.memories-live .memory-entry::before{
+  content:"";
+  position:absolute;
+  top:-7px;
+  left:26px;
+  width:56px;
+  height:15px;
+  background:rgba(226,186,178,.56);
+  transform:rotate(-2deg);
+}
+.memories-live .memory-timeline-dot{
+  left:-31px !important;
+  top:19px !important;
+  width:11px !important;
+  height:11px !important;
+  border:2px solid #f4e5d8 !important;
+  background:#762331 !important;
+  box-shadow:0 0 0 1px #762331 !important;
+}
+.memories-live .memory-entry time{
+  margin-bottom:7px !important;
+  color:#a15c63 !important;
+  -webkit-text-fill-color:#a15c63 !important;
+  font-size:8px !important;
+  letter-spacing:.12em !important;
+  opacity:1 !important;
+}
+.memories-live .memory-entry strong{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font:500 27px/.98 var(--font-display) !important;
+}
+.memories-live .memory-entry p{
+  margin-top:8px !important;
+  display:-webkit-box !important;
+  overflow:hidden !important;
+  -webkit-line-clamp:3 !important;
+  -webkit-box-orient:vertical !important;
+  color:#80545a !important;
+  -webkit-text-fill-color:#80545a !important;
+  font-size:11px !important;
+  line-height:1.45 !important;
+  opacity:1 !important;
+}
+.memories-live .memories-empty{
+  margin:6px 22px 24px !important;
+  padding:22px 20px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:2px !important;
+  background:#f3e2d3 !important;
+  color:#57222b !important;
+  box-shadow:5px 6px 0 rgba(38,10,15,.10) !important;
+}
+.memories-live .memories-empty h2,
+.memories-live .memories-empty > p,
+.memories-live .memories-empty time{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+}
+.memories-live .memory-connected-item{
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  color:#57222b !important;
+  box-shadow:2px 3px 0 rgba(38,10,15,.08) !important;
+}
+.memories-live .memory-connected-item small,
+.memories-live .memory-connected-item time{
+  color:#9b6065 !important;
+  -webkit-text-fill-color:#9b6065 !important;
+  opacity:1 !important;
+}
+.memories-live .memory-connected-item strong,
+.memories-live .memory-connected-item p{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+}
+.memories-live .memories-rule{
+  color:var(--text-soft) !important;
+}
+.memories-live .memories-rule p{
+  opacity:.82 !important;
+}
+
+@media (max-width:390px){
+  .gallery-live .gallery-photo-grid{gap:2px !important}
+  .gallery-live .gallery-library{margin-inline:14px !important;padding-inline:9px !important}
+  .letters-live .letters-drawer{margin-inline:18px !important;padding-inline:14px !important}
+  .letters-live .letter-envelope-button{grid-template-columns:68px minmax(0,1fr) !important}
+  .letters-live .letter-envelope-visual{width:68px !important}
+  .memories-live .memories-timeline{padding-right:17px !important}
+}
+
+
+/* =========================================================
+   WORLD ROOMS · PLACES / KEEPSAKES / WARDROBE
+   Editorial archive pass. Morning/Night intentionally untouched.
+   ========================================================= */
+
+.places-live,
+.keepsakes-live,
+.wardrobe-live{
+  --room-paper:#f5e7d8;
+  --room-paper-deep:#ead2c2;
+  --room-ink:#57222b;
+  --room-muted:#8b5c61;
+  --room-accent:#a64d58;
+  --room-line:rgba(91,30,39,.13);
+}
+
+/* Shared owner/filter tabs stop looking like pills. */
+.places-live .dates-tabs,
+.keepsakes-live .keepsakes-tabs,
+.wardrobe-live .wardrobe-owner-tabs,
+.wardrobe-live .wardrobe-view-tabs{
+  gap:0 !important;
+  padding:0 !important;
+  border:1px solid color-mix(in oklab,var(--text) 15%,transparent) !important;
+  border-radius:1px !important;
+  background:color-mix(in oklab,var(--surface-raised) 34%,transparent) !important;
+  box-shadow:none !important;
+}
+.places-live .dates-tabs button,
+.keepsakes-live .keepsakes-tabs button,
+.wardrobe-live .wardrobe-owner-tabs button,
+.wardrobe-live .wardrobe-view-tabs button{
+  min-height:43px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:var(--text-soft) !important;
+  -webkit-text-fill-color:var(--text-soft) !important;
+  box-shadow:none !important;
+}
+.places-live .dates-tabs button + button,
+.keepsakes-live .keepsakes-tabs button + button,
+.wardrobe-live .wardrobe-owner-tabs button + button,
+.wardrobe-live .wardrobe-view-tabs button + button{
+  border-left:1px solid color-mix(in oklab,var(--text) 10%,transparent) !important;
+}
+.places-live .dates-tabs button.active,
+.keepsakes-live .keepsakes-tabs button.active,
+.wardrobe-live .wardrobe-owner-tabs button.active,
+.wardrobe-live .wardrobe-view-tabs button.active{
+  background:#6d1b27 !important;
+  color:#fff2e4 !important;
+  -webkit-text-fill-color:#fff2e4 !important;
+}
+
+/* ---------------- PLACES · city notebook ---------------- */
+.places-live .places-index{
+  gap:11px !important;
+  margin-top:18px !important;
+}
+.places-live .place-index-card{
+  position:relative !important;
+  padding:17px 17px 15px 43px !important;
+  overflow:visible !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 30px,rgba(103,45,52,.04) 30px 31px),
+    var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+  cursor:pointer !important;
+}
+.places-live .place-index-card:nth-child(even){
+  transform:rotate(.3deg);
+}
+.places-live .place-index-card::before{
+  content:"";
+  position:absolute;
+  left:20px;
+  top:-7px;
+  bottom:-12px;
+  width:1px;
+  background:#8d3340;
+  opacity:.42;
+}
+.places-live .place-index-card::after{
+  content:"";
+  position:absolute;
+  left:15px;
+  top:21px;
+  width:9px;
+  height:9px;
+  border:2px solid #f6e8d9;
+  border-radius:50%;
+  background:#7b2531;
+  box-shadow:0 0 0 1px #7b2531;
+}
+.places-live .place-index-card header{
+  align-items:flex-start !important;
+}
+.places-live .place-index-card header span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+  font-size:7px !important;
+  letter-spacing:.16em !important;
+}
+.places-live .place-index-card header strong{
+  margin-top:3px !important;
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+  font:500 25px/.95 var(--font-display) !important;
+}
+.places-live .place-index-card header svg{
+  color:#8d5660 !important;
+}
+.places-live .place-index-card .date-place{
+  margin-top:9px !important;
+  color:#7d4951 !important;
+  -webkit-text-fill-color:#7d4951 !important;
+  font-size:9px !important;
+}
+.places-live .place-index-card p,
+.places-live .place-index-card time{
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+}
+.places-live .place-index-card[data-place-status="visited"]::after{
+  background:#a64d58;
+}
+.places-live .place-index-card[data-place-status="saved"]{
+  background:
+    linear-gradient(90deg,rgba(190,112,123,.05),transparent 34%),
+    var(--room-paper) !important;
+}
+
+/* Place detail feels like a travel page, not a generic Date card. */
+.places-live .place-detail-card{
+  position:relative !important;
+  margin:16px 22px 0 !important;
+  padding:18px !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:5px 7px 0 rgba(38,10,15,.10) !important;
+}
+.places-live .place-detail-card::before{
+  content:"place note";
+  display:block;
+  margin-bottom:12px;
+  padding-bottom:9px;
+  border-bottom:1px solid var(--room-line);
+  color:var(--room-accent);
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.places-live .place-detail-card header span,
+.places-live .place-detail-card header strong,
+.places-live .place-detail-card p,
+.places-live .place-detail-card time,
+.places-live .place-detail-card .date-place{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+.places-live .place-history-sheet{
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  color:var(--room-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+}
+.places-live .place-history-sheet header span,
+.places-live .place-history-sheet header strong,
+.places-live .place-history-sheet p{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+.places-live .place-history-sheet > div article{
+  border-radius:1px !important;
+  background:rgba(255,247,237,.32) !important;
+}
+
+/* ---------------- KEEPSAKES · memory drawer ---------------- */
+.keepsakes-live .keepsakes-summary{
+  position:relative;
+  gap:0 !important;
+  border:1px solid var(--room-line);
+  background:var(--room-paper);
+  box-shadow:4px 5px 0 rgba(38,10,15,.08);
+}
+.keepsakes-live .keepsakes-summary::before{
+  content:"object drawer";
+  position:absolute;
+  top:-8px;
+  left:50%;
+  padding:2px 7px;
+  transform:translateX(-50%) rotate(-1deg);
+  background:#e4beb6;
+  color:#8c4650;
+  font-size:6px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.keepsakes-live .keepsakes-summary div{
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:var(--room-ink) !important;
+}
+.keepsakes-live .keepsakes-summary div + div{
+  border-left:1px solid var(--room-line) !important;
+}
+.keepsakes-live .keepsakes-summary span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+}
+.keepsakes-live .keepsakes-summary strong{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+
+.keepsakes-live .keepsakes-archive{
+  gap:14px !important;
+  margin-top:20px !important;
+}
+.keepsakes-live .keepsake-index-card{
+  position:relative !important;
+  min-height:112px !important;
+  padding:17px 18px 16px 76px !important;
+  overflow:visible !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+  cursor:pointer !important;
+}
+.keepsakes-live .keepsake-index-card:nth-child(even){
+  transform:rotate(.35deg);
+  background:#ead6c7 !important;
+}
+.keepsakes-live .keepsake-index-card::before{
+  content:"";
+  position:absolute;
+  left:16px;
+  top:19px;
+  width:43px;
+  height:53px;
+  border:1px solid rgba(101,35,44,.16);
+  background:
+    linear-gradient(145deg,rgba(176,85,96,.18),transparent 46%),
+    #f8eadc;
+  box-shadow:2px 3px 0 rgba(62,18,25,.08);
+}
+.keepsakes-live .keepsake-index-card::after{
+  content:attr(data-keepsake-type);
+  position:absolute;
+  left:16px;
+  top:78px;
+  width:43px;
+  overflow:hidden;
+  color:#a15d64;
+  font-size:6px;
+  letter-spacing:.08em;
+  text-align:center;
+  text-overflow:ellipsis;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.keepsakes-live .keepsake-index-card header span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+  font-size:7px !important;
+  letter-spacing:.16em !important;
+}
+.keepsakes-live .keepsake-index-card header strong{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+  font:500 24px/.98 var(--font-display) !important;
+}
+.keepsakes-live .keepsake-index-card .date-place,
+.keepsakes-live .keepsake-index-card p{
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="stored"]{
+  opacity:.87;
+}
+
+.keepsakes-live .keepsake-detail-card{
+  position:relative !important;
+  margin:16px 22px 0 !important;
+  padding:18px !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 30px,rgba(103,45,52,.04) 30px 31px),
+    var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:5px 7px 0 rgba(38,10,15,.10) !important;
+}
+.keepsakes-live .keepsake-detail-card::before{
+  content:"kept object";
+  display:block;
+  margin-bottom:12px;
+  padding-bottom:9px;
+  border-bottom:1px solid var(--room-line);
+  color:var(--room-accent);
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.keepsakes-live .keepsake-detail-card :is(header span,header strong,p,.date-place,time){
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+.keepsakes-live .keepsake-history-sheet{
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  color:var(--room-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+}
+.keepsakes-live .keepsake-history-sheet :is(header span,header strong,p){
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+
+/* ---------------- WARDROBE · editorial closet / lookbook ---------------- */
+.wardrobe-live .wardrobe-owner-tabs,
+.wardrobe-live .wardrobe-view-tabs{
+  margin-top:10px !important;
+}
+.wardrobe-live .wardrobe-owner-tabs{
+  margin-top:17px !important;
+}
+
+.wardrobe-live .wardrobe-closet,
+.wardrobe-live .wardrobe-looks{
+  position:relative !important;
+  margin:18px 22px 0 !important;
+  padding:18px 16px 20px !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 34px,rgba(103,45,52,.035) 34px 35px),
+    var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:5px 7px 0 rgba(38,10,15,.10) !important;
+}
+.wardrobe-live .wardrobe-closet::before,
+.wardrobe-live .wardrobe-looks::before{
+  content:"";
+  position:absolute;
+  top:-8px;
+  right:56px;
+  width:76px;
+  height:18px;
+  transform:rotate(2deg);
+  background:rgba(225,184,176,.54);
+}
+.wardrobe-live .wardrobe-closet > header,
+.wardrobe-live .wardrobe-looks > header{
+  margin-bottom:14px !important;
+  padding-bottom:11px !important;
+  border-bottom:1px solid var(--room-line) !important;
+}
+.wardrobe-live .wardrobe-closet > header span,
+.wardrobe-live .wardrobe-looks > header span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+}
+.wardrobe-live .wardrobe-closet > header strong,
+.wardrobe-live .wardrobe-looks > header strong{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+.wardrobe-live .wardrobe-closet > header small,
+.wardrobe-live .wardrobe-looks > header small{
+  border-radius:0 !important;
+  background:transparent !important;
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+}
+
+.wardrobe-live .wardrobe-item-grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+}
+.wardrobe-live .wardrobe-item{
+  position:relative !important;
+  display:grid !important;
+  grid-template-rows:104px auto !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.13) !important;
+  border-radius:1px !important;
+  background:#f8eadc !important;
+  color:var(--room-ink) !important;
+  text-align:left !important;
+  box-shadow:2px 3px 0 rgba(62,18,25,.08) !important;
+}
+.wardrobe-live .wardrobe-item:nth-child(even){
+  transform:rotate(.4deg);
+}
+.wardrobe-live .wardrobe-item-image{
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+  width:100% !important;
+  min-height:104px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(91,30,39,.10) !important;
+  border-radius:0 !important;
+  background:
+    linear-gradient(150deg,rgba(177,78,91,.12),transparent 48%),
+    #ead7c8 !important;
+  color:#8b4651 !important;
+}
+.wardrobe-live .wardrobe-item-image::before{
+  content:"";
+  position:absolute;
+  top:12px;
+  left:50%;
+  width:58px;
+  height:1px;
+  transform:translateX(-50%);
+  background:rgba(93,35,43,.20);
+}
+.wardrobe-live .wardrobe-item > span{
+  display:block !important;
+  min-width:0 !important;
+  padding:11px 10px 12px !important;
+}
+.wardrobe-live .wardrobe-item strong{
+  display:block !important;
+  overflow:hidden !important;
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+  font:500 15px/1.05 var(--font-display) !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.wardrobe-live .wardrobe-item small{
+  display:block !important;
+  margin-top:3px !important;
+  overflow:hidden !important;
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+  font-size:7px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.wardrobe-live .wardrobe-item.active{
+  outline:2px solid #9d4552 !important;
+  outline-offset:-2px !important;
+}
+
+.wardrobe-live .wardrobe-look-list{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:14px !important;
+}
+.wardrobe-live .wardrobe-look{
+  position:relative !important;
+  display:block !important;
+  min-height:180px !important;
+  padding:98px 13px 14px !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.13) !important;
+  border-radius:1px !important;
+  background:#f8eadc !important;
+  color:var(--room-ink) !important;
+  text-align:left !important;
+  box-shadow:3px 4px 0 rgba(62,18,25,.09) !important;
+  cursor:pointer !important;
+}
+.wardrobe-live .wardrobe-look::before{
+  content:"look";
+  position:absolute;
+  inset:12px 12px auto;
+  height:73px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(91,30,39,.10);
+  background:
+    linear-gradient(135deg,#d8a7a8 0 48%,#eed7c7 48% 100%);
+  color:rgba(87,34,43,.60);
+  font:italic 22px var(--font-display);
+}
+.wardrobe-live .wardrobe-look:nth-child(even){
+  transform:rotate(.45deg);
+}
+.wardrobe-live .wardrobe-look span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+}
+.wardrobe-live .wardrobe-look strong{
+  display:block !important;
+  margin-top:4px !important;
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+  font:500 18px/.98 var(--font-display) !important;
+}
+.wardrobe-live .wardrobe-look small{
+  display:block !important;
+  margin-top:5px !important;
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+  font-size:7px !important;
+  line-height:1.35 !important;
+}
+.wardrobe-live .wardrobe-add-button,
+.wardrobe-live .wardrobe-create-look{
+  border-radius:1px !important;
+  box-shadow:none !important;
+}
+
+.wardrobe-live .wardrobe-date-link,
+.wardrobe-live .wardrobe-rule{
+  margin:16px 22px 0 !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  color:var(--room-ink) !important;
+  box-shadow:3px 4px 0 rgba(38,10,15,.08) !important;
+}
+.wardrobe-live .wardrobe-date-link :is(strong,p),
+.wardrobe-live .wardrobe-rule p{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+
+/* Forms inside paper rooms keep dark ink even after sunset. */
+.places-live :is(.dates-empty,.place-detail-card),
+.keepsakes-live :is(.keepsakes-empty,.keepsake-detail-card),
+.wardrobe-live :is(.wardrobe-empty,.wardrobe-look-empty){
+  color:var(--room-ink) !important;
+}
+.places-live :is(.dates-empty,.place-detail-card) :is(input,textarea,select),
+.keepsakes-live :is(.keepsakes-empty,.keepsake-detail-card) :is(input,textarea,select),
+.wardrobe-live :is(.wardrobe-empty,.wardrobe-look-empty) :is(input,textarea,select){
+  border-radius:1px !important;
+  background:#fbefe2 !important;
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+
+/* Sunset/night: the world may darken, paper rooms remain readable. */
+.prototype-stage:is([data-time-theme="night"],[data-time-theme="late"]) :is(
+  .places-live .place-index-card,
+  .places-live .place-detail-card,
+  .places-live .place-history-sheet,
+  .keepsakes-live .keepsakes-summary,
+  .keepsakes-live .keepsake-index-card,
+  .keepsakes-live .keepsake-detail-card,
+  .keepsakes-live .keepsake-history-sheet,
+  .wardrobe-live .wardrobe-closet,
+  .wardrobe-live .wardrobe-looks,
+  .wardrobe-live .wardrobe-date-link,
+  .wardrobe-live .wardrobe-rule
+){
+  color:var(--room-ink) !important;
+}
+
+@media (max-width:390px){
+  .places-live .place-index-card{padding-left:39px !important}
+  .keepsakes-live .keepsake-index-card{padding-left:69px !important}
+  .wardrobe-live .wardrobe-item-grid,
+  .wardrobe-live .wardrobe-look-list{gap:10px !important}
+}
+
+
+/* =========================================================
+   KEEPSAKES · VISUAL OBJECT DRAWER
+   Real photos, consumed traces, and physical object cards.
+   ========================================================= */
+
+.keepsakes-live .keepsakes-tabs{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+.keepsakes-live .keepsakes-tabs button{
+  padding-inline:5px !important;
+  font-size:8px !important;
+}
+.keepsakes-live .keepsakes-summary{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+.keepsakes-live .keepsakes-summary div{
+  padding:14px 11px !important;
+}
+.keepsakes-live .keepsakes-summary strong{
+  font-size:29px !important;
+}
+
+/* Add/preview an actual keepsake image. */
+.keepsake-image-picker{
+  display:block;
+  margin:12px 0;
+  cursor:pointer;
+}
+.keepsake-image-picker > span{
+  display:grid;
+  place-items:center;
+  min-height:190px;
+  padding:12px;
+  overflow:hidden;
+  border:1px dashed rgba(91,30,39,.24);
+  background:
+    linear-gradient(135deg,rgba(173,77,90,.06),transparent 42%),
+    #faede1;
+  color:#8c5560;
+  text-align:center;
+}
+.keepsake-image-picker > span img{
+  display:block;
+  width:100%;
+  max-height:270px;
+  object-fit:contain;
+}
+.keepsake-image-picker > span strong{
+  display:block;
+  margin-top:8px;
+  color:#57222b;
+  font:500 18px/1 var(--font-display);
+}
+.keepsake-image-picker > span small{
+  display:block;
+  max-width:220px;
+  margin-top:4px;
+  color:#8b5c61;
+  font:9px/1.4 var(--font-body);
+}
+.keepsake-image-picker input{
+  position:absolute;
+  inline-size:1px;
+  block-size:1px;
+  opacity:0;
+  pointer-events:none;
+}
+
+/* Archive rows show the real object instead of only a box icon. */
+.keepsakes-live .keepsake-index-card{
+  display:grid !important;
+  grid-template-columns:72px minmax(0,1fr) !important;
+  grid-template-areas:
+    "visual head"
+    "visual place"
+    "visual note" !important;
+  gap:5px 12px !important;
+  min-height:104px !important;
+  padding:14px !important;
+}
+.keepsakes-live .keepsake-index-card::before,
+.keepsakes-live .keepsake-index-card::after{
+  display:none !important;
+  content:none !important;
+}
+.keepsakes-live .keepsake-card-visual{
+  grid-area:visual;
+  display:grid;
+  place-items:center;
+  width:72px;
+  height:86px;
+  overflow:hidden;
+  border:1px solid rgba(91,30,39,.12);
+  background:#f9ece0;
+  color:#94525d;
+  box-shadow:2px 3px 0 rgba(62,18,25,.08);
+}
+.keepsakes-live .keepsake-card-visual img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.keepsakes-live .keepsake-index-card header{
+  grid-area:head;
+  min-width:0;
+}
+.keepsakes-live .keepsake-index-card .date-place{
+  grid-area:place;
+  margin-top:2px !important;
+}
+.keepsakes-live .keepsake-index-card > p{
+  grid-area:note;
+  margin:2px 0 0 !important;
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  font-size:9px !important;
+  line-height:1.35 !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"]{
+  opacity:1 !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 29px,rgba(103,45,52,.035) 29px 30px),
+    #ead6c7 !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"] .keepsake-card-visual{
+  filter:saturate(.72);
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"] .date-place::after{
+  content:" · lived, not stored";
+  font-style:italic;
+}
+
+/* Object detail: visual first. */
+.keepsakes-live .keepsake-detail-visual{
+  position:relative;
+  display:block;
+  width:calc(100% - 44px);
+  max-height:390px;
+  margin:16px 22px 0;
+  padding:8px 8px 23px;
+  overflow:hidden;
+  border:1px solid rgba(91,30,39,.12);
+  border-radius:1px;
+  background:#faede1;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09);
+  cursor:zoom-in;
+}
+.keepsakes-live .keepsake-detail-visual img{
+  display:block;
+  width:100%;
+  max-height:345px;
+  object-fit:contain;
+}
+.keepsakes-live .keepsake-detail-visual span{
+  position:absolute;
+  right:10px;
+  bottom:6px;
+  color:#8b5c61;
+  font:italic 8px var(--font-display);
+}
+
+@media(max-width:390px){
+  .keepsakes-live .keepsakes-tabs button{
+    font-size:7px !important;
+    letter-spacing:.02em !important;
+  }
+  .keepsakes-live .keepsakes-summary span{
+    font-size:6px !important;
+    letter-spacing:.08em !important;
+  }
+  .keepsakes-live .keepsake-index-card{
+    grid-template-columns:64px minmax(0,1fr) !important;
+  }
+  .keepsakes-live .keepsake-card-visual{
+    width:64px;
+    height:78px;
+  }
+}
+
+
+/* =========================================================
+   KEEPSAKES · REAL OBJECT VISUALS
+   ========================================================= */
+.keepsakes-live .keepsakes-tabs{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+.keepsakes-live .keepsakes-summary{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+.keepsakes-live .keepsake-index-card{
+  display:grid !important;
+  grid-template-columns:58px minmax(0,1fr) !important;
+  grid-template-areas:
+    "visual head"
+    "visual meta"
+    "visual body" !important;
+  gap:3px 12px !important;
+  padding:14px !important;
+  min-height:102px !important;
+}
+.keepsakes-live .keepsake-index-card::before,
+.keepsakes-live .keepsake-index-card::after{
+  display:none !important;
+  content:none !important;
+}
+.keepsakes-live .keepsake-index-visual{
+  grid-area:visual !important;
+  width:58px !important;
+  height:72px !important;
+  align-self:start !important;
+  display:grid !important;
+  place-items:center !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.12) !important;
+  background:
+    linear-gradient(145deg,rgba(176,85,96,.14),transparent 46%),
+    #f8eadc !important;
+  color:#8d5660 !important;
+  box-shadow:2px 3px 0 rgba(62,18,25,.08) !important;
+}
+.keepsakes-live .keepsake-index-visual.has-image{
+  background:#f7e9dc !important;
+}
+.keepsakes-live .keepsake-index-visual img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+.keepsakes-live .keepsake-index-card > header{
+  grid-area:head !important;
+}
+.keepsakes-live .keepsake-index-card > .date-place{
+  grid-area:meta !important;
+  margin-top:4px !important;
+}
+.keepsakes-live .keepsake-index-card > p{
+  grid-area:body !important;
+  margin:4px 0 0 !important;
+  display:-webkit-box !important;
+  -webkit-line-clamp:2 !important;
+  -webkit-box-orient:vertical !important;
+  overflow:hidden !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"]{
+  background:#ead8cb !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"] .keepsake-index-visual{
+  opacity:.72 !important;
+  filter:saturate(.78) !important;
+}
+
+/* Upload panel looks like an object-photo slot rather than a generic file input. */
+.keepsake-image-picker{
+  display:block !important;
+  margin:12px 0 !important;
+  cursor:pointer !important;
+}
+.keepsake-image-picker > span{
+  display:grid !important;
+  place-items:center !important;
+  min-height:190px !important;
+  overflow:hidden !important;
+  border:1px dashed rgba(103,45,52,.26) !important;
+  background:
+    linear-gradient(45deg,rgba(126,57,68,.035) 25%,transparent 25%) 0 0/18px 18px,
+    linear-gradient(-45deg,rgba(126,57,68,.035) 25%,transparent 25%) 0 9px/18px 18px,
+    #f7eadc !important;
+  color:#8d5560 !important;
+  text-align:center !important;
+}
+.keepsake-image-picker > span > img{
+  width:100% !important;
+  height:220px !important;
+  object-fit:contain !important;
+}
+.keepsake-image-picker > span > strong{
+  margin-top:7px !important;
+  color:#57222b !important;
+  font:500 18px/1 var(--font-display) !important;
+}
+.keepsake-image-picker > span > small{
+  margin-top:4px !important;
+  max-width:220px !important;
+  color:#8b5c61 !important;
+  font:9px/1.35 var(--font-body) !important;
+}
+.keepsake-image-picker input{
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+.keepsake-detail-visual{
+  position:relative !important;
+  display:block !important;
+  width:calc(100% - 44px) !important;
+  margin:12px 22px 2px !important;
+  padding:8px 8px 26px !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.12) !important;
+  background:#f8eadc !important;
+  box-shadow:4px 5px 0 rgba(62,18,25,.09) !important;
+}
+.keepsake-detail-visual img{
+  display:block !important;
+  width:100% !important;
+  max-height:48vh !important;
+  object-fit:contain !important;
+}
+.keepsake-detail-visual span{
+  position:absolute !important;
+  right:10px !important;
+  bottom:7px !important;
+  color:#8b5c61 !important;
+  font:italic 8px var(--font-display) !important;
+}
+@media (max-width:390px){
+  .keepsakes-live .keepsakes-tabs button{
+    padding-inline:4px !important;
+    font-size:7px !important;
+    letter-spacing:.03em !important;
+  }
+  .keepsakes-live .keepsakes-summary{
+    gap:0 !important;
+  }
+  .keepsakes-live .keepsakes-summary div{
+    padding:12px 9px !important;
+  }
+}
+
+
+/* Keepsakes without photos still read as visual objects. */
+.keepsakes-live .keepsake-index-card:is(
+  [data-keepsake-type="food"],
+  [data-keepsake-type="drink"],
+  [data-keepsake-type="dessert"],
+  [data-keepsake-type="snack"],
+  [data-keepsake-type="ticket"],
+  [data-keepsake-type="flower"],
+  [data-keepsake-type="gift"],
+  [data-keepsake-type="receipt"],
+  [data-keepsake-type="souvenir"],
+  [data-keepsake-type="purchase"]
+) .keepsake-index-visual:not(.has-image) svg{
+  display:none !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="food"] .keepsake-index-visual:not(.has-image)::before{content:"🍜"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="drink"] .keepsake-index-visual:not(.has-image)::before{content:"☕"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="dessert"] .keepsake-index-visual:not(.has-image)::before{content:"🍰"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="snack"] .keepsake-index-visual:not(.has-image)::before{content:"🍪"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="ticket"] .keepsake-index-visual:not(.has-image)::before{content:"🎟"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="flower"] .keepsake-index-visual:not(.has-image)::before{content:"✿"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="gift"] .keepsake-index-visual:not(.has-image)::before{content:"♡"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="receipt"] .keepsake-index-visual:not(.has-image)::before{content:"▤"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="souvenir"] .keepsake-index-visual:not(.has-image)::before{content:"✦"}
+.keepsakes-live .keepsake-index-card[data-keepsake-type="purchase"] .keepsake-index-visual:not(.has-image)::before{content:"⌑"}
+.keepsakes-live .keepsake-index-card .keepsake-index-visual:not(.has-image)::before{
+  color:#7d3943;
+  font:24px/1 var(--font-display);
+}
+
+
+/* Wardrobe Experience owns four real views: Closet / Looks / Builder / Wearing. */
+.wardrobe-live .wardrobe-view-tabs.wardrobe-four-tabs{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+.wardrobe-live .wardrobe-view-tabs.wardrobe-four-tabs button{
+  min-width:0 !important;
+  padding-inline:5px !important;
+  font-size:8px !important;
+  letter-spacing:.04em !important;
+}
+@media (max-width:390px){
+  .wardrobe-live .wardrobe-view-tabs.wardrobe-four-tabs button{
+    font-size:6.7px !important;
+    padding-inline:2px !important;
+  }
+}
+
+
+/* =========================================================
+   KEEPSAKES · VISUAL DRAWER V2
+   Real/generated object visuals lead; metadata follows.
+   ========================================================= */
+.keepsakes-live .keepsakes-summary{
+  margin:14px 22px 4px !important;
+  padding:0 !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  border:1px solid rgba(91,30,39,.12) !important;
+  border-radius:1px !important;
+  background:#edd9cb !important;
+  box-shadow:3px 4px 0 rgba(38,10,15,.08) !important;
+}
+.keepsakes-live .keepsakes-summary::before{
+  top:-7px !important;
+  background:#e1b7b2 !important;
+}
+.keepsakes-live .keepsakes-summary div{
+  min-width:0 !important;
+  padding:12px 7px 11px !important;
+  text-align:center !important;
+}
+.keepsakes-live .keepsakes-summary span{
+  display:block !important;
+  margin-bottom:2px !important;
+  font-size:6px !important;
+  letter-spacing:.12em !important;
+  text-transform:uppercase !important;
+}
+.keepsakes-live .keepsakes-summary strong{
+  display:block !important;
+  font:500 22px/1 var(--font-display) !important;
+}
+
+.keepsakes-live .keepsakes-archive{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:14px 12px !important;
+  margin:18px 22px 4px !important;
+}
+.keepsakes-live .keepsake-index-card{
+  position:relative !important;
+  display:flex !important;
+  flex-direction:column !important;
+  min-width:0 !important;
+  min-height:248px !important;
+  padding:9px 9px 12px !important;
+  overflow:visible !important;
+  border:1px solid rgba(91,30,39,.12) !important;
+  border-radius:1px !important;
+  background:#f4e5d8 !important;
+  color:#57222b !important;
+  box-shadow:3px 4px 0 rgba(38,10,15,.09) !important;
+  cursor:pointer !important;
+}
+.keepsakes-live .keepsake-index-card:nth-child(even){
+  transform:rotate(.45deg) !important;
+  background:#efdccc !important;
+}
+.keepsakes-live .keepsake-index-card:nth-child(3n){
+  transform:rotate(-.35deg) !important;
+}
+.keepsakes-live .keepsake-index-visual{
+  position:relative !important;
+  width:100% !important;
+  height:132px !important;
+  margin:0 0 10px !important;
+  display:grid !important;
+  place-items:center !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  background:
+    linear-gradient(145deg,rgba(176,85,96,.09),transparent 48%),
+    #f8eadc !important;
+  color:#8d5660 !important;
+  box-shadow:none !important;
+}
+.keepsakes-live .keepsake-index-visual.has-image img{
+  width:100% !important;
+  height:100% !important;
+  padding:7px !important;
+  object-fit:contain !important;
+}
+.keepsakes-live .keepsake-index-visual.generating{
+  background:
+    linear-gradient(110deg,
+      #ead5c5 18%,
+      #f8eadc 36%,
+      #ead5c5 54%) !important;
+  background-size:220% 100% !important;
+  animation:keepsake-develop 1.7s ease-in-out infinite !important;
+}
+.keepsakes-live .keepsake-index-visual.generating > small{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:9px !important;
+  color:#9d626a !important;
+  font:italic 7px var(--font-display) !important;
+  text-align:center !important;
+}
+@keyframes keepsake-develop{
+  0%{background-position:200% 0}
+  100%{background-position:-20% 0}
+}
+.keepsakes-live .keepsake-index-card > header{
+  display:flex !important;
+  align-items:flex-start !important;
+  justify-content:space-between !important;
+  gap:6px !important;
+  margin:0 !important;
+}
+.keepsakes-live .keepsake-index-card > header > div{
+  min-width:0 !important;
+}
+.keepsakes-live .keepsake-index-card > header span{
+  display:block !important;
+  margin-bottom:3px !important;
+  color:#a24e58 !important;
+  -webkit-text-fill-color:#a24e58 !important;
+  font-size:6px !important;
+  font-weight:700 !important;
+  letter-spacing:.13em !important;
+  text-transform:uppercase !important;
+}
+.keepsakes-live .keepsake-index-card > header strong{
+  display:block !important;
+  overflow:hidden !important;
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font:500 17px/1.02 var(--font-display) !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.keepsakes-live .keepsake-index-card > header svg{
+  flex:0 0 auto !important;
+  width:14px !important;
+  color:#9c6870 !important;
+}
+.keepsakes-live .keepsake-index-card > .date-place{
+  display:block !important;
+  margin:7px 0 0 !important;
+  min-height:25px !important;
+  color:#80535a !important;
+  -webkit-text-fill-color:#80535a !important;
+  font-size:7px !important;
+  line-height:1.35 !important;
+}
+.keepsakes-live .keepsake-index-card > .date-place svg{
+  display:none !important;
+}
+.keepsakes-live .keepsake-index-card > p{
+  margin:6px 0 0 !important;
+  display:-webkit-box !important;
+  overflow:hidden !important;
+  color:#936b6e !important;
+  -webkit-text-fill-color:#936b6e !important;
+  font:italic 8px/1.35 var(--font-display) !important;
+  -webkit-line-clamp:2 !important;
+  -webkit-box-orient:vertical !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"]{
+  background:#ead7c9 !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"]::after{
+  content:"trace";
+  position:absolute;
+  right:8px;
+  top:8px;
+  z-index:2;
+  padding:3px 5px;
+  background:rgba(91,30,39,.72);
+  color:#fff2e4;
+  font-size:5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+/* Keep another object becomes a small archive footer, not a giant pill. */
+.keepsakes-live > .gallery-add-button,
+.keepsakes-live .keepsakes-archive + .gallery-add-button{
+  width:auto !important;
+  min-height:36px !important;
+  margin:17px auto 24px !important;
+  padding:7px 16px !important;
+  border:1px solid rgba(247,232,216,.32) !important;
+  border-radius:1px !important;
+  background:transparent !important;
+  color:var(--text) !important;
+  -webkit-text-fill-color:var(--text) !important;
+  box-shadow:none !important;
+}
+
+/* Object history becomes a quiet little archive strip. */
+.keepsakes-live > .date-life-cycle{
+  margin:22px 22px 34px !important;
+  padding:15px !important;
+  border:1px solid rgba(91,30,39,.11) !important;
+  border-radius:1px !important;
+  background:#ead5c6 !important;
+  color:#57222b !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.08) !important;
+}
+.keepsakes-live > .date-life-cycle > header{
+  padding-bottom:10px !important;
+  border-bottom:1px solid rgba(91,30,39,.12) !important;
+}
+.keepsakes-live > .date-life-cycle > header span{
+  color:#a24e58 !important;
+  -webkit-text-fill-color:#a24e58 !important;
+  font-size:6px !important;
+  letter-spacing:.15em !important;
+}
+.keepsakes-live > .date-life-cycle > header strong{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font:500 18px/1 var(--font-display) !important;
+}
+.keepsakes-live > .date-life-cycle > div{
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:0 !important;
+  margin-top:10px !important;
+}
+.keepsakes-live > .date-life-cycle article{
+  min-width:0 !important;
+  padding:8px 6px !important;
+  border:0 !important;
+  border-right:1px solid rgba(91,30,39,.10) !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.keepsakes-live > .date-life-cycle article:last-child{
+  border-right:0 !important;
+}
+.keepsakes-live > .date-life-cycle article svg{
+  width:14px !important;
+  color:#8f4a54 !important;
+}
+.keepsakes-live > .date-life-cycle article strong{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font-size:8px !important;
+}
+.keepsakes-live > .date-life-cycle article small{
+  color:#91656a !important;
+  -webkit-text-fill-color:#91656a !important;
+  font-size:6px !important;
+}
+
+/* Detail image gets the same visual language as the collection. */
+.keepsakes-live .keepsake-detail-visual{
+  width:calc(100% - 44px) !important;
+  margin:14px 22px 14px !important;
+  padding:9px 9px 25px !important;
+  background:#f5e7d9 !important;
+}
+.keepsakes-live .keepsake-detail-visual img{
+  width:100% !important;
+  max-height:54vh !important;
+  object-fit:contain !important;
+}
+
+/* Day/golden hour: headline stays wine, never washed-out ivory. */
+.prototype-stage:not([data-time-theme="night"]):not([data-time-theme="late"])
+.keepsakes-live .screen-intro :is(h1,.intro-copy,.eyebrow){
+  color:var(--text) !important;
+  -webkit-text-fill-color:var(--text) !important;
+  opacity:1 !important;
+}
+@media (max-width:390px){
+  .keepsakes-live .keepsakes-archive{
+    margin-inline:14px !important;
+    gap:12px 9px !important;
+  }
+  .keepsakes-live .keepsake-index-card{
+    min-height:232px !important;
+    padding:8px 8px 11px !important;
+  }
+  .keepsakes-live .keepsake-index-visual{
+    height:118px !important;
+  }
+  .keepsakes-live .keepsakes-summary,
+  .keepsakes-live > .date-life-cycle{
+    margin-inline:14px !important;
+  }
 }

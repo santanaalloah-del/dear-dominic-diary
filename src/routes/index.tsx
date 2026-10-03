@@ -44,6 +44,7 @@ import { ConnectedMemoriesScreen } from "@/components/connected-memories-screen"
 import { ConnectedCalendarScreen } from "@/components/connected-calendar-screen";
 import { ConnectedTimelineScreen } from "@/components/connected-timeline-screen";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
+import "@/components/world-objects-interaction.css";
 import { DatesExperienceScreen } from "@/components/dates-screen";
 import {
   PLACE_LIST_OPEN_EVENT,
@@ -107,6 +108,7 @@ import {
    createMemory,
   createPlace,
   createSong,
+  archiveSong,
 setSongFavorite,
 getCalendarItems,
   getDates,
@@ -135,6 +137,7 @@ saveDiaryPage,
   saveDiarioSettings,
   setGalleryPhotoFavorite,
   uploadGalleryPhoto,
+  uploadDiarioItemImage,
   getHomeObjects,
 createHomeObject,
 updateHomeObjectPlacement,
@@ -150,6 +153,10 @@ restoreHomeObject,
   type VisualReferenceSubject,
   type VisualReferenceWithUrl,
 } from "@/lib/diario-world";
+import {
+  hydrateDiaryItems,
+} from "@/lib/connected-diary";
+
 import room from "@/assets/dominic-room.jpg";
 import livingRoomEmpty from "@/assets/living-room-empty.jpeg";
 import bedroomEmpty from "@/assets/bedroom-empty.jpeg";
@@ -752,7 +759,7 @@ function ScreenIntro({
 
 function HomeScreen({
   time,
-  onOpenRoom: _onOpenRoom,
+  onOpenRoom,
 }: {
   time: TimeMoodState;
   onOpenRoom: (roomId: string) => void;
@@ -761,6 +768,10 @@ function HomeScreen({
   const [dominicState, setDominicState] = useState<DominicState | null>(null);
   const [activeHomeRoom, setActiveHomeRoom] = useState("living");
   const [homeKeepsakes, setHomeKeepsakes] = useState<DiarioItem[]>([]);
+  const [
+    homeKeepsakeMediaById,
+    setHomeKeepsakeMediaById,
+  ] = useState<Record<string, string>>({});
   const [showRoomThings, setShowRoomThings] = useState(false);
   const [roomThingTitle, setRoomThingTitle] = useState("");
   const [roomThingNote, setRoomThingNote] = useState("");
@@ -803,6 +814,48 @@ function HomeScreen({
       cancelled = true;
     };
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!homeKeepsakes.length) {
+      setHomeKeepsakeMediaById({});
+      return;
+    }
+
+    hydrateDiaryItems(
+      homeKeepsakes
+    )
+      .then((views) => {
+        if (cancelled) return;
+
+        setHomeKeepsakeMediaById(
+          Object.fromEntries(
+            views
+              .filter(
+                (view) =>
+                  Boolean(
+                    view.mediaUrl
+                  )
+              )
+              .map((view) => [
+                view.item.id,
+                view.mediaUrl as string,
+              ])
+          )
+        );
+      })
+      .catch((error) => {
+        console.error(
+          "Could not load Home keepsake images:",
+          error
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [homeKeepsakes]);
 
   const rooms = [
     { id: "living", label: "Living", title: "Living Room", image: livingRoomEmpty },
@@ -1001,6 +1054,22 @@ function HomeScreen({
             </button>
           ))}
         </nav>
+
+        <button
+          type="button"
+          className="apartment-enter-room"
+          onClick={() =>
+            onOpenRoom(
+              activeRoom.id
+            )
+          }
+        >
+          <Home
+            size={14}
+            aria-hidden="true"
+          />
+          Enter {activeRoom.title}
+        </button>
       </section>
 
       {showRoomThings && (
@@ -1046,8 +1115,30 @@ function HomeScreen({
               ) : (
                 roomKeepsakes.map((item) => (
                   <article key={item.id} className="apartment-room-thing-card">
-                    <div className="apartment-room-thing-mark" aria-hidden="true">
-                      <BoxIcon size={15} />
+                    <div
+                      className={
+                        homeKeepsakeMediaById[
+                          item.id
+                        ]
+                          ? "apartment-room-thing-mark has-image"
+                          : "apartment-room-thing-mark"
+                      }
+                      aria-hidden="true"
+                    >
+                      {homeKeepsakeMediaById[
+                        item.id
+                      ] ? (
+                        <img
+                          src={
+                            homeKeepsakeMediaById[
+                              item.id
+                            ]
+                          }
+                          alt=""
+                        />
+                      ) : (
+                        <BoxIcon size={15} />
+                      )}
                     </div>
                     <div>
                       <small>{String(item.data?.keepsakeType ?? "object")}</small>
@@ -1453,7 +1544,7 @@ const addFurniture = async () => {
       onChange={(event) =>
         setNewName(event.target.value)
       }
-placeholder="Object name"
+placeholder="What are we adding?"
     />
     
     <select
@@ -1464,6 +1555,10 @@ placeholder="Object name"
 >
   <option value="furniture">Furniture</option>
   <option value="decor">Decor</option>
+  <option value="photo_frame">Photo frame</option>
+  <option value="wall_art">Wall art</option>
+  <option value="shelf">Shelf / storage</option>
+  <option value="keepsake">Keepsake display</option>
   <option value="plant">Plant</option>
   <option value="lighting">Lighting</option>
   <option value="other">Other</option>
@@ -2764,6 +2859,10 @@ const handleOpenLetter = async (
             opened
               ? "is-opened"
               : "is-sealed"
+          } ${
+            expanded
+              ? "is-expanded"
+              : ""
           }`}
         >
           <button
@@ -4209,6 +4308,11 @@ function WardrobeScreen() {
       "closet" | "looks"
     >("closet");
 
+  const [
+    selectedWardrobeObjectId,
+    setSelectedWardrobeObjectId,
+  ] = useState<string | null>(null);
+
   const [wardrobeItems, setWardrobeItems] =
     useState<DiarioItem[]>([]);
 
@@ -4482,6 +4586,22 @@ setAddingLook(false);
       );
     }
   };
+
+  if (selectedWardrobeObjectId) {
+    return (
+      <ConnectedObjectDetailScreen
+        itemId={selectedWardrobeObjectId}
+        onOpenRelated={
+          setSelectedWardrobeObjectId
+        }
+        onBack={() =>
+          setSelectedWardrobeObjectId(
+            null
+          )
+        }
+      />
+    );
+  }
 
   return (
     <section className="wardrobe-screen wardrobe-live">
@@ -4781,6 +4901,11 @@ setAddingLook(false);
                         key={item.id}
                         type="button"
                         className="wardrobe-item"
+                        onClick={() =>
+                          setSelectedWardrobeObjectId(
+                            item.id
+                          )
+                        }
                       >
                         <div
                           className="wardrobe-item-image"
@@ -5025,9 +5150,15 @@ onClick={() => {
       );
 
     return (
-      <div
+      <button
         key={look.id}
+        type="button"
         className="wardrobe-look"
+        onClick={() =>
+          setSelectedWardrobeObjectId(
+            look.id
+          )
+        }
       >
         <div>
           <span>
@@ -5057,7 +5188,7 @@ onClick={() => {
                   .join(" · ")}
           </small>
         </div>
-      </div>
+      </button>
     );
   }
 )}
@@ -6015,7 +6146,7 @@ function PlacesScreen() {
     </button>
   )}
         
-        <section className="date-card">
+        <section className="date-card place-detail-card">
           <header>
             <div>
               <span>
@@ -6244,7 +6375,7 @@ function PlacesScreen() {
           )}
         </section>
 
-        <section className="date-life-cycle">
+        <section className="date-life-cycle place-history-sheet">
           <header>
             <span>
               history here
@@ -6754,7 +6885,7 @@ function PlacesScreen() {
         </section>
       ) : (
         <>
-          <div className="dates-list">
+          <div className="dates-list places-index">
             {visiblePlaces.map(
               (
                 place
@@ -6789,7 +6920,9 @@ function PlacesScreen() {
                     key={
                       place.id
                     }
-                    className="date-card"
+                    className="date-card place-index-card"
+                    data-place-status={status}
+                    data-place-type={type}
                     onClick={() =>
                       setSelectedPlaceId(
                         place.id
@@ -6955,7 +7088,7 @@ function KeepsakesScreen() {
   const { session } = usePrivateDiario();
 
   const [keepsakeView, setKeepsakeView] =
-    useState<"all" | "home" | "stored">("all");
+    useState<"all" | "home" | "stored" | "gone">("all");
 
   const [keepsakes, setKeepsakes] =
     useState<DiarioItem[]>([]);
@@ -6994,7 +7127,7 @@ function KeepsakesScreen() {
     useState("object");
 
   const [keepsakeLocation, setKeepsakeLocation] =
-    useState<"home" | "stored">("home");
+    useState<"home" | "stored" | "gone">("home");
 
   const [keepsakeRoom, setKeepsakeRoom] =
     useState("");
@@ -7005,6 +7138,27 @@ function KeepsakesScreen() {
   const [keepsakeNote, setKeepsakeNote] =
     useState("");
 
+  const [keepsakeImageFile, setKeepsakeImageFile] =
+    useState<File | null>(null);
+
+  const [keepsakePreviewUrl, setKeepsakePreviewUrl] =
+    useState<string | null>(null);
+
+  const [keepsakeMediaById, setKeepsakeMediaById] =
+    useState<Record<string, string>>({});
+
+  const [
+    keepsakeVisualBusy,
+    setKeepsakeVisualBusy,
+  ] = useState<Record<string, boolean>>({});
+
+  const keepsakeVisualInFlight =
+    useRef(new Set<string>());
+
+  const keepsakeVisualFailed =
+    useRef(new Set<string>());
+
+
   const [editTitle, setEditTitle] =
     useState("");
 
@@ -7012,7 +7166,7 @@ function KeepsakesScreen() {
     useState("object");
 
   const [editLocation, setEditLocation] =
-    useState<"home" | "stored">("home");
+    useState<"home" | "stored" | "gone">("home");
 
   const [editRoom, setEditRoom] =
     useState("");
@@ -7022,6 +7176,16 @@ function KeepsakesScreen() {
 
   const [editNote, setEditNote] =
     useState("");
+
+  const [
+    editKeepsakeImageFile,
+    setEditKeepsakeImageFile,
+  ] = useState<File | null>(null);
+
+  const [
+    editKeepsakePreviewUrl,
+    setEditKeepsakePreviewUrl,
+  ] = useState<string | null>(null);
 
   const [connections, setConnections] =
     useState<DiarioItem[]>([]);
@@ -7037,10 +7201,15 @@ function KeepsakesScreen() {
 
   const locationOf = (
     item: DiarioItem
-  ): "home" | "stored" =>
-    item.data?.location === "stored"
+  ): "home" | "stored" | "gone" => {
+    if (item.data?.location === "gone") {
+      return "gone";
+    }
+
+    return item.data?.location === "stored"
       ? "stored"
       : "home";
+  };
 
   const replaceKeepsake = (
     updated: DiarioItem
@@ -7135,6 +7304,235 @@ function KeepsakesScreen() {
   }, [session.user.id]);
 
   useEffect(() => {
+    if (!keepsakeImageFile) {
+      setKeepsakePreviewUrl(null);
+      return;
+    }
+
+    const url =
+      URL.createObjectURL(
+        keepsakeImageFile
+      );
+
+    setKeepsakePreviewUrl(
+      url
+    );
+
+    return () => {
+      URL.revokeObjectURL(
+        url
+      );
+    };
+  }, [keepsakeImageFile]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!keepsakes.length) {
+      setKeepsakeMediaById({});
+      return;
+    }
+
+    hydrateDiaryItems(
+      keepsakes
+    )
+      .then((views) => {
+        if (!active) {
+          return;
+        }
+
+        setKeepsakeMediaById(
+          Object.fromEntries(
+            views
+              .filter(
+                (view) =>
+                  Boolean(
+                    view.mediaUrl
+                  )
+              )
+              .map((view) => [
+                view.item.id,
+                view.mediaUrl as string,
+              ])
+          )
+        );
+      })
+      .catch((mediaError) => {
+        console.error(
+          "Could not hydrate Keepsake images:",
+          mediaError
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [keepsakes]);
+
+  useEffect(() => {
+    const next = keepsakes.find(
+      (item) =>
+        item.title?.trim() &&
+        !(
+          typeof item.data
+            ?.storage_path ===
+          "string"
+        ) &&
+        !keepsakeVisualInFlight.current.has(
+          item.id
+        ) &&
+        !keepsakeVisualFailed.current.has(
+          item.id
+        )
+    );
+
+    if (!next) {
+      return;
+    }
+
+    keepsakeVisualInFlight.current.add(
+      next.id
+    );
+
+    setKeepsakeVisualBusy(
+      (current) => ({
+        ...current,
+        [next.id]:
+          true,
+      })
+    );
+
+    const type =
+      typeof next.data
+        ?.keepsakeType ===
+      "string"
+        ? next.data
+            .keepsakeType
+        : "object";
+
+    const origin =
+      typeof next.data
+        ?.origin ===
+      "string"
+        ? next.data
+            .origin
+        : null;
+
+    void import(
+      "@/lib/object-visual"
+    )
+      .then(
+        ({
+          generateObjectVisual,
+        }) =>
+          generateObjectVisual({
+            userId:
+              session.user.id,
+            name:
+              next.title ??
+              "Keepsake",
+            kind:
+              type,
+            description:
+              next.body,
+            placeName:
+              origin,
+          })
+      )
+      .then(
+        async (
+          generated
+        ) => {
+          const {
+            setKeepsakeGeneratedVisual,
+          } = await import(
+            "@/lib/keepsake-flow"
+          );
+
+          const updated =
+            await setKeepsakeGeneratedVisual({
+              userId:
+                session.user.id,
+              keepsake:
+                next,
+              storageBucket:
+                generated.storageBucket,
+              storagePath:
+                generated.storagePath,
+              provider:
+                generated.provider,
+              model:
+                generated.model,
+            });
+
+          setKeepsakeMediaById(
+            (current) => ({
+              ...current,
+              [next.id]:
+                generated.url,
+            })
+          );
+
+          replaceKeepsake(
+            updated
+          );
+        }
+      )
+      .catch(
+        (visualError) => {
+          console.error(
+            "Could not make automatic Keepsake visual:",
+            visualError
+          );
+
+          keepsakeVisualFailed.current.add(
+            next.id
+          );
+        }
+      )
+      .finally(() => {
+        keepsakeVisualInFlight.current.delete(
+          next.id
+        );
+
+        setKeepsakeVisualBusy(
+          (current) => ({
+            ...current,
+            [next.id]:
+              false,
+          })
+        );
+      });
+  }, [
+    keepsakes,
+    session.user.id,
+  ]);
+
+  useEffect(() => {
+    if (!editKeepsakeImageFile) {
+      setEditKeepsakePreviewUrl(
+        null
+      );
+      return;
+    }
+
+    const url =
+      URL.createObjectURL(
+        editKeepsakeImageFile
+      );
+
+    setEditKeepsakePreviewUrl(
+      url
+    );
+
+    return () => {
+      URL.revokeObjectURL(
+        url
+      );
+    };
+  }, [editKeepsakeImageFile]);
+
+  useEffect(() => {
     if (!selectedKeepsakeId) {
       setConnections([]);
       setConnectionChoices([]);
@@ -7170,6 +7568,12 @@ function KeepsakesScreen() {
         locationOf(item) === "stored"
     );
 
+  const consumedKeepsakes =
+    keepsakes.filter(
+      (item) =>
+        locationOf(item) === "gone"
+    );
+
   const resetNewKeepsake = () => {
     setAddingKeepsake(false);
     setKeepsakeTitle("");
@@ -7178,6 +7582,7 @@ function KeepsakesScreen() {
     setKeepsakeRoom("");
     setKeepsakeOrigin("");
     setKeepsakeNote("");
+    setKeepsakeImageFile(null);
   };
 
   const saveKeepsake = async () => {
@@ -7189,6 +7594,18 @@ function KeepsakesScreen() {
     setKeepsakeError(null);
 
     try {
+      const storagePath =
+        keepsakeImageFile
+          ? await uploadDiarioItemImage({
+              userId:
+                session.user.id,
+              file:
+                keepsakeImageFile,
+              folder:
+                "keepsakes",
+            })
+          : null;
+
       const saved =
         await createKeepsake({
           userId:
@@ -7212,6 +7629,8 @@ function KeepsakesScreen() {
 
           note:
             keepsakeNote,
+
+          storagePath,
         });
 
       setKeepsakes((current) => [
@@ -7274,6 +7693,10 @@ function KeepsakesScreen() {
       item.body ?? ""
     );
 
+    setEditKeepsakeImageFile(
+      null
+    );
+
     setEditingKeepsake(true);
   };
 
@@ -7291,6 +7714,18 @@ function KeepsakesScreen() {
       } = await import(
         "@/lib/keepsake-flow"
       );
+
+      const nextStoragePath =
+        editKeepsakeImageFile
+          ? await uploadDiarioItemImage({
+              userId:
+                session.user.id,
+              file:
+                editKeepsakeImageFile,
+              folder:
+                "keepsakes",
+            })
+          : undefined;
 
       const updated =
         await updateKeepsakeDetails({
@@ -7317,9 +7752,15 @@ function KeepsakesScreen() {
 
           note:
             editNote,
+
+          storagePath:
+            nextStoragePath,
         });
 
       replaceKeepsake(updated);
+      setEditKeepsakeImageFile(
+        null
+      );
       setEditingKeepsake(false);
     } catch (error) {
       console.error(
@@ -7581,7 +8022,37 @@ const openConnectionManager =
           </p>
         </ScreenIntro>
 
-        <section className="date-card">
+        {keepsakeMediaById[
+          selectedKeepsake.id
+        ] && (
+          <button
+            type="button"
+            className="keepsake-detail-visual"
+            onClick={() =>
+              setConnectionDetailId(
+                selectedKeepsake.id
+              )
+            }
+          >
+            <img
+              src={
+                keepsakeMediaById[
+                  selectedKeepsake.id
+                ]
+              }
+              alt={
+                selectedKeepsake.title ??
+                "Keepsake"
+              }
+            />
+
+            <span>
+              view object
+            </span>
+          </button>
+        )}
+
+        <section className="date-card keepsake-detail-card">
           <header>
             <div>
               <span>
@@ -7598,6 +8069,55 @@ const openConnectionManager =
 
           {editingKeepsake ? (
             <>
+              <label className="keepsake-image-picker keepsake-edit-image-picker">
+                <span>
+                  {editKeepsakePreviewUrl ? (
+                    <img
+                      src={
+                        editKeepsakePreviewUrl
+                      }
+                      alt="New keepsake preview"
+                    />
+                  ) : keepsakeMediaById[
+                      selectedKeepsake.id
+                    ] ? (
+                    <img
+                      src={
+                        keepsakeMediaById[
+                          selectedKeepsake.id
+                        ]
+                      }
+                      alt="Current keepsake"
+                    />
+                  ) : (
+                    <>
+                      <ImageIcon
+                        size={22}
+                        strokeWidth={1.2}
+                      />
+                      <strong>
+                        Replace the visual
+                      </strong>
+                      <small>
+                        optional · keep the generated one or use your real photo
+                      </small>
+                    </>
+                  )}
+                </span>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) =>
+                    setEditKeepsakeImageFile(
+                      event.target
+                        .files?.[0] ??
+                        null
+                    )
+                  }
+                />
+              </label>
+
               <input
                 type="text"
                 value={editTitle}
@@ -7619,6 +8139,30 @@ const openConnectionManager =
               >
                 <option value="object">
                   Object
+                </option>
+
+                <option value="food">
+                  Food
+                </option>
+
+                <option value="drink">
+                  Drink
+                </option>
+
+                <option value="dessert">
+                  Dessert
+                </option>
+
+                <option value="snack">
+                  Snack
+                </option>
+
+                <option value="souvenir">
+                  Souvenir
+                </option>
+
+                <option value="purchase">
+                  Purchase
                 </option>
 
                 <option value="ticket">
@@ -7657,6 +8201,7 @@ const openConnectionManager =
                     event.target.value as
                       | "home"
                       | "stored"
+                      | "gone"
                   )
                 }
               >
@@ -7666,6 +8211,10 @@ const openConnectionManager =
 
                 <option value="stored">
                   Stored away
+                </option>
+
+                <option value="gone">
+                  Consumed / part of the moment
                 </option>
               </select>
 
@@ -7742,7 +8291,9 @@ const openConnectionManager =
                   {" · "}
                   {location === "home"
                     ? "At home"
-                    : "Stored"}
+                    : location === "gone"
+                      ? "Consumed / only in the moment"
+                      : "Stored"}
                 </span>
               </div>
 
@@ -7782,28 +8333,30 @@ const openConnectionManager =
                   Edit
                 </button>
 
-                <button
-                  type="button"
-                  className="gallery-add-button"
-                  disabled={
-                    savingKeepsake
-                  }
-                  onClick={() =>
-                    void moveKeepsake(
-                      selectedKeepsake
-                    )
-                  }
-                >
-                  {location === "home"
-                    ? "Store away"
-                    : "Bring home"}
-                </button>
+                {location !== "gone" && (
+                  <button
+                    type="button"
+                    className="gallery-add-button"
+                    disabled={
+                      savingKeepsake
+                    }
+                    onClick={() =>
+                      void moveKeepsake(
+                        selectedKeepsake
+                      )
+                    }
+                  >
+                    {location === "home"
+                      ? "Store away"
+                      : "Bring home"}
+                  </button>
+                )}
               </div>
             </>
           )}
         </section>
 
-        <section className="date-life-cycle">
+        <section className="date-life-cycle keepsake-history-sheet">
           <header>
             <span>
               history
@@ -7832,6 +8385,29 @@ const openConnectionManager =
                     key={item.id}
                     className="date-card"
                   >
+                    <div
+                      className="keepsake-card-visual"
+                      aria-hidden="true"
+                    >
+                      {keepsakeMediaById[
+                        item.id
+                      ] ? (
+                        <img
+                          src={
+                            keepsakeMediaById[
+                              item.id
+                            ]
+                          }
+                          alt=""
+                        />
+                      ) : (
+                        <BoxIcon
+                          size={23}
+                          strokeWidth={1.2}
+                        />
+                      )}
+                    </div>
+
                     <header>
                       <div>
                         <span>
@@ -8063,6 +8639,20 @@ const openConnectionManager =
         >
           Stored
         </button>
+
+        <button
+          type="button"
+          className={
+            keepsakeView === "gone"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setKeepsakeView("gone")
+          }
+        >
+          Consumed
+        </button>
       </div>
 
       <section className="keepsakes-summary">
@@ -8085,6 +8675,17 @@ const openConnectionManager =
             {storedKeepsakes.length}
           </strong>
         </div>
+
+
+        <div>
+          <span>
+            consumed
+          </span>
+
+          <strong>
+            {consumedKeepsakes.length}
+          </strong>
+        </div>
       </section>
 
       {addingKeepsake ? (
@@ -8096,6 +8697,46 @@ const openConnectionManager =
           <h2>
             Keep an object
           </h2>
+
+          <label className="keepsake-image-picker">
+            <span>
+              {keepsakePreviewUrl ? (
+                <img
+                  src={
+                    keepsakePreviewUrl
+                  }
+                  alt="Keepsake preview"
+                />
+              ) : (
+                <>
+                  <ImageIcon
+                    size={24}
+                    strokeWidth={1.2}
+                  />
+
+                  <strong>
+                    Use your own photo
+                  </strong>
+
+                  <small>
+                    optional · otherwise Diário makes the object visual automatically
+                  </small>
+                </>
+              )}
+            </span>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) =>
+                setKeepsakeImageFile(
+                  event.target
+                    .files?.[0] ??
+                    null
+                )
+              }
+            />
+          </label>
 
           <input
             type="text"
@@ -8119,6 +8760,30 @@ const openConnectionManager =
           >
             <option value="object">
               Object
+            </option>
+
+            <option value="food">
+              Food
+            </option>
+
+            <option value="drink">
+              Drink
+            </option>
+
+            <option value="dessert">
+              Dessert
+            </option>
+
+            <option value="snack">
+              Snack
+            </option>
+
+            <option value="souvenir">
+              Souvenir
+            </option>
+
+            <option value="purchase">
+              Purchase
             </option>
 
             <option value="ticket">
@@ -8157,6 +8822,7 @@ const openConnectionManager =
                 event.target.value as
                   | "home"
                   | "stored"
+                  | "gone"
               )
             }
           >
@@ -8166,6 +8832,10 @@ const openConnectionManager =
 
             <option value="stored">
               Stored away
+            </option>
+
+            <option value="gone">
+              Consumed / part of the moment
             </option>
           </select>
 
@@ -8245,7 +8915,13 @@ const openConnectionManager =
           />
 
           <small>
-            objects
+            {keepsakeView === "gone"
+              ? "things we had"
+              : keepsakeView === "stored"
+                ? "stored away"
+                : keepsakeView === "home"
+                  ? "at home"
+                  : "objects"}
           </small>
 
           <h2>
@@ -8272,7 +8948,122 @@ const openConnectionManager =
         </section>
       ) : (
         <>
-          <div className="dates-list">
+          <section className="keepsake-box">
+            <header>
+              <div>
+                <small>
+                  our little box
+                </small>
+
+                <strong>
+                  Things that stayed
+                </strong>
+              </div>
+
+              <span>
+                {visibleKeepsakes.length}
+              </span>
+            </header>
+
+            <div className="keepsake-box-lid" aria-hidden="true" />
+
+            <div className="keepsake-box-inside">
+              {visibleKeepsakes
+                .slice(0, 6)
+                .map(
+                  (
+                    item,
+                    index
+                  ) => {
+                    const type =
+                      typeof item
+                        .data
+                        ?.keepsakeType ===
+                      "string"
+                        ? item
+                            .data
+                            .keepsakeType
+                        : "object";
+
+                    return (
+                      <button
+                        type="button"
+                        key={
+                          item.id
+                        }
+                        className="keepsake-box-object"
+                        data-keepsake-type={
+                          type
+                        }
+                        data-slot={
+                          index
+                        }
+                        onClick={() =>
+                          setSelectedKeepsakeId(
+                            item.id
+                          )
+                        }
+                      >
+                        <span className="keepsake-box-object-visual">
+                          {keepsakeMediaById[
+                            item.id
+                          ] ? (
+                            <img
+                              src={
+                                keepsakeMediaById[
+                                  item.id
+                                ]
+                              }
+                              alt=""
+                            />
+                          ) : (
+                            <BoxIcon
+                              size={18}
+                              strokeWidth={1.2}
+                            />
+                          )}
+                        </span>
+
+                        <strong>
+                          {item.title ??
+                            "Untitled"}
+                        </strong>
+                      </button>
+                    );
+                  }
+                )}
+            </div>
+
+            {visibleKeepsakes.length >
+              6 && (
+              <p>
+                +{" "}
+                {visibleKeepsakes.length -
+                  6}{" "}
+                more in the drawer
+              </p>
+            )}
+          </section>
+
+          <section className="keepsakes-memory-box">
+            <header className="keepsakes-box-lid">
+              <div>
+                <small>
+                  OUR LITTLE BOX
+                </small>
+
+                <strong>
+                  things that stayed
+                </strong>
+              </div>
+
+              <span>
+                {visibleKeepsakes.length}
+              </span>
+            </header>
+
+            <div className="keepsakes-box-tray">
+              <div className="dates-list keepsakes-archive">
             {visibleKeepsakes.map(
               (item) => {
                 const location =
@@ -8297,13 +9088,58 @@ const openConnectionManager =
                 return (
                   <article
                     key={item.id}
-                    className="date-card"
+                    className="date-card keepsake-index-card"
+                    data-keepsake-type={type}
+                    data-keepsake-location={location}
                     onClick={() =>
                       setSelectedKeepsakeId(
                         item.id
                       )
                     }
                   >
+                    <div
+                      className={
+                        keepsakeMediaById[
+                          item.id
+                        ]
+                          ? "keepsake-index-visual has-image"
+                          : keepsakeVisualBusy[
+                                item.id
+                              ]
+                            ? "keepsake-index-visual generating"
+                            : "keepsake-index-visual"
+                      }
+                      aria-hidden="true"
+                    >
+                      {keepsakeMediaById[
+                        item.id
+                      ] ? (
+                        <img
+                          src={
+                            keepsakeMediaById[
+                              item.id
+                            ]
+                          }
+                          alt=""
+                        />
+                      ) : (
+                        <>
+                          <BoxIcon
+                            size={21}
+                            strokeWidth={1.2}
+                          />
+
+                          {keepsakeVisualBusy[
+                            item.id
+                          ] && (
+                            <small>
+                              developing…
+                            </small>
+                          )}
+                        </>
+                      )}
+                    </div>
+
                     <header>
                       <div>
                         <span>
@@ -8329,7 +9165,9 @@ const openConnectionManager =
                       <span>
                         {location === "home"
                           ? "At home"
-                          : "Stored"}
+                          : location === "gone"
+                            ? "Consumed · only the trace stayed"
+                            : "Stored"}
 
                         {origin
                           ? ` · From ${origin}`
@@ -8346,7 +9184,15 @@ const openConnectionManager =
                 );
               }
             )}
-          </div>
+              </div>
+            </div>
+
+            <footer>
+              <span>
+                receipts · wrappers · gifts · traces
+              </span>
+            </footer>
+          </section>
 
           <button
             type="button"
@@ -9549,7 +10395,21 @@ if (spotifyUrl) {
   }
 };
 
-  const playSpotifyTopTrack = (
+  const removeSavedSong = async (song: DiarioItem) => {
+  const title = song.title ?? "this song";
+  if (!window.confirm(`Remove “${title}” from the Diário record shelf?`)) return;
+
+  setMusicError(null);
+  try {
+    await archiveSong({ userId: session.user.id, songId: song.id });
+    setSongs((currentSongs) => currentSongs.filter((item) => item.id !== song.id));
+  } catch (error) {
+    console.error("Could not remove song:", error);
+    setMusicError("This song could not be removed.");
+  }
+};
+
+const playSpotifyTopTrack = (
   track: SpotifyTrack
 ) => {
   const artist =
@@ -10122,7 +10982,7 @@ setAddingSong(false);
 {musicSection === "favorites" && musicView === "mine" && (
   <section className="spotify-library-paper">
     <header className="spotify-library-heading"><div><span>from your Spotify</span><strong>Liked Songs</strong></div><small>{spotifyLibraryLoading ? "loading…" : `${spotifyLikedTracks.length} liked`}</small></header>
-    <div className="spotify-compact-track-list">
+    <div className="spotify-compact-track-list spotify-liked-track-list">
       {spotifyLikedTracks.map((track) => <button key={track.id} type="button" onClick={() => playSpotifyTopTrack(track)}>{track.coverUrl ? <img src={track.coverUrl} alt="" /> : <Disc3 size={18} />}<span><strong>{track.name}</strong><small>{track.artists.join(", ")}</small></span><Play size={13} fill="currentColor" /></button>)}
     </div>
   </section>
@@ -10434,166 +11294,97 @@ const spotifyUri =
                     key={song.id}
                     className="music-track"
                   >
-                <div
-  className="music-record"
-  aria-hidden="true"
->
-  {coverUrl ? (
-    <img
-      src={coverUrl}
-      alt=""
-    />
-  ) : (
-    <Disc3
-      size={24}
-      strokeWidth={1.2}
-    />
-  )}
-</div>
-
-                    <div>
-                      <small>
-                        {musicView ===
-                        "ours"
-                          ? "ours"
-                          : musicView}
-                      </small>
-
-                      <strong>
-                        {song.title ??
-                          "Untitled song"}
-                      </strong>
-
-                      <span>
-                        {artist}
-                      </span>
-
-                      {album && (
-                        <em>
-                          {album}
-                        </em>
-                      )}
-
-                      {song.body && (
-                        <p>
-                          {song.body}
-                        </p>
+                    <div className="music-record" aria-hidden="true">
+                      {coverUrl ? (
+                        <img src={coverUrl} alt="" />
+                      ) : (
+                        <Disc3 size={24} strokeWidth={1.2} />
                       )}
                     </div>
 
-{onShareToChat && (
-  <button
-    type="button"
-    onClick={() =>
-      onShareToChat(
-        `I sent you a song: "${song.title ?? "Untitled song"}" by ${artist}.`,
-        song,
-        artist
-      )
-    }
-  >
-    Send to chat
-  </button>
-)}
+                    <div className="music-track-copy">
+                      <small>{musicView === "ours" ? "ours" : musicView}</small>
+                      <strong>{song.title ?? "Untitled song"}</strong>
+                      <span>{artist}</span>
+                      {album && <em>{album}</em>}
+                      {song.body && <p>{song.body}</p>}
 
-                    <button
-  type="button"
-  className={
-    song.data?.favorite === true
-      ? "music-favorite-button active"
-      : "music-favorite-button"
-  }
-  aria-label={
-    song.data?.favorite === true
-      ? "Remove from favorites"
-      : "Add to favorites"
-  }
-  aria-pressed={
-    song.data?.favorite === true
-  }
-  onClick={() =>
-    void toggleSongFavorite(song)
-  }
->
-  <Heart
-    size={16}
-    fill={
-      song.data?.favorite === true
-        ? "currentColor"
-        : "none"
-    }
-  />
-</button>
-                    
-<button
-  type="button"
-  aria-label="Listen now"
- disabled={!spotifyUri}
-  onClick={() =>
-    startListeningToSong({
-      song,
-      artist,
-      coverUrl,
-      spotifyUrl,
-      spotifyUri,
-      owner:
-        musicView === "mine"
-          ? "alloah"
-          : musicView === "dominic"
-            ? "dominic"
-            : "together",
-    })
-  }
->
- {spotifyPlayerLoading ? (
-  "…"
-) : (
-  <Play
-    size={16}
-    fill="currentColor"
-  />
-)}
-</button>
+                      <button
+                        type="button"
+                        className="music-connections-link"
+                        onClick={() => setSelectedSongId(song.id)}
+                      >
+                        ↳ connections
+                      </button>
+                    </div>
 
-                    <button
-  type="button"
-  aria-label="Add to queue"
-  disabled={!spotifyUri}
-  onClick={() => {
-    if (!spotifyUri) return;
+                    <div className="music-track-actions">
+                      <button
+                        type="button"
+                        className="music-listen-button"
+                        aria-label="Listen now"
+                        disabled={!spotifyUri}
+                        onClick={() =>
+                          startListeningToSong({
+                            song,
+                            artist,
+                            coverUrl,
+                            spotifyUrl,
+                            spotifyUri,
+                            owner:
+                              musicView === "mine"
+                                ? "alloah"
+                                : musicView === "dominic"
+                                  ? "dominic"
+                                  : "together",
+                          })
+                        }
+                      >
+                        {spotifyPlayerLoading ? "…" : <Play size={14} fill="currentColor" />}
+                      </button>
 
-    void addSpotifyUriToQueue(
-      spotifyUri
-    )
-      .then(() => {
-        setSpotifyQueueOpen(true);
+                      <button
+                        type="button"
+                        className={song.data?.favorite === true ? "music-favorite-button active" : "music-favorite-button"}
+                        aria-label={song.data?.favorite === true ? "Remove from favorites" : "Add to favorites"}
+                        aria-pressed={song.data?.favorite === true}
+                        onClick={() => void toggleSongFavorite(song)}
+                      >
+                        <Heart size={14} fill={song.data?.favorite === true ? "currentColor" : "none"} />
+                      </button>
 
-        return refreshSpotifyQueue();
-      })
-      .catch((error) => {
-        console.error(error);
+                      <button
+                        type="button"
+                        className="music-queue-button"
+                        aria-label="Add to queue"
+                        title="Add to queue"
+                        disabled={!spotifyUri}
+                        onClick={() => {
+                          if (!spotifyUri) return;
+                          void addSpotifyUriToQueue(spotifyUri)
+                            .then(() => {
+                              setSpotifyQueueOpen(true);
+                              return refreshSpotifyQueue();
+                            })
+                            .catch((error) => {
+                              console.error(error);
+                              setMusicError(error instanceof Error ? error.message : "Could not add to queue.");
+                            });
+                        }}
+                      >
+                        queue
+                      </button>
 
-        setMusicError(
-          error instanceof Error
-            ? error.message
-            : "Could not add to queue."
-        );
-      });
-  }}
->
-  queue
-</button>
-
-                    <button
-  type="button"
-  className="letter-connected-button"
-  onClick={() =>
-    setSelectedSongId(song.id)
-  }
->
-  View connections
-</button>
-                    
+                      <button
+                        type="button"
+                        className="music-remove-button"
+                        aria-label="Remove saved song"
+                        title="Remove"
+                        onClick={() => void removeSavedSong(song)}
+                      >
+                        ×
+                      </button>
+                    </div>
                   </article>
                 );
               }

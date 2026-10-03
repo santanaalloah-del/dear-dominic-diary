@@ -1,4 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import {
+  syncDominicWardrobeAutonomy,
+} from "@/lib/dominic-wardrobe-autonomy";
 export type DominicLocation =
   | "living"
   | "bedroom"
@@ -1630,6 +1633,16 @@ if (!state) {
     state
   );
 
+  await syncDominicWardrobeAutonomy({
+    userId,
+    state,
+  }).catch((error) => {
+    console.error(
+      "Could not sync Dominic wardrobe autonomy:",
+      error
+    );
+  });
+
   return state;
 }
   
@@ -1688,6 +1701,16 @@ await syncDominicActiveContext(
   userId,
   state
 );
+
+await syncDominicWardrobeAutonomy({
+  userId,
+  state,
+}).catch((error) => {
+  console.error(
+    "Could not sync Dominic wardrobe autonomy:",
+    error
+  );
+});
 
 return state;
 }

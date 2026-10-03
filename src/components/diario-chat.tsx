@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SpontaneousPhotoOpportunity } from "@/components/spontaneous-photo-opportunity";
 import { DateModeChatBridge } from "@/components/date-mode-chat-bridge";
 import "@/components/date-mode-chat-context.css";
+import "@/components/diario-chat-world.css";
 import {
   Camera,
   ChevronRight,
@@ -9,7 +10,6 @@ import {
   Image,
   Mail,
   Mic,
-  MoreVertical,
   Music2,
   Palette,
   Phone,
@@ -48,6 +48,24 @@ import {
   type DominicState,
 } from "@/lib/dominic-state";
 import {
+  getWearingSelection,
+} from "@/lib/wardrobe-context";
+import {
+  getChatProfiles,
+  removeChatProfilePhoto,
+  saveChatProfile,
+  uploadChatProfilePhoto,
+  type ChatProfile,
+  type ChatProfileOwner,
+} from "@/lib/chat-profile";
+import {
+  getChatStickers,
+  removeChatSticker,
+  uploadChatSticker,
+  type ChatStickerAsset,
+  type ChatStickerOwner,
+} from "@/lib/chat-stickers";
+import {
   loadDominicLiveDateContext,
   liveDateContextForPrompt,
 } from "@/lib/dominic-live-date-context";
@@ -70,7 +88,11 @@ import {
   createPlace,
   createSong,
   getDates,
+  getGalleryPhotos,
+  getLooks,
+  getWardrobeItems,
   type DiarioItem,
+  type GalleryPhoto,
 } from "@/lib/diario-world";
 import dominic from "@/assets/dominic-candid.jpg";
 
@@ -80,7 +102,8 @@ type DominicActionType =
   | "create_memory"
   | "create_place"
   | "create_song"
-  | "date_venue_action";
+  | "date_venue_action"
+  | "update_profile_photo";
 
 type DominicWorldAction =
   | {
@@ -171,12 +194,20 @@ type DominicWorldAction =
       venueAction:
         | "ordered"
         | "bought";
+    }
+  | {
+      type:
+        "update_profile_photo";
+
+      photoId:
+        string;
     };
 
 type MessageKind =
   | "text"
   | "voice"
   | "photo"
+  | "sticker"
   | "shared_item"
   | "agent_action";
 
@@ -206,6 +237,7 @@ type ChatMedia = {
   type:
     | "photo"
     | "voice"
+    | "sticker"
     | "shared_item"
     | "agent_action";
 
@@ -305,7 +337,9 @@ function isDominicActionType(
     value ===
       "create_song" ||
     value ===
-      "date_venue_action"
+      "date_venue_action" ||
+    value ===
+      "update_profile_photo"
   );
 }
 
@@ -353,6 +387,13 @@ function dominicActionLabel(
     "date_venue_action"
   ) {
     return "Dominic chose something on the Date";
+  }
+
+  if (
+    type ===
+    "update_profile_photo"
+  ) {
+    return "Dominic changed his profile photo";
   }
 
   return "Dominic added something";
@@ -408,7 +449,6 @@ const PREFS_KEY = "diario-chat-preferences-v1";
 const VOICE_KEY = "diario-voice-markers-v1";
 
 const DOMINIC_NAME = "Dominic";
-const DOMINIC_STATUS = "home";
 
 const defaultPreferences: ChatPreferences = {
   theme: "diary",
@@ -474,6 +514,144 @@ function voiceDuration(content: string) {
   return `0:${String(Math.min(seconds, 59)).padStart(2, "0")}`;
 }
 
+function dominicPresenceCopy(
+  state:
+    DominicState | null
+) {
+  if (!state) {
+    return "a moment away";
+  }
+
+  const room: Record<
+    string,
+    string
+  > = {
+    living:
+      "living room",
+    bedroom:
+      "bedroom",
+    kitchen:
+      "kitchen",
+    bathroom:
+      "bathroom",
+    hall:
+      "hall",
+    out:
+      "out",
+  };
+
+  const activity: Record<
+    string,
+    string
+  > = {
+    sleeping:
+      "asleep",
+    waking_up:
+      "waking up",
+    showering:
+      "in the shower",
+    getting_dressed:
+      "getting dressed",
+    making_coffee:
+      "making coffee",
+    cooking:
+      "cooking",
+    eating:
+      "eating",
+    washing_dishes:
+      "doing the dishes",
+    cleaning:
+      "cleaning up",
+    doing_laundry:
+      "doing laundry",
+    watching_something:
+      "watching something",
+    listening_to_music:
+      "listening to music",
+    playing_guitar:
+      "playing guitar",
+    writing_music:
+      "writing music",
+    recording:
+      "recording",
+    reading:
+      "reading",
+    scrolling:
+      "on his phone",
+    on_the_phone:
+      "on a call",
+    relaxing:
+      "taking it easy",
+    napping:
+      "having a nap",
+    getting_ready:
+      "getting ready",
+    leaving_home:
+      "heading out",
+    coming_home:
+      "coming home",
+    walking:
+      "out walking",
+    getting_food:
+      "getting food",
+    shopping:
+      "out shopping",
+    at_a_cafe:
+      "at a café",
+    with_friends:
+      "with friends",
+    working:
+      "working",
+    driving:
+      "driving",
+    idle:
+      "around",
+  };
+
+  const action =
+    activity[
+      state.activity
+    ] ??
+    state.activity
+      .replaceAll(
+        "_",
+        " "
+      );
+
+  if (
+    state.detail?.trim()
+  ) {
+    return `${action} · ${state.detail.trim()}`;
+  }
+
+  const place =
+    room[
+      state.location
+    ] ??
+    state.location;
+
+  if (
+    state.location ===
+      "out" &&
+    [
+      "walking",
+      "getting_food",
+      "shopping",
+      "at_a_cafe",
+      "with_friends",
+      "working",
+      "recording",
+      "driving",
+    ].includes(
+      state.activity
+    )
+  ) {
+    return action;
+  }
+
+  return `${action} · ${place}`;
+}
+
 export function DiarioChat({
   onOpen,
 }: {
@@ -483,6 +661,11 @@ onOpen: (
     | "music"
     | "dates"
     | "photo-engine"
+    | "gallery"
+    | "memories"
+    | "wardrobe"
+    | "places"
+    | "settings"
 ) => void;
 }) {
   const { session, preferredName } = usePrivateDiario();
@@ -492,6 +675,19 @@ onOpen: (
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<ChatPreferences>(defaultPreferences);
+
+  const [
+    chatProfiles,
+    setChatProfiles,
+  ] = useState<{
+    alloah: ChatProfile;
+    dominic: ChatProfile;
+  } | null>(null);
+
+  const [
+    profileError,
+    setProfileError,
+  ] = useState<string | null>(null);
   const [voiceStatus, setVoiceStatus] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [openTranscript, setOpenTranscript] = useState<string | null>(null);
@@ -542,6 +738,40 @@ const photoInputRef =
 
   const [stickersOpen, setStickersOpen] =
     useState(false);
+
+  const [
+    customStickers,
+    setCustomStickers,
+  ] = useState<ChatStickerAsset[]>([]);
+
+  const [
+    stickerBusy,
+    setStickerBusy,
+  ] = useState(false);
+
+  const [
+    stickerNotice,
+    setStickerNotice,
+  ] = useState<string | null>(null);
+
+  const [
+    stickerOwnerView,
+    setStickerOwnerView,
+  ] = useState<
+    ChatStickerOwner | "all"
+  >("all");
+
+  const [
+    stickerUploadOwner,
+    setStickerUploadOwner,
+  ] = useState<ChatStickerOwner>(
+    "alloah"
+  );
+
+  const stickerInputRef =
+    useRef<HTMLInputElement | null>(
+      null
+    );
 
  const [activeListeningTrack, setActiveListeningTrack] =
   useState<ActiveListeningTrack | null>(null);
@@ -598,6 +828,11 @@ const activeListeningLabel =
   const [dominicState, setDominicState] =
   useState<DominicState | null>(null);
 
+  const [
+    dominicWearingLabel,
+    setDominicWearingLabel,
+  ] = useState<string | null>(null);
+
   const [nearbyCommitments, setNearbyCommitments] =
   useState<
     {
@@ -622,6 +857,92 @@ useEffect(() => {
 
       if (!cancelled) {
         setDominicState(state);
+      }
+
+      try {
+        const [
+          wearing,
+          looks,
+          clothing,
+        ] = await Promise.all([
+          getWearingSelection({
+            userId:
+              session.user.id,
+            owner:
+              "dominic",
+          }),
+          getLooks(
+            session.user.id
+          ),
+          getWardrobeItems(
+            session.user.id
+          ),
+        ]);
+
+        if (cancelled) return;
+
+        if (
+          wearing?.lookId
+        ) {
+          const look =
+            looks.find(
+              (item) =>
+                item.id ===
+                wearing.lookId &&
+                item.owner ===
+                  "dominic"
+            );
+
+          if (look) {
+            setDominicWearingLabel(
+              look.title ??
+                "a saved look"
+            );
+            return;
+          }
+        }
+
+        const pieces =
+          clothing
+            .filter(
+              (item) =>
+                item.owner ===
+                  "dominic" &&
+                wearing?.clothingIds
+                  .includes(
+                    item.id
+                  )
+            )
+            .map(
+              (item) =>
+                item.title ??
+                "piece"
+            )
+            .slice(
+              0,
+              3
+            );
+
+        setDominicWearingLabel(
+          pieces.length
+            ? pieces.join(
+                " · "
+              )
+            : null
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not load Dominic's current outfit:",
+          error
+        );
+
+        if (!cancelled) {
+          setDominicWearingLabel(
+            null
+          );
+        }
       }
     };
 
@@ -722,6 +1043,65 @@ useEffect(() => {
 }, [loadNearbyCommitmentsNow]);
 
   
+  useEffect(() => {
+    let cancelled = false;
+
+    getChatProfiles(
+      session.user.id
+    )
+      .then((profiles) => {
+        if (!cancelled) {
+          setChatProfiles(
+            profiles
+          );
+          setProfileError(
+            null
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(
+          "Could not load chat profiles:",
+          error
+        );
+
+        if (!cancelled) {
+          setProfileError(
+            "Profile details could not be loaded."
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session.user.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getChatStickers(
+      session.user.id
+    )
+      .then((stickers) => {
+        if (!cancelled) {
+          setCustomStickers(
+            stickers
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(
+          "Could not load custom stickers:",
+          error
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session.user.id]);
+
   useEffect(() => {
     setPreferences(readPreferences());
   }, []);
@@ -920,6 +1300,46 @@ async function extractDominicActions({
   DominicWorldAction[]
 > {
   try {
+    const {
+      data: profilePhotoRows,
+      error: profilePhotoError,
+    } = await supabase
+      .from("diario_items")
+      .select("id,title,event_at,owner,data")
+      .eq("user_id", session.user.id)
+      .eq("kind", "photo")
+      .eq("status", "active")
+      .in("owner", ["dominic", "shared"])
+      .order("event_at", { ascending: false })
+      .limit(12);
+
+    if (profilePhotoError) {
+      console.error(
+        "Could not load Dominic profile-photo candidates:",
+        profilePhotoError
+      );
+    }
+
+    const profilePhotoCandidates =
+      (profilePhotoRows ?? [])
+        .filter(
+          (photo: any) =>
+            typeof photo?.data?.storage_path === "string"
+        )
+        .map(
+          (photo: any) => ({
+            id: photo.id,
+            title: photo.title ?? "Untitled photo",
+            owner: photo.owner,
+            eventAt: photo.event_at ?? null,
+            generated: photo.data?.generated === true,
+            sourceContext:
+              typeof photo.data?.source_context === "string"
+                ? photo.data.source_context
+                : null,
+          })
+        );
+
     const response =
       await fetch(
         "/api/dominic-actions",
@@ -947,6 +1367,8 @@ async function extractDominicActions({
               liveDateContext,
 
               nearbyCommitments,
+
+              profilePhotoCandidates,
             }),
         }
       );
@@ -1221,6 +1643,88 @@ async function applyDominicAction(
 ): Promise<
   DiarioItem | null
 > {
+  if (
+    action.type ===
+    "update_profile_photo"
+  ) {
+    const duplicate =
+      await hasExistingDominicAction(
+        action
+      );
+
+    if (duplicate) {
+      return null;
+    }
+
+    const {
+      data: profilePhoto,
+      error: profilePhotoError,
+    } = await supabase
+      .from("diario_items")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .eq("id", action.photoId)
+      .eq("kind", "photo")
+      .eq("status", "active")
+      .in("owner", ["dominic", "shared"])
+      .maybeSingle();
+
+    if (
+      profilePhotoError ||
+      !profilePhoto
+    ) {
+      return null;
+    }
+
+    const storagePath =
+      typeof (profilePhoto.data as any)
+        ?.storage_path === "string"
+        ? (profilePhoto.data as any)
+            .storage_path
+        : null;
+
+    if (!storagePath) {
+      return null;
+    }
+
+    await saveChatProfile({
+      userId: session.user.id,
+      owner: "dominic",
+      photoPath: storagePath,
+    });
+
+    try {
+      const refreshed =
+        await getChatProfiles(
+          session.user.id
+        );
+
+      setChatProfiles(refreshed);
+    } catch (error) {
+      console.error(
+        "Dominic changed his profile photo, but Chat could not refresh it:",
+        error
+      );
+    }
+
+    const item =
+      profilePhoto as DiarioItem;
+
+    try {
+      await createDominicActionChatItem({
+        action,
+        item,
+      });
+    } catch (error) {
+      console.error(
+        "Dominic changed his profile photo, but its Chat action card failed:",
+        error
+      );
+    }
+
+    return item;
+  }
+
   if (
     action.type ===
     "date_venue_action"
@@ -1718,7 +2222,8 @@ if (
             typeof storagePath !==
               "string" ||
             (mediaType !== "photo" &&
-              mediaType !== "voice")
+              mediaType !== "voice" &&
+              mediaType !== "sticker")
           ) {
             return null;
           }
@@ -2024,6 +2529,8 @@ const standaloneMedia =
       (media) =>
         media.type ===
           "photo" ||
+        media.type ===
+          "sticker" ||
         media.type ===
           "agent_action" ||
         (media.type ===
@@ -2976,6 +3483,195 @@ setMessages((current) => [
     }
   }
   
+  const sendStickerAsset =
+    async (
+      sticker:
+        ChatStickerAsset
+    ) => {
+      setStickerBusy(true);
+      setStickerNotice(
+        null
+      );
+
+      try {
+        const now =
+          new Date()
+            .toISOString();
+
+        const {
+          error,
+        } =
+          await supabase
+            .from(
+              "diario_items"
+            )
+            .insert({
+              user_id:
+                session.user.id,
+              kind:
+                "chat_media",
+              owner:
+                "alloah",
+              status:
+                "active",
+              title:
+                sticker.label,
+              body:
+                null,
+              event_at:
+                now,
+              planned_for:
+                null,
+              data: {
+                media_type:
+                  "sticker",
+                storage_bucket:
+                  "diario-media",
+                storage_path:
+                  sticker.storagePath,
+                sticker_asset_id:
+                  sticker.id,
+                sticker_owner:
+                  sticker.owner,
+                chat_sender:
+                  "alloah",
+              },
+            });
+
+        if (error) {
+          throw error;
+        }
+
+        setStickersOpen(
+          false
+        );
+
+        await loadHistory(
+          false
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not send sticker:",
+          error
+        );
+
+        setStickerNotice(
+          "That sticker could not be sent."
+        );
+      } finally {
+        setStickerBusy(false);
+      }
+    };
+
+  const addCustomSticker =
+    async (
+      file:
+        File | null
+    ) => {
+      if (!file) {
+        return;
+      }
+
+      setStickerBusy(true);
+      setStickerNotice(
+        null
+      );
+
+      try {
+        const sticker =
+          await uploadChatSticker({
+            userId:
+              session.user.id,
+            owner:
+              stickerUploadOwner,
+            file,
+          });
+
+        setCustomStickers(
+          (current) => [
+            sticker,
+            ...current,
+          ]
+        );
+
+        setStickerNotice(
+          stickerUploadOwner ===
+            "dominic"
+            ? "Sticker added to Dominic's tray."
+            : stickerUploadOwner ===
+                "shared"
+              ? "Sticker added to the shared tray."
+              : "Sticker added to your tray."
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not add sticker:",
+          error
+        );
+
+        setStickerNotice(
+          "That image could not be added as a sticker."
+        );
+      } finally {
+        setStickerBusy(false);
+
+        if (
+          stickerInputRef
+            .current
+        ) {
+          stickerInputRef
+            .current
+            .value = "";
+        }
+      }
+    };
+
+  const forgetCustomSticker =
+    async (
+      sticker:
+        ChatStickerAsset
+    ) => {
+      setStickerBusy(true);
+      setStickerNotice(
+        null
+      );
+
+      try {
+        await removeChatSticker({
+          userId:
+            session.user.id,
+          stickerId:
+            sticker.id,
+        });
+
+        setCustomStickers(
+          (current) =>
+            current.filter(
+              (item) =>
+                item.id !==
+                sticker.id
+            )
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not remove sticker:",
+          error
+        );
+
+        setStickerNotice(
+          "That sticker could not be removed from the tray."
+        );
+      } finally {
+        setStickerBusy(false);
+      }
+    };
+
   const searchResults =
     searchTerm.trim()
       ? messages.filter((message) =>
@@ -2988,24 +3684,13 @@ setMessages((current) => [
             )
         )
       : [];
- const statusCopy = useMemo(() => {
-  if (!dominicState) {
-return "checking where he is";
-  }
-
-  const activity =
-    dominicState.activity.replaceAll(
-      "_",
-      " "
-    );
-
-  const location =
-    dominicState.location === "living"
-      ? "living room"
-      : dominicState.location;
-
-  return `${activity} · ${location}`;
-}, [dominicState]);
+ const statusCopy = useMemo(
+  () =>
+    dominicPresenceCopy(
+      dominicState
+    ),
+  [dominicState]
+);
 
   const clearActiveListeningTrack = () => {
   if (typeof window !== "undefined") {
@@ -3063,6 +3748,84 @@ const recentConversationForPhoto = () =>
     .filter((line) => line.trim().length > 0)
     .join("\n");
   
+  const dominicProfile =
+    chatProfiles?.dominic ??
+    null;
+
+  const alloahProfile =
+    chatProfiles?.alloah ??
+    null;
+
+  const dominicAvatar =
+    dominicProfile
+      ?.photoUrl ??
+    dominic;
+
+  const alloahInitial =
+    (
+      alloahProfile
+        ?.displayName ??
+      preferredName ??
+      "A"
+    )
+      .trim()
+      .charAt(0)
+      .toUpperCase() ||
+    "A";
+
+  const updateProfile = (
+    profile:
+      ChatProfile
+  ) => {
+    setChatProfiles(
+      (current) => {
+        const fallback = {
+          alloah:
+            current
+              ?.alloah ??
+            ({
+              owner:
+                "alloah",
+              displayName:
+                preferredName ||
+                "Alloah",
+              bio:
+                null,
+              photoPath:
+                null,
+              photoUrl:
+                null,
+              updatedAt:
+                null,
+            } as ChatProfile),
+          dominic:
+            current
+              ?.dominic ??
+            ({
+              owner:
+                "dominic",
+              displayName:
+                "Dominic",
+              bio:
+                null,
+              photoPath:
+                null,
+              photoUrl:
+                null,
+              updatedAt:
+                null,
+            } as ChatProfile),
+        };
+
+        return {
+          ...fallback,
+          [profile.owner]:
+            profile,
+        };
+      }
+    );
+  };
+
   const chatClassName = [
     "live-chat-screen messenger-chat",
     `chat-theme-${preferences.theme}`,
@@ -3089,26 +3852,172 @@ const recentConversationForPhoto = () =>
   return (
     <section className={chatClassName}>
       <header className="messenger-header">
-        <button className="messenger-avatar" aria-label="Dominic profile">
-          <img src={dominic} alt="Dominic" />
-          <span className="presence-dot" />
-        </button>
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              className="messenger-avatar"
+              aria-label="Open Dominic profile"
+            >
+              <img
+                src={
+                  dominicAvatar
+                }
+                alt="Dominic"
+              />
+              <span className="presence-dot" />
+            </button>
+          </SheetTrigger>
+
+          <ChatProfileSheet
+            userId={
+              session.user.id
+            }
+            profile={
+              dominicProfile
+            }
+            owner="dominic"
+            fallbackPhoto={
+              dominic
+            }
+            statusCopy={
+              statusCopy
+            }
+            onSaved={
+              updateProfile
+            }
+            onOpen={
+              onOpen
+            }
+          />
+        </Sheet>
+
         <div className="messenger-person">
-         <h1>{DOMINIC_NAME} <span>♡</span></h1>
-          <p>{statusCopy}</p>
+          <h1>
+            {dominicProfile
+              ?.displayName ??
+              DOMINIC_NAME}
+            {" "}
+            <span>♡</span>
+          </h1>
+          <p>
+            {statusCopy}
+          </p>
+
+          {(dominicState?.mood ||
+            dominicWearingLabel) && (
+            <div className="messenger-presence-meta">
+              {dominicState?.mood && (
+                <span>
+                  {dominicState.mood}
+                </span>
+              )}
+
+              {dominicWearingLabel && (
+                <span
+                  className="messenger-wearing"
+                  title={
+                    dominicWearingLabel
+                  }
+                >
+                  wearing · {
+                    dominicWearingLabel
+                  }
+                </span>
+              )}
+            </div>
+          )}
         </div>
+
         <div className="messenger-header-actions">
-          <button aria-label="Call Dominic" title="Call"><Phone /></button>
-          <button aria-label="Video call Dominic" title="Video"><Video /></button>
+          <button
+            aria-label="Call Dominic"
+            title="Call"
+          >
+            <Phone />
+          </button>
+
+          <button
+            aria-label="Video call Dominic"
+            title="Video"
+          >
+            <Video />
+          </button>
+
           <Sheet>
             <SheetTrigger asChild>
-              <button aria-label="Customize chat" title="Customize chat"><Palette /></button>
+              <button
+                aria-label="Customize chat"
+                title="Customize chat"
+              >
+                <Palette />
+              </button>
             </SheetTrigger>
-            <ChatAppearanceSheet preferences={preferences} onChange={setPreferences} />
+
+            <ChatAppearanceSheet
+              preferences={
+                preferences
+              }
+              onChange={
+                setPreferences
+              }
+            />
           </Sheet>
-          <button aria-label="More chat options"><MoreVertical /></button>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                className="messenger-self-avatar"
+                aria-label="Open my profile"
+                title="My profile"
+              >
+                {alloahProfile
+                  ?.photoUrl ? (
+                  <img
+                    src={
+                      alloahProfile
+                        .photoUrl
+                    }
+                    alt={
+                      alloahProfile
+                        .displayName
+                    }
+                  />
+                ) : (
+                  <span>
+                    {alloahInitial}
+                  </span>
+                )}
+              </button>
+            </SheetTrigger>
+
+            <ChatProfileSheet
+              userId={
+                session.user.id
+              }
+              profile={
+                alloahProfile
+              }
+              owner="alloah"
+              fallbackPhoto={
+                null
+              }
+              statusCopy="your side of this conversation"
+              onSaved={
+                updateProfile
+              }
+              onOpen={
+                onOpen
+              }
+            />
+          </Sheet>
         </div>
       </header>
+
+{profileError && (
+  <div className="chat-profile-inline-error">
+    {profileError}
+  </div>
+)}
 
 <DateModeChatBridge
   userId={session.user.id}
@@ -3199,7 +4108,7 @@ const recentConversationForPhoto = () =>
                 className={`diario-message messenger-message ${message.kind === "voice" ? "voice-message" : ""}`}
               >
                 {message.role === "assistant" && preferences.showDominicAvatar && (
-                  <img className="message-avatar" src={dominic} alt="" aria-hidden="true" />
+                  <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />
                 )}
 {message.kind ===
 "agent_action" ? (
@@ -3259,6 +4168,15 @@ const recentConversationForPhoto = () =>
       : ""}
   </button>
 ) : message.kind ===
+    "sticker" &&
+  message.mediaUrl ? (
+  <div className="chat-sticker-message">
+    <img
+      src={message.mediaUrl}
+      alt="Sticker"
+    />
+  </div>
+) : message.kind ===
     "photo" &&
   message.mediaUrl ? (
   <div className="chat-photo-message">
@@ -3315,7 +4233,9 @@ const recentConversationForPhoto = () =>
   message.kind !==
     "shared_item" &&
   message.kind !==
-    "agent_action" && (
+    "agent_action" &&
+  message.kind !==
+    "sticker" && (
     <button
       type="button"
       className="letter-connected-button"
@@ -3338,7 +4258,7 @@ const recentConversationForPhoto = () =>
           )}
           {sending && (
             <Message from="assistant" className="diario-message messenger-message typing-message">
-              {preferences.showDominicAvatar && <img className="message-avatar" src={dominic} alt="" aria-hidden="true" />}
+              {preferences.showDominicAvatar && <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />}
               <MessageContent className="diario-message-content messenger-bubble">
                 <span className="ink-dots" aria-label="Dominic is typing"><i /><i /><i /></span>
               </MessageContent>
@@ -3521,13 +4441,30 @@ onPhotoFromConversation={() =>
   hidden
   onChange={handlePhotoInput}
 />
+
+<input
+  ref={stickerInputRef}
+  type="file"
+  accept="image/png,image/jpeg,image/webp,image/gif"
+  hidden
+  onChange={(event) =>
+    void addCustomSticker(
+      event.target
+        .files?.[0] ??
+        null
+    )
+  }
+/>
+
       <Sheet
   open={stickersOpen}
-  onOpenChange={setStickersOpen}
+  onOpenChange={
+    setStickersOpen
+  }
 >
   <SheetContent
     side="bottom"
-    className="chat-actions-sheet"
+    className="chat-actions-sheet chat-stickers-sheet"
   >
     <SheetHeader>
       <SheetTitle>
@@ -3535,42 +4472,223 @@ onPhotoFromConversation={() =>
       </SheetTitle>
     </SheetHeader>
 
-    <div className="chat-sticker-grid">
-      {[
-        "♡",
-        "♥",
-        "🥺",
-        "😭",
-        "😂",
-        "🫶",
-        "😘",
-        "😒",
-        "🙄",
-        "😴",
-        "🍒",
-        "🌙",
-        "✨",
-        "💌",
-        "🌹",
-        "🧸",
-      ].map((sticker) => (
-        <button
-          key={sticker}
-          type="button"
-          onClick={() => {
-            void sendMessage(
-              sticker
-            );
+    <p className="settings-script">
+      yours, his and shared — one visual language, three little trays.
+    </p>
 
-            setStickersOpen(
-              false
-            );
-          }}
+    <div
+      className="chat-sticker-owner-tabs"
+      role="tablist"
+      aria-label="Sticker owner"
+    >
+      {[
+        ["all", "All"],
+        ["alloah", "Mine"],
+        ["dominic", "Dominic"],
+        ["shared", "Ours"],
+      ].map(([id, label]) => (
+        <button
+          key={id}
+          type="button"
+          role="tab"
+          aria-selected={
+            stickerOwnerView === id
+          }
+          className={
+            stickerOwnerView === id
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setStickerOwnerView(
+              id as
+                | ChatStickerOwner
+                | "all"
+            )
+          }
         >
-          {sticker}
+          {label}
         </button>
       ))}
     </div>
+
+    <div className="chat-sticker-upload-owner">
+      <span>Add new sticker to</span>
+
+      <select
+        value={stickerUploadOwner}
+        onChange={(event) =>
+          setStickerUploadOwner(
+            event.target
+              .value as ChatStickerOwner
+          )
+        }
+      >
+        <option value="alloah">
+          My tray
+        </option>
+        <option value="dominic">
+          Dominic's tray
+        </option>
+        <option value="shared">
+          Our tray
+        </option>
+      </select>
+    </div>
+
+    <div className="chat-sticker-toolbar">
+      <button
+        type="button"
+        disabled={
+          stickerBusy
+        }
+        onClick={() =>
+          stickerInputRef
+            .current
+            ?.click()
+        }
+      >
+        <Plus size={14} />
+        Add sticker
+      </button>
+
+      <span>
+        {customStickers.filter(
+          (sticker) =>
+            stickerOwnerView ===
+              "all" ||
+            sticker.owner ===
+              stickerOwnerView
+        ).length} visible
+      </span>
+    </div>
+
+    {customStickers.length >
+      0 && (
+      <section className="chat-custom-stickers">
+        <small>
+          CUSTOM
+        </small>
+
+        <div>
+          {customStickers
+            .filter(
+              (sticker) =>
+                stickerOwnerView ===
+                  "all" ||
+                sticker.owner ===
+                  stickerOwnerView
+            )
+            .map(
+            (sticker) => (
+              <article
+                key={
+                  sticker.id
+                }
+                className="chat-custom-sticker"
+              >
+                <button
+                  type="button"
+                  className="chat-custom-sticker-send"
+                  disabled={
+                    stickerBusy ||
+                    !sticker.url
+                  }
+                  onClick={() =>
+                    void sendStickerAsset(
+                      sticker
+                    )
+                  }
+                >
+                  {sticker.url ? (
+                    <img
+                      src={
+                        sticker.url
+                      }
+                      alt={
+                        sticker.label
+                      }
+                    />
+                  ) : (
+                    <span>
+                      loading…
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className="chat-custom-sticker-remove"
+                  aria-label={`Remove ${sticker.label} from sticker tray`}
+                  disabled={
+                    stickerBusy
+                  }
+                  onClick={() =>
+                    void forgetCustomSticker(
+                      sticker
+                    )
+                  }
+                >
+                  ×
+                </button>
+              </article>
+            )
+          )}
+        </div>
+      </section>
+    )}
+
+    <section className="chat-built-in-stickers">
+      <small>
+        QUICK REACTIONS
+      </small>
+
+      <div className="chat-sticker-grid">
+        {[
+          "♡",
+          "♥",
+          "🥺",
+          "😭",
+          "😂",
+          "🫶",
+          "😘",
+          "😒",
+          "🙄",
+          "😴",
+          "🍒",
+          "🌙",
+          "✨",
+          "💌",
+          "🌹",
+          "🧸",
+        ].map((sticker) => (
+          <button
+            key={sticker}
+            type="button"
+            onClick={() => {
+              void sendMessage(
+                sticker
+              );
+
+              setStickersOpen(
+                false
+              );
+            }}
+          >
+            {sticker}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    {stickerNotice && (
+      <p
+        className="chat-sticker-notice"
+        role="status"
+      >
+        {stickerNotice}
+      </p>
+    )}
   </SheetContent>
 </Sheet>
 
@@ -3639,6 +4757,715 @@ onPhotoFromConversation={() =>
   </SheetContent>
 </Sheet>
     </section>
+  );
+}
+
+function ChatProfileSheet({
+  userId,
+  profile,
+  owner,
+  fallbackPhoto,
+  statusCopy,
+  onSaved,
+  onOpen,
+}: {
+  userId:
+    string;
+  profile:
+    ChatProfile | null;
+  owner:
+    ChatProfileOwner;
+  fallbackPhoto:
+    string | null;
+  statusCopy:
+    string;
+  onSaved:
+    (
+      profile:
+        ChatProfile
+    ) => void;
+  onOpen:
+    (
+      screen:
+        | "letters"
+        | "music"
+        | "dates"
+        | "photo-engine"
+        | "gallery"
+        | "memories"
+        | "wardrobe"
+        | "places"
+        | "settings"
+    ) => void;
+}) {
+  const [
+    displayName,
+    setDisplayName,
+  ] =
+    useState(
+      profile
+        ?.displayName ??
+        (
+          owner ===
+          "dominic"
+            ? "Dominic"
+            : "Alloah"
+        )
+    );
+
+  const [
+    bio,
+    setBio,
+  ] =
+    useState(
+      profile?.bio ??
+      ""
+    );
+
+  const [
+    savingProfile,
+    setSavingProfile,
+  ] =
+    useState(false);
+
+  const [
+    profileNotice,
+    setProfileNotice,
+  ] =
+    useState<string | null>(
+      null
+    );
+
+  const [
+    choosingDiaryPhoto,
+    setChoosingDiaryPhoto,
+  ] = useState(false);
+
+  const [
+    diaryProfilePhotos,
+    setDiaryProfilePhotos,
+  ] = useState<GalleryPhoto[]>([]);
+
+  const [
+    loadingDiaryPhotos,
+    setLoadingDiaryPhotos,
+  ] = useState(false);
+
+  useEffect(() => {
+    setDisplayName(
+      profile
+        ?.displayName ??
+        (
+          owner ===
+          "dominic"
+            ? "Dominic"
+            : "Alloah"
+        )
+    );
+
+    setBio(
+      profile?.bio ??
+      ""
+    );
+  }, [
+    owner,
+    profile?.bio,
+    profile
+      ?.displayName,
+  ]);
+
+  const photo =
+    profile?.photoUrl ??
+    fallbackPhoto;
+
+  const initial =
+    displayName
+      .trim()
+      .charAt(0)
+      .toUpperCase() ||
+    (
+      owner ===
+      "dominic"
+        ? "D"
+        : "A"
+    );
+
+  const persistText =
+    async () => {
+      setSavingProfile(true);
+      setProfileNotice(
+        null
+      );
+
+      try {
+        const saved =
+          await saveChatProfile({
+            userId,
+            owner,
+            displayName,
+            bio,
+          });
+
+        onSaved(saved);
+        setProfileNotice(
+          "Profile saved."
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not save chat profile:",
+          error
+        );
+
+        setProfileNotice(
+          "Profile could not be saved."
+        );
+      } finally {
+        setSavingProfile(false);
+      }
+    };
+
+  const uploadPhoto =
+    async (
+      file:
+        File | null
+    ) => {
+      if (!file) {
+        return;
+      }
+
+      setSavingProfile(true);
+      setProfileNotice(
+        null
+      );
+
+      try {
+        const path =
+          await uploadChatProfilePhoto({
+            userId,
+            owner,
+            file,
+          });
+
+        const saved =
+          await saveChatProfile({
+            userId,
+            owner,
+            displayName,
+            bio,
+            photoPath:
+              path,
+          });
+
+        onSaved(saved);
+        setProfileNotice(
+          owner ===
+            "dominic"
+            ? "Dominic's current profile photo changed."
+            : "Your profile photo changed."
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not change chat profile photo:",
+          error
+        );
+
+        setProfileNotice(
+          "Profile photo could not be changed."
+        );
+      } finally {
+        setSavingProfile(false);
+      }
+    };
+
+  const clearPhoto =
+    async () => {
+      setSavingProfile(true);
+      setProfileNotice(
+        null
+      );
+
+      try {
+        const saved =
+          await removeChatProfilePhoto({
+            userId,
+            owner,
+          });
+
+        onSaved(saved);
+        setProfileNotice(
+          "Profile photo reset."
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not reset chat profile photo:",
+          error
+        );
+
+        setProfileNotice(
+          "Profile photo could not be reset."
+        );
+      } finally {
+        setSavingProfile(false);
+      }
+    };
+
+  const openDiaryPhotoPicker =
+    async () => {
+      setChoosingDiaryPhoto(true);
+      setLoadingDiaryPhotos(true);
+      setProfileNotice(null);
+
+      try {
+        const photos =
+          await getGalleryPhotos(
+            userId
+          );
+
+        setDiaryProfilePhotos(
+          photos.filter(
+            (photo) =>
+              photo.item.owner ===
+                owner ||
+              photo.item.owner ===
+                "shared"
+          )
+        );
+      } catch (error) {
+        console.error(
+          "Could not load diary profile photos:",
+          error
+        );
+
+        setProfileNotice(
+          "Diary photos could not be opened."
+        );
+      } finally {
+        setLoadingDiaryPhotos(false);
+      }
+    };
+
+  const useDiaryProfilePhoto =
+    async (
+      photo: GalleryPhoto
+    ) => {
+      const storagePath =
+        typeof photo.item.data
+          ?.storage_path ===
+          "string"
+          ? photo.item.data
+              .storage_path
+          : null;
+
+      if (!storagePath) {
+        setProfileNotice(
+          "That photo is not available as a profile picture."
+        );
+        return;
+      }
+
+      setSavingProfile(true);
+      setProfileNotice(null);
+
+      try {
+        const saved =
+          await saveChatProfile({
+            userId,
+            owner,
+            displayName,
+            bio,
+            photoPath:
+              storagePath,
+          });
+
+        onSaved(saved);
+        setChoosingDiaryPhoto(false);
+        setProfileNotice(
+          owner === "dominic"
+            ? "Dominic's profile photo now comes from his Diary photos."
+            : "Your profile photo now comes from your Diary photos."
+        );
+      } catch (error) {
+        console.error(
+          "Could not use Diary photo as profile picture:",
+          error
+        );
+
+        setProfileNotice(
+          "That Diary photo could not become the profile picture."
+        );
+      } finally {
+        setSavingProfile(false);
+      }
+    };
+
+  const shortcuts =
+    owner ===
+    "dominic"
+      ? [
+          {
+            label:
+              "Photos",
+            screen:
+              "gallery",
+          },
+          {
+            label:
+              "Music",
+            screen:
+              "music",
+          },
+          {
+            label:
+              "Letters",
+            screen:
+              "letters",
+          },
+          {
+            label:
+              "Dates",
+            screen:
+              "dates",
+          },
+          {
+            label:
+              "Wardrobe",
+            screen:
+              "wardrobe",
+          },
+          {
+            label:
+              "Memories",
+            screen:
+              "memories",
+          },
+        ]
+      : [
+          {
+            label:
+              "Photos",
+            screen:
+              "gallery",
+          },
+          {
+            label:
+              "Wardrobe",
+            screen:
+              "wardrobe",
+          },
+          {
+            label:
+              "Memories",
+            screen:
+              "memories",
+          },
+          {
+            label:
+              "Places",
+            screen:
+              "places",
+          },
+          {
+            label:
+              "Settings",
+            screen:
+              "settings",
+          },
+        ];
+
+  return (
+    <SheetContent
+      side="bottom"
+      className="chat-profile-sheet"
+    >
+      <SheetHeader>
+        <SheetTitle>
+          {owner ===
+          "dominic"
+            ? "Dominic"
+            : "My profile"}
+        </SheetTitle>
+      </SheetHeader>
+
+      <section className="chat-profile-hero">
+        <div className="chat-profile-photo">
+          {photo ? (
+            <img
+              src={photo}
+              alt=""
+            />
+          ) : (
+            <span>
+              {initial}
+            </span>
+          )}
+        </div>
+
+        <div>
+          <strong>
+            {displayName}
+          </strong>
+
+          <small>
+            {statusCopy}
+          </small>
+        </div>
+      </section>
+
+      <div className="chat-profile-photo-actions">
+        <label>
+          <Image size={14} />
+          Upload
+          <input
+            type="file"
+            accept="image/*"
+            disabled={
+              savingProfile
+            }
+            onChange={(event) =>
+              void uploadPhoto(
+                event.target
+                  .files?.[0] ??
+                  null
+              )
+            }
+          />
+        </label>
+
+        <button
+          type="button"
+          disabled={
+            savingProfile
+          }
+          onClick={() =>
+            void openDiaryPhotoPicker()
+          }
+        >
+          <Image size={14} />
+          Diary photos
+        </button>
+
+        {profile
+          ?.photoPath && (
+          <button
+            type="button"
+            disabled={
+              savingProfile
+            }
+            onClick={() =>
+              void clearPhoto()
+            }
+          >
+            Reset
+          </button>
+        )}
+      </div>
+
+      {choosingDiaryPhoto && (
+        <section className="chat-profile-photo-picker">
+          <header>
+            <div>
+              <small>
+                {owner ===
+                "dominic"
+                  ? "DOMINIC'S PHOTOS"
+                  : "MY PHOTOS"}
+              </small>
+
+              <strong>
+                Choose a profile photo
+              </strong>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setChoosingDiaryPhoto(
+                  false
+                )
+              }
+            >
+              ×
+            </button>
+          </header>
+
+          {loadingDiaryPhotos ? (
+            <p>
+              Opening the camera roll…
+            </p>
+          ) : diaryProfilePhotos.length ===
+            0 ? (
+            <p>
+              No matching Diary photos yet.
+            </p>
+          ) : (
+            <div>
+              {diaryProfilePhotos
+                .slice(
+                  0,
+                  24
+                )
+                .map(
+                  (photo) => (
+                    <button
+                      key={
+                        photo.item.id
+                      }
+                      type="button"
+                      disabled={
+                        savingProfile
+                      }
+                      onClick={() =>
+                        void useDiaryProfilePhoto(
+                          photo
+                        )
+                      }
+                    >
+                      <img
+                        src={
+                          photo.url
+                        }
+                        alt={
+                          photo.item
+                            .title ??
+                          "Diary photo"
+                        }
+                      />
+                    </button>
+                  )
+                )}
+            </div>
+          )}
+        </section>
+      )}
+
+      <section className="chat-profile-fields">
+        <label>
+          <span>
+            Name
+          </span>
+
+          <input
+            value={
+              displayName
+            }
+            onChange={(
+              event
+            ) =>
+              setDisplayName(
+                event
+                  .target
+                  .value
+              )
+            }
+          />
+        </label>
+
+        <label>
+          <span>
+            About
+          </span>
+
+          <textarea
+            value={
+              bio
+            }
+            onChange={(
+              event
+            ) =>
+              setBio(
+                event
+                  .target
+                  .value
+              )
+            }
+            placeholder={
+              owner ===
+              "dominic"
+                ? "A small line on his profile…"
+                : "A small line on your profile…"
+            }
+            rows={2}
+          />
+        </label>
+
+        <button
+          type="button"
+          className="chat-profile-save"
+          disabled={
+            savingProfile ||
+            !displayName
+              .trim()
+          }
+          onClick={() =>
+            void persistText()
+          }
+        >
+          {savingProfile
+            ? "Saving…"
+            : "Save profile"}
+        </button>
+      </section>
+
+      <section className="chat-profile-shortcuts">
+        <small>
+          {owner ===
+          "dominic"
+            ? "his world"
+            : "my side"}
+        </small>
+
+        <div>
+          {shortcuts.map(
+            (shortcut) => (
+              <button
+                key={
+                  shortcut.label
+                }
+                type="button"
+                onClick={() =>
+                  onOpen(
+                    shortcut.screen as any
+                  )
+                }
+              >
+                <span>
+                  {shortcut.label}
+                </span>
+
+                <ChevronRight
+                  size={14}
+                />
+              </button>
+            )
+          )}
+        </div>
+      </section>
+
+      {owner ===
+        "dominic" && (
+        <p className="chat-profile-ownership-note">
+          This is Dominic's profile state.
+          His autonomy can update the same
+          photo, bio and presence instead of
+          creating a separate fake profile.
+        </p>
+      )}
+
+      {profileNotice && (
+        <p
+          className="chat-profile-notice"
+          role="status"
+        >
+          {profileNotice}
+        </p>
+      )}
+    </SheetContent>
   );
 }
 

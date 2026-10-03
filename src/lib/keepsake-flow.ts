@@ -42,6 +42,14 @@ export function keepsakeLocationOf(
 ):
   | "home"
   | "stored" {
+  if (
+    keepsake.data
+      ?.location ===
+    "gone"
+  ) {
+    return "gone";
+  }
+
   return keepsake.data
     ?.location ===
     "stored"
@@ -58,6 +66,7 @@ export async function updateKeepsakeDetails({
   room,
   origin,
   note,
+  storagePath,
 }: {
   userId:
     string;
@@ -73,7 +82,8 @@ export async function updateKeepsakeDetails({
 
   location:
     | "home"
-    | "stored";
+    | "stored"
+    | "gone";
 
   room:
     string;
@@ -83,6 +93,9 @@ export async function updateKeepsakeDetails({
 
   note:
     string;
+
+  storagePath?:
+    string | null;
 }): Promise<DiarioItem> {
   const nextTitle =
     clean(
@@ -134,11 +147,26 @@ export async function updateKeepsakeDetails({
                 null
               : null,
 
+          consumed:
+            location ===
+            "gone",
+
           origin:
             clean(
               origin
             ) ||
             null,
+
+          ...(storagePath !== undefined
+            ? {
+                storage_bucket:
+                  storagePath
+                    ? "diario-media"
+                    : null,
+                storage_path:
+                  storagePath ?? null,
+              }
+            : {}),
         },
       })
       .eq(
@@ -159,6 +187,54 @@ export async function updateKeepsakeDetails({
   if (
     error
   ) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
+export async function setKeepsakeGeneratedVisual({
+  userId,
+  keepsake,
+  storageBucket,
+  storagePath,
+  provider,
+  model,
+}: {
+  userId: string;
+  keepsake: DiarioItem;
+  storageBucket: string;
+  storagePath: string;
+  provider?: string | null;
+  model?: string | null;
+}): Promise<DiarioItem> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...(keepsake.data ?? {}),
+        storage_bucket:
+          storageBucket,
+        storage_path:
+          storagePath,
+        generated_object_visual:
+          true,
+        object_visual_provider:
+          provider ?? null,
+        object_visual_model:
+          model ?? null,
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", keepsake.id)
+    .eq("kind", "keepsake")
+    .select("*")
+    .single();
+
+  if (error) {
     throw error;
   }
 

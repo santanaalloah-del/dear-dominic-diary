@@ -1,0 +1,282 @@
+/* =========================================================
+   DIÁRIO WORLD OBJECTS · TACTILE INTERACTIONS
+   Letters open, keepsakes live in a box, Home enters a real room.
+   ========================================================= */
+
+.apartment-enter-room{
+  position:absolute;
+  right:14px;
+  bottom:58px;
+  z-index:6;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:32px;
+  padding:7px 10px;
+  border:1px solid rgba(255,244,230,.28);
+  border-radius:1px;
+  background:rgba(72,27,34,.70);
+  color:#fff1e3;
+  -webkit-text-fill-color:#fff1e3;
+  backdrop-filter:blur(8px);
+  box-shadow:0 5px 16px rgba(28,9,13,.18);
+  font:8px var(--font-body);
+  letter-spacing:.04em;
+}
+.apartment-enter-room svg{
+  flex:0 0 auto;
+}
+
+/* ---------------- LETTERS · actual opening gesture ---------------- */
+.letters-live .letter-envelope-visual{
+  position:relative !important;
+  perspective:400px;
+  transform-style:preserve-3d;
+}
+.letters-live .letter-envelope-visual::after{
+  content:"";
+  position:absolute;
+  left:7px;
+  right:7px;
+  bottom:6px;
+  height:34px;
+  border:1px solid rgba(105,39,48,.10);
+  background:#f7e8da;
+  transform:translateY(14px);
+  opacity:0;
+  transition:
+    transform 420ms cubic-bezier(.2,.8,.2,1),
+    opacity 220ms ease;
+  z-index:-1;
+}
+.letters-live .letter-envelope-flap{
+  transform-origin:50% 0%;
+  transform:rotateX(0deg);
+  transition:
+    transform 420ms cubic-bezier(.2,.8,.2,1),
+    filter 220ms ease;
+  backface-visibility:hidden;
+}
+.letters-live .letters-saved-item.is-expanded .letter-envelope-flap{
+  transform:rotateX(178deg) !important;
+  filter:brightness(.96);
+}
+.letters-live .letters-saved-item.is-expanded .letter-envelope-visual::after{
+  transform:translateY(-15px);
+  opacity:1;
+}
+.letters-live .letters-saved-item.is-expanded .letter-envelope-visual > svg{
+  opacity:.25;
+  transform:translateY(4px);
+  transition:opacity 180ms ease,transform 240ms ease;
+}
+.letters-live .letters-saved-item.is-expanded .letter-open-content{
+  animation:letter-paper-out 460ms cubic-bezier(.17,.82,.24,1) both;
+  transform-origin:50% 0%;
+}
+@keyframes letter-paper-out{
+  from{
+    opacity:0;
+    transform:translateY(-18px) scale(.96);
+  }
+  60%{
+    opacity:1;
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+.letters-live .letters-saved-item.is-sealed .letter-envelope-button{
+  cursor:pointer;
+}
+.letters-live .letters-saved-item.is-sealed .letter-envelope-button:active .letter-envelope-visual{
+  transform:translateY(1px) rotate(-.5deg);
+}
+@media (prefers-reduced-motion:reduce){
+  .letters-live .letter-envelope-flap,
+  .letters-live .letter-envelope-visual::after,
+  .letters-live .letter-open-content{
+    transition:none !important;
+    animation:none !important;
+  }
+}
+
+/* ---------------- KEEPSAKES · literal memory box ---------------- */
+.keepsake-box{
+  position:relative;
+  margin:18px 13px 24px;
+  padding:16px 15px 22px;
+  border:1px solid rgba(86,33,42,.17);
+  background:
+    linear-gradient(180deg,#c88971 0 11px,#b87862 11px 14px,#d6a184 14px 100%);
+  box-shadow:
+    inset 0 -14px 22px rgba(88,44,32,.10),
+    6px 8px 0 rgba(45,16,21,.10);
+  color:#54252c;
+}
+.keepsake-box > header{
+  position:relative;
+  z-index:4;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  padding:2px 3px 11px;
+  border-bottom:1px solid rgba(91,37,43,.17);
+}
+.keepsake-box > header > div{
+  display:grid;
+  gap:2px;
+}
+.keepsake-box > header small{
+  color:#7a3340;
+  font:700 6px var(--font-body);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.keepsake-box > header strong{
+  color:#512129;
+  font:500 23px/.95 var(--font-display);
+}
+.keepsake-box > header > span{
+  display:grid;
+  place-items:center;
+  min-width:27px;
+  height:27px;
+  padding:0 7px;
+  border:1px solid rgba(83,31,39,.14);
+  background:rgba(249,226,206,.38);
+  color:#612833;
+  font:9px var(--font-body);
+}
+.keepsake-box-lid{
+  position:absolute;
+  left:7px;
+  right:7px;
+  top:-14px;
+  height:23px;
+  border:1px solid rgba(86,33,42,.15);
+  background:
+    linear-gradient(180deg,#d5a087,#bf806b);
+  box-shadow:0 3px 4px rgba(64,28,25,.08);
+  transform:perspective(220px) rotateX(-38deg);
+  transform-origin:50% 100%;
+  z-index:2;
+}
+.keepsake-box-inside{
+  position:relative;
+  z-index:3;
+  min-height:190px;
+  margin-top:14px;
+  overflow:hidden;
+  border:1px solid rgba(84,34,38,.15);
+  background:
+    radial-gradient(circle at 50% 35%,rgba(255,237,216,.15),transparent 42%),
+    linear-gradient(180deg,#9d6355,#b87864);
+  box-shadow:
+    inset 0 9px 18px rgba(61,27,24,.18),
+    inset 0 -7px 14px rgba(255,226,195,.08);
+}
+.keepsake-box-object{
+  position:absolute;
+  width:92px;
+  min-height:105px;
+  padding:6px 6px 9px;
+  border:1px solid rgba(80,28,35,.12);
+  border-radius:1px;
+  background:#f2dfcf;
+  color:#56252c;
+  text-align:left;
+  box-shadow:2px 4px 0 rgba(45,18,20,.13);
+  transform-origin:center bottom;
+}
+.keepsake-box-object[data-slot="0"]{left:12px;top:16px;transform:rotate(-7deg)}
+.keepsake-box-object[data-slot="1"]{left:91px;top:38px;transform:rotate(5deg)}
+.keepsake-box-object[data-slot="2"]{right:11px;top:18px;transform:rotate(8deg)}
+.keepsake-box-object[data-slot="3"]{left:30px;bottom:-16px;transform:rotate(4deg)}
+.keepsake-box-object[data-slot="4"]{left:122px;bottom:-22px;transform:rotate(-5deg)}
+.keepsake-box-object[data-slot="5"]{right:23px;bottom:-19px;transform:rotate(2deg)}
+.keepsake-box-object:active{
+  z-index:9;
+  transform:translateY(-3px) rotate(0deg) !important;
+}
+.keepsake-box-object-visual{
+  display:grid;
+  place-items:center;
+  width:100%;
+  height:65px;
+  overflow:hidden;
+  border:1px solid rgba(91,31,40,.09);
+  background:#ead5c4;
+  color:#853d48;
+}
+.keepsake-box-object-visual img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.keepsake-box-object > strong{
+  display:block;
+  margin-top:6px;
+  overflow:hidden;
+  color:#54242b;
+  -webkit-text-fill-color:#54242b;
+  font:500 10px/1.05 var(--font-display);
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.keepsake-box-object:not(:has(img)) .keepsake-box-object-visual::before{
+  display:block;
+  font:20px/1 var(--font-display);
+}
+.keepsake-box-object[data-keepsake-type="food"]:not(:has(img)) .keepsake-box-object-visual svg,
+.keepsake-box-object[data-keepsake-type="drink"]:not(:has(img)) .keepsake-box-object-visual svg,
+.keepsake-box-object[data-keepsake-type="dessert"]:not(:has(img)) .keepsake-box-object-visual svg,
+.keepsake-box-object[data-keepsake-type="snack"]:not(:has(img)) .keepsake-box-object-visual svg,
+.keepsake-box-object[data-keepsake-type="ticket"]:not(:has(img)) .keepsake-box-object-visual svg,
+.keepsake-box-object[data-keepsake-type="flower"]:not(:has(img)) .keepsake-box-object-visual svg,
+.keepsake-box-object[data-keepsake-type="gift"]:not(:has(img)) .keepsake-box-object-visual svg{
+  display:none;
+}
+.keepsake-box-object[data-keepsake-type="food"]:not(:has(img)) .keepsake-box-object-visual::before{content:"🍜"}
+.keepsake-box-object[data-keepsake-type="drink"]:not(:has(img)) .keepsake-box-object-visual::before{content:"☕"}
+.keepsake-box-object[data-keepsake-type="dessert"]:not(:has(img)) .keepsake-box-object-visual::before{content:"🍰"}
+.keepsake-box-object[data-keepsake-type="snack"]:not(:has(img)) .keepsake-box-object-visual::before{content:"🍪"}
+.keepsake-box-object[data-keepsake-type="ticket"]:not(:has(img)) .keepsake-box-object-visual::before{content:"🎟"}
+.keepsake-box-object[data-keepsake-type="flower"]:not(:has(img)) .keepsake-box-object-visual::before{content:"✿"}
+.keepsake-box-object[data-keepsake-type="gift"]:not(:has(img)) .keepsake-box-object-visual::before{content:"♡"}
+.keepsake-box > p{
+  margin:9px 3px 0;
+  color:#6f3940;
+  font:italic 8px var(--font-display);
+  text-align:right;
+}
+
+/* Consumed traces look like faded evidence, not physical objects in the house. */
+.keepsakes-live:has(.keepsakes-tabs button:nth-child(4).active) .keepsake-box{
+  background:
+    linear-gradient(180deg,#ccb2a2 0 11px,#b79b8d 11px 14px,#ddc8b9 14px 100%);
+}
+.keepsakes-live:has(.keepsakes-tabs button:nth-child(4).active) .keepsake-box-inside{
+  background:#bca194;
+}
+.keepsakes-live:has(.keepsakes-tabs button:nth-child(4).active) .keepsake-box-object{
+  opacity:.74;
+  filter:saturate(.72);
+}
+
+@media (max-width:390px){
+  .keepsake-box{
+    margin-inline:8px;
+  }
+  .keepsake-box-object{
+    width:84px;
+  }
+  .keepsake-box-object[data-slot="1"]{left:84px}
+  .keepsake-box-object[data-slot="4"]{left:109px}
+  .apartment-enter-room{
+    right:10px;
+    bottom:55px;
+  }
+}

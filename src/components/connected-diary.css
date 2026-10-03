@@ -832,3 +832,386 @@
   font: 9px var(--font-body);
   cursor: pointer;
 }
+
+
+/* =========================================================
+   CONNECTED OBJECT DETAIL · ARCHIVE CARD
+   The detail page is the original object, not an admin panel.
+   ========================================================= */
+.connected-object-detail-screen{
+  --object-paper:#f5e7d8;
+  --object-paper-deep:#ead2c2;
+  --object-ink:#57222b;
+  --object-muted:#8b5c61;
+  --object-accent:#a64d58;
+  padding-bottom:150px;
+  color:var(--text);
+}
+.connected-object-detail-heading{
+  padding:18px 22px 12px !important;
+}
+.connected-object-detail-heading > small{
+  color:var(--object-accent) !important;
+  -webkit-text-fill-color:var(--object-accent) !important;
+  font-size:8px !important;
+  font-weight:700 !important;
+  letter-spacing:.18em !important;
+}
+.connected-object-detail-heading h1{
+  color:var(--text) !important;
+  -webkit-text-fill-color:var(--text) !important;
+  font:500 43px/.92 var(--font-display) !important;
+}
+.connected-object-detail-heading p{
+  max-width:32ch !important;
+  margin-top:10px !important;
+  color:var(--text-soft) !important;
+  -webkit-text-fill-color:var(--text-soft) !important;
+  font:italic 11px/1.45 var(--font-display) !important;
+}
+
+/* the original object itself */
+.connected-object-detail-main{
+  padding:0 20px 20px !important;
+}
+.connected-object-detail-main .connected-diary-object{
+  position:relative !important;
+  gap:14px !important;
+  padding:14px !important;
+  overflow:visible !important;
+  border:1px solid rgba(91,30,39,.11) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 30px,rgba(103,45,52,.04) 30px 31px),
+    var(--object-paper) !important;
+  color:var(--object-ink) !important;
+  box-shadow:5px 7px 0 rgba(38,10,15,.10) !important;
+}
+.connected-object-detail-main .connected-diary-object::before{
+  content:"";
+  position:absolute;
+  top:-8px;
+  left:50%;
+  width:72px;
+  height:17px;
+  transform:translateX(-50%) rotate(-1.5deg);
+  background:rgba(225,184,176,.58);
+  pointer-events:none;
+}
+.connected-object-detail-main .connected-object-copy{
+  align-content:start !important;
+  gap:6px !important;
+}
+.connected-object-detail-main .connected-object-kind{
+  color:var(--object-accent) !important;
+  -webkit-text-fill-color:var(--object-accent) !important;
+  font-size:7px !important;
+  letter-spacing:.14em !important;
+}
+.connected-object-detail-main .connected-object-copy time{
+  color:var(--object-muted) !important;
+  -webkit-text-fill-color:var(--object-muted) !important;
+  opacity:.8 !important;
+}
+.connected-object-detail-main .connected-object-copy > strong{
+  color:var(--object-ink) !important;
+  -webkit-text-fill-color:var(--object-ink) !important;
+  font:500 22px/.98 var(--font-display) !important;
+}
+.connected-object-detail-main .connected-object-copy > small,
+.connected-object-detail-main .connected-object-body,
+.connected-object-detail-main .connected-object-transcript,
+.connected-object-detail-main .connected-object-sealed{
+  color:var(--object-muted) !important;
+  -webkit-text-fill-color:var(--object-muted) !important;
+}
+.connected-object-detail-main .connected-object-body{
+  font:13px/1.55 var(--font-display) !important;
+}
+
+/* photos get a polaroid-like original card */
+.connected-object-detail-photo .connected-diary-object{
+  grid-template-columns:minmax(126px,42%) minmax(0,1fr) !important;
+}
+.connected-object-detail-photo .connected-object-photo{
+  min-height:168px !important;
+  aspect-ratio:4/5 !important;
+  padding:6px 6px 18px !important;
+  background:#fbefe2 !important;
+  box-shadow:2px 3px 0 rgba(73,22,29,.11) !important;
+  transform:rotate(-.7deg);
+}
+.connected-object-detail-photo .connected-object-photo img{
+  width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+  object-fit:cover !important;
+}
+.connected-object-detail-song .connected-object-cover{
+  border-radius:0 !important;
+  box-shadow:3px 4px 0 rgba(73,22,29,.11) !important;
+}
+
+/* relationship threads */
+.connected-object-relations{
+  position:relative !important;
+  gap:11px !important;
+  margin:0 22px !important;
+  padding:16px 0 18px !important;
+  border-top:1px solid color-mix(in oklab,var(--text) 13%,transparent) !important;
+}
+.connected-object-relations > header{
+  grid-template-columns:29px minmax(0,1fr) !important;
+  gap:10px !important;
+}
+.connected-object-relations > header > span{
+  width:29px !important;
+  height:29px !important;
+  border:1px solid color-mix(in oklab,var(--text) 16%,transparent) !important;
+  background:color-mix(in oklab,var(--surface-raised) 55%,transparent) !important;
+  color:var(--text) !important;
+}
+.connected-object-relations > header small{
+  color:var(--text-soft) !important;
+  -webkit-text-fill-color:var(--text-soft) !important;
+  font-size:7px !important;
+  font-weight:700 !important;
+  letter-spacing:.16em !important;
+}
+.connected-object-relations > header strong{
+  color:var(--text) !important;
+  -webkit-text-fill-color:var(--text) !important;
+  font:italic 15px/1.05 var(--font-display) !important;
+}
+.connected-object-no-relations{
+  margin-left:39px !important;
+  padding:0 0 0 11px !important;
+  border:0 !important;
+  border-left:1px dashed color-mix(in oklab,var(--text) 20%,transparent) !important;
+  color:var(--text-soft) !important;
+  -webkit-text-fill-color:var(--text-soft) !important;
+  font:italic 10px/1.5 var(--font-display) !important;
+}
+
+/* connected objects resemble little index slips */
+.connected-relation-list{
+  gap:7px !important;
+  margin-left:39px !important;
+}
+.connected-relation-list > button{
+  grid-template-columns:minmax(62px,auto) minmax(0,1fr) auto !important;
+  padding:9px 10px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:var(--object-paper) !important;
+  color:var(--object-ink) !important;
+  box-shadow:2px 3px 0 rgba(38,10,15,.07) !important;
+}
+.connected-relation-list > button > span{
+  color:var(--object-accent) !important;
+  -webkit-text-fill-color:var(--object-accent) !important;
+}
+.connected-relation-list > button > strong{
+  color:var(--object-ink) !important;
+  -webkit-text-fill-color:var(--object-ink) !important;
+}
+.connected-relation-list > button > small{
+  color:var(--object-muted) !important;
+  -webkit-text-fill-color:var(--object-muted) !important;
+}
+
+/* add/manage connection choices: quiet archive rows, not huge panels */
+.connected-object-detail-screen .connected-picker-list{
+  gap:7px !important;
+  max-height:none !important;
+  overflow:visible !important;
+}
+.connected-object-detail-screen .connected-object-relations .connected-picker-list{
+  margin-left:39px !important;
+}
+.connected-object-detail-screen .connected-picker-list > button{
+  min-height:54px !important;
+  padding:9px 10px !important;
+  border:1px solid color-mix(in oklab,var(--text) 15%,transparent) !important;
+  border-radius:1px !important;
+  background:color-mix(in oklab,var(--surface-raised) 35%,transparent) !important;
+  color:var(--text) !important;
+}
+.connected-object-detail-screen .connected-picker-list > button.connected{
+  border-color:#9b4c57 !important;
+  background:var(--object-paper) !important;
+  color:var(--object-ink) !important;
+}
+.connected-object-detail-screen .connected-picker-list > button > span{
+  width:25px !important;
+  height:25px !important;
+  border-color:color-mix(in oklab,var(--text) 20%,transparent) !important;
+  color:var(--text) !important;
+}
+.connected-object-detail-screen .connected-picker-list strong{
+  color:inherit !important;
+  -webkit-text-fill-color:currentColor !important;
+  font:500 13px/1.05 var(--font-display) !important;
+}
+.connected-object-detail-screen .connected-picker-list small{
+  color:var(--text-soft) !important;
+  -webkit-text-fill-color:var(--text-soft) !important;
+  font-size:7px !important;
+}
+
+/* picker sheet stays physical and readable regardless of day/night */
+.connected-object-detail-screen > .connected-object-picker{
+  margin:0 22px 20px !important;
+  padding:15px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:var(--object-paper) !important;
+  color:var(--object-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+}
+.connected-object-detail-screen > .connected-object-picker header small{
+  color:var(--object-accent) !important;
+  -webkit-text-fill-color:var(--object-accent) !important;
+}
+.connected-object-detail-screen > .connected-object-picker header strong{
+  color:var(--object-ink) !important;
+  -webkit-text-fill-color:var(--object-ink) !important;
+}
+.connected-object-detail-screen > .connected-object-picker header > button{
+  color:var(--object-ink) !important;
+  border-color:rgba(91,30,39,.22) !important;
+}
+.connected-object-detail-screen > .connected-object-picker .connected-picker-list > button{
+  border-color:rgba(91,30,39,.12) !important;
+  background:rgba(255,248,239,.28) !important;
+  color:var(--object-ink) !important;
+}
+.connected-object-detail-screen > .connected-object-picker .connected-picker-list small{
+  color:var(--object-muted) !important;
+  -webkit-text-fill-color:var(--object-muted) !important;
+}
+
+@media (max-width:420px){
+  .connected-object-detail-heading{padding-inline:20px !important}
+  .connected-object-detail-heading h1{font-size:39px !important}
+  .connected-object-detail-main{padding-inline:18px !important}
+  .connected-object-detail-photo .connected-diary-object{
+    grid-template-columns:116px minmax(0,1fr) !important;
+  }
+  .connected-object-detail-photo .connected-object-photo{
+    min-height:152px !important;
+  }
+  .connected-object-relations{margin-inline:20px !important}
+  .connected-object-detail-screen > .connected-object-picker{margin-inline:20px !important}
+}
+
+
+/* =========================================================
+   PHOTO DETAIL · FULL IMAGE VIEWER
+   ========================================================= */
+.connected-object-detail-photo .connected-photo-hero{
+  position:relative;
+  display:block;
+  width:100%;
+  margin:0 0 12px;
+  padding:8px 8px 24px;
+  overflow:hidden;
+  border:1px solid rgba(91,30,39,.12);
+  border-radius:1px;
+  background:#fbefe2;
+  box-shadow:4px 5px 0 rgba(73,22,29,.10);
+  cursor:zoom-in;
+}
+.connected-object-detail-photo .connected-photo-hero img{
+  display:block;
+  width:100%;
+  max-height:64vh;
+  object-fit:contain;
+  background:#ead8ca;
+}
+.connected-object-detail-photo .connected-photo-hero span{
+  position:absolute;
+  right:10px;
+  bottom:6px;
+  color:#8d5d62;
+  font:italic 8px var(--font-display);
+  letter-spacing:.04em;
+}
+.connected-object-detail-photo .connected-object-detail-main .connected-diary-object{
+  grid-template-columns:1fr !important;
+}
+.connected-object-detail-photo .connected-object-detail-main .connected-object-photo{
+  display:none !important;
+}
+.connected-object-detail-photo .connected-object-detail-main .connected-diary-object::before{
+  left:34px !important;
+  transform:rotate(-2deg) !important;
+}
+.connected-photo-viewer{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  padding:max(18px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));
+  background:rgba(24,9,12,.96);
+  color:#fff3e5;
+  backdrop-filter:blur(14px);
+}
+.connected-photo-viewer-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  min-height:44px;
+}
+.connected-photo-viewer-toolbar button{
+  display:grid;
+  place-items:center;
+  width:38px;
+  height:38px;
+  padding:0;
+  border:1px solid rgba(255,240,225,.22);
+  border-radius:50%;
+  background:rgba(255,244,232,.08);
+  color:#fff3e5;
+}
+.connected-photo-viewer-toolbar button:disabled{
+  opacity:.35;
+}
+.connected-photo-viewer-toolbar span{
+  min-width:42px;
+  color:#dcc4b9;
+  font:9px var(--font-body);
+  text-align:center;
+}
+.connected-photo-viewer-toolbar .connected-photo-viewer-close{
+  margin-left:auto;
+  background:rgba(255,244,232,.14);
+}
+.connected-photo-viewer-stage{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:0;
+  overflow:auto;
+  overscroll-behavior:contain;
+  touch-action:pan-x pan-y pinch-zoom;
+  cursor:zoom-in;
+}
+.connected-photo-viewer-stage img{
+  display:block;
+  max-width:100%;
+  max-height:82vh;
+  object-fit:contain;
+  transform-origin:center center;
+  transition:transform 160ms ease;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.connected-photo-viewer > p{
+  margin:10px 0 0;
+  color:#cfb5ad;
+  font:italic 9px var(--font-display);
+  text-align:center;
+}

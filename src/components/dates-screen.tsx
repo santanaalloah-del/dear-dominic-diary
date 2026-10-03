@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -7,10 +8,14 @@ import {
   ArrowLeft,
   CalendarDays,
   ChevronRight,
+  Coffee,
+  Gift,
   Link2,
   MapPin,
   Plus,
+  ShoppingBag,
   Shirt,
+  Utensils,
 } from "lucide-react";
 
 import {
@@ -70,6 +75,18 @@ import {
 import {
   notifyDateExperienceChanged,
 } from "@/lib/date-live-events";
+
+import {
+  materializeDateVenuePurchase,
+  readDateVenueWorld,
+  setDateVenuePurchaseVisual,
+  type DateVenuePurchase,
+} from "@/lib/date-venue-world";
+
+import {
+  generateObjectVisual,
+  signedObjectVisualUrl,
+} from "@/lib/object-visual";
 
 import "./dates-screen.css";
 import "./date-lifecycle.css";
@@ -536,6 +553,32 @@ function itemKindLabel(
   );
 }
 
+function purchaseKindIcon(
+  purchase: DateVenuePurchase
+) {
+  if (purchase.itemKind === "drink") {
+    return <Coffee size={18} strokeWidth={1.35} />;
+  }
+
+  if (
+    purchase.itemKind === "food" ||
+    purchase.itemKind === "dessert" ||
+    purchase.itemKind === "snack"
+  ) {
+    return <Utensils size={18} strokeWidth={1.35} />;
+  }
+
+  if (
+    purchase.itemKind === "gift" ||
+    purchase.itemKind === "souvenir"
+  ) {
+    return <Gift size={18} strokeWidth={1.35} />;
+  }
+
+  return <ShoppingBag size={18} strokeWidth={1.35} />;
+}
+
+
 export function DatesExperienceScreen({
   onOpen,
 }: {
@@ -750,6 +793,30 @@ export function DatesExperienceScreen({
       DiarioItem | null
     >(null);
 
+  const [
+    purchaseVisualUrls,
+    setPurchaseVisualUrls,
+  ] = useState<
+    Record<string, string>
+  >({});
+
+  const [
+    purchaseVisualBusy,
+    setPurchaseVisualBusy,
+  ] = useState<
+    Record<string, boolean>
+  >({});
+
+  const purchaseVisualInFlight =
+    useRef(
+      new Set<string>()
+    );
+
+  const purchaseVisualFailed =
+    useRef(
+      new Set<string>()
+    );
+
   const selectedDate =
     dates.find(
       (
@@ -909,6 +976,185 @@ export function DatesExperienceScreen({
         timer
       );
   }, []);
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setPurchaseVisualUrls({});
+      return;
+    }
+
+    let cancelled = false;
+
+    const purchases =
+      readDateVenueWorld(
+        selectedDate
+      ).purchases;
+
+    void Promise.all(
+      purchases.map(
+        async (purchase) => {
+          if (
+            !purchase.visualStoragePath ||
+            purchaseVisualUrls[
+              purchase.id
+            ]
+          ) {
+            return;
+          }
+
+          const url =
+            await signedObjectVisualUrl({
+              storageBucket:
+                purchase.visualStorageBucket ??
+                "diario-media",
+              storagePath:
+                purchase.visualStoragePath,
+            });
+
+          if (
+            !cancelled &&
+            url
+          ) {
+            setPurchaseVisualUrls(
+              (current) => ({
+                ...current,
+                [purchase.id]:
+                  url,
+              })
+            );
+          }
+        }
+      )
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    selectedDate?.id,
+    selectedDate?.data?.venueWorld,
+  ]);
+
+  useEffect(() => {
+    if (!selectedDate) {
+      return;
+    }
+
+    const purchases =
+      readDateVenueWorld(
+        selectedDate
+      ).purchases;
+
+    const next =
+      purchases.find(
+        (purchase) =>
+          !purchase.visualStoragePath &&
+          !purchaseVisualInFlight.current.has(
+            purchase.id
+          ) &&
+          !purchaseVisualFailed.current.has(
+            purchase.id
+          )
+      );
+
+    if (!next) {
+      return;
+    }
+
+    purchaseVisualInFlight.current.add(
+      next.id
+    );
+
+    setPurchaseVisualBusy(
+      (current) => ({
+        ...current,
+        [next.id]:
+          true,
+      })
+    );
+
+    const dateSnapshot =
+      selectedDate;
+
+    void generateObjectVisual({
+      userId:
+        session.user.id,
+      name:
+        next.itemName,
+      kind:
+        next.itemKind,
+      description:
+        next.description,
+      placeName:
+        next.placeName,
+      section:
+        next.section,
+    })
+      .then(
+        async (
+          generated
+        ) => {
+          setPurchaseVisualUrls(
+            (current) => ({
+              ...current,
+              [next.id]:
+                generated.url,
+            })
+          );
+
+          const updated =
+            await setDateVenuePurchaseVisual({
+              userId:
+                session.user.id,
+              date:
+                dateSnapshot,
+              purchaseId:
+                next.id,
+              storageBucket:
+                generated.storageBucket,
+              storagePath:
+                generated.storagePath,
+              provider:
+                generated.provider,
+              model:
+                generated.model,
+            });
+
+          replaceDate(
+            updated
+          );
+        }
+      )
+      .catch(
+        (visualError) => {
+          console.error(
+            "Could not make Date object visual:",
+            visualError
+          );
+
+          purchaseVisualFailed.current.add(
+            next.id
+          );
+        }
+      )
+      .finally(() => {
+        purchaseVisualInFlight.current.delete(
+          next.id
+        );
+
+        setPurchaseVisualBusy(
+          (current) => ({
+            ...current,
+            [next.id]:
+              false,
+          })
+        );
+      });
+  }, [
+    selectedDate?.id,
+    selectedDate?.data?.venueWorld,
+    session.user.id,
+  ]);
 
   useEffect(() => {
     if (
@@ -1590,6 +1836,40 @@ export function DatesExperienceScreen({
     }
   }
 
+  async function keepVenuePurchase(
+    purchase: DateVenuePurchase
+  ) {
+    if (!selectedDate) {
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      await materializeDateVenuePurchase({
+        userId: session.user.id,
+        date: selectedDate,
+        purchase,
+      });
+
+      await loadDateExtras(
+        selectedDate.id
+      );
+    } catch (purchaseError) {
+      console.error(
+        "Could not keep Date purchase:",
+        purchaseError
+      );
+
+      setError(
+        "That Date item could not be added to Keepsakes."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function makeMemory() {
     if (
       !selectedDate
@@ -1721,6 +2001,50 @@ export function DatesExperienceScreen({
           ) =>
             thing.item.id
         )
+      );
+
+    const venuePurchases =
+      readDateVenueWorld(
+        selectedDate
+      ).purchases;
+
+    const consumedPurchases =
+      venuePurchases.filter(
+        (purchase) =>
+          purchase.action ===
+          "ordered"
+      );
+
+    const broughtHomePurchases =
+      venuePurchases.filter(
+        (purchase) =>
+          purchase.action ===
+          "bought"
+      );
+
+    const keptPurchaseIds =
+      new Set(
+        contentThings
+          .filter(
+            (thing) =>
+              thing.item.kind ===
+              "keepsake"
+          )
+          .map(
+            (thing) =>
+              typeof thing.item.data
+                ?.source_purchase_id ===
+              "string"
+                ? thing.item.data
+                    .source_purchase_id
+                : null
+          )
+          .filter(
+            (
+              id
+            ): id is string =>
+              Boolean(id)
+          )
       );
 
     return (
@@ -2417,6 +2741,218 @@ export function DatesExperienceScreen({
   />
 )}
 
+          </section>
+        )}
+
+        {venuePurchases.length > 0 && (
+          <section className="date-flow-section date-objects-section">
+            <small>
+              Little things from the day
+            </small>
+
+            <h2>
+              What we had & brought home
+            </h2>
+
+            {consumedPurchases.length > 0 && (
+              <div className="date-object-group">
+                <header>
+                  <span>what we had</span>
+                  <small>
+                    food · drinks · little treats
+                  </small>
+                </header>
+
+                <div className="date-object-strip">
+                  {consumedPurchases.map(
+                    (purchase) => {
+                      const kept =
+                        keptPurchaseIds.has(
+                          purchase.id
+                        );
+
+                      return (
+                        <article
+                          className="date-object-card consumed"
+                          key={purchase.id}
+                        >
+                          <div
+                            className={
+                              purchaseVisualUrls[
+                                purchase.id
+                              ]
+                                ? "date-object-visual has-image"
+                                : purchaseVisualBusy[
+                                      purchase.id
+                                    ]
+                                  ? "date-object-visual generating"
+                                  : "date-object-visual"
+                            }
+                          >
+                            {purchaseVisualUrls[
+                              purchase.id
+                            ] ? (
+                              <img
+                                src={
+                                  purchaseVisualUrls[
+                                    purchase.id
+                                  ]
+                                }
+                                alt={
+                                  purchase.itemName
+                                }
+                              />
+                            ) : (
+                              <>
+                                {purchaseKindIcon(
+                                  purchase
+                                )}
+
+                                {purchaseVisualBusy[
+                                  purchase.id
+                                ] && (
+                                  <small>
+                                    developing…
+                                  </small>
+                                )}
+                              </>
+                            )}
+                          </div>
+
+                          <span>
+                            <strong>
+                              {purchase.itemName}
+                            </strong>
+
+                            <small>
+                              {purchase.actor === "dominic"
+                                ? "Dominic"
+                                : "You"} · {purchase.placeName}
+                            </small>
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={
+                              saving || kept
+                            }
+                            onClick={() =>
+                              void keepVenuePurchase(
+                                purchase
+                              )
+                            }
+                          >
+                            {kept
+                              ? "in the day"
+                              : "keep the trace"}
+                          </button>
+                        </article>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+            )}
+
+            {broughtHomePurchases.length > 0 && (
+              <div className="date-object-group">
+                <header>
+                  <span>brought home</span>
+                  <small>
+                    things we bought & kept
+                  </small>
+                </header>
+
+                <div className="date-object-strip">
+                  {broughtHomePurchases.map(
+                    (purchase) => {
+                      const kept =
+                        keptPurchaseIds.has(
+                          purchase.id
+                        );
+
+                      return (
+                        <article
+                          className="date-object-card kept"
+                          key={purchase.id}
+                        >
+                          <div
+                            className={
+                              purchaseVisualUrls[
+                                purchase.id
+                              ]
+                                ? "date-object-visual has-image"
+                                : purchaseVisualBusy[
+                                      purchase.id
+                                    ]
+                                  ? "date-object-visual generating"
+                                  : "date-object-visual"
+                            }
+                          >
+                            {purchaseVisualUrls[
+                              purchase.id
+                            ] ? (
+                              <img
+                                src={
+                                  purchaseVisualUrls[
+                                    purchase.id
+                                  ]
+                                }
+                                alt={
+                                  purchase.itemName
+                                }
+                              />
+                            ) : (
+                              <>
+                                {purchaseKindIcon(
+                                  purchase
+                                )}
+
+                                {purchaseVisualBusy[
+                                  purchase.id
+                                ] && (
+                                  <small>
+                                    developing…
+                                  </small>
+                                )}
+                              </>
+                            )}
+                          </div>
+
+                          <span>
+                            <strong>
+                              {purchase.itemName}
+                            </strong>
+
+                            <small>
+                              {purchase.actor === "dominic"
+                                ? "Dominic"
+                                : "You"} · {purchase.placeName}
+                            </small>
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={
+                              saving || kept
+                            }
+                            onClick={() =>
+                              void keepVenuePurchase(
+                                purchase
+                              )
+                            }
+                          >
+                            {kept
+                              ? "kept"
+                              : "add to Keepsakes"}
+                          </button>
+                        </article>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -3122,6 +3658,22 @@ export function DatesExperienceScreen({
                       .place
                   : "";
 
+              const dateObjects =
+                readDateVenueWorld(
+                  date
+                ).purchases;
+
+              const orderedCount =
+                dateObjects.filter(
+                  (item) =>
+                    item.action ===
+                    "ordered"
+                ).length;
+
+              const boughtCount =
+                dateObjects.length -
+                orderedCount;
+
               return (
                 <article
                   key={
@@ -3175,6 +3727,25 @@ export function DatesExperienceScreen({
                         date
                       )}
                     </span>
+
+                    {dateObjects.length >
+                      0 && (
+                      <span className="date-flow-card-traces">
+                        {orderedCount >
+                          0 && (
+                          <em>
+                            {orderedCount} had
+                          </em>
+                        )}
+
+                        {boughtCount >
+                          0 && (
+                          <em>
+                            {boughtCount} brought home
+                          </em>
+                        )}
+                      </span>
+                    )}
                   </div>
                 </article>
               );

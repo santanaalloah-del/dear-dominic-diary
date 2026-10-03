@@ -6,6 +6,9 @@ import {
 import {
   ArrowLeft,
   Link2,
+  X,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 
 import {
@@ -495,6 +498,16 @@ export function ConnectedObjectDetailScreen({
     useState<
       DiarioItem[]
     >([]);
+
+  const [
+    photoViewerOpen,
+    setPhotoViewerOpen,
+  ] = useState(false);
+
+  const [
+    photoZoom,
+    setPhotoZoom,
+  ] = useState(1);
 
   useEffect(() => {
     let active = true;
@@ -1074,7 +1087,7 @@ export function ConnectedObjectDetailScreen({
     ).length;
 
   return (
-    <section className="connected-object-detail-screen">
+    <section className={`connected-object-detail-screen connected-object-detail-${view.item.kind}`}>
       <button
         type="button"
         className="connected-object-back"
@@ -1102,19 +1115,138 @@ export function ConnectedObjectDetailScreen({
         </h1>
 
         <p>
-          One original diary object.
-          Every Memory, Date,
-          Calendar moment and
-          Timeline appearance points
-          back to this same object.
+          The original piece. Memories, Dates,
+          Calendar and Timeline only point back here —
+          nothing gets duplicated.
         </p>
       </header>
 
       <section className="connected-object-detail-main">
+        {view.item.kind === "photo" &&
+          view.mediaUrl && (
+            <button
+              type="button"
+              className="connected-photo-hero"
+              onClick={() => {
+                setPhotoZoom(1);
+                setPhotoViewerOpen(true);
+              }}
+            >
+              <img
+                src={view.mediaUrl}
+                alt={
+                  view.item.title ??
+                  "Diary photo"
+                }
+              />
+
+              <span>
+                tap to view full size
+              </span>
+            </button>
+          )}
+
         <ConnectedDiaryObject
           view={view}
         />
       </section>
+
+      {photoViewerOpen &&
+        view.item.kind === "photo" &&
+        view.mediaUrl && (
+          <div
+            className="connected-photo-viewer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Photo viewer"
+          >
+            <div className="connected-photo-viewer-toolbar">
+              <button
+                type="button"
+                aria-label="Zoom out"
+                disabled={photoZoom <= 1}
+                onClick={() =>
+                  setPhotoZoom((current) =>
+                    Math.max(
+                      1,
+                      Number(
+                        (
+                          current -
+                          0.5
+                        ).toFixed(1)
+                      )
+                    )
+                  )
+                }
+              >
+                <ZoomOut size={18} />
+              </button>
+
+              <span>
+                {Math.round(
+                  photoZoom * 100
+                )}%
+              </span>
+
+              <button
+                type="button"
+                aria-label="Zoom in"
+                disabled={photoZoom >= 3}
+                onClick={() =>
+                  setPhotoZoom((current) =>
+                    Math.min(
+                      3,
+                      Number(
+                        (
+                          current +
+                          0.5
+                        ).toFixed(1)
+                      )
+                    )
+                  )
+                }
+              >
+                <ZoomIn size={18} />
+              </button>
+
+              <button
+                type="button"
+                className="connected-photo-viewer-close"
+                aria-label="Close photo"
+                onClick={() => {
+                  setPhotoViewerOpen(false);
+                  setPhotoZoom(1);
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div
+              className="connected-photo-viewer-stage"
+              onClick={() =>
+                setPhotoZoom((current) =>
+                  current === 1 ? 2 : 1
+                )
+              }
+            >
+              <img
+                src={view.mediaUrl}
+                alt={
+                  view.item.title ??
+                  "Diary photo"
+                }
+                style={{
+                  transform: `scale(${photoZoom})`,
+                }}
+              />
+            </div>
+
+            <p>
+              tap the photo to zoom · drag to look around
+            </p>
+          </div>
+        )}
 
       <section className="connected-object-relations">
         <header>
@@ -1132,7 +1264,7 @@ export function ConnectedObjectDetailScreen({
             <strong>
               {relations.length ===
               0
-                ? "Nothing yet"
+                ? "No thread attached yet"
                 : `${
                     relations.length
                   } ${
@@ -1148,12 +1280,9 @@ export function ConnectedObjectDetailScreen({
         {relations.length ===
         0 ? (
           <p className="connected-object-no-relations">
-            When this object becomes
-            part of a Memory, Date,
-            Place, outfit, Chat or
-            another diary moment, the
-            relationship will appear
-            here.
+            When this piece belongs to a Memory, Date,
+            Place, outfit, Chat or another moment, its thread
+            will appear here.
           </p>
         ) : (
           <div className="connected-relation-list">
@@ -1413,8 +1542,7 @@ export function ConnectedObjectDetailScreen({
               </small>
 
               <strong>
-                Put this object
-                into a moment
+                Tie it to a moment
               </strong>
             </div>
           </header>

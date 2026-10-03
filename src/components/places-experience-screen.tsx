@@ -27,6 +27,9 @@ import {
 import { usePrivateDiario } from "@/components/private-diario";
 import { VenueContentPanel } from "@/components/venue-content-panel";
 import {
+  readDateVenueWorld,
+} from "@/lib/date-venue-world";
+import {
   getPlaces,
   type DiarioItem,
 } from "@/lib/diario-world";
@@ -443,6 +446,17 @@ function NycMapWorld({
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] =
     useState<string | null>(null);
+
+  const [
+    placeDateHistory,
+    setPlaceDateHistory,
+  ] = useState<
+    Awaited<
+      ReturnType<
+        typeof getPlaceDates
+      >
+    >
+  >([]);
 const detailsCacheRef = useRef(
   new globalThis.Map<string, GeoapifyPlaceDetails>()
 );
@@ -502,6 +516,53 @@ const detailsCacheRef = useRef(
       selected?.website,
     ]
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (
+      !placeSheetOpen ||
+      !savedSelected
+    ) {
+      setPlaceDateHistory(
+        []
+      );
+      return;
+    }
+
+    getPlaceDates({
+      userId,
+      placeId:
+        savedSelected.id,
+    })
+      .then((history) => {
+        if (!cancelled) {
+          setPlaceDateHistory(
+            history
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(
+          "Could not load Place date history:",
+          error
+        );
+
+        if (!cancelled) {
+          setPlaceDateHistory(
+            []
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    placeSheetOpen,
+    savedSelected?.id,
+    userId,
+  ]);
 
   useEffect(() => {
     if (!placeSheetOpen) return;
@@ -1624,6 +1685,99 @@ const result =
     }}
     onPlaceUpdated={onPlaceSaved}
   />
+)}
+
+{!dateSelection &&
+  savedSelected && (
+  <section className="nyc-place-history">
+    <header>
+      <div>
+        <small>
+          OUR HISTORY HERE
+        </small>
+
+        <strong>
+          {placeDateHistory.length ===
+          0
+            ? "Nothing lived here yet"
+            : placeDateHistory.length ===
+                1
+              ? "1 Date belongs here"
+              : `${placeDateHistory.length} Dates belong here`}
+        </strong>
+      </div>
+
+      <Heart
+        size={16}
+        strokeWidth={1.3}
+      />
+    </header>
+
+    {placeDateHistory.length ===
+    0 ? (
+      <p>
+        Saved Places can start as ideas.
+        When a Date happens here, the day,
+        little things and its history stay
+        attached to this Place.
+      </p>
+    ) : (
+      <div className="nyc-place-history-strip">
+        {placeDateHistory.map(
+          (
+            connection
+          ) => {
+            const purchases =
+              readDateVenueWorld(
+                connection.date
+              ).purchases;
+
+            return (
+              <article
+                key={
+                  connection
+                    .date.id
+                }
+              >
+                <small>
+                  {dateLabel(
+                    connection
+                      .date
+                  )}
+                </small>
+
+                <strong>
+                  {connection
+                    .date
+                    .title ??
+                    "Untitled Date"}
+                </strong>
+
+                <time>
+                  {dateMoment(
+                    connection
+                      .date
+                  )}
+                </time>
+
+                {purchases.length >
+                  0 && (
+                  <span>
+                    {purchases.length}{" "}
+                    {purchases.length ===
+                    1
+                      ? "little thing"
+                      : "little things"}{" "}
+                    from the day
+                  </span>
+                )}
+              </article>
+            );
+          }
+        )}
+      </div>
+    )}
+  </section>
 )}
 
             {dateSelection && (

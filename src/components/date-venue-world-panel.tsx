@@ -1,9 +1,13 @@
 import {
   Check,
+  Coffee,
+  Gift,
   LoaderCircle,
   ShoppingBag,
   Sparkles,
+  Ticket,
   UserRound,
+  Utensils,
 } from "lucide-react";
 import {
   useEffect,
@@ -320,6 +324,37 @@ function actionButtonLabel(
     : "Buy";
 }
 
+
+function venueItemVisual(item: VenueWorldItem) {
+  if (item.kind === "drink") {
+    return <Coffee size={25} strokeWidth={1.25} />;
+  }
+
+  if (
+    item.kind === "food" ||
+    item.kind === "dessert" ||
+    item.kind === "snack"
+  ) {
+    return <Utensils size={25} strokeWidth={1.25} />;
+  }
+
+  if (
+    item.kind === "ticket" ||
+    item.kind === "activity"
+  ) {
+    return <Ticket size={25} strokeWidth={1.25} />;
+  }
+
+  if (
+    item.kind === "souvenir" ||
+    item.kind === "accessory"
+  ) {
+    return <Gift size={25} strokeWidth={1.25} />;
+  }
+
+  return <ShoppingBag size={25} strokeWidth={1.25} />;
+}
+
 function groupItems(
   items: VenueWorldItem[]
 ) {
@@ -556,6 +591,18 @@ function DateVenueItemCard({
           : ""
       }`}
     >
+      <div
+        className="date-venue-item-visual"
+        data-kind={item.kind}
+        aria-hidden="true"
+      >
+        {venueItemVisual(item)}
+
+        <small>
+          {item.kind}
+        </small>
+      </div>
+
       <div className="date-venue-item-main">
         <div className="date-venue-item-top">
           <div>

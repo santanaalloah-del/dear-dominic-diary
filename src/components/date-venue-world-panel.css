@@ -345,3 +345,103 @@
     transform: rotate(360deg);
   }
 }
+
+
+/* =========================================================
+   DATE VENUE WORLD · VISIBLE OBJECT TOKENS
+   Food, drinks and little purchases should feel like things.
+   ========================================================= */
+
+.date-venue-item{
+  grid-template-columns:66px minmax(0,1fr) !important;
+  grid-template-areas:
+    "visual main"
+    "visual actions" !important;
+  align-items:start !important;
+  padding:10px !important;
+  border-radius:1px !important;
+  background:#f8ebdf !important;
+  box-shadow:2px 3px 0 rgba(67,20,28,.06) !important;
+}
+.date-venue-item-visual{
+  grid-area:visual;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:5px;
+  width:66px;
+  min-height:88px;
+  padding:8px 4px;
+  border:1px solid rgba(117,54,67,.10);
+  background:
+    radial-gradient(circle at 50% 38%,rgba(255,255,255,.7),transparent 38%),
+    #ead7c9;
+  color:#82404b;
+}
+.date-venue-item-visual small{
+  max-width:58px;
+  overflow:hidden;
+  color:#9a656c;
+  font:6px/1.1 var(--font-body);
+  letter-spacing:.08em;
+  text-overflow:ellipsis;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.date-venue-item-visual[data-kind="drink"]{
+  background:
+    radial-gradient(circle at 50% 35%,rgba(255,255,255,.72),transparent 36%),
+    #e3d3c7;
+}
+.date-venue-item-visual[data-kind="dessert"],
+.date-venue-item-visual[data-kind="snack"]{
+  background:
+    radial-gradient(circle at 50% 35%,rgba(255,255,255,.72),transparent 36%),
+    #efd7cf;
+}
+.date-venue-item-visual[data-kind="souvenir"],
+.date-venue-item-visual[data-kind="product"],
+.date-venue-item-visual[data-kind="clothing"],
+.date-venue-item-visual[data-kind="accessory"]{
+  background:
+    linear-gradient(145deg,rgba(181,84,98,.13),transparent 46%),
+    #f1ded0;
+}
+.date-venue-item-main{
+  grid-area:main;
+}
+.date-venue-item-actions{
+  grid-area:actions;
+}
+.date-venue-item.recorded .date-venue-item-visual{
+  outline:1px solid rgba(88,116,80,.18);
+  outline-offset:-3px;
+}
+.date-venue-section > header{
+  border-bottom:1px solid rgba(117,54,67,.10);
+  padding-bottom:6px;
+}
+.date-venue-world-panel{
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 31px,
+      rgba(103,45,52,.025) 31px 32px
+    ),
+    rgba(248,235,222,.93) !important;
+}
+.date-venue-filters button,
+.date-venue-record-button,
+.date-venue-recorded-action{
+  border-radius:1px !important;
+}
+
+@container (min-width:640px){
+  .date-venue-item{
+    grid-template-columns:72px minmax(0,1fr) !important;
+  }
+  .date-venue-item-visual{
+    width:72px;
+  }
+}

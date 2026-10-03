@@ -26,6 +26,10 @@ export type DateVenuePurchase = {
   placeId: string;
   placeName: string;
   happenedAt: string;
+  visualStorageBucket: string | null;
+  visualStoragePath: string | null;
+  visualProvider: string | null;
+  visualModel: string | null;
 };
 
 export type DateVenueWorld = {
@@ -77,6 +81,10 @@ function readPurchase(value: unknown): DateVenuePurchase | null {
     id, actor, action, itemId, itemName, itemKind, section,
     description: cleanString(raw.description),
     priceUsdCents, sourceTier, sourceLabel, placeId, placeName, happenedAt,
+    visualStorageBucket: cleanString(raw.visualStorageBucket),
+    visualStoragePath: cleanString(raw.visualStoragePath),
+    visualProvider: cleanString(raw.visualProvider),
+    visualModel: cleanString(raw.visualModel),
   };
 }
 
@@ -184,6 +192,10 @@ export async function recordDateVenuePurchase({
     placeId: place.id,
     placeName: place.title ?? "Untitled place",
     happenedAt: new Date().toISOString(),
+    visualStorageBucket: null,
+    visualStoragePath: null,
+    visualProvider: null,
+    visualModel: null,
   };
 
   return persistDateVenueWorld({
@@ -194,6 +206,105 @@ export async function recordDateVenuePurchase({
       purchases: [...current.purchases, purchase],
     },
   });
+}
+
+export async function setDateVenuePurchaseVisual({
+  userId,
+  date,
+  purchaseId,
+  storageBucket,
+  storagePath,
+  provider,
+  model,
+}: {
+  userId: string;
+  date: DiarioItem;
+  purchaseId: string;
+  storageBucket: string;
+  storagePath: string;
+  provider?: string | null;
+  model?: string | null;
+}): Promise<DiarioItem> {
+  const current = readDateVenueWorld(date);
+
+  let changed = false;
+
+  const purchases = current.purchases.map((purchase) => {
+    if (purchase.id !== purchaseId) {
+      return purchase;
+    }
+
+    changed = true;
+
+    return {
+      ...purchase,
+      visualStorageBucket: storageBucket,
+      visualStoragePath: storagePath,
+      visualProvider: provider ?? null,
+      visualModel: model ?? null,
+    };
+  });
+
+  if (!changed) return date;
+
+  const updatedDate =
+    await persistDateVenueWorld({
+      userId,
+      date,
+      venueWorld: {
+        schemaVersion: 1,
+        purchases,
+      },
+    });
+
+  const { data: existingKeepsake } =
+    await db
+      .from("diario_items")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("kind", "keepsake")
+      .eq("status", "active")
+      .eq(
+        "data->>source_purchase_id",
+        purchaseId
+      )
+      .maybeSingle();
+
+  if (existingKeepsake) {
+    const current =
+      existingKeepsake as DiarioItem;
+
+    const { error: keepsakeError } =
+      await db
+        .from("diario_items")
+        .update({
+          data: {
+            ...(current.data ?? {}),
+            storage_bucket:
+              storageBucket,
+            storage_path:
+              storagePath,
+            generated_object_visual:
+              true,
+            object_visual_provider:
+              provider ?? null,
+            object_visual_model:
+              model ?? null,
+          },
+        })
+        .eq("user_id", userId)
+        .eq("id", current.id)
+        .eq("kind", "keepsake");
+
+    if (keepsakeError) {
+      console.error(
+        "Could not sync generated visual to Keepsake:",
+        keepsakeError
+      );
+    }
+  }
+
+  return updatedDate;
 }
 
 export async function removeDateVenuePurchase({
@@ -234,4 +345,104 @@ export function dateVenueActorTotal(
       (total, purchase) => total + (purchase.priceUsdCents ?? 0),
       0
     );
+}
+
+
+export function dateVenuePurchaseLifecycle(
+  purchase: DateVenuePurchase
+): "kept" | "consumed" {
+  return purchase.action === "ordered"
+    ? "consumed"
+    : "kept";
+}
+
+export async function materializeDateVenuePurchase({
+  userId,
+  date,
+  purchase,
+}: {
+  userId: string;
+  date: DiarioItem;
+  purchase: DateVenuePurchase;
+}): Promise<DiarioItem> {
+  const { data: existing, error: existingError } = await db
+    .from("diario_items")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("kind", "keepsake")
+    .eq("status", "active")
+    .eq("data->>source_purchase_id", purchase.id)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+
+  let keepsake = existing as DiarioItem | null;
+
+  if (!keepsake) {
+    const lifecycle = dateVenuePurchaseLifecycle(purchase);
+
+    const { data: created, error: createError } = await db
+      .from("diario_items")
+      .insert({
+        user_id: userId,
+        kind: "keepsake",
+        owner: "shared",
+        status: "active",
+        title: purchase.itemName,
+        body: purchase.description,
+        event_at: purchase.happenedAt,
+        data: {
+          keepsakeType: purchase.itemKind,
+          location: lifecycle === "consumed" ? "gone" : "home",
+          room: null,
+          origin: purchase.placeName,
+          source_date_id: date.id,
+          source_purchase_id: purchase.id,
+          consumed: lifecycle === "consumed",
+          date_venue_action: purchase.action,
+          price_usd_cents: purchase.priceUsdCents,
+          ...(purchase.visualStoragePath
+            ? {
+                storage_bucket:
+                  purchase.visualStorageBucket ?? "diario-media",
+                storage_path:
+                  purchase.visualStoragePath,
+                generated_object_visual: true,
+                object_visual_provider:
+                  purchase.visualProvider,
+                object_visual_model:
+                  purchase.visualModel,
+              }
+            : {}),
+        },
+      })
+      .select("*")
+      .single();
+
+    if (createError) throw createError;
+    keepsake = created as DiarioItem;
+  }
+
+  const { error: linkError } = await db
+    .from("diario_links")
+    .upsert(
+      {
+        user_id: userId,
+        source_item_id: date.id,
+        target_item_id: keepsake.id,
+        relation: "contains",
+        data: {
+          source: "date_venue",
+          purchase_id: purchase.id,
+        },
+      },
+      {
+        onConflict:
+          "user_id,source_item_id,target_item_id,relation",
+      }
+    );
+
+  if (linkError) throw linkError;
+
+  return keepsake;
 }

@@ -2,6 +2,31 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type WardrobeOwner = "alloah" | "dominic";
 
+export const WARDROBE_WEARING_CHANGED_EVENT =
+  "diario:wardrobe-wearing-changed";
+
+function notifyWearingChanged(
+  owner: WardrobeOwner
+) {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(
+      WARDROBE_WEARING_CHANGED_EVENT,
+      {
+        detail: {
+          owner,
+        },
+      }
+    )
+  );
+}
+
 export type WearingSelection = {
   lookId: string | null;
   clothingIds: string[];
@@ -125,6 +150,10 @@ async function saveOwnerSelection({
     );
 
   if (error) throw error;
+
+  notifyWearingChanged(
+    owner
+  );
 
   return selection;
 }

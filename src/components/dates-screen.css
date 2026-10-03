@@ -459,3 +459,343 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+/* =========================================================
+   DATES · VISIBLE LITTLE THINGS
+   Food, drinks, treats and bought objects remain visible.
+   ========================================================= */
+
+.date-objects-section{
+  overflow:hidden;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 31px,
+      rgba(105,31,42,.035) 31px 32px
+    ),
+    rgba(248,235,222,.86) !important;
+}
+.date-object-group{
+  margin-top:17px;
+}
+.date-object-group > header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(104,21,31,.12);
+}
+.date-object-group > header span{
+  color:#7c2a31;
+  font:700 8px var(--font-body);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.date-object-group > header small{
+  color:#8b6667;
+  font:italic 8px var(--font-display);
+}
+.date-object-strip{
+  display:flex;
+  gap:10px;
+  margin:11px -17px 0;
+  padding:0 17px 7px;
+  overflow-x:auto;
+  scroll-snap-type:x proximity;
+  scrollbar-width:none;
+}
+.date-object-strip::-webkit-scrollbar{
+  display:none;
+}
+.date-object-card{
+  flex:0 0 144px;
+  display:grid;
+  grid-template-rows:92px auto auto;
+  min-height:178px;
+  overflow:hidden;
+  border:1px solid rgba(104,21,31,.14);
+  background:#f8eadc;
+  color:#57222b;
+  box-shadow:2px 3px 0 rgba(68,21,28,.07);
+  scroll-snap-align:start;
+}
+.date-object-card.consumed{
+  background:#eddbcd;
+}
+.date-object-visual{
+  display:grid;
+  place-items:center;
+  border-bottom:1px solid rgba(104,21,31,.10);
+  background:
+    radial-gradient(circle at 50% 42%,rgba(255,255,255,.72),transparent 38%),
+    linear-gradient(145deg,rgba(173,78,91,.12),transparent 52%),
+    #ead7c9;
+  color:#873d49;
+}
+.date-object-card.consumed .date-object-visual{
+  border-bottom-style:dashed;
+}
+.date-object-card > span{
+  display:block;
+  min-width:0;
+  padding:9px 9px 4px;
+}
+.date-object-card > span strong{
+  display:block;
+  overflow:hidden;
+  color:#57222b;
+  font:500 14px/1.05 var(--font-display);
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.date-object-card > span small{
+  display:block;
+  margin-top:4px;
+  overflow:hidden;
+  color:#8b5c61;
+  font:7px/1.25 var(--font-body);
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.date-object-card > button{
+  align-self:end;
+  min-height:29px;
+  margin:6px 8px 9px;
+  padding:5px 7px;
+  border:1px solid rgba(104,21,31,.18);
+  border-radius:0;
+  background:transparent;
+  color:#6c2630;
+  font:7px var(--font-body);
+  text-transform:lowercase;
+}
+.date-object-card > button:disabled{
+  border-color:transparent;
+  color:#9c7375;
+  font-style:italic;
+}
+
+/* The old attached-object list becomes secondary after the visual date objects. */
+.date-objects-section + .date-flow-section .date-flow-thing{
+  background:rgba(255,249,239,.36);
+}
+
+
+/* =========================================================
+   DATE OBJECTS · AUTOMATIC VISUALS
+   Items develop naturally; users do not need to upload photos.
+   ========================================================= */
+.date-object-visual{
+  position:relative;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+.date-object-visual.has-image{
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.48),rgba(238,215,200,.38));
+}
+.date-object-visual.has-image img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  padding:8px;
+}
+.date-object-visual.generating{
+  background:
+    linear-gradient(110deg,
+      rgba(239,219,205,.65) 18%,
+      rgba(252,240,226,.92) 36%,
+      rgba(239,219,205,.65) 54%);
+  background-size:220% 100%;
+  animation:date-object-develop 1.8s ease-in-out infinite;
+}
+.date-object-visual.generating svg{
+  opacity:.35;
+}
+.date-object-visual.generating small{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:8px;
+  color:#9b6269;
+  font:italic 7px var(--font-display);
+  text-align:center;
+  letter-spacing:.03em;
+}
+@keyframes date-object-develop{
+  0%{background-position:200% 0}
+  100%{background-position:-20% 0}
+}
+
+
+/* =========================================================
+   DATES · LIVED TICKET PASS
+   The Date list reads as plans / tickets / lived scraps, not admin cards.
+   ========================================================= */
+.date-flow-list{
+  gap:15px !important;
+}
+.date-flow-card{
+  position:relative !important;
+  padding:17px 18px 15px 21px !important;
+  overflow:visible !important;
+  border:1px solid rgba(104,21,31,.14) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 31px,
+      rgba(105,31,42,.035) 31px 32px
+    ),
+    #f3e2d4 !important;
+  color:#57222b !important;
+  box-shadow:4px 5px 0 rgba(62,18,25,.08) !important;
+}
+.date-flow-card:nth-child(even){
+  transform:rotate(.25deg);
+}
+.date-flow-card::before{
+  content:"";
+  position:absolute;
+  top:-7px;
+  left:30px;
+  width:58px;
+  height:15px;
+  transform:rotate(-2deg);
+  background:rgba(222,178,171,.52);
+}
+.date-flow-card::after{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:8px;
+  border-left:1px dashed rgba(107,35,45,.16);
+}
+.date-flow-card header,
+.date-flow-card p,
+.date-flow-card-meta{
+  position:relative;
+  z-index:1;
+}
+.date-flow-card-status{
+  color:#a24e58 !important;
+  -webkit-text-fill-color:#a24e58 !important;
+  font-size:7px !important;
+  font-weight:700 !important;
+  letter-spacing:.16em !important;
+}
+.date-flow-card strong{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  font:500 23px/.98 var(--font-display) !important;
+}
+.date-flow-card p{
+  color:#7a4c52 !important;
+  -webkit-text-fill-color:#7a4c52 !important;
+  font-size:10px !important;
+}
+.date-flow-card-meta{
+  align-items:flex-end !important;
+  justify-content:space-between !important;
+  gap:8px 12px !important;
+  margin-top:12px !important;
+  color:#8b6164 !important;
+  opacity:1 !important;
+  font-size:8px !important;
+}
+.date-flow-card-traces{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  justify-content:flex-end !important;
+  gap:4px !important;
+}
+.date-flow-card-traces em{
+  padding:3px 6px !important;
+  border:1px solid rgba(102,35,44,.11) !important;
+  background:rgba(255,248,238,.38) !important;
+  color:#8a4e57 !important;
+  font:italic 7px var(--font-display) !important;
+}
+.date-flow-live-card{
+  border-color:rgba(104,21,31,.32) !important;
+  box-shadow:
+    inset 3px 0 0 #68151f,
+    4px 5px 0 rgba(62,18,25,.08) !important;
+}
+.date-flow-live-card::before{
+  background:rgba(163,66,81,.48) !important;
+}
+
+/* Major Date sections become pages of the same little date-book. */
+.date-flow-section,
+.date-flow-form{
+  position:relative !important;
+  border:1px solid rgba(104,21,31,.14) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 32px,
+      rgba(105,31,42,.032) 32px 33px
+    ),
+    rgba(247,233,220,.92) !important;
+  box-shadow:4px 5px 0 rgba(62,18,25,.07) !important;
+}
+.date-flow-section::before,
+.date-flow-form::before{
+  content:"";
+  position:absolute;
+  top:-7px;
+  right:48px;
+  width:62px;
+  height:15px;
+  transform:rotate(1.5deg);
+  background:rgba(223,184,176,.42);
+}
+.date-flow-primary,
+.date-flow-secondary,
+.date-flow-danger,
+.date-flow-link{
+  border-radius:1px !important;
+}
+.date-flow-tabs{
+  border-radius:1px !important;
+  overflow:hidden !important;
+}
+.date-flow-tabs button{
+  border-radius:0 !important;
+}
+.date-flow-detail-head{
+  position:relative;
+  padding:0 0 14px 13px;
+  border-left:2px solid rgba(116,37,49,.38);
+}
+.date-flow-detail-head h1{
+  color:#57222b;
+  font-family:var(--font-display) !important;
+  font-size:40px !important;
+}
+.date-flow-state-badge{
+  color:#a24e58 !important;
+  font-size:7px !important;
+}
+@media (max-width:390px){
+  .date-flow-card{
+    padding-inline:18px 14px !important;
+  }
+  .date-flow-card strong{
+    font-size:21px !important;
+  }
+  .date-flow-card-meta{
+    display:grid !important;
+    justify-content:stretch !important;
+  }
+  .date-flow-card-traces{
+    justify-content:flex-start !important;
+  }
+}
