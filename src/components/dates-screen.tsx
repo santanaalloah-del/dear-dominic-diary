@@ -7,10 +7,14 @@ import {
   ArrowLeft,
   CalendarDays,
   ChevronRight,
+  Coffee,
+  Gift,
   Link2,
   MapPin,
   Plus,
+  ShoppingBag,
   Shirt,
+  Utensils,
 } from "lucide-react";
 
 import {
@@ -70,6 +74,12 @@ import {
 import {
   notifyDateExperienceChanged,
 } from "@/lib/date-live-events";
+
+import {
+  materializeDateVenuePurchase,
+  readDateVenueWorld,
+  type DateVenuePurchase,
+} from "@/lib/date-venue-world";
 
 import "./dates-screen.css";
 import "./date-lifecycle.css";
@@ -535,6 +545,32 @@ function itemKindLabel(
     kind
   );
 }
+
+function purchaseKindIcon(
+  purchase: DateVenuePurchase
+) {
+  if (purchase.itemKind === "drink") {
+    return <Coffee size={18} strokeWidth={1.35} />;
+  }
+
+  if (
+    purchase.itemKind === "food" ||
+    purchase.itemKind === "dessert" ||
+    purchase.itemKind === "snack"
+  ) {
+    return <Utensils size={18} strokeWidth={1.35} />;
+  }
+
+  if (
+    purchase.itemKind === "gift" ||
+    purchase.itemKind === "souvenir"
+  ) {
+    return <Gift size={18} strokeWidth={1.35} />;
+  }
+
+  return <ShoppingBag size={18} strokeWidth={1.35} />;
+}
+
 
 export function DatesExperienceScreen({
   onOpen,
@@ -1590,6 +1626,40 @@ export function DatesExperienceScreen({
     }
   }
 
+  async function keepVenuePurchase(
+    purchase: DateVenuePurchase
+  ) {
+    if (!selectedDate) {
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      await materializeDateVenuePurchase({
+        userId: session.user.id,
+        date: selectedDate,
+        purchase,
+      });
+
+      await loadDateExtras(
+        selectedDate.id
+      );
+    } catch (purchaseError) {
+      console.error(
+        "Could not keep Date purchase:",
+        purchaseError
+      );
+
+      setError(
+        "That Date item could not be added to Keepsakes."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function makeMemory() {
     if (
       !selectedDate
@@ -1721,6 +1791,50 @@ export function DatesExperienceScreen({
           ) =>
             thing.item.id
         )
+      );
+
+    const venuePurchases =
+      readDateVenueWorld(
+        selectedDate
+      ).purchases;
+
+    const consumedPurchases =
+      venuePurchases.filter(
+        (purchase) =>
+          purchase.action ===
+          "ordered"
+      );
+
+    const broughtHomePurchases =
+      venuePurchases.filter(
+        (purchase) =>
+          purchase.action ===
+          "bought"
+      );
+
+    const keptPurchaseIds =
+      new Set(
+        contentThings
+          .filter(
+            (thing) =>
+              thing.item.kind ===
+              "keepsake"
+          )
+          .map(
+            (thing) =>
+              typeof thing.item.data
+                ?.source_purchase_id ===
+              "string"
+                ? thing.item.data
+                    .source_purchase_id
+                : null
+          )
+          .filter(
+            (
+              id
+            ): id is string =>
+              Boolean(id)
+          )
       );
 
     return (
@@ -2417,6 +2531,144 @@ export function DatesExperienceScreen({
   />
 )}
 
+          </section>
+        )}
+
+        {venuePurchases.length > 0 && (
+          <section className="date-flow-section date-objects-section">
+            <small>
+              Little things from the day
+            </small>
+
+            <h2>
+              What we had & brought home
+            </h2>
+
+            {consumedPurchases.length > 0 && (
+              <div className="date-object-group">
+                <header>
+                  <span>what we had</span>
+                  <small>
+                    food · drinks · little treats
+                  </small>
+                </header>
+
+                <div className="date-object-strip">
+                  {consumedPurchases.map(
+                    (purchase) => {
+                      const kept =
+                        keptPurchaseIds.has(
+                          purchase.id
+                        );
+
+                      return (
+                        <article
+                          className="date-object-card consumed"
+                          key={purchase.id}
+                        >
+                          <div className="date-object-visual">
+                            {purchaseKindIcon(
+                              purchase
+                            )}
+                          </div>
+
+                          <span>
+                            <strong>
+                              {purchase.itemName}
+                            </strong>
+
+                            <small>
+                              {purchase.actor === "dominic"
+                                ? "Dominic"
+                                : "You"} · {purchase.placeName}
+                            </small>
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={
+                              saving || kept
+                            }
+                            onClick={() =>
+                              void keepVenuePurchase(
+                                purchase
+                              )
+                            }
+                          >
+                            {kept
+                              ? "in the day"
+                              : "keep the trace"}
+                          </button>
+                        </article>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+            )}
+
+            {broughtHomePurchases.length > 0 && (
+              <div className="date-object-group">
+                <header>
+                  <span>brought home</span>
+                  <small>
+                    things we bought & kept
+                  </small>
+                </header>
+
+                <div className="date-object-strip">
+                  {broughtHomePurchases.map(
+                    (purchase) => {
+                      const kept =
+                        keptPurchaseIds.has(
+                          purchase.id
+                        );
+
+                      return (
+                        <article
+                          className="date-object-card kept"
+                          key={purchase.id}
+                        >
+                          <div className="date-object-visual">
+                            {purchaseKindIcon(
+                              purchase
+                            )}
+                          </div>
+
+                          <span>
+                            <strong>
+                              {purchase.itemName}
+                            </strong>
+
+                            <small>
+                              {purchase.actor === "dominic"
+                                ? "Dominic"
+                                : "You"} · {purchase.placeName}
+                            </small>
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={
+                              saving || kept
+                            }
+                            onClick={() =>
+                              void keepVenuePurchase(
+                                purchase
+                              )
+                            }
+                          >
+                            {kept
+                              ? "kept"
+                              : "add to Keepsakes"}
+                          </button>
+                        </article>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
