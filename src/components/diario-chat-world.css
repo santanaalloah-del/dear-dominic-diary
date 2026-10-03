@@ -936,3 +936,47 @@ html body .screen-chat .messenger-person p{
     max-width:92px;
   }
 }
+
+
+/* Sticker ownership is part of each person's chat identity. */
+.chat-sticker-owner-tabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:0;
+  margin:12px 0 10px;
+  border:1px solid rgba(91,30,39,.11);
+}
+.chat-sticker-owner-tabs button{
+  min-height:34px;
+  padding:6px 5px;
+  border:0;
+  border-right:1px solid rgba(91,30,39,.08);
+  background:rgba(255,247,237,.24);
+  color:#85545a;
+  font:8px var(--font-body);
+}
+.chat-sticker-owner-tabs button:last-child{
+  border-right:0;
+}
+.chat-sticker-owner-tabs button.active{
+  background:#6a1d28;
+  color:#fff0e2;
+}
+.chat-sticker-upload-owner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+  color:#8b5c61;
+  font:8px var(--font-body);
+}
+.chat-sticker-upload-owner select{
+  min-height:32px;
+  padding:5px 8px;
+  border:1px solid rgba(91,30,39,.12);
+  border-radius:1px;
+  background:#f8eadc;
+  color:#57222b;
+  font:8px var(--font-body);
+}
