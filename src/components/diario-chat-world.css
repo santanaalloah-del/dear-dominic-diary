@@ -1,300 +1,168 @@
 /* =========================================================
-   DIÁRIO CHAT · REAL THEMES + PROFILE SHEETS
-   Each preset keeps its own visual language even when time adapts.
+   DIÁRIO CHAT · VISUAL RESCUE
+   Preserve the approved messenger layout. New identity/profile/
+   sticker features inherit the same dusty-pink + paper world.
    ========================================================= */
 
-.messenger-chat{
-  --chat-bubble-ink:#57222b;
-  --chat-mine-ink:#57222b;
-  --chat-wallpaper:none;
-  background-color:var(--chat-bg) !important;
-  background-image:var(--chat-wallpaper) !important;
-  background-size:auto !important;
-  color:var(--chat-ink);
-}
-
-/* Diary · notebook paper, wine ink */
+/* ---------- THEMES: real rooms, not a replacement layout ---------- */
 .messenger-chat.chat-theme-diary{
   --chat-bg:#ead6c7;
   --chat-panel:#f2dfd0;
   --chat-mine:#e3afb5;
   --chat-theirs:#f7eadf;
   --chat-ink:#57222b;
-  --chat-bubble-ink:#57222b;
-  --chat-mine-ink:#57222b;
   --chat-accent:#9f3c4a;
-  --chat-wallpaper:
-    radial-gradient(circle at 18px 18px,rgba(114,41,51,.055) 0 1px,transparent 1.2px),
-    repeating-linear-gradient(
-      180deg,
-      transparent 0 30px,
-      rgba(109,42,51,.055) 30px 31px
-    );
-  background-size:36px 36px,auto !important;
+  background-image:
+    radial-gradient(circle at 18px 18px,rgba(114,41,51,.045) 0 1px,transparent 1.2px),
+    repeating-linear-gradient(180deg,transparent 0 31px,rgba(109,42,51,.045) 31px 32px);
+  background-size:36px 36px,auto;
 }
 
-/* Cherry Wine · actual wine room, paper messages */
 .messenger-chat.chat-theme-cherry{
-  --chat-bg:#5b1c28;
-  --chat-panel:#6a2430;
-  --chat-mine:#c8737d;
-  --chat-theirs:#f1d9d2;
+  --chat-bg:#5a1d28;
+  --chat-panel:#672530;
+  --chat-mine:#c97780;
+  --chat-theirs:#efd8d0;
   --chat-ink:#fff0e2;
-  --chat-bubble-ink:#57222b;
-  --chat-mine-ink:#4d1b24;
-  --chat-accent:#efabb0;
-  --chat-wallpaper:
-    radial-gradient(circle at 18px 16px,rgba(255,226,215,.08) 0 2px,transparent 2.4px),
-    radial-gradient(circle at 24px 22px,rgba(255,226,215,.05) 0 1.5px,transparent 1.9px),
-    linear-gradient(145deg,rgba(128,36,50,.48),transparent 48%);
-  background-size:42px 42px,42px 42px,auto !important;
+  --chat-accent:#e8a0a8;
+  background-image:
+    radial-gradient(circle at 15% 16%,rgba(255,227,217,.08),transparent 24%),
+    linear-gradient(150deg,rgba(125,38,51,.42),transparent 48%);
 }
 
-/* Old Letter · warm parchment, faint fibers */
 .messenger-chat.chat-theme-old-letter{
-  --chat-bg:#cbb99d;
-  --chat-panel:#d8c7aa;
-  --chat-mine:#aa8268;
+  --chat-bg:#cdbb9f;
+  --chat-panel:#d9c8ab;
+  --chat-mine:#ab8369;
   --chat-theirs:#eadfc9;
   --chat-ink:#4b352a;
-  --chat-bubble-ink:#493329;
-  --chat-mine-ink:#38261f;
   --chat-accent:#7c4f3c;
-  --chat-wallpaper:
-    repeating-linear-gradient(
-      8deg,
-      rgba(75,53,42,.024) 0 1px,
-      transparent 1px 7px
-    ),
-    repeating-linear-gradient(
-      92deg,
-      rgba(255,255,255,.055) 0 1px,
-      transparent 1px 11px
-    ),
-    radial-gradient(circle at 22% 18%,rgba(255,244,218,.28),transparent 34%);
+  background-image:
+    repeating-linear-gradient(8deg,rgba(75,53,42,.024) 0 1px,transparent 1px 7px),
+    radial-gradient(circle at 22% 18%,rgba(255,244,218,.22),transparent 35%);
 }
 
-/* Soft Rose · blush stationery / subtle gingham */
 .messenger-chat.chat-theme-soft-rose{
-  --chat-bg:#efd5d6;
-  --chat-panel:#f5e2df;
-  --chat-mine:#dca5ab;
+  --chat-bg:#efd6d7;
+  --chat-panel:#f4e1df;
+  --chat-mine:#dda6ac;
   --chat-theirs:#fff0e5;
   --chat-ink:#54252a;
-  --chat-bubble-ink:#54252a;
-  --chat-mine-ink:#54252a;
   --chat-accent:#a24d5a;
-  --chat-wallpaper:
-    linear-gradient(90deg,rgba(159,75,88,.035) 50%,transparent 50%),
-    linear-gradient(rgba(159,75,88,.035) 50%,transparent 50%);
-  background-size:28px 28px !important;
+  background-image:
+    linear-gradient(90deg,rgba(159,75,88,.03) 50%,transparent 50%),
+    linear-gradient(rgba(159,75,88,.03) 50%,transparent 50%);
+  background-size:28px 28px;
 }
 
-/* Midnight · star-speckled plum */
 .messenger-chat.chat-theme-midnight{
   --chat-bg:#21131c;
   --chat-panel:#2d1823;
   --chat-mine:#713446;
   --chat-theirs:#402431;
   --chat-ink:#f8ecdd;
-  --chat-bubble-ink:#f8ecdd;
-  --chat-mine-ink:#fff0e2;
   --chat-accent:#d98796;
-  --chat-wallpaper:
-    radial-gradient(circle at 13px 15px,rgba(255,241,222,.20) 0 1px,transparent 1.2px),
-    radial-gradient(circle at 38px 31px,rgba(255,241,222,.10) 0 1px,transparent 1.3px),
-    radial-gradient(circle at 70% 10%,rgba(141,72,103,.28),transparent 36%);
-  background-size:54px 54px,68px 68px,auto !important;
+  background-image:
+    radial-gradient(circle at 13px 15px,rgba(255,241,222,.16) 0 1px,transparent 1.2px),
+    radial-gradient(circle at 38px 31px,rgba(255,241,222,.08) 0 1px,transparent 1.3px);
+  background-size:54px 54px,68px 68px;
 }
 
-/* Time adapts each theme instead of replacing every theme with one night palette. */
+/* Adapt to time gently. The chosen theme stays recognizable. */
+.messenger-chat.chat-adapt-time.chat-time-golden{
+  filter:saturate(.98);
+}
 .messenger-chat.chat-theme-diary.chat-adapt-time.chat-time-golden{
-  --chat-bg:#d9b5a4;
-  --chat-panel:#e7c9ba;
-  --chat-mine:#d4939b;
-  --chat-theirs:#f3dfd2;
+  --chat-bg:#dfc1b2;
+  --chat-panel:#ebd1c3;
+}
+.messenger-chat.chat-theme-soft-rose.chat-adapt-time.chat-time-golden{
+  --chat-bg:#e4c0c1;
+  --chat-panel:#efd2ce;
+}
+.messenger-chat.chat-theme-cherry.chat-adapt-time.chat-time-golden{
+  --chat-bg:#63222f;
+  --chat-panel:#732a38;
+}
+.messenger-chat.chat-theme-old-letter.chat-adapt-time.chat-time-golden{
+  --chat-bg:#c3aa87;
+  --chat-panel:#d0b895;
+}
+
+.messenger-chat.chat-adapt-time:is(.chat-time-night,.chat-time-late):not(.chat-theme-midnight){
+  --chat-ink:#f7eadb;
 }
 .messenger-chat.chat-theme-diary.chat-adapt-time:is(.chat-time-night,.chat-time-late){
-  --chat-bg:#4a2930;
-  --chat-panel:#573039;
-  --chat-mine:#7b414d;
-  --chat-theirs:#6a3a43;
-  --chat-ink:#f7eadb;
-  --chat-bubble-ink:#f7eadb;
-  --chat-mine-ink:#fff0e2;
-  --chat-accent:#e0959f;
-}
-
-.messenger-chat.chat-theme-cherry.chat-adapt-time.chat-time-golden{
-  --chat-bg:#692431;
-  --chat-panel:#7b2e3c;
-  --chat-mine:#cf7d86;
-  --chat-theirs:#f1d6d0;
-}
-.messenger-chat.chat-theme-cherry.chat-adapt-time:is(.chat-time-night,.chat-time-late){
-  --chat-bg:#35131c;
-  --chat-panel:#431823;
-  --chat-mine:#7d3848;
-  --chat-theirs:#542430;
-  --chat-ink:#fff0e2;
-  --chat-bubble-ink:#f9e8dc;
-  --chat-mine-ink:#fff1e5;
-}
-
-.messenger-chat.chat-theme-old-letter.chat-adapt-time.chat-time-golden{
-  --chat-bg:#b89b78;
-  --chat-panel:#c6aa87;
-  --chat-mine:#956a50;
-  --chat-theirs:#e1ceb1;
-}
-.messenger-chat.chat-theme-old-letter.chat-adapt-time:is(.chat-time-night,.chat-time-late){
-  --chat-bg:#3d3029;
-  --chat-panel:#4a382f;
-  --chat-mine:#765644;
-  --chat-theirs:#59453a;
-  --chat-ink:#f1dfc7;
-  --chat-bubble-ink:#f1dfc7;
-  --chat-mine-ink:#fff0da;
-  --chat-accent:#d6a27f;
-}
-
-.messenger-chat.chat-theme-soft-rose.chat-adapt-time.chat-time-golden{
-  --chat-bg:#dfb6b8;
-  --chat-panel:#e9c9c7;
-  --chat-mine:#c98993;
-  --chat-theirs:#f8e1d8;
+  --chat-bg:#43242b;
+  --chat-panel:#503039;
+  --chat-mine:#74404b;
+  --chat-theirs:#633941;
+  --chat-accent:#df909b;
 }
 .messenger-chat.chat-theme-soft-rose.chat-adapt-time:is(.chat-time-night,.chat-time-late){
-  --chat-bg:#4b2931;
-  --chat-panel:#5b323b;
-  --chat-mine:#7d4653;
-  --chat-theirs:#68404a;
-  --chat-ink:#f9e8dd;
-  --chat-bubble-ink:#f9e8dd;
-  --chat-mine-ink:#fff0e5;
+  --chat-bg:#44262e;
+  --chat-panel:#53313a;
+  --chat-mine:#75434f;
+  --chat-theirs:#603a43;
+}
+.messenger-chat.chat-theme-cherry.chat-adapt-time:is(.chat-time-night,.chat-time-late){
+  --chat-bg:#30121a;
+  --chat-panel:#3e1822;
+  --chat-mine:#753443;
+  --chat-theirs:#4f252e;
+}
+.messenger-chat.chat-theme-old-letter.chat-adapt-time:is(.chat-time-night,.chat-time-late){
+  --chat-bg:#3a2e28;
+  --chat-panel:#47372f;
+  --chat-mine:#705241;
+  --chat-theirs:#58443a;
+  --chat-accent:#d7a17f;
 }
 
-.messenger-chat.chat-theme-midnight.chat-adapt-time.chat-time-golden{
-  --chat-bg:#33202a;
-  --chat-panel:#432734;
+/* Keep the approved bubble/composer shapes from styles.css.
+   Only theme-specific material is changed here. */
+.messenger-chat.chat-theme-old-letter .messenger-bubble{
+  font-family:var(--font-display);
 }
-.messenger-chat.chat-theme-midnight.chat-adapt-time:is(.chat-time-night,.chat-time-late){
-  --chat-bg:#160c13;
-  --chat-panel:#211019;
-  --chat-mine:#542638;
-  --chat-theirs:#321a26;
-  --chat-ink:#faeee0;
-  --chat-bubble-ink:#faeee0;
-  --chat-mine-ink:#fff1e4;
+.messenger-chat.chat-theme-old-letter .messenger-message.is-assistant .messenger-bubble{
+  transform:rotate(-.15deg) !important;
 }
-
-/* Header and composer remain part of the chosen theme. */
-.screen-chat .messenger-chat .messenger-header{
-  background:color-mix(in oklab,var(--chat-panel) 94%,transparent) !important;
-  border-bottom-color:color-mix(in oklab,var(--chat-ink) 16%,transparent) !important;
+.messenger-chat.chat-theme-old-letter .messenger-message.is-user .messenger-bubble{
+  transform:rotate(.12deg) !important;
 }
-.screen-chat .messenger-chat .messenger-person h1,
-.screen-chat .messenger-chat .messenger-person p,
-.screen-chat .messenger-chat .messenger-header-actions button{
-  color:var(--chat-ink) !important;
-  -webkit-text-fill-color:var(--chat-ink) !important;
+.messenger-chat.chat-theme-midnight .messenger-bubble,
+.messenger-chat.chat-theme-cherry .messenger-bubble{
+  border-color:color-mix(in oklab,var(--chat-ink) 10%,transparent) !important;
 }
-.screen-chat .messenger-chat .messenger-person p{
-  opacity:.72 !important;
-}
-.screen-chat .messenger-chat .messenger-composer-wrap{
-  background:color-mix(in oklab,var(--chat-panel) 97%,transparent) !important;
-  border-top-color:color-mix(in oklab,var(--chat-ink) 14%,transparent) !important;
-}
-.screen-chat .messenger-chat .messenger-composer [data-slot=input-group]{
-  background:color-mix(in oklab,var(--chat-theirs) 90%,var(--chat-panel)) !important;
-  border-color:color-mix(in oklab,var(--chat-ink) 14%,transparent) !important;
-}
-.screen-chat .messenger-chat .messenger-composer textarea{
-  color:var(--chat-bubble-ink) !important;
-  -webkit-text-fill-color:var(--chat-bubble-ink) !important;
-}
-.screen-chat .messenger-chat .messenger-composer textarea::placeholder{
-  color:color-mix(in oklab,var(--chat-bubble-ink) 52%,transparent) !important;
-  -webkit-text-fill-color:color-mix(in oklab,var(--chat-bubble-ink) 52%,transparent) !important;
+.messenger-chat.chat-theme-soft-rose .messenger-bubble{
+  box-shadow:0 4px 14px rgba(103,50,60,.055) !important;
 }
 
-/* Message text uses bubble-specific ink. */
-.screen-chat .messenger-chat .messenger-message.is-assistant .messenger-bubble,
-.screen-chat .messenger-chat .messenger-message.is-assistant .diario-message-content,
-.screen-chat .messenger-chat .messenger-message.is-assistant .diario-message-content *{
-  color:var(--chat-bubble-ink) !important;
-  -webkit-text-fill-color:var(--chat-bubble-ink) !important;
-}
-.screen-chat .messenger-chat .messenger-message.is-user .messenger-bubble,
-.screen-chat .messenger-chat .messenger-message.is-user .diario-message-content,
-.screen-chat .messenger-chat .messenger-message.is-user .diario-message-content *{
-  color:var(--chat-mine-ink) !important;
-  -webkit-text-fill-color:var(--chat-mine-ink) !important;
-}
-.screen-chat .messenger-chat .messenger-message time{
-  color:color-mix(in oklab,var(--chat-ink) 56%,transparent) !important;
-  -webkit-text-fill-color:color-mix(in oklab,var(--chat-ink) 56%,transparent) !important;
-}
-
-/* Bubble presets genuinely change silhouette/material. */
-.screen-chat .messenger-chat.chat-bubbles-soft .messenger-bubble{
-  border:0 !important;
-  border-radius:18px 18px 18px 5px !important;
-  box-shadow:0 5px 16px rgba(45,24,20,.07) !important;
-  font-family:var(--font-body) !important;
-}
-.screen-chat .messenger-chat.chat-bubbles-soft .messenger-message.is-user .messenger-bubble{
-  border-radius:18px 18px 5px 18px !important;
-}
-.screen-chat .messenger-chat.chat-bubbles-paper .messenger-bubble{
-  border:1px solid color-mix(in oklab,var(--chat-ink) 13%,transparent) !important;
-  border-radius:2px 10px 10px 10px !important;
-  box-shadow:3px 4px 0 color-mix(in oklab,var(--chat-ink) 7%,transparent) !important;
-  font-family:var(--font-display) !important;
-  font-size:15px !important;
-}
-.screen-chat .messenger-chat.chat-bubbles-paper .messenger-message.is-user .messenger-bubble{
-  border-radius:10px 2px 10px 10px !important;
-}
-.screen-chat .messenger-chat.chat-bubbles-minimal .messenger-bubble{
-  border:0 !important;
-  border-bottom:1px solid color-mix(in oklab,var(--chat-ink) 20%,transparent) !important;
-  border-radius:0 !important;
-  background:transparent !important;
-  box-shadow:none !important;
-  padding-inline:2px !important;
-}
-.screen-chat .messenger-chat.chat-bubbles-classic .messenger-bubble{
+/* Bubble material remains a separate choice. */
+.messenger-chat.chat-bubbles-paper .messenger-bubble{
+  border-radius:2px 8px 8px 8px !important;
   border:1px solid color-mix(in oklab,var(--chat-ink) 12%,transparent) !important;
-  border-radius:7px !important;
-  box-shadow:0 2px 5px color-mix(in oklab,var(--chat-ink) 6%,transparent) !important;
   font-family:var(--font-display) !important;
-  font-size:14px !important;
+  background-image:
+    repeating-linear-gradient(180deg,transparent 0 24px,color-mix(in oklab,var(--chat-ink) 4%,transparent) 24px 25px) !important;
+}
+.messenger-chat.chat-bubbles-paper .messenger-message.is-user .messenger-bubble{
+  border-radius:8px 2px 8px 8px !important;
+}
+.messenger-chat.chat-bubbles-minimal .messenger-bubble{
+  background:transparent !important;
+}
+.messenger-chat.chat-bubbles-classic .messenger-bubble{
+  font-family:var(--font-display) !important;
 }
 
-/* Theme-specific micro details */
-.screen-chat .messenger-chat.chat-theme-old-letter .messenger-day-divider span{
-  border-radius:1px !important;
-  font-family:var(--font-display) !important;
-  font-style:italic !important;
-}
-.screen-chat .messenger-chat.chat-theme-cherry .messenger-day-divider span,
-.screen-chat .messenger-chat.chat-theme-midnight .messenger-day-divider span{
-  color:var(--chat-ink) !important;
-  background:color-mix(in oklab,var(--chat-panel) 86%,transparent) !important;
-}
-.screen-chat .messenger-chat.chat-theme-soft-rose .messenger-header{
-  box-shadow:0 8px 18px rgba(116,53,65,.06) !important;
-}
-
-/* Both people have profile affordances in the header. */
+/* ---------- BOTH PEOPLE EXIST IN THE HEADER ---------- */
 .messenger-self-avatar{
   width:29px !important;
   height:29px !important;
   padding:0 !important;
   overflow:hidden !important;
-  border:1px solid color-mix(in oklab,var(--chat-ink) 22%,transparent) !important;
+  border:1px solid color-mix(in oklab,var(--chat-ink) 18%,transparent) !important;
   border-radius:50% !important;
   background:color-mix(in oklab,var(--chat-theirs) 72%,transparent) !important;
 }
@@ -310,18 +178,45 @@
   width:100%;
   height:100%;
   color:var(--chat-ink);
-  -webkit-text-fill-color:var(--chat-ink);
   font:700 10px var(--font-display);
 }
+
+.messenger-presence-meta{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  margin-top:3px;
+}
+.messenger-presence-meta span{
+  min-width:0;
+  max-width:125px;
+  overflow:hidden;
+  color:color-mix(in oklab,var(--chat-ink) 62%,transparent) !important;
+  -webkit-text-fill-color:color-mix(in oklab,var(--chat-ink) 62%,transparent) !important;
+  font:7px/1.2 var(--font-body);
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.messenger-presence-meta span + span::before{
+  content:"·";
+  margin-right:6px;
+  opacity:.55;
+}
+.messenger-presence-meta .messenger-wearing{
+  flex:1 1 auto;
+}
+
 .chat-profile-inline-error{
   margin:6px 12px 0;
   padding:7px 9px;
-  border:1px solid color-mix(in oklab,var(--chat-ink) 14%,transparent);
+  border-left:2px solid var(--chat-accent);
+  background:color-mix(in oklab,var(--chat-panel) 80%,transparent);
   color:var(--chat-ink);
   font:8px/1.35 var(--font-body);
 }
 
-/* Profile sheet is deliberately paper-like and independent of current chat theme. */
+/* ---------- PROFILE SHEETS ---------- */
 .chat-profile-sheet{
   --profile-paper:#f3e1d2;
   --profile-ink:#57222b;
@@ -330,35 +225,45 @@
   max-height:min(86vh,760px) !important;
   overflow-y:auto !important;
   background:
-    repeating-linear-gradient(180deg,transparent 0 34px,rgba(103,45,52,.035) 34px 35px),
+    repeating-linear-gradient(180deg,transparent 0 34px,rgba(103,45,52,.032) 34px 35px),
     var(--profile-paper) !important;
   color:var(--profile-ink) !important;
 }
 .chat-profile-sheet [data-slot=sheet-title]{
   color:var(--profile-ink) !important;
   -webkit-text-fill-color:var(--profile-ink) !important;
-  font-family:var(--font-display) !important;
-  font-size:24px !important;
+  font:500 25px/1 var(--font-display) !important;
 }
 .chat-profile-hero{
+  position:relative;
   display:grid;
-  grid-template-columns:82px minmax(0,1fr);
+  grid-template-columns:78px minmax(0,1fr);
   align-items:center;
-  gap:15px;
+  gap:14px;
   margin-top:12px;
-  padding:15px;
-  border:1px solid rgba(91,30,39,.11);
+  padding:14px;
+  border:1px solid rgba(91,30,39,.10);
+  border-radius:1px;
   background:#f8eadc;
-  box-shadow:4px 5px 0 rgba(45,13,18,.08);
+  box-shadow:4px 5px 0 rgba(45,13,18,.07);
+}
+.chat-profile-hero::after{
+  content:"♡";
+  position:absolute;
+  right:13px;
+  bottom:9px;
+  color:#b36a73;
+  font:18px var(--font-display);
+  transform:rotate(7deg);
 }
 .chat-profile-photo{
-  width:82px;
-  height:82px;
+  width:78px;
+  height:78px;
   overflow:hidden;
   border:5px solid #fff0e3;
   border-radius:50%;
   background:#d5a4a7;
-  box-shadow:2px 3px 0 rgba(75,27,34,.10);
+  box-shadow:2px 3px 0 rgba(75,27,34,.09);
 }
 .chat-profile-photo img{
   width:100%;
@@ -371,26 +276,25 @@
   width:100%;
   height:100%;
   color:#6a2430;
-  font:500 32px var(--font-display);
+  font:500 30px var(--font-display);
 }
 .chat-profile-hero > div:last-child{
   min-width:0;
   display:grid;
-  gap:5px;
+  gap:4px;
 }
 .chat-profile-hero strong{
   color:var(--profile-ink);
-  -webkit-text-fill-color:var(--profile-ink);
-  font:500 28px/.95 var(--font-display);
+  font:500 27px/.95 var(--font-display);
 }
 .chat-profile-hero small{
   color:var(--profile-muted);
-  -webkit-text-fill-color:var(--profile-muted);
   font:italic 10px/1.35 var(--font-display);
 }
 .chat-profile-photo-actions{
   display:flex;
-  gap:8px;
+  flex-wrap:wrap;
+  gap:7px;
   margin-top:10px;
 }
 .chat-profile-photo-actions label,
@@ -399,11 +303,11 @@
   align-items:center;
   justify-content:center;
   gap:6px;
-  min-height:34px;
+  min-height:33px;
   padding:7px 10px;
-  border:1px solid rgba(91,30,39,.15);
+  border:1px solid rgba(91,30,39,.14);
   border-radius:1px;
-  background:rgba(255,246,236,.32);
+  background:rgba(255,246,236,.30);
   color:var(--profile-ink);
   font:8px var(--font-body);
   cursor:pointer;
@@ -433,7 +337,6 @@
 .chat-profile-fields label > span,
 .chat-profile-shortcuts > small{
   color:var(--profile-accent);
-  -webkit-text-fill-color:var(--profile-accent);
   font:700 7px var(--font-body);
   letter-spacing:.16em;
   text-transform:uppercase;
@@ -470,7 +373,7 @@
 .chat-profile-shortcuts > div{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  border:1px solid rgba(91,30,39,.11);
+  border:1px solid rgba(91,30,39,.10);
 }
 .chat-profile-shortcuts button{
   display:flex;
@@ -480,515 +383,33 @@
   min-height:42px;
   padding:9px 10px;
   border:0;
-  border-bottom:1px solid rgba(91,30,39,.09);
-  background:rgba(255,247,237,.24);
+  border-bottom:1px solid rgba(91,30,39,.08);
+  background:rgba(255,247,237,.22);
   color:var(--profile-ink);
   text-align:left;
   font:9px var(--font-body);
 }
 .chat-profile-shortcuts button:nth-child(odd){
-  border-right:1px solid rgba(91,30,39,.09);
+  border-right:1px solid rgba(91,30,39,.08);
 }
 .chat-profile-ownership-note,
 .chat-profile-notice{
   margin:13px 0 0;
   padding:9px 10px;
   border-left:2px solid #a25460;
-  background:rgba(255,247,237,.30);
+  background:rgba(255,247,237,.27);
   color:var(--profile-muted);
-  -webkit-text-fill-color:var(--profile-muted);
   font:italic 9px/1.5 var(--font-display);
 }
 
-@media (max-width:420px){
-  .messenger-header{
-    grid-template-columns:42px minmax(0,1fr) auto !important;
-    gap:7px !important;
-  }
-  .messenger-header-actions{
-    gap:0 !important;
-  }
-  .messenger-header-actions > button,
-  .messenger-header-actions [data-slot=sheet-trigger]{
-    width:27px !important;
-    height:27px !important;
-  }
-  .chat-profile-hero{
-    grid-template-columns:72px minmax(0,1fr);
-  }
-  .chat-profile-photo{
-    width:72px;
-    height:72px;
-  }
-}
-
-
-/* =========================================================
-   CHAT · CUSTOM STICKER TRAY
-   ========================================================= */
-.chat-stickers-sheet{
-  --sticker-paper:#f3e1d2;
-  --sticker-ink:#57222b;
-  --sticker-muted:#8b5c61;
-  max-height:min(82vh,700px) !important;
-  overflow-y:auto !important;
-}
-.chat-sticker-toolbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin:12px 0 15px;
-  padding-bottom:10px;
-  border-bottom:1px solid rgba(91,30,39,.11);
-}
-.chat-sticker-toolbar button{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  min-height:34px;
-  padding:7px 11px;
-  border:0;
-  border-radius:1px;
-  background:#681b27;
-  color:#fff0e2;
-  font:8px var(--font-body);
-}
-.chat-sticker-toolbar > span{
-  color:#8b5c61;
-  font:8px var(--font-body);
-}
-.chat-custom-stickers,
-.chat-built-in-stickers{
-  display:grid;
-  gap:8px;
-  margin-top:14px;
-}
-.chat-custom-stickers > small,
-.chat-built-in-stickers > small{
-  color:#a24e58;
-  font:700 7px var(--font-body);
-  letter-spacing:.16em;
-}
-.chat-custom-stickers > div{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:9px;
-}
-.chat-custom-sticker{
-  position:relative;
-  min-width:0;
-  aspect-ratio:1;
-  padding:5px;
-  border:1px solid rgba(91,30,39,.10);
-  background:
-    linear-gradient(45deg,rgba(126,57,68,.035) 25%,transparent 25%) 0 0/14px 14px,
-    linear-gradient(-45deg,rgba(126,57,68,.035) 25%,transparent 25%) 0 7px/14px 14px,
-    #f7eadc;
-  box-shadow:2px 3px 0 rgba(62,18,25,.06);
-}
-.chat-custom-sticker-send{
-  width:100%;
-  height:100%;
-  padding:2px;
-  border:0;
-  background:transparent;
-}
-.chat-custom-sticker-send img{
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  filter:drop-shadow(0 3px 3px rgba(68,22,29,.09));
-}
-.chat-custom-sticker-send > span{
-  color:#8b5c61;
-  font:7px var(--font-body);
-}
-.chat-custom-sticker-remove{
-  position:absolute;
-  top:-5px;
-  right:-5px;
-  display:grid;
-  place-items:center;
-  width:20px;
-  height:20px;
-  padding:0;
-  border:1px solid rgba(91,30,39,.14);
-  border-radius:50%;
-  background:#f7eadc;
-  color:#8a414b;
-  font:12px/1 var(--font-body);
-  box-shadow:1px 2px 0 rgba(62,18,25,.08);
-}
-.chat-built-in-stickers .chat-sticker-grid{
-  display:grid;
-  grid-template-columns:repeat(8,minmax(0,1fr));
-  gap:5px;
-}
-.chat-built-in-stickers .chat-sticker-grid button{
-  display:grid;
-  place-items:center;
-  aspect-ratio:1;
-  padding:0;
-  border:1px solid rgba(91,30,39,.08);
-  border-radius:1px;
-  background:rgba(255,247,237,.28);
-  font-size:19px;
-}
-.chat-sticker-notice{
-  margin:12px 0 0;
-  padding:8px 10px;
-  border-left:2px solid #a24e58;
-  color:#8b5c61;
-  font:italic 9px/1.4 var(--font-display);
-}
-
-/* Sent image stickers float without a normal speech bubble. */
-.screen-chat .chat-sticker-message{
-  width:min(138px,38vw);
-  min-height:78px;
-  display:grid;
-  place-items:center;
-  padding:3px;
-  background:transparent !important;
-}
-.screen-chat .chat-sticker-message img{
-  display:block;
-  width:100%;
-  max-height:150px;
-  object-fit:contain;
-  filter:drop-shadow(0 5px 5px rgba(42,18,22,.12));
-}
-.screen-chat .messenger-message:has(.chat-sticker-message){
-  max-width:46% !important;
-}
-.screen-chat .messenger-message:has(.chat-sticker-message) time{
-  margin-top:2px;
-}
-@media (max-width:390px){
-  .chat-custom-stickers > div{
-    grid-template-columns:repeat(4,minmax(0,1fr));
-  }
-  .chat-built-in-stickers .chat-sticker-grid{
-    grid-template-columns:repeat(6,minmax(0,1fr));
-  }
-}
-
-
-/* =========================================================
-   CHAT · IDENTITY PASS 2026-10-03
-   Theme presets are complete rooms, not tint-only variants.
-   These selectors intentionally outrank the old global chat ink rules.
-   ========================================================= */
-html body .screen-chat .messenger-chat{
-  background-color:var(--chat-bg) !important;
-  background-image:var(--chat-wallpaper) !important;
-  transition:background-color 220ms ease,color 220ms ease !important;
-}
-html body .screen-chat .messenger-chat .messenger-conversation,
-html body .screen-chat .messenger-chat .messenger-messages{
-  background:transparent !important;
-}
-
-/* Actual message materials per preset. */
-html body .screen-chat .messenger-chat .messenger-message.is-assistant .messenger-bubble{
-  background:var(--chat-theirs) !important;
-  color:var(--chat-bubble-ink) !important;
-  -webkit-text-fill-color:var(--chat-bubble-ink) !important;
-}
-html body .screen-chat .messenger-chat .messenger-message.is-user .messenger-bubble{
-  background:var(--chat-mine) !important;
-  color:var(--chat-mine-ink) !important;
-  -webkit-text-fill-color:var(--chat-mine-ink) !important;
-}
-html body .screen-chat .messenger-chat .messenger-message.is-assistant .messenger-bubble *,
-html body .screen-chat .messenger-chat .messenger-message.is-assistant .diario-message-content *{
-  color:var(--chat-bubble-ink) !important;
-  -webkit-text-fill-color:var(--chat-bubble-ink) !important;
-}
-html body .screen-chat .messenger-chat .messenger-message.is-user .messenger-bubble *,
-html body .screen-chat .messenger-chat .messenger-message.is-user .diario-message-content *{
-  color:var(--chat-mine-ink) !important;
-  -webkit-text-fill-color:var(--chat-mine-ink) !important;
-}
-
-/* Diary = torn notebook note. */
-html body .screen-chat .chat-theme-diary .messenger-message.is-assistant .messenger-bubble,
-html body .screen-chat .chat-theme-diary .messenger-message.is-user .messenger-bubble{
-  background-image:
-    repeating-linear-gradient(180deg,transparent 0 25px,rgba(112,43,52,.045) 25px 26px) !important;
-}
-html body .screen-chat .chat-theme-diary .messenger-header::after{
-  content:"private thread";
-  position:absolute;
-  right:16px;
-  bottom:-8px;
-  padding:3px 7px;
-  background:#f4e3d4;
-  color:#8f4b55;
-  font:italic 8px var(--font-display);
-  transform:rotate(2deg);
-  box-shadow:2px 2px 0 rgba(72,25,31,.06);
-}
-
-/* Cherry Wine = dark room + pink note bubbles. */
-html body .screen-chat .chat-theme-cherry .messenger-message.is-assistant .messenger-bubble{
-  border:1px solid rgba(255,232,221,.16) !important;
-  box-shadow:0 8px 22px rgba(25,5,10,.15) !important;
-}
-html body .screen-chat .chat-theme-cherry .messenger-message.is-user .messenger-bubble{
-  box-shadow:0 8px 22px rgba(25,5,10,.18) !important;
-}
-html body .screen-chat .chat-theme-cherry .messenger-day-divider span{
-  border:1px solid rgba(255,236,225,.14) !important;
-}
-
-/* Old Letter = parchment slips, serif chat, aged edges. */
-html body .screen-chat .chat-theme-old-letter .messenger-bubble{
-  font-family:var(--font-display) !important;
-  background-image:
-    repeating-linear-gradient(7deg,rgba(79,54,41,.025) 0 1px,transparent 1px 8px) !important;
-  border-color:rgba(75,53,42,.16) !important;
-}
-html body .screen-chat .chat-theme-old-letter .messenger-message.is-assistant .messenger-bubble{
-  transform:rotate(-.25deg);
-}
-html body .screen-chat .chat-theme-old-letter .messenger-message.is-user .messenger-bubble{
-  transform:rotate(.2deg);
-}
-html body .screen-chat .chat-theme-old-letter .messenger-header,
-html body .screen-chat .chat-theme-old-letter .messenger-composer-wrap{
-  box-shadow:inset 0 1px rgba(255,247,226,.16) !important;
-}
-
-/* Soft Rose = stationery, softer silhouettes and gingham world. */
-html body .screen-chat .chat-theme-soft-rose .messenger-bubble{
-  border-color:rgba(125,58,70,.09) !important;
-  box-shadow:0 6px 16px rgba(102,50,59,.07) !important;
-}
-html body .screen-chat .chat-theme-soft-rose .messenger-avatar,
-html body .screen-chat .chat-theme-soft-rose .messenger-self-avatar{
-  box-shadow:0 0 0 3px rgba(255,239,233,.46) !important;
-}
-
-/* Midnight = explicitly nighttime even if Adapt to time is off. */
-html body .screen-chat .chat-theme-midnight .messenger-header,
-html body .screen-chat .chat-theme-midnight .messenger-composer-wrap{
-  border-color:rgba(249,232,219,.10) !important;
-  box-shadow:0 10px 26px rgba(0,0,0,.18) !important;
-}
-html body .screen-chat .chat-theme-midnight .messenger-bubble{
-  border-color:rgba(249,232,219,.10) !important;
-}
-
-/* Bubble material and theme are independent controls. */
-html body .screen-chat .messenger-chat.chat-bubbles-minimal .messenger-message .messenger-bubble{
-  background:transparent !important;
-}
-html body .screen-chat .messenger-chat.chat-bubbles-paper .messenger-message .messenger-bubble{
-  background-image:
-    repeating-linear-gradient(180deg,transparent 0 24px,color-mix(in oklab,var(--chat-ink) 5%,transparent) 24px 25px) !important;
-}
-
-/* Header now reads as two real profiles sharing one conversation. */
-html body .screen-chat .messenger-header{
-  position:relative !important;
-  min-height:68px !important;
-}
-html body .screen-chat .messenger-avatar{
-  width:44px !important;
-  height:44px !important;
-  padding:0 !important;
-  overflow:visible !important;
-  border:2px solid color-mix(in oklab,var(--chat-accent) 58%,var(--chat-panel)) !important;
-  border-radius:50% !important;
-  background:var(--chat-panel) !important;
-  box-shadow:0 4px 12px rgba(37,11,16,.11) !important;
-}
-html body .screen-chat .messenger-avatar img{
-  width:100% !important;
-  height:100% !important;
-  object-fit:cover !important;
-  border-radius:50% !important;
-}
-html body .screen-chat .presence-dot{
-  position:absolute !important;
-  right:-1px !important;
-  bottom:1px !important;
-  width:11px !important;
-  height:11px !important;
-  border:2px solid var(--chat-panel) !important;
-  border-radius:50% !important;
-  background:#8eaa79 !important;
-}
-html body .screen-chat .messenger-person h1{
-  font:500 19px/.98 var(--font-display) !important;
-}
-html body .screen-chat .messenger-person p{
-  margin-top:4px !important;
-  max-width:190px !important;
-  overflow:hidden !important;
-  font:8.5px/1.25 var(--font-body) !important;
-  text-overflow:ellipsis !important;
-  white-space:nowrap !important;
-}
-
-/* Profile sheets feel like a profile, not a settings form. */
-.chat-profile-sheet .chat-profile-hero{
-  position:relative;
-  overflow:visible;
-}
-.chat-profile-sheet .chat-profile-hero::after{
-  content:"♡";
-  position:absolute;
-  right:14px;
-  bottom:10px;
-  color:#b56d75;
-  font:19px var(--font-display);
-  transform:rotate(8deg);
-}
-.chat-profile-sheet .chat-profile-photo{
-  position:relative;
-}
-.chat-profile-sheet .chat-profile-photo::after{
-  content:"";
-  position:absolute;
-  inset:-7px;
-  border:1px solid rgba(101,35,44,.10);
-  border-radius:50%;
-  pointer-events:none;
-}
-.chat-profile-sheet .chat-profile-shortcuts button:hover{
-  background:#ead5c6 !important;
-}
-
-/* Theme swatches are mini previews of the real rooms. */
-.chat-settings-sheet .theme-swatch{
-  position:relative !important;
-  overflow:hidden !important;
-  border-radius:1px !important;
-}
-.chat-settings-sheet .swatch-diary{
-  background:
-    repeating-linear-gradient(180deg,#f3e3d4 0 11px,#e6c8c3 11px 12px) !important;
-}
-.chat-settings-sheet .swatch-cherry{
-  background:
-    radial-gradient(circle at 25% 24%,#d9828b 0 3px,transparent 3px),
-    #5b1c28 !important;
-}
-.chat-settings-sheet .swatch-old-letter{
-  background:
-    repeating-linear-gradient(8deg,#dbc9ab 0 7px,#c6af8f 7px 8px) !important;
-}
-.chat-settings-sheet .swatch-soft-rose{
-  background:
-    linear-gradient(90deg,rgba(161,77,90,.09) 50%,transparent 50%),
-    linear-gradient(rgba(161,77,90,.09) 50%,transparent 50%),
-    #efd5d6 !important;
-  background-size:10px 10px !important;
-}
-.chat-settings-sheet .swatch-midnight{
-  background:
-    radial-gradient(circle at 25% 30%,#f6dfcf 0 1px,transparent 1.5px),
-    radial-gradient(circle at 70% 58%,#d68e9a 0 1px,transparent 1.5px),
-    #21131c !important;
-}
-
-@media (max-width:420px){
-  html body .screen-chat .messenger-header{
-    grid-template-columns:46px minmax(0,1fr) auto !important;
-  }
-  html body .screen-chat .messenger-person p{
-    max-width:145px !important;
-  }
-}
-
-
-/* Dominic's live state includes mood + current outfit without turning the header into a dashboard. */
-.screen-chat .messenger-presence-meta{
-  display:flex;
-  align-items:center;
-  gap:5px;
-  min-width:0;
-  margin-top:3px;
-}
-.screen-chat .messenger-presence-meta span{
-  flex:0 0 auto;
-  max-width:128px;
-  padding:2px 5px;
-  overflow:hidden;
-  border:1px solid color-mix(in oklab,var(--chat-ink) 11%,transparent);
-  border-radius:999px;
-  color:color-mix(in oklab,var(--chat-ink) 68%,transparent) !important;
-  -webkit-text-fill-color:color-mix(in oklab,var(--chat-ink) 68%,transparent) !important;
-  font:6px/1.15 var(--font-body);
-  letter-spacing:.04em;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-.screen-chat .messenger-presence-meta .messenger-wearing{
-  flex:1 1 auto;
-}
-@media (max-width:420px){
-  .screen-chat .messenger-presence-meta span{
-    max-width:92px;
-  }
-}
-
-
-/* Sticker ownership is part of each person's chat identity. */
-.chat-sticker-owner-tabs{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
-  gap:0;
-  margin:12px 0 10px;
-  border:1px solid rgba(91,30,39,.11);
-}
-.chat-sticker-owner-tabs button{
-  min-height:34px;
-  padding:6px 5px;
-  border:0;
-  border-right:1px solid rgba(91,30,39,.08);
-  background:rgba(255,247,237,.24);
-  color:#85545a;
-  font:8px var(--font-body);
-}
-.chat-sticker-owner-tabs button:last-child{
-  border-right:0;
-}
-.chat-sticker-owner-tabs button.active{
-  background:#6a1d28;
-  color:#fff0e2;
-}
-.chat-sticker-upload-owner{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:10px;
-  color:#8b5c61;
-  font:8px var(--font-body);
-}
-.chat-sticker-upload-owner select{
-  min-height:32px;
-  padding:5px 8px;
-  border:1px solid rgba(91,30,39,.12);
-  border-radius:1px;
-  background:#f8eadc;
-  color:#57222b;
-  font:8px var(--font-body);
-}
-
-
-/* Profile photo picker uses the actual Diary camera roll. */
+/* Diary camera roll profile picker */
 .chat-profile-photo-picker{
   margin-top:12px;
   padding:12px;
-  border:1px solid rgba(91,30,39,.12);
+  border:1px solid rgba(91,30,39,.11);
+  border-radius:1px;
   background:#ead6c7;
-  box-shadow:3px 4px 0 rgba(45,13,18,.07);
+  box-shadow:3px 4px 0 rgba(45,13,18,.06);
 }
 .chat-profile-photo-picker > header{
   display:flex;
@@ -1037,10 +458,239 @@ html body .screen-chat .messenger-person p{
   padding:0;
   overflow:hidden;
   border:1px solid rgba(91,30,39,.10);
+  border-radius:1px;
   background:#f3e1d2;
 }
 .chat-profile-photo-picker img{
   width:100%;
   height:100%;
   object-fit:cover;
+}
+
+/* ---------- STICKERS ---------- */
+.chat-stickers-sheet{
+  --sticker-paper:#f3e1d2;
+  --sticker-ink:#57222b;
+  --sticker-muted:#8b5c61;
+  max-height:min(82vh,700px) !important;
+  overflow-y:auto !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 34px,rgba(103,45,52,.028) 34px 35px),
+    var(--sticker-paper) !important;
+  color:var(--sticker-ink) !important;
+}
+.chat-sticker-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:12px 0 14px;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(91,30,39,.10);
+}
+.chat-sticker-toolbar button{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:34px;
+  padding:7px 11px;
+  border:0;
+  border-radius:1px;
+  background:#681b27;
+  color:#fff0e2;
+  font:8px var(--font-body);
+}
+.chat-sticker-toolbar > span{
+  color:#8b5c61;
+  font:8px var(--font-body);
+}
+.chat-sticker-owner-tabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:0;
+  margin:12px 0 10px;
+  border:1px solid rgba(91,30,39,.10);
+}
+.chat-sticker-owner-tabs button{
+  min-height:34px;
+  padding:6px 5px;
+  border:0;
+  border-right:1px solid rgba(91,30,39,.08);
+  border-radius:0;
+  background:rgba(255,247,237,.22);
+  color:#85545a;
+  font:8px var(--font-body);
+}
+.chat-sticker-owner-tabs button:last-child{
+  border-right:0;
+}
+.chat-sticker-owner-tabs button.active{
+  background:#6a1d28;
+  color:#fff0e2;
+}
+.chat-sticker-upload-owner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+  color:#8b5c61;
+  font:8px var(--font-body);
+}
+.chat-sticker-upload-owner select{
+  min-height:32px;
+  padding:5px 8px;
+  border:1px solid rgba(91,30,39,.12);
+  border-radius:1px;
+  background:#f8eadc;
+  color:#57222b;
+  font:8px var(--font-body);
+}
+.chat-custom-stickers,
+.chat-built-in-stickers{
+  display:grid;
+  gap:8px;
+  margin-top:14px;
+}
+.chat-custom-stickers > small,
+.chat-built-in-stickers > small{
+  color:#a24e58;
+  font:700 7px var(--font-body);
+  letter-spacing:.16em;
+}
+.chat-custom-stickers > div{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;
+}
+.chat-custom-sticker{
+  position:relative;
+  min-width:0;
+  aspect-ratio:1;
+  padding:5px;
+  border:1px solid rgba(91,30,39,.10);
+  border-radius:1px;
+  background:
+    linear-gradient(45deg,rgba(126,57,68,.03) 25%,transparent 25%) 0 0/14px 14px,
+    linear-gradient(-45deg,rgba(126,57,68,.03) 25%,transparent 25%) 0 7px/14px 14px,
+    #f7eadc;
+  box-shadow:2px 3px 0 rgba(62,18,25,.05);
+}
+.chat-custom-sticker-send{
+  width:100%;
+  height:100%;
+  padding:2px;
+  border:0;
+  background:transparent;
+}
+.chat-custom-sticker-send img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  filter:drop-shadow(0 3px 3px rgba(68,22,29,.08));
+}
+.chat-custom-sticker-remove{
+  position:absolute;
+  top:-5px;
+  right:-5px;
+  display:grid;
+  place-items:center;
+  width:20px;
+  height:20px;
+  padding:0;
+  border:1px solid rgba(91,30,39,.14);
+  border-radius:50%;
+  background:#f7eadc;
+  color:#8a414b;
+}
+.chat-built-in-stickers .chat-sticker-grid{
+  display:grid;
+  grid-template-columns:repeat(8,minmax(0,1fr));
+  gap:5px;
+}
+.chat-built-in-stickers .chat-sticker-grid button{
+  display:grid;
+  place-items:center;
+  aspect-ratio:1;
+  padding:0;
+  border:1px solid rgba(91,30,39,.08);
+  border-radius:1px;
+  background:rgba(255,247,237,.25);
+  font-size:19px;
+}
+.chat-sticker-notice{
+  margin:12px 0 0;
+  padding:8px 10px;
+  border-left:2px solid #a24e58;
+  color:#8b5c61;
+  font:italic 9px/1.4 var(--font-display);
+}
+
+/* Sent image stickers float without a standard speech bubble. */
+.screen-chat .chat-sticker-message{
+  width:min(138px,38vw);
+  min-height:78px;
+  display:grid;
+  place-items:center;
+  padding:3px;
+  background:transparent !important;
+}
+.screen-chat .chat-sticker-message img{
+  display:block;
+  width:100%;
+  max-height:150px;
+  object-fit:contain;
+  filter:drop-shadow(0 5px 5px rgba(42,18,22,.11));
+}
+.screen-chat .messenger-message:has(.chat-sticker-message){
+  max-width:46% !important;
+}
+
+/* ---------- SETTINGS PREVIEWS ---------- */
+.chat-settings-sheet .theme-swatch{
+  position:relative !important;
+  overflow:hidden !important;
+}
+.chat-settings-sheet .swatch-diary{
+  background:
+    repeating-linear-gradient(180deg,#f3e3d4 0 11px,#e6c8c3 11px 12px) !important;
+}
+.chat-settings-sheet .swatch-cherry{
+  background:
+    radial-gradient(circle at 25% 24%,#d9828b 0 3px,transparent 3px),
+    #5b1c28 !important;
+}
+.chat-settings-sheet .swatch-old-letter{
+  background:
+    repeating-linear-gradient(8deg,#dbc9ab 0 7px,#c6af8f 7px 8px) !important;
+}
+.chat-settings-sheet .swatch-soft-rose{
+  background:
+    linear-gradient(90deg,rgba(161,77,90,.09) 50%,transparent 50%),
+    linear-gradient(rgba(161,77,90,.09) 50%,transparent 50%),
+    #efd5d6 !important;
+  background-size:10px 10px !important;
+}
+.chat-settings-sheet .swatch-midnight{
+  background:
+    radial-gradient(circle at 25% 30%,#f6dfcf 0 1px,transparent 1.5px),
+    radial-gradient(circle at 70% 58%,#d68e9a 0 1px,transparent 1.5px),
+    #21131c !important;
+}
+
+@media (max-width:420px){
+  .messenger-presence-meta span{
+    max-width:92px;
+  }
+  .chat-profile-hero{
+    grid-template-columns:70px minmax(0,1fr);
+  }
+  .chat-profile-photo{
+    width:70px;
+    height:70px;
+  }
+  .chat-built-in-stickers .chat-sticker-grid{
+    grid-template-columns:repeat(6,minmax(0,1fr));
+  }
 }
