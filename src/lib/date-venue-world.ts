@@ -247,14 +247,64 @@ export async function setDateVenuePurchaseVisual({
 
   if (!changed) return date;
 
-  return persistDateVenueWorld({
-    userId,
-    date,
-    venueWorld: {
-      schemaVersion: 1,
-      purchases,
-    },
-  });
+  const updatedDate =
+    await persistDateVenueWorld({
+      userId,
+      date,
+      venueWorld: {
+        schemaVersion: 1,
+        purchases,
+      },
+    });
+
+  const { data: existingKeepsake } =
+    await db
+      .from("diario_items")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("kind", "keepsake")
+      .eq("status", "active")
+      .eq(
+        "data->>source_purchase_id",
+        purchaseId
+      )
+      .maybeSingle();
+
+  if (existingKeepsake) {
+    const current =
+      existingKeepsake as DiarioItem;
+
+    const { error: keepsakeError } =
+      await db
+        .from("diario_items")
+        .update({
+          data: {
+            ...(current.data ?? {}),
+            storage_bucket:
+              storageBucket,
+            storage_path:
+              storagePath,
+            generated_object_visual:
+              true,
+            object_visual_provider:
+              provider ?? null,
+            object_visual_model:
+              model ?? null,
+          },
+        })
+        .eq("user_id", userId)
+        .eq("id", current.id)
+        .eq("kind", "keepsake");
+
+    if (keepsakeError) {
+      console.error(
+        "Could not sync generated visual to Keepsake:",
+        keepsakeError
+      );
+    }
+  }
+
+  return updatedDate;
 }
 
 export async function removeDateVenuePurchase({
