@@ -718,3 +718,134 @@
     min-height: 320px;
   }
 }
+
+
+/* =========================================================
+   PHOTO ENGINE · COMPACT DIARY FACELIFT
+   Presentation only. Generation flow and controls stay intact.
+   ========================================================= */
+.photo-engine-screen {
+  gap: 16px;
+  padding: 8px 18px 34px;
+}
+.photo-engine-intro {
+  gap: 6px;
+  padding: 14px 2px 16px;
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+}
+.photo-engine-intro h1 {
+  font-size: clamp(36px, 9vw, 46px);
+  line-height: .96;
+  letter-spacing: -.02em;
+}
+.photo-engine-intro p {
+  max-width: 34rem;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.photo-engine-block,
+.photo-engine-ready-card,
+.photo-engine-preview-card {
+  border: 1px solid color-mix(in oklab, var(--border) 76%, transparent);
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--paper) 92%, transparent);
+  box-shadow: 0 10px 26px rgba(38, 12, 17, .06);
+}
+.photo-engine-block {
+  gap: 12px;
+  padding: 15px;
+}
+.photo-engine-block-heading {
+  gap: 3px;
+}
+.photo-engine-subject-grid {
+  gap: 8px;
+}
+.photo-engine-subject-grid button {
+  min-height: 72px;
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--cream) 92%, transparent);
+}
+.photo-engine-subject-grid button.active {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--blush) 28%, var(--cream));
+}
+.photo-engine-mode-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.photo-engine-mode-grid button {
+  min-height: 66px;
+  border-radius: 14px;
+  background: color-mix(in oklab, var(--cream) 92%, transparent);
+}
+.photo-engine-mode-grid button.active {
+  border-color: var(--wine);
+  background: color-mix(in oklab, var(--blush) 28%, var(--cream));
+}
+.photo-engine-scene-block textarea,
+.photo-engine-scene-block input,
+.photo-engine-advanced select,
+.photo-engine-adjust-box textarea {
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--cream) 94%, transparent);
+}
+.photo-engine-scene-block textarea {
+  min-height: 82px;
+  padding: 11px;
+}
+.photo-engine-scene-block input,
+.photo-engine-advanced select {
+  min-height: 42px;
+  padding: 8px 11px;
+}
+.photo-engine-context-chip,
+.photo-engine-rule-list span,
+.photo-engine-count-row button {
+  border-radius: 999px;
+}
+.photo-engine-create-button {
+  min-height: 50px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--wine) !important;
+  color: var(--cream) !important;
+  box-shadow: 0 9px 22px color-mix(in oklab, var(--wine) 22%, transparent);
+}
+.photo-engine-preview-card {
+  padding: 10px;
+}
+.photo-engine-preview-media {
+  border-radius: 12px;
+}
+.photo-engine-preview-status,
+.photo-engine-preview-actions button,
+.photo-engine-adjust-box button {
+  border-radius: 999px;
+}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-intro h1,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-intro p,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block-heading,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block-heading strong {
+  color: var(--cream);
+}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-ready-card,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-preview-card {
+  color: var(--wine);
+}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block button,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block input,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block textarea,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block select,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-ready-card,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-preview-card {
+  color: var(--wine);
+}
+@media (max-width: 520px) {
+  .photo-engine-screen { padding-inline: 14px; }
+  .photo-engine-mode-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .photo-engine-mode-grid button { min-height: 68px; padding: 9px; }
+  .photo-engine-preview-media,
+  .photo-engine-preview-placeholder { min-height: 300px; }
+}
