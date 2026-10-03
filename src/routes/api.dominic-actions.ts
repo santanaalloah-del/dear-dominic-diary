@@ -105,8 +105,9 @@ const ACTION_ITEM_SCHEMA = {
     "note",
     "eventAt",
     "dateId",
-"itemId",
-"venueAction",
+    "itemId",
+    "venueAction",
+    "photoId",
   ],
 
   properties: {
