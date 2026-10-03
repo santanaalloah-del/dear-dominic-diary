@@ -387,6 +387,82 @@ export async function loadDominicWorldContext(
     }));
 }
 
+export async function scheduleDominicStateCheckIn(
+  userId: string,
+  state: DominicState
+) {
+  const quietActivities: DominicActivity[] = [
+    "sleeping",
+    "showering",
+    "performing",
+    "rehearsing",
+    "recording",
+    "driving",
+  ];
+
+  if (quietActivities.includes(state.activity)) {
+    return;
+  }
+
+  const now = Date.now();
+  const nextChange = new Date(state.nextChangeAt).getTime();
+  const delayMinutes =
+    state.location === "out" ? 18 : 28;
+  const scheduledAt = new Date(
+    Math.min(
+      Math.max(
+        now + delayMinutes * 60_000,
+        now + 8 * 60_000
+      ),
+      Number.isFinite(nextChange)
+        ? nextChange
+        : now + 45 * 60_000
+    )
+  ).toISOString();
+
+  const { data: pending } = await supabase
+    .from("proactive_events")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("event_type", "dominic_state_checkin")
+    .eq("status", "pending")
+    .gte(
+      "scheduled_for",
+      new Date(now - 10 * 60_000).toISOString()
+    )
+    .limit(1);
+
+  if ((pending?.length ?? 0) > 0) {
+    return;
+  }
+
+  await supabase
+    .from("proactive_events")
+    .insert({
+      user_id: userId,
+      event_type: "dominic_state_checkin",
+      status: "pending",
+      scheduled_for: scheduledAt,
+      decision_reason:
+        "Dominic changed state; evaluate later whether this deserves contact, silence, or another world action.",
+      context: {
+        source: "dominic_autonomy",
+        activity: state.activity,
+        location: state.location,
+        mood: state.mood ?? null,
+        energy: state.energy ?? null,
+        startedAt: state.startedAt,
+        nextChangeAt: state.nextChangeAt,
+        policy: {
+          silence_is_valid: true,
+          avoid_generic_checkins: true,
+          respect_live_presence: true,
+          respect_commitments: true,
+        },
+      },
+    });
+}
+
 export async function recordDominicAction(
   userId: string,
   state: DominicState
@@ -445,6 +521,16 @@ export async function recordDominicAction(
       });
 
   if (error) throw error;
+
+  await scheduleDominicStateCheckIn(
+    userId,
+    state
+  ).catch((checkInError) => {
+    console.error(
+      "Could not schedule Dominic state check-in:",
+      checkInError
+    );
+  });
 }
 
 export type DominicRecentAction = {
