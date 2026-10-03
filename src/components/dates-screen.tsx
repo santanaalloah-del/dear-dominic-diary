@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -78,8 +79,14 @@ import {
 import {
   materializeDateVenuePurchase,
   readDateVenueWorld,
+  setDateVenuePurchaseVisual,
   type DateVenuePurchase,
 } from "@/lib/date-venue-world";
+
+import {
+  generateObjectVisual,
+  signedObjectVisualUrl,
+} from "@/lib/object-visual";
 
 import "./dates-screen.css";
 import "./date-lifecycle.css";
@@ -786,6 +793,30 @@ export function DatesExperienceScreen({
       DiarioItem | null
     >(null);
 
+  const [
+    purchaseVisualUrls,
+    setPurchaseVisualUrls,
+  ] = useState<
+    Record<string, string>
+  >({});
+
+  const [
+    purchaseVisualBusy,
+    setPurchaseVisualBusy,
+  ] = useState<
+    Record<string, boolean>
+  >({});
+
+  const purchaseVisualInFlight =
+    useRef(
+      new Set<string>()
+    );
+
+  const purchaseVisualFailed =
+    useRef(
+      new Set<string>()
+    );
+
   const selectedDate =
     dates.find(
       (
@@ -945,6 +976,185 @@ export function DatesExperienceScreen({
         timer
       );
   }, []);
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setPurchaseVisualUrls({});
+      return;
+    }
+
+    let cancelled = false;
+
+    const purchases =
+      readDateVenueWorld(
+        selectedDate
+      ).purchases;
+
+    void Promise.all(
+      purchases.map(
+        async (purchase) => {
+          if (
+            !purchase.visualStoragePath ||
+            purchaseVisualUrls[
+              purchase.id
+            ]
+          ) {
+            return;
+          }
+
+          const url =
+            await signedObjectVisualUrl({
+              storageBucket:
+                purchase.visualStorageBucket ??
+                "diario-media",
+              storagePath:
+                purchase.visualStoragePath,
+            });
+
+          if (
+            !cancelled &&
+            url
+          ) {
+            setPurchaseVisualUrls(
+              (current) => ({
+                ...current,
+                [purchase.id]:
+                  url,
+              })
+            );
+          }
+        }
+      )
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    selectedDate?.id,
+    selectedDate?.data?.venueWorld,
+  ]);
+
+  useEffect(() => {
+    if (!selectedDate) {
+      return;
+    }
+
+    const purchases =
+      readDateVenueWorld(
+        selectedDate
+      ).purchases;
+
+    const next =
+      purchases.find(
+        (purchase) =>
+          !purchase.visualStoragePath &&
+          !purchaseVisualInFlight.current.has(
+            purchase.id
+          ) &&
+          !purchaseVisualFailed.current.has(
+            purchase.id
+          )
+      );
+
+    if (!next) {
+      return;
+    }
+
+    purchaseVisualInFlight.current.add(
+      next.id
+    );
+
+    setPurchaseVisualBusy(
+      (current) => ({
+        ...current,
+        [next.id]:
+          true,
+      })
+    );
+
+    const dateSnapshot =
+      selectedDate;
+
+    void generateObjectVisual({
+      userId:
+        session.user.id,
+      name:
+        next.itemName,
+      kind:
+        next.itemKind,
+      description:
+        next.description,
+      placeName:
+        next.placeName,
+      section:
+        next.section,
+    })
+      .then(
+        async (
+          generated
+        ) => {
+          setPurchaseVisualUrls(
+            (current) => ({
+              ...current,
+              [next.id]:
+                generated.url,
+            })
+          );
+
+          const updated =
+            await setDateVenuePurchaseVisual({
+              userId:
+                session.user.id,
+              date:
+                dateSnapshot,
+              purchaseId:
+                next.id,
+              storageBucket:
+                generated.storageBucket,
+              storagePath:
+                generated.storagePath,
+              provider:
+                generated.provider,
+              model:
+                generated.model,
+            });
+
+          replaceDate(
+            updated
+          );
+        }
+      )
+      .catch(
+        (visualError) => {
+          console.error(
+            "Could not make Date object visual:",
+            visualError
+          );
+
+          purchaseVisualFailed.current.add(
+            next.id
+          );
+        }
+      )
+      .finally(() => {
+        purchaseVisualInFlight.current.delete(
+          next.id
+        );
+
+        setPurchaseVisualBusy(
+          (current) => ({
+            ...current,
+            [next.id]:
+              false,
+          })
+        );
+      });
+  }, [
+    selectedDate?.id,
+    selectedDate?.data?.venueWorld,
+    session.user.id,
+  ]);
 
   useEffect(() => {
     if (
@@ -2566,9 +2776,46 @@ export function DatesExperienceScreen({
                           className="date-object-card consumed"
                           key={purchase.id}
                         >
-                          <div className="date-object-visual">
-                            {purchaseKindIcon(
-                              purchase
+                          <div
+                            className={
+                              purchaseVisualUrls[
+                                purchase.id
+                              ]
+                                ? "date-object-visual has-image"
+                                : purchaseVisualBusy[
+                                      purchase.id
+                                    ]
+                                  ? "date-object-visual generating"
+                                  : "date-object-visual"
+                            }
+                          >
+                            {purchaseVisualUrls[
+                              purchase.id
+                            ] ? (
+                              <img
+                                src={
+                                  purchaseVisualUrls[
+                                    purchase.id
+                                  ]
+                                }
+                                alt={
+                                  purchase.itemName
+                                }
+                              />
+                            ) : (
+                              <>
+                                {purchaseKindIcon(
+                                  purchase
+                                )}
+
+                                {purchaseVisualBusy[
+                                  purchase.id
+                                ] && (
+                                  <small>
+                                    developing…
+                                  </small>
+                                )}
+                              </>
                             )}
                           </div>
 
@@ -2629,9 +2876,46 @@ export function DatesExperienceScreen({
                           className="date-object-card kept"
                           key={purchase.id}
                         >
-                          <div className="date-object-visual">
-                            {purchaseKindIcon(
-                              purchase
+                          <div
+                            className={
+                              purchaseVisualUrls[
+                                purchase.id
+                              ]
+                                ? "date-object-visual has-image"
+                                : purchaseVisualBusy[
+                                      purchase.id
+                                    ]
+                                  ? "date-object-visual generating"
+                                  : "date-object-visual"
+                            }
+                          >
+                            {purchaseVisualUrls[
+                              purchase.id
+                            ] ? (
+                              <img
+                                src={
+                                  purchaseVisualUrls[
+                                    purchase.id
+                                  ]
+                                }
+                                alt={
+                                  purchase.itemName
+                                }
+                              />
+                            ) : (
+                              <>
+                                {purchaseKindIcon(
+                                  purchase
+                                )}
+
+                                {purchaseVisualBusy[
+                                  purchase.id
+                                ] && (
+                                  <small>
+                                    developing…
+                                  </small>
+                                )}
+                              </>
                             )}
                           </div>
 
