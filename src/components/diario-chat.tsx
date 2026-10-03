@@ -56,6 +56,12 @@ import {
   type ChatProfileOwner,
 } from "@/lib/chat-profile";
 import {
+  getChatStickers,
+  removeChatSticker,
+  uploadChatSticker,
+  type ChatStickerAsset,
+} from "@/lib/chat-stickers";
+import {
   loadDominicLiveDateContext,
   liveDateContextForPrompt,
 } from "@/lib/dominic-live-date-context";
@@ -185,6 +191,7 @@ type MessageKind =
   | "text"
   | "voice"
   | "photo"
+  | "sticker"
   | "shared_item"
   | "agent_action";
 
@@ -214,6 +221,7 @@ type ChatMedia = {
   type:
     | "photo"
     | "voice"
+    | "sticker"
     | "shared_item"
     | "agent_action";
 
@@ -706,6 +714,26 @@ const photoInputRef =
   const [stickersOpen, setStickersOpen] =
     useState(false);
 
+  const [
+    customStickers,
+    setCustomStickers,
+  ] = useState<ChatStickerAsset[]>([]);
+
+  const [
+    stickerBusy,
+    setStickerBusy,
+  ] = useState(false);
+
+  const [
+    stickerNotice,
+    setStickerNotice,
+  ] = useState<string | null>(null);
+
+  const stickerInputRef =
+    useRef<HTMLInputElement | null>(
+      null
+    );
+
  const [activeListeningTrack, setActiveListeningTrack] =
   useState<ActiveListeningTrack | null>(null);
 
@@ -912,6 +940,31 @@ useEffect(() => {
             "Profile details could not be loaded."
           );
         }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session.user.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getChatStickers(
+      session.user.id
+    )
+      .then((stickers) => {
+        if (!cancelled) {
+          setCustomStickers(
+            stickers
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(
+          "Could not load custom stickers:",
+          error
+        );
       });
 
     return () => {
@@ -1915,7 +1968,8 @@ if (
             typeof storagePath !==
               "string" ||
             (mediaType !== "photo" &&
-              mediaType !== "voice")
+              mediaType !== "voice" &&
+              mediaType !== "sticker")
           ) {
             return null;
           }
@@ -3173,6 +3227,189 @@ setMessages((current) => [
     }
   }
   
+  const sendStickerAsset =
+    async (
+      sticker:
+        ChatStickerAsset
+    ) => {
+      setStickerBusy(true);
+      setStickerNotice(
+        null
+      );
+
+      try {
+        const now =
+          new Date()
+            .toISOString();
+
+        const {
+          error,
+        } =
+          await supabase
+            .from(
+              "diario_items"
+            )
+            .insert({
+              user_id:
+                session.user.id,
+              kind:
+                "chat_media",
+              owner:
+                "alloah",
+              status:
+                "active",
+              title:
+                sticker.label,
+              body:
+                null,
+              event_at:
+                now,
+              planned_for:
+                null,
+              data: {
+                media_type:
+                  "sticker",
+                storage_bucket:
+                  "diario-media",
+                storage_path:
+                  sticker.storagePath,
+                sticker_asset_id:
+                  sticker.id,
+                sticker_owner:
+                  sticker.owner,
+                chat_sender:
+                  "alloah",
+              },
+            });
+
+        if (error) {
+          throw error;
+        }
+
+        setStickersOpen(
+          false
+        );
+
+        await loadHistory(
+          false
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not send sticker:",
+          error
+        );
+
+        setStickerNotice(
+          "That sticker could not be sent."
+        );
+      } finally {
+        setStickerBusy(false);
+      }
+    };
+
+  const addCustomSticker =
+    async (
+      file:
+        File | null
+    ) => {
+      if (!file) {
+        return;
+      }
+
+      setStickerBusy(true);
+      setStickerNotice(
+        null
+      );
+
+      try {
+        const sticker =
+          await uploadChatSticker({
+            userId:
+              session.user.id,
+            owner:
+              "alloah",
+            file,
+          });
+
+        setCustomStickers(
+          (current) => [
+            sticker,
+            ...current,
+          ]
+        );
+
+        setStickerNotice(
+          "Sticker added to your tray."
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not add sticker:",
+          error
+        );
+
+        setStickerNotice(
+          "That image could not be added as a sticker."
+        );
+      } finally {
+        setStickerBusy(false);
+
+        if (
+          stickerInputRef
+            .current
+        ) {
+          stickerInputRef
+            .current
+            .value = "";
+        }
+      }
+    };
+
+  const forgetCustomSticker =
+    async (
+      sticker:
+        ChatStickerAsset
+    ) => {
+      setStickerBusy(true);
+      setStickerNotice(
+        null
+      );
+
+      try {
+        await removeChatSticker({
+          userId:
+            session.user.id,
+          stickerId:
+            sticker.id,
+        });
+
+        setCustomStickers(
+          (current) =>
+            current.filter(
+              (item) =>
+                item.id !==
+                sticker.id
+            )
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not remove sticker:",
+          error
+        );
+
+        setStickerNotice(
+          "That sticker could not be removed from the tray."
+        );
+      } finally {
+        setStickerBusy(false);
+      }
+    };
+
   const searchResults =
     searchTerm.trim()
       ? messages.filter((message) =>
@@ -3645,6 +3882,15 @@ const recentConversationForPhoto = () =>
       : ""}
   </button>
 ) : message.kind ===
+    "sticker" &&
+  message.mediaUrl ? (
+  <div className="chat-sticker-message">
+    <img
+      src={message.mediaUrl}
+      alt="Sticker"
+    />
+  </div>
+) : message.kind ===
     "photo" &&
   message.mediaUrl ? (
   <div className="chat-photo-message">
@@ -3701,7 +3947,9 @@ const recentConversationForPhoto = () =>
   message.kind !==
     "shared_item" &&
   message.kind !==
-    "agent_action" && (
+    "agent_action" &&
+  message.kind !==
+    "sticker" && (
     <button
       type="button"
       className="letter-connected-button"
@@ -3907,13 +4155,30 @@ onPhotoFromConversation={() =>
   hidden
   onChange={handlePhotoInput}
 />
+
+<input
+  ref={stickerInputRef}
+  type="file"
+  accept="image/png,image/jpeg,image/webp,image/gif"
+  hidden
+  onChange={(event) =>
+    void addCustomSticker(
+      event.target
+        .files?.[0] ??
+        null
+    )
+  }
+/>
+
       <Sheet
   open={stickersOpen}
-  onOpenChange={setStickersOpen}
+  onOpenChange={
+    setStickersOpen
+  }
 >
   <SheetContent
     side="bottom"
-    className="chat-actions-sheet"
+    className="chat-actions-sheet chat-stickers-sheet"
   >
     <SheetHeader>
       <SheetTitle>
@@ -3921,42 +4186,149 @@ onPhotoFromConversation={() =>
       </SheetTitle>
     </SheetHeader>
 
-    <div className="chat-sticker-grid">
-      {[
-        "♡",
-        "♥",
-        "🥺",
-        "😭",
-        "😂",
-        "🫶",
-        "😘",
-        "😒",
-        "🙄",
-        "😴",
-        "🍒",
-        "🌙",
-        "✨",
-        "💌",
-        "🌹",
-        "🧸",
-      ].map((sticker) => (
-        <button
-          key={sticker}
-          type="button"
-          onClick={() => {
-            void sendMessage(
-              sticker
-            );
+    <p className="settings-script">
+      your tray · Dominic can use the same visual language later.
+    </p>
 
-            setStickersOpen(
-              false
-            );
-          }}
-        >
-          {sticker}
-        </button>
-      ))}
+    <div className="chat-sticker-toolbar">
+      <button
+        type="button"
+        disabled={
+          stickerBusy
+        }
+        onClick={() =>
+          stickerInputRef
+            .current
+            ?.click()
+        }
+      >
+        <Plus size={14} />
+        Add sticker
+      </button>
+
+      <span>
+        {customStickers.length} custom
+      </span>
     </div>
+
+    {customStickers.length >
+      0 && (
+      <section className="chat-custom-stickers">
+        <small>
+          CUSTOM
+        </small>
+
+        <div>
+          {customStickers.map(
+            (sticker) => (
+              <article
+                key={
+                  sticker.id
+                }
+                className="chat-custom-sticker"
+              >
+                <button
+                  type="button"
+                  className="chat-custom-sticker-send"
+                  disabled={
+                    stickerBusy ||
+                    !sticker.url
+                  }
+                  onClick={() =>
+                    void sendStickerAsset(
+                      sticker
+                    )
+                  }
+                >
+                  {sticker.url ? (
+                    <img
+                      src={
+                        sticker.url
+                      }
+                      alt={
+                        sticker.label
+                      }
+                    />
+                  ) : (
+                    <span>
+                      loading…
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  className="chat-custom-sticker-remove"
+                  aria-label={`Remove ${sticker.label} from sticker tray`}
+                  disabled={
+                    stickerBusy
+                  }
+                  onClick={() =>
+                    void forgetCustomSticker(
+                      sticker
+                    )
+                  }
+                >
+                  ×
+                </button>
+              </article>
+            )
+          )}
+        </div>
+      </section>
+    )}
+
+    <section className="chat-built-in-stickers">
+      <small>
+        QUICK REACTIONS
+      </small>
+
+      <div className="chat-sticker-grid">
+        {[
+          "♡",
+          "♥",
+          "🥺",
+          "😭",
+          "😂",
+          "🫶",
+          "😘",
+          "😒",
+          "🙄",
+          "😴",
+          "🍒",
+          "🌙",
+          "✨",
+          "💌",
+          "🌹",
+          "🧸",
+        ].map((sticker) => (
+          <button
+            key={sticker}
+            type="button"
+            onClick={() => {
+              void sendMessage(
+                sticker
+              );
+
+              setStickersOpen(
+                false
+              );
+            }}
+          >
+            {sticker}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    {stickerNotice && (
+      <p
+        className="chat-sticker-notice"
+        role="status"
+      >
+        {stickerNotice}
+      </p>
+    )}
   </SheetContent>
 </Sheet>
 
