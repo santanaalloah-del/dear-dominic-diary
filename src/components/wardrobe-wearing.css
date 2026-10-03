@@ -767,3 +767,59 @@
   background:#6b1b27;
   color:#fff1e3;
 }
+
+
+/* HYBRID CUTOUT · AUTO FIRST, MANUAL REFINE */
+.wardrobe-cutout-editor-tools{
+  display:grid;
+  grid-template-columns:1fr 1fr 34px auto 34px;
+  gap:6px;
+  align-items:center;
+  margin:9px 0;
+}
+.wardrobe-cutout-editor-tools button{
+  min-height:32px;
+  padding:6px 8px;
+  border:1px solid rgba(91,30,39,.14);
+  background:rgba(255,248,239,.28);
+  color:#6d333c;
+  font:8px var(--font-body);
+}
+.wardrobe-cutout-editor-tools button.active{
+  background:#6b1b27;
+  color:#fff1e3;
+}
+.wardrobe-cutout-editor-tools button:disabled{
+  opacity:.35;
+}
+.wardrobe-cutout-editor-tools > span{
+  color:#82535a;
+  font:8px var(--font-body);
+  text-align:center;
+}
+.wardrobe-manual-cutout-canvas{
+  align-items:flex-start;
+  justify-content:flex-start;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(105,42,51,.35) transparent;
+}
+.wardrobe-manual-cutout-canvas canvas{
+  transform-origin:top left;
+}
+.wardrobe-cutout-tools{
+  flex-wrap:wrap;
+}
+.wardrobe-cutout-tools button:first-child{
+  background:#6b1b27;
+  color:#fff1e3;
+}
+@media (max-width:390px){
+  .wardrobe-cutout-editor-tools{
+    grid-template-columns:1fr 1fr 30px auto 30px;
+    gap:4px;
+  }
+  .wardrobe-cutout-editor-tools button{
+    padding-inline:5px;
+    font-size:7px;
+  }
+}
