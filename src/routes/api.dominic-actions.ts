@@ -69,6 +69,7 @@ type RequestBody = {
   replies?: string[];
   nearbyCommitments?: unknown[];
   liveDateContext?: unknown;
+  dominicContext?: unknown;
   profilePhotoCandidates?: unknown[];
 };
 
@@ -736,6 +737,7 @@ async function interpretActions({
   replies,
   nearbyCommitments,
     liveDateContext,
+  dominicContext,
   profilePhotoCandidates,
 }: {
   apiKey: string;
@@ -744,6 +746,7 @@ async function interpretActions({
   replies: string[];
   nearbyCommitments: unknown[];
    liveDateContext: unknown;
+  dominicContext: unknown;
   profilePhotoCandidates: unknown[];
 }): Promise<
   DominicWorldAction[]
@@ -832,7 +835,8 @@ You do NOT reply to the user.
 You inspect:
 1. the user's actual message;
 2. Dominic's actual reply;
-3. nearby existing commitments.
+3. nearby existing commitments;
+4. Dominic's current live state, location, availability, outfit and listening context.
 
 Then decide whether Dominic clearly made something real in their shared diary world.
 
@@ -969,6 +973,8 @@ ${currentTime}`,
                       nearbyCommitments,
                       
                       liveDateContext,
+
+                      dominicContext,
 
                       profilePhotoCandidates,
                     }
@@ -1341,6 +1347,9 @@ export const Route =
 
                   liveDateContext:
   body.liveDateContext ?? null,
+
+                  dominicContext:
+                    body.dominicContext ?? null,
 
                   profilePhotoCandidates:
                     Array.isArray(
