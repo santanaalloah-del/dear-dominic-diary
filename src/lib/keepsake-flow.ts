@@ -66,6 +66,7 @@ export async function updateKeepsakeDetails({
   room,
   origin,
   note,
+  storagePath,
 }: {
   userId:
     string;
@@ -92,6 +93,9 @@ export async function updateKeepsakeDetails({
 
   note:
     string;
+
+  storagePath?:
+    string | null;
 }): Promise<DiarioItem> {
   const nextTitle =
     clean(
@@ -152,6 +156,17 @@ export async function updateKeepsakeDetails({
               origin
             ) ||
             null,
+
+          ...(storagePath !== undefined
+            ? {
+                storage_bucket:
+                  storagePath
+                    ? "diario-media"
+                    : null,
+                storage_path:
+                  storagePath ?? null,
+              }
+            : {}),
         },
       })
       .eq(
