@@ -88,9 +88,11 @@ import {
   createPlace,
   createSong,
   getDates,
+  getGalleryPhotos,
   getLooks,
   getWardrobeItems,
   type DiarioItem,
+  type GalleryPhoto,
 } from "@/lib/diario-world";
 import dominic from "@/assets/dominic-candid.jpg";
 
@@ -4693,6 +4695,21 @@ function ChatProfileSheet({
       null
     );
 
+  const [
+    choosingDiaryPhoto,
+    setChoosingDiaryPhoto,
+  ] = useState(false);
+
+  const [
+    diaryProfilePhotos,
+    setDiaryProfilePhotos,
+  ] = useState<GalleryPhoto[]>([]);
+
+  const [
+    loadingDiaryPhotos,
+    setLoadingDiaryPhotos,
+  ] = useState(false);
+
   useEffect(() => {
     setDisplayName(
       profile
@@ -4857,6 +4874,95 @@ function ChatProfileSheet({
       }
     };
 
+  const openDiaryPhotoPicker =
+    async () => {
+      setChoosingDiaryPhoto(true);
+      setLoadingDiaryPhotos(true);
+      setProfileNotice(null);
+
+      try {
+        const photos =
+          await getGalleryPhotos(
+            userId
+          );
+
+        setDiaryProfilePhotos(
+          photos.filter(
+            (photo) =>
+              photo.item.owner ===
+                owner ||
+              photo.item.owner ===
+                "shared"
+          )
+        );
+      } catch (error) {
+        console.error(
+          "Could not load diary profile photos:",
+          error
+        );
+
+        setProfileNotice(
+          "Diary photos could not be opened."
+        );
+      } finally {
+        setLoadingDiaryPhotos(false);
+      }
+    };
+
+  const useDiaryProfilePhoto =
+    async (
+      photo: GalleryPhoto
+    ) => {
+      const storagePath =
+        typeof photo.item.data
+          ?.storage_path ===
+          "string"
+          ? photo.item.data
+              .storage_path
+          : null;
+
+      if (!storagePath) {
+        setProfileNotice(
+          "That photo is not available as a profile picture."
+        );
+        return;
+      }
+
+      setSavingProfile(true);
+      setProfileNotice(null);
+
+      try {
+        const saved =
+          await saveChatProfile({
+            userId,
+            owner,
+            displayName,
+            bio,
+            photoPath:
+              storagePath,
+          });
+
+        onSaved(saved);
+        setChoosingDiaryPhoto(false);
+        setProfileNotice(
+          owner === "dominic"
+            ? "Dominic's profile photo now comes from his Diary photos."
+            : "Your profile photo now comes from your Diary photos."
+        );
+      } catch (error) {
+        console.error(
+          "Could not use Diary photo as profile picture:",
+          error
+        );
+
+        setProfileNotice(
+          "That Diary photo could not become the profile picture."
+        );
+      } finally {
+        setSavingProfile(false);
+      }
+    };
+
   const shortcuts =
     owner ===
     "dominic"
@@ -4973,7 +5079,7 @@ function ChatProfileSheet({
       <div className="chat-profile-photo-actions">
         <label>
           <Image size={14} />
-          Change photo
+          Upload
           <input
             type="file"
             accept="image/*"
@@ -4990,6 +5096,19 @@ function ChatProfileSheet({
           />
         </label>
 
+        <button
+          type="button"
+          disabled={
+            savingProfile
+          }
+          onClick={() =>
+            void openDiaryPhotoPicker()
+          }
+        >
+          <Image size={14} />
+          Diary photos
+        </button>
+
         {profile
           ?.photoPath && (
           <button
@@ -5001,10 +5120,88 @@ function ChatProfileSheet({
               void clearPhoto()
             }
           >
-            Reset photo
+            Reset
           </button>
         )}
       </div>
+
+      {choosingDiaryPhoto && (
+        <section className="chat-profile-photo-picker">
+          <header>
+            <div>
+              <small>
+                {owner ===
+                "dominic"
+                  ? "DOMINIC'S PHOTOS"
+                  : "MY PHOTOS"}
+              </small>
+
+              <strong>
+                Choose a profile photo
+              </strong>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setChoosingDiaryPhoto(
+                  false
+                )
+              }
+            >
+              ×
+            </button>
+          </header>
+
+          {loadingDiaryPhotos ? (
+            <p>
+              Opening the camera roll…
+            </p>
+          ) : diaryProfilePhotos.length ===
+            0 ? (
+            <p>
+              No matching Diary photos yet.
+            </p>
+          ) : (
+            <div>
+              {diaryProfilePhotos
+                .slice(
+                  0,
+                  24
+                )
+                .map(
+                  (photo) => (
+                    <button
+                      key={
+                        photo.item.id
+                      }
+                      type="button"
+                      disabled={
+                        savingProfile
+                      }
+                      onClick={() =>
+                        void useDiaryProfilePhoto(
+                          photo
+                        )
+                      }
+                    >
+                      <img
+                        src={
+                          photo.url
+                        }
+                        alt={
+                          photo.item
+                            .title ??
+                          "Diary photo"
+                        }
+                      />
+                    </button>
+                  )
+                )}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="chat-profile-fields">
         <label>
