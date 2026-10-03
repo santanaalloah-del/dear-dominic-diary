@@ -975,7 +975,7 @@ export function ConnectedObjectDetailScreen({
 
   if (loading) {
     return (
-      <section className="connected-object-detail-screen">
+      <section className={`connected-object-detail-screen connected-object-detail-${view.item.kind}`}>
         <button
           type="button"
           className="connected-object-back"
@@ -1102,11 +1102,9 @@ export function ConnectedObjectDetailScreen({
         </h1>
 
         <p>
-          One original diary object.
-          Every Memory, Date,
-          Calendar moment and
-          Timeline appearance points
-          back to this same object.
+          The original piece. Memories, Dates,
+          Calendar and Timeline only point back here —
+          nothing gets duplicated.
         </p>
       </header>
 
@@ -1132,7 +1130,7 @@ export function ConnectedObjectDetailScreen({
             <strong>
               {relations.length ===
               0
-                ? "Nothing yet"
+                ? "No thread attached yet"
                 : `${
                     relations.length
                   } ${
@@ -1148,12 +1146,9 @@ export function ConnectedObjectDetailScreen({
         {relations.length ===
         0 ? (
           <p className="connected-object-no-relations">
-            When this object becomes
-            part of a Memory, Date,
-            Place, outfit, Chat or
-            another diary moment, the
-            relationship will appear
-            here.
+            When this piece belongs to a Memory, Date,
+            Place, outfit, Chat or another moment, its thread
+            will appear here.
           </p>
         ) : (
           <div className="connected-relation-list">
@@ -1413,8 +1408,7 @@ export function ConnectedObjectDetailScreen({
               </small>
 
               <strong>
-                Put this object
-                into a moment
+                Tie it to a moment
               </strong>
             </div>
           </header>
