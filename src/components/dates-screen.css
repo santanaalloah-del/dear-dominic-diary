@@ -459,3 +459,125 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+/* =========================================================
+   DATES · VISIBLE LITTLE THINGS
+   Food, drinks, treats and bought objects remain visible.
+   ========================================================= */
+
+.date-objects-section{
+  overflow:hidden;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 31px,
+      rgba(105,31,42,.035) 31px 32px
+    ),
+    rgba(248,235,222,.86) !important;
+}
+.date-object-group{
+  margin-top:17px;
+}
+.date-object-group > header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(104,21,31,.12);
+}
+.date-object-group > header span{
+  color:#7c2a31;
+  font:700 8px var(--font-body);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.date-object-group > header small{
+  color:#8b6667;
+  font:italic 8px var(--font-display);
+}
+.date-object-strip{
+  display:flex;
+  gap:10px;
+  margin:11px -17px 0;
+  padding:0 17px 7px;
+  overflow-x:auto;
+  scroll-snap-type:x proximity;
+  scrollbar-width:none;
+}
+.date-object-strip::-webkit-scrollbar{
+  display:none;
+}
+.date-object-card{
+  flex:0 0 144px;
+  display:grid;
+  grid-template-rows:92px auto auto;
+  min-height:178px;
+  overflow:hidden;
+  border:1px solid rgba(104,21,31,.14);
+  background:#f8eadc;
+  color:#57222b;
+  box-shadow:2px 3px 0 rgba(68,21,28,.07);
+  scroll-snap-align:start;
+}
+.date-object-card.consumed{
+  background:#eddbcd;
+}
+.date-object-visual{
+  display:grid;
+  place-items:center;
+  border-bottom:1px solid rgba(104,21,31,.10);
+  background:
+    radial-gradient(circle at 50% 42%,rgba(255,255,255,.72),transparent 38%),
+    linear-gradient(145deg,rgba(173,78,91,.12),transparent 52%),
+    #ead7c9;
+  color:#873d49;
+}
+.date-object-card.consumed .date-object-visual{
+  border-bottom-style:dashed;
+}
+.date-object-card > span{
+  display:block;
+  min-width:0;
+  padding:9px 9px 4px;
+}
+.date-object-card > span strong{
+  display:block;
+  overflow:hidden;
+  color:#57222b;
+  font:500 14px/1.05 var(--font-display);
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.date-object-card > span small{
+  display:block;
+  margin-top:4px;
+  overflow:hidden;
+  color:#8b5c61;
+  font:7px/1.25 var(--font-body);
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.date-object-card > button{
+  align-self:end;
+  min-height:29px;
+  margin:6px 8px 9px;
+  padding:5px 7px;
+  border:1px solid rgba(104,21,31,.18);
+  border-radius:0;
+  background:transparent;
+  color:#6c2630;
+  font:7px var(--font-body);
+  text-transform:lowercase;
+}
+.date-object-card > button:disabled{
+  border-color:transparent;
+  color:#9c7375;
+  font-style:italic;
+}
+
+/* The old attached-object list becomes secondary after the visual date objects. */
+.date-objects-section + .date-flow-section .date-flow-thing{
+  background:rgba(255,249,239,.36);
+}
