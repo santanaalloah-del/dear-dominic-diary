@@ -545,6 +545,42 @@ function safeFileName(fileName: string) {
     .replace(/-+/g, "-")
     .toLowerCase();
 }
+export async function uploadDiarioItemImage({
+  userId,
+  file,
+  folder,
+}: {
+  userId: string;
+  file: File;
+  folder: "wardrobe" | "keepsakes";
+}): Promise<string> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("This item needs an image file.");
+  }
+
+  const fileName = safeFileName(
+    file.name || "item.png"
+  );
+
+  const storagePath =
+    `${userId}/${folder}/${crypto.randomUUID()}-${fileName}`;
+
+  const { error } =
+    await diarioSupabase.storage
+      .from("diario-media")
+      .upload(storagePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+
+  if (error) {
+    throw error;
+  }
+
+  return storagePath;
+}
+
 export async function uploadHomeObjectImage({
   userId,
   file,
@@ -834,7 +870,9 @@ export async function createGalleryAlbum({
       title: cleanTitle,
       body: null,
       event_at: null,
-      data: {},
+      data: {
+        layout,
+      },
     })
     .select("*")
     .single();
@@ -1282,10 +1320,13 @@ type CreateKeepsakeInput = {
   userId: string;
   title: string;
   keepsakeType: string;
-  location: "home" | "stored";
+  location: "home" | "stored" | "gone";
   room?: string | undefined;
   origin?: string | undefined;
   note?: string | undefined;
+  storagePath?: string | null | undefined;
+  sourceDateId?: string | null | undefined;
+  sourcePurchaseId?: string | null | undefined;
 };
 
 export async function getKeepsakes(
@@ -1319,6 +1360,9 @@ export async function createKeepsake({
   room,
   origin,
   note,
+  storagePath,
+  sourceDateId,
+  sourcePurchaseId,
 }: CreateKeepsakeInput): Promise<DiarioItem> {
   const cleanTitle = title.trim();
 
@@ -1352,6 +1396,16 @@ export async function createKeepsake({
           room?.trim() || null,
         origin:
           origin?.trim() || null,
+        storage_bucket:
+          storagePath ? "diario-media" : null,
+        storage_path:
+          storagePath ?? null,
+        source_date_id:
+          sourceDateId ?? null,
+        source_purchase_id:
+          sourcePurchaseId ?? null,
+        consumed:
+          location === "gone",
       },
     })
     .select("*")
@@ -1370,7 +1424,7 @@ export async function updateKeepsakeLocation({
 }: {
   userId: string;
   keepsake: DiarioItem;
-  location: "home" | "stored";
+  location: "home" | "stored" | "gone";
 }): Promise<DiarioItem> {
   const {
     data,
@@ -1382,9 +1436,11 @@ export async function updateKeepsakeLocation({
         ...(keepsake.data ?? {}),
         location,
         room:
-          location === "stored"
-            ? null
-            : (keepsake.data as any)?.room ?? null,
+          location === "home"
+            ? (keepsake.data as any)?.room ?? null
+            : null,
+        consumed:
+          location === "gone",
       },
     })
     .eq("user_id", userId)
@@ -1406,6 +1462,17 @@ type CreateClothingInput = {
   title: string;
   category: string;
   note?: string;
+  storagePath?: string | null;
+  cutoutMode?: "original" | "auto";
+};
+
+export type LookLayoutItem = {
+  clothingId: string;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  z: number;
 };
 
 type CreateLookInput = {
@@ -1413,6 +1480,7 @@ type CreateLookInput = {
   owner: "alloah" | "dominic";
   title: string;
   note?: string;
+  layout?: LookLayoutItem[];
 };
 
 export async function getWardrobeItems(
@@ -1444,6 +1512,8 @@ export async function createClothing({
   title,
   category,
   note,
+  storagePath,
+  cutoutMode = "original",
 }: CreateClothingInput): Promise<DiarioItem> {
   const cleanTitle = title.trim();
 
@@ -1471,6 +1541,12 @@ export async function createClothing({
       data: {
         category:
           category.trim() || "other",
+        storage_bucket:
+          storagePath ? "diario-media" : null,
+        storage_path:
+          storagePath ?? null,
+        cutout_mode:
+          cutoutMode,
       },
     })
     .select("*")
@@ -1511,6 +1587,7 @@ export async function createLook({
   owner,
   title,
   note,
+  layout = [],
 }: CreateLookInput): Promise<DiarioItem> {
   const cleanTitle = title.trim();
 
@@ -1546,6 +1623,36 @@ export async function createLook({
 
   return data as DiarioItem;
 }
+export async function updateLookLayout({
+  userId,
+  look,
+  layout,
+}: {
+  userId: string;
+  look: DiarioItem;
+  layout: LookLayoutItem[];
+}): Promise<DiarioItem> {
+  const { data, error } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...(look.data ?? {}),
+        layout,
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", look.id)
+    .eq("kind", "look")
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
 export async function addClothingToLook({
   userId,
   lookId,
