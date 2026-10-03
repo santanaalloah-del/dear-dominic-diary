@@ -16751,3 +16751,155 @@ html[data-diario-time-theme="continuous"] .statusbar {
     height:78px;
   }
 }
+
+
+/* =========================================================
+   KEEPSAKES · REAL OBJECT VISUALS
+   ========================================================= */
+.keepsakes-live .keepsakes-tabs{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+.keepsakes-live .keepsakes-summary{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+.keepsakes-live .keepsake-index-card{
+  display:grid !important;
+  grid-template-columns:58px minmax(0,1fr) !important;
+  grid-template-areas:
+    "visual head"
+    "visual meta"
+    "visual body" !important;
+  gap:3px 12px !important;
+  padding:14px !important;
+  min-height:102px !important;
+}
+.keepsakes-live .keepsake-index-card::before,
+.keepsakes-live .keepsake-index-card::after{
+  display:none !important;
+  content:none !important;
+}
+.keepsakes-live .keepsake-index-visual{
+  grid-area:visual !important;
+  width:58px !important;
+  height:72px !important;
+  align-self:start !important;
+  display:grid !important;
+  place-items:center !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.12) !important;
+  background:
+    linear-gradient(145deg,rgba(176,85,96,.14),transparent 46%),
+    #f8eadc !important;
+  color:#8d5660 !important;
+  box-shadow:2px 3px 0 rgba(62,18,25,.08) !important;
+}
+.keepsakes-live .keepsake-index-visual.has-image{
+  background:#f7e9dc !important;
+}
+.keepsakes-live .keepsake-index-visual img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+.keepsakes-live .keepsake-index-card > header{
+  grid-area:head !important;
+}
+.keepsakes-live .keepsake-index-card > .date-place{
+  grid-area:meta !important;
+  margin-top:4px !important;
+}
+.keepsakes-live .keepsake-index-card > p{
+  grid-area:body !important;
+  margin:4px 0 0 !important;
+  display:-webkit-box !important;
+  -webkit-line-clamp:2 !important;
+  -webkit-box-orient:vertical !important;
+  overflow:hidden !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"]{
+  background:#ead8cb !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="gone"] .keepsake-index-visual{
+  opacity:.72 !important;
+  filter:saturate(.78) !important;
+}
+
+/* Upload panel looks like an object-photo slot rather than a generic file input. */
+.keepsake-image-picker{
+  display:block !important;
+  margin:12px 0 !important;
+  cursor:pointer !important;
+}
+.keepsake-image-picker > span{
+  display:grid !important;
+  place-items:center !important;
+  min-height:190px !important;
+  overflow:hidden !important;
+  border:1px dashed rgba(103,45,52,.26) !important;
+  background:
+    linear-gradient(45deg,rgba(126,57,68,.035) 25%,transparent 25%) 0 0/18px 18px,
+    linear-gradient(-45deg,rgba(126,57,68,.035) 25%,transparent 25%) 0 9px/18px 18px,
+    #f7eadc !important;
+  color:#8d5560 !important;
+  text-align:center !important;
+}
+.keepsake-image-picker > span > img{
+  width:100% !important;
+  height:220px !important;
+  object-fit:contain !important;
+}
+.keepsake-image-picker > span > strong{
+  margin-top:7px !important;
+  color:#57222b !important;
+  font:500 18px/1 var(--font-display) !important;
+}
+.keepsake-image-picker > span > small{
+  margin-top:4px !important;
+  max-width:220px !important;
+  color:#8b5c61 !important;
+  font:9px/1.35 var(--font-body) !important;
+}
+.keepsake-image-picker input{
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+.keepsake-detail-visual{
+  position:relative !important;
+  display:block !important;
+  width:calc(100% - 44px) !important;
+  margin:12px 22px 2px !important;
+  padding:8px 8px 26px !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.12) !important;
+  background:#f8eadc !important;
+  box-shadow:4px 5px 0 rgba(62,18,25,.09) !important;
+}
+.keepsake-detail-visual img{
+  display:block !important;
+  width:100% !important;
+  max-height:48vh !important;
+  object-fit:contain !important;
+}
+.keepsake-detail-visual span{
+  position:absolute !important;
+  right:10px !important;
+  bottom:7px !important;
+  color:#8b5c61 !important;
+  font:italic 8px var(--font-display) !important;
+}
+@media (max-width:390px){
+  .keepsakes-live .keepsakes-tabs button{
+    padding-inline:4px !important;
+    font-size:7px !important;
+    letter-spacing:.03em !important;
+  }
+  .keepsakes-live .keepsakes-summary{
+    gap:0 !important;
+  }
+  .keepsakes-live .keepsakes-summary div{
+    padding:12px 9px !important;
+  }
+}
