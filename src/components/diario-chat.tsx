@@ -102,7 +102,8 @@ type DominicActionType =
   | "create_memory"
   | "create_place"
   | "create_song"
-  | "date_venue_action";
+  | "date_venue_action"
+  | "update_profile_photo";
 
 type DominicWorldAction =
   | {
@@ -193,6 +194,13 @@ type DominicWorldAction =
       venueAction:
         | "ordered"
         | "bought";
+    
+  | {
+      type:
+        "update_profile_photo";
+
+      photoId:
+        string;
     };
 
 type MessageKind =
@@ -329,7 +337,9 @@ function isDominicActionType(
     value ===
       "create_song" ||
     value ===
-      "date_venue_action"
+      "date_venue_action" ||
+    value ===
+      "update_profile_photo"
   );
 }
 
@@ -377,6 +387,13 @@ function dominicActionLabel(
     "date_venue_action"
   ) {
     return "Dominic chose something on the Date";
+  }
+
+  if (
+    type ===
+    "update_profile_photo"
+  ) {
+    return "Dominic changed his profile photo";
   }
 
   return "Dominic added something";
@@ -1283,6 +1300,46 @@ async function extractDominicActions({
   DominicWorldAction[]
 > {
   try {
+    const {
+      data: profilePhotoRows,
+      error: profilePhotoError,
+    } = await supabase
+      .from("diario_items")
+      .select("id,title,event_at,owner,data")
+      .eq("user_id", session.user.id)
+      .eq("kind", "photo")
+      .eq("status", "active")
+      .in("owner", ["dominic", "shared"])
+      .order("event_at", { ascending: false })
+      .limit(12);
+
+    if (profilePhotoError) {
+      console.error(
+        "Could not load Dominic profile-photo candidates:",
+        profilePhotoError
+      );
+    }
+
+    const profilePhotoCandidates =
+      (profilePhotoRows ?? [])
+        .filter(
+          (photo: any) =>
+            typeof photo?.data?.storage_path === "string"
+        )
+        .map(
+          (photo: any) => ({
+            id: photo.id,
+            title: photo.title ?? "Untitled photo",
+            owner: photo.owner,
+            eventAt: photo.event_at ?? null,
+            generated: photo.data?.generated === true,
+            sourceContext:
+              typeof photo.data?.source_context === "string"
+                ? photo.data.source_context
+                : null,
+          })
+        );
+
     const response =
       await fetch(
         "/api/dominic-actions",
@@ -1310,6 +1367,8 @@ async function extractDominicActions({
               liveDateContext,
 
               nearbyCommitments,
+
+              profilePhotoCandidates,
             }),
         }
       );
@@ -1584,6 +1643,79 @@ async function applyDominicAction(
 ): Promise<
   DiarioItem | null
 > {
+  if (
+    action.type ===
+    "update_profile_photo"
+  ) {
+    const {
+      data: profilePhoto,
+      error: profilePhotoError,
+    } = await supabase
+      .from("diario_items")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .eq("id", action.photoId)
+      .eq("kind", "photo")
+      .eq("status", "active")
+      .in("owner", ["dominic", "shared"])
+      .maybeSingle();
+
+    if (
+      profilePhotoError ||
+      !profilePhoto
+    ) {
+      return null;
+    }
+
+    const storagePath =
+      typeof (profilePhoto.data as any)
+        ?.storage_path === "string"
+        ? (profilePhoto.data as any)
+            .storage_path
+        : null;
+
+    if (!storagePath) {
+      return null;
+    }
+
+    await saveChatProfile({
+      userId: session.user.id,
+      owner: "dominic",
+      photoPath: storagePath,
+    });
+
+    try {
+      const refreshed =
+        await getChatProfiles(
+          session.user.id
+        );
+
+      setChatProfiles(refreshed);
+    } catch (error) {
+      console.error(
+        "Dominic changed his profile photo, but Chat could not refresh it:",
+        error
+      );
+    }
+
+    const item =
+      profilePhoto as DiarioItem;
+
+    try {
+      await createDominicActionChatItem({
+        action,
+        item,
+      });
+    } catch (error) {
+      console.error(
+        "Dominic changed his profile photo, but its Chat action card failed:",
+        error
+      );
+    }
+
+    return item;
+  }
+
   if (
     action.type ===
     "date_venue_action"
