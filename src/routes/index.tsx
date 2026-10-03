@@ -9045,7 +9045,25 @@ const openConnectionManager =
             )}
           </section>
 
-          <div className="dates-list keepsakes-archive">
+          <section className="keepsakes-memory-box">
+            <header className="keepsakes-box-lid">
+              <div>
+                <small>
+                  OUR LITTLE BOX
+                </small>
+
+                <strong>
+                  things that stayed
+                </strong>
+              </div>
+
+              <span>
+                {visibleKeepsakes.length}
+              </span>
+            </header>
+
+            <div className="keepsakes-box-tray">
+              <div className="dates-list keepsakes-archive">
             {visibleKeepsakes.map(
               (item) => {
                 const location =
@@ -9166,7 +9184,15 @@ const openConnectionManager =
                 );
               }
             )}
-          </div>
+              </div>
+            </div>
+
+            <footer>
+              <span>
+                receipts · wrappers · gifts · traces
+              </span>
+            </footer>
+          </section>
 
           <button
             type="button"
