@@ -2276,6 +2276,8 @@ const standaloneMedia =
         media.type ===
           "photo" ||
         media.type ===
+          "sticker" ||
+        media.type ===
           "agent_action" ||
         (media.type ===
           "shared_item" &&
