@@ -48,6 +48,9 @@ import {
   type DominicState,
 } from "@/lib/dominic-state";
 import {
+  getWearingSelection,
+} from "@/lib/wardrobe-context";
+import {
   getChatProfiles,
   removeChatProfilePhoto,
   saveChatProfile,
@@ -84,6 +87,8 @@ import {
   createPlace,
   createSong,
   getDates,
+  getLooks,
+  getWardrobeItems,
   type DiarioItem,
 } from "@/lib/diario-world";
 import dominic from "@/assets/dominic-candid.jpg";
@@ -789,6 +794,11 @@ const activeListeningLabel =
   const [dominicState, setDominicState] =
   useState<DominicState | null>(null);
 
+  const [
+    dominicWearingLabel,
+    setDominicWearingLabel,
+  ] = useState<string | null>(null);
+
   const [nearbyCommitments, setNearbyCommitments] =
   useState<
     {
@@ -813,6 +823,92 @@ useEffect(() => {
 
       if (!cancelled) {
         setDominicState(state);
+      }
+
+      try {
+        const [
+          wearing,
+          looks,
+          clothing,
+        ] = await Promise.all([
+          getWearingSelection({
+            userId:
+              session.user.id,
+            owner:
+              "dominic",
+          }),
+          getLooks(
+            session.user.id
+          ),
+          getWardrobeItems(
+            session.user.id
+          ),
+        ]);
+
+        if (cancelled) return;
+
+        if (
+          wearing?.lookId
+        ) {
+          const look =
+            looks.find(
+              (item) =>
+                item.id ===
+                wearing.lookId &&
+                item.owner ===
+                  "dominic"
+            );
+
+          if (look) {
+            setDominicWearingLabel(
+              look.title ??
+                "a saved look"
+            );
+            return;
+          }
+        }
+
+        const pieces =
+          clothing
+            .filter(
+              (item) =>
+                item.owner ===
+                  "dominic" &&
+                wearing?.clothingIds
+                  .includes(
+                    item.id
+                  )
+            )
+            .map(
+              (item) =>
+                item.title ??
+                "piece"
+            )
+            .slice(
+              0,
+              3
+            );
+
+        setDominicWearingLabel(
+          pieces.length
+            ? pieces.join(
+                " · "
+              )
+            : null
+        );
+      } catch (
+        error
+      ) {
+        console.error(
+          "Could not load Dominic's current outfit:",
+          error
+        );
+
+        if (!cancelled) {
+          setDominicWearingLabel(
+            null
+          );
+        }
       }
     };
 
@@ -3642,6 +3738,30 @@ const recentConversationForPhoto = () =>
           <p>
             {statusCopy}
           </p>
+
+          {(dominicState?.mood ||
+            dominicWearingLabel) && (
+            <div className="messenger-presence-meta">
+              {dominicState?.mood && (
+                <span>
+                  {dominicState.mood}
+                </span>
+              )}
+
+              {dominicWearingLabel && (
+                <span
+                  className="messenger-wearing"
+                  title={
+                    dominicWearingLabel
+                  }
+                >
+                  wearing · {
+                    dominicWearingLabel
+                  }
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="messenger-header-actions">
