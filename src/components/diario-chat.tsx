@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SpontaneousPhotoOpportunity } from "@/components/spontaneous-photo-opportunity";
 import { DateModeChatBridge } from "@/components/date-mode-chat-bridge";
 import "@/components/date-mode-chat-context.css";
+import "@/components/diario-chat-world.css";
 import {
   Camera,
   ChevronRight,
