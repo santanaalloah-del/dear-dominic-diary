@@ -904,3 +904,35 @@ html body .screen-chat .messenger-person p{
     max-width:145px !important;
   }
 }
+
+
+/* Dominic's live state includes mood + current outfit without turning the header into a dashboard. */
+.screen-chat .messenger-presence-meta{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+  margin-top:3px;
+}
+.screen-chat .messenger-presence-meta span{
+  flex:0 0 auto;
+  max-width:128px;
+  padding:2px 5px;
+  overflow:hidden;
+  border:1px solid color-mix(in oklab,var(--chat-ink) 11%,transparent);
+  border-radius:999px;
+  color:color-mix(in oklab,var(--chat-ink) 68%,transparent) !important;
+  -webkit-text-fill-color:color-mix(in oklab,var(--chat-ink) 68%,transparent) !important;
+  font:6px/1.15 var(--font-body);
+  letter-spacing:.04em;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.screen-chat .messenger-presence-meta .messenger-wearing{
+  flex:1 1 auto;
+}
+@media (max-width:420px){
+  .screen-chat .messenger-presence-meta span{
+    max-width:92px;
+  }
+}
