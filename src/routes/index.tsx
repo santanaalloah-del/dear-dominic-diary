@@ -897,7 +897,7 @@ function HomeScreen({
   // frame removes that ghosting while keeping the seven time anchors.
   const usesSingleFrameTransition =
     hasPhotoTimeline &&
-    (activeRoom.id === "living" || activeRoom.id === "bathroom");
+    (activeRoom.id === "living" || activeRoom.id === "bedroom" || activeRoom.id === "bathroom");
   const dominantScene =
     usesSingleFrameTransition && sceneMix >= 0.5 ? sceneTo : sceneFrom;
 
