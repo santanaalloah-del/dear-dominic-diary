@@ -674,3 +674,233 @@
     grid-template-columns:repeat(6,minmax(0,1fr));
   }
 }
+
+
+/* =========================================================
+   CHAT · IDENTITY PASS 2026-10-03
+   Theme presets are complete rooms, not tint-only variants.
+   These selectors intentionally outrank the old global chat ink rules.
+   ========================================================= */
+html body .screen-chat .messenger-chat{
+  background-color:var(--chat-bg) !important;
+  background-image:var(--chat-wallpaper) !important;
+  transition:background-color 220ms ease,color 220ms ease !important;
+}
+html body .screen-chat .messenger-chat .messenger-conversation,
+html body .screen-chat .messenger-chat .messenger-messages{
+  background:transparent !important;
+}
+
+/* Actual message materials per preset. */
+html body .screen-chat .messenger-chat .messenger-message.is-assistant .messenger-bubble{
+  background:var(--chat-theirs) !important;
+  color:var(--chat-bubble-ink) !important;
+  -webkit-text-fill-color:var(--chat-bubble-ink) !important;
+}
+html body .screen-chat .messenger-chat .messenger-message.is-user .messenger-bubble{
+  background:var(--chat-mine) !important;
+  color:var(--chat-mine-ink) !important;
+  -webkit-text-fill-color:var(--chat-mine-ink) !important;
+}
+html body .screen-chat .messenger-chat .messenger-message.is-assistant .messenger-bubble *,
+html body .screen-chat .messenger-chat .messenger-message.is-assistant .diario-message-content *{
+  color:var(--chat-bubble-ink) !important;
+  -webkit-text-fill-color:var(--chat-bubble-ink) !important;
+}
+html body .screen-chat .messenger-chat .messenger-message.is-user .messenger-bubble *,
+html body .screen-chat .messenger-chat .messenger-message.is-user .diario-message-content *{
+  color:var(--chat-mine-ink) !important;
+  -webkit-text-fill-color:var(--chat-mine-ink) !important;
+}
+
+/* Diary = torn notebook note. */
+html body .screen-chat .chat-theme-diary .messenger-message.is-assistant .messenger-bubble,
+html body .screen-chat .chat-theme-diary .messenger-message.is-user .messenger-bubble{
+  background-image:
+    repeating-linear-gradient(180deg,transparent 0 25px,rgba(112,43,52,.045) 25px 26px) !important;
+}
+html body .screen-chat .chat-theme-diary .messenger-header::after{
+  content:"private thread";
+  position:absolute;
+  right:16px;
+  bottom:-8px;
+  padding:3px 7px;
+  background:#f4e3d4;
+  color:#8f4b55;
+  font:italic 8px var(--font-display);
+  transform:rotate(2deg);
+  box-shadow:2px 2px 0 rgba(72,25,31,.06);
+}
+
+/* Cherry Wine = dark room + pink note bubbles. */
+html body .screen-chat .chat-theme-cherry .messenger-message.is-assistant .messenger-bubble{
+  border:1px solid rgba(255,232,221,.16) !important;
+  box-shadow:0 8px 22px rgba(25,5,10,.15) !important;
+}
+html body .screen-chat .chat-theme-cherry .messenger-message.is-user .messenger-bubble{
+  box-shadow:0 8px 22px rgba(25,5,10,.18) !important;
+}
+html body .screen-chat .chat-theme-cherry .messenger-day-divider span{
+  border:1px solid rgba(255,236,225,.14) !important;
+}
+
+/* Old Letter = parchment slips, serif chat, aged edges. */
+html body .screen-chat .chat-theme-old-letter .messenger-bubble{
+  font-family:var(--font-display) !important;
+  background-image:
+    repeating-linear-gradient(7deg,rgba(79,54,41,.025) 0 1px,transparent 1px 8px) !important;
+  border-color:rgba(75,53,42,.16) !important;
+}
+html body .screen-chat .chat-theme-old-letter .messenger-message.is-assistant .messenger-bubble{
+  transform:rotate(-.25deg);
+}
+html body .screen-chat .chat-theme-old-letter .messenger-message.is-user .messenger-bubble{
+  transform:rotate(.2deg);
+}
+html body .screen-chat .chat-theme-old-letter .messenger-header,
+html body .screen-chat .chat-theme-old-letter .messenger-composer-wrap{
+  box-shadow:inset 0 1px rgba(255,247,226,.16) !important;
+}
+
+/* Soft Rose = stationery, softer silhouettes and gingham world. */
+html body .screen-chat .chat-theme-soft-rose .messenger-bubble{
+  border-color:rgba(125,58,70,.09) !important;
+  box-shadow:0 6px 16px rgba(102,50,59,.07) !important;
+}
+html body .screen-chat .chat-theme-soft-rose .messenger-avatar,
+html body .screen-chat .chat-theme-soft-rose .messenger-self-avatar{
+  box-shadow:0 0 0 3px rgba(255,239,233,.46) !important;
+}
+
+/* Midnight = explicitly nighttime even if Adapt to time is off. */
+html body .screen-chat .chat-theme-midnight .messenger-header,
+html body .screen-chat .chat-theme-midnight .messenger-composer-wrap{
+  border-color:rgba(249,232,219,.10) !important;
+  box-shadow:0 10px 26px rgba(0,0,0,.18) !important;
+}
+html body .screen-chat .chat-theme-midnight .messenger-bubble{
+  border-color:rgba(249,232,219,.10) !important;
+}
+
+/* Bubble material and theme are independent controls. */
+html body .screen-chat .messenger-chat.chat-bubbles-minimal .messenger-message .messenger-bubble{
+  background:transparent !important;
+}
+html body .screen-chat .messenger-chat.chat-bubbles-paper .messenger-message .messenger-bubble{
+  background-image:
+    repeating-linear-gradient(180deg,transparent 0 24px,color-mix(in oklab,var(--chat-ink) 5%,transparent) 24px 25px) !important;
+}
+
+/* Header now reads as two real profiles sharing one conversation. */
+html body .screen-chat .messenger-header{
+  position:relative !important;
+  min-height:68px !important;
+}
+html body .screen-chat .messenger-avatar{
+  width:44px !important;
+  height:44px !important;
+  padding:0 !important;
+  overflow:visible !important;
+  border:2px solid color-mix(in oklab,var(--chat-accent) 58%,var(--chat-panel)) !important;
+  border-radius:50% !important;
+  background:var(--chat-panel) !important;
+  box-shadow:0 4px 12px rgba(37,11,16,.11) !important;
+}
+html body .screen-chat .messenger-avatar img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  border-radius:50% !important;
+}
+html body .screen-chat .presence-dot{
+  position:absolute !important;
+  right:-1px !important;
+  bottom:1px !important;
+  width:11px !important;
+  height:11px !important;
+  border:2px solid var(--chat-panel) !important;
+  border-radius:50% !important;
+  background:#8eaa79 !important;
+}
+html body .screen-chat .messenger-person h1{
+  font:500 19px/.98 var(--font-display) !important;
+}
+html body .screen-chat .messenger-person p{
+  margin-top:4px !important;
+  max-width:190px !important;
+  overflow:hidden !important;
+  font:8.5px/1.25 var(--font-body) !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+
+/* Profile sheets feel like a profile, not a settings form. */
+.chat-profile-sheet .chat-profile-hero{
+  position:relative;
+  overflow:visible;
+}
+.chat-profile-sheet .chat-profile-hero::after{
+  content:"♡";
+  position:absolute;
+  right:14px;
+  bottom:10px;
+  color:#b56d75;
+  font:19px var(--font-display);
+  transform:rotate(8deg);
+}
+.chat-profile-sheet .chat-profile-photo{
+  position:relative;
+}
+.chat-profile-sheet .chat-profile-photo::after{
+  content:"";
+  position:absolute;
+  inset:-7px;
+  border:1px solid rgba(101,35,44,.10);
+  border-radius:50%;
+  pointer-events:none;
+}
+.chat-profile-sheet .chat-profile-shortcuts button:hover{
+  background:#ead5c6 !important;
+}
+
+/* Theme swatches are mini previews of the real rooms. */
+.chat-settings-sheet .theme-swatch{
+  position:relative !important;
+  overflow:hidden !important;
+  border-radius:1px !important;
+}
+.chat-settings-sheet .swatch-diary{
+  background:
+    repeating-linear-gradient(180deg,#f3e3d4 0 11px,#e6c8c3 11px 12px) !important;
+}
+.chat-settings-sheet .swatch-cherry{
+  background:
+    radial-gradient(circle at 25% 24%,#d9828b 0 3px,transparent 3px),
+    #5b1c28 !important;
+}
+.chat-settings-sheet .swatch-old-letter{
+  background:
+    repeating-linear-gradient(8deg,#dbc9ab 0 7px,#c6af8f 7px 8px) !important;
+}
+.chat-settings-sheet .swatch-soft-rose{
+  background:
+    linear-gradient(90deg,rgba(161,77,90,.09) 50%,transparent 50%),
+    linear-gradient(rgba(161,77,90,.09) 50%,transparent 50%),
+    #efd5d6 !important;
+  background-size:10px 10px !important;
+}
+.chat-settings-sheet .swatch-midnight{
+  background:
+    radial-gradient(circle at 25% 30%,#f6dfcf 0 1px,transparent 1.5px),
+    radial-gradient(circle at 70% 58%,#d68e9a 0 1px,transparent 1.5px),
+    #21131c !important;
+}
+
+@media (max-width:420px){
+  html body .screen-chat .messenger-header{
+    grid-template-columns:46px minmax(0,1fr) auto !important;
+  }
+  html body .screen-chat .messenger-person p{
+    max-width:145px !important;
+  }
+}
