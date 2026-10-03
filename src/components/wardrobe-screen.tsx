@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Calendar as CalendarIcon,
   Check,
@@ -233,6 +233,310 @@ async function autoCutoutClothing(file: File): Promise<File> {
   );
 }
 
+
+function WardrobeManualCutout({
+  file,
+  onApply,
+  onCancel,
+}: {
+  file: File;
+  onApply: (file: File) => void;
+  onCancel: () => void;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const drawingRef = useRef(false);
+  const [brushSize, setBrushSize] = useState(26);
+  const [ready, setReady] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const redraw = () => {
+    const canvas = canvasRef.current;
+    const image = imageRef.current;
+
+    if (!canvas || !image) return;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) return;
+
+    context.globalCompositeOperation = "source-over";
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      if (cancelled) return;
+
+      const maxSide = 920;
+      const scale = Math.min(
+        1,
+        maxSide /
+          Math.max(
+            image.naturalWidth,
+            image.naturalHeight
+          )
+      );
+
+      const canvas = canvasRef.current;
+
+      if (!canvas) return;
+
+      canvas.width = Math.max(
+        1,
+        Math.round(
+          image.naturalWidth * scale
+        )
+      );
+      canvas.height = Math.max(
+        1,
+        Math.round(
+          image.naturalHeight * scale
+        )
+      );
+
+      imageRef.current = image;
+      redraw();
+      setReady(true);
+    };
+
+    image.onerror = () => {
+      if (!cancelled) {
+        setReady(false);
+      }
+    };
+
+    image.src = url;
+
+    return () => {
+      cancelled = true;
+      URL.revokeObjectURL(url);
+    };
+  }, [file]);
+
+  const eraseAt = (
+    clientX: number,
+    clientY: number
+  ) => {
+    const canvas = canvasRef.current;
+
+    if (!canvas) return;
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+    const x =
+      ((clientX - rect.left) /
+        rect.width) *
+      canvas.width;
+
+    const y =
+      ((clientY - rect.top) /
+        rect.height) *
+      canvas.height;
+
+    const scale =
+      canvas.width /
+      Math.max(
+        1,
+        rect.width
+      );
+
+    const context =
+      canvas.getContext("2d");
+
+    if (!context) return;
+
+    context.save();
+    context.globalCompositeOperation =
+      "destination-out";
+    context.beginPath();
+    context.arc(
+      x,
+      y,
+      brushSize *
+        scale,
+      0,
+      Math.PI * 2
+    );
+    context.fill();
+    context.restore();
+  };
+
+  const apply = async () => {
+    const canvas = canvasRef.current;
+
+    if (!canvas) return;
+
+    setSaving(true);
+
+    try {
+      const blob =
+        await new Promise<Blob>(
+          (resolve, reject) => {
+            canvas.toBlob(
+              (result) =>
+                result
+                  ? resolve(result)
+                  : reject(
+                      new Error(
+                        "Could not save the cutout."
+                      )
+                    ),
+              "image/png"
+            );
+          }
+        );
+
+      onApply(
+        new File(
+          [blob],
+          file.name.replace(
+            /\.[^.]+$/,
+            ""
+          ) +
+            "-manual-cutout.png",
+          {
+            type:
+              "image/png",
+          }
+        )
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="wardrobe-manual-cutout">
+      <header>
+        <div>
+          <small>manual cutout</small>
+          <strong>
+            Erase the background
+          </strong>
+        </div>
+
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Close cutout editor"
+        >
+          <X size={16} />
+        </button>
+      </header>
+
+      <p>
+        Rub away anything that should be
+        transparent. Use Reset if you want to
+        start over.
+      </p>
+
+      <div className="wardrobe-manual-cutout-canvas">
+        <canvas
+          ref={canvasRef}
+          onPointerDown={(event) => {
+            drawingRef.current =
+              true;
+            event.currentTarget.setPointerCapture(
+              event.pointerId
+            );
+            eraseAt(
+              event.clientX,
+              event.clientY
+            );
+          }}
+          onPointerMove={(event) => {
+            if (
+              !drawingRef.current
+            ) {
+              return;
+            }
+
+            eraseAt(
+              event.clientX,
+              event.clientY
+            );
+          }}
+          onPointerUp={(event) => {
+            drawingRef.current =
+              false;
+
+            if (
+              event.currentTarget.hasPointerCapture(
+                event.pointerId
+              )
+            ) {
+              event.currentTarget.releasePointerCapture(
+                event.pointerId
+              );
+            }
+          }}
+          onPointerCancel={() => {
+            drawingRef.current =
+              false;
+          }}
+        />
+      </div>
+
+      <label className="wardrobe-cutout-brush">
+        <span>eraser size</span>
+
+        <input
+          type="range"
+          min="8"
+          max="70"
+          step="2"
+          value={brushSize}
+          onChange={(event) =>
+            setBrushSize(
+              Number(
+                event.target.value
+              )
+            )
+          }
+        />
+
+        <small>
+          {brushSize}px
+        </small>
+      </label>
+
+      <div className="wardrobe-manual-cutout-actions">
+        <button
+          type="button"
+          onClick={redraw}
+          disabled={!ready}
+        >
+          Reset
+        </button>
+
+        <button
+          type="button"
+          className="primary"
+          disabled={
+            !ready ||
+            saving
+          }
+          onClick={() =>
+            void apply()
+          }
+        >
+          <Scissors size={14} />
+          {saving
+            ? "Saving…"
+            : "Use cutout"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export function WardrobeExperienceScreen() {
   const { session } = usePrivateDiario();
 
@@ -284,7 +588,10 @@ export function WardrobeExperienceScreen() {
     useState<string | null>(null);
 
   const [clothingCutoutMode, setClothingCutoutMode] =
-    useState<"original" | "auto">("original");
+    useState<"original" | "auto" | "manual">("original");
+
+  const [manualCutoutOpen, setManualCutoutOpen] =
+    useState(false);
 
   const [cutoutBusy, setCutoutBusy] =
     useState(false);
@@ -567,6 +874,7 @@ export function WardrobeExperienceScreen() {
       setClothingOriginalFile(null);
       setClothingImageFile(null);
       setClothingCutoutMode("original");
+      setManualCutoutOpen(false);
       setAddingClothing(false);
     } catch (saveError) {
       console.error(
@@ -1615,6 +1923,7 @@ export function WardrobeExperienceScreen() {
                     setClothingOriginalFile(file);
                     setClothingImageFile(file);
                     setClothingCutoutMode("original");
+      setManualCutoutOpen(false);
                   }}
                 />
               </label>
@@ -1673,8 +1982,45 @@ export function WardrobeExperienceScreen() {
                   >
                     Use original
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setManualCutoutOpen(
+                        true
+                      )
+                    }
+                  >
+                    <Scissors size={14} />
+                    Manual cutout
+                  </button>
                 </div>
               )}
+
+              {manualCutoutOpen &&
+                clothingOriginalFile && (
+                  <WardrobeManualCutout
+                    file={
+                      clothingOriginalFile
+                    }
+                    onCancel={() =>
+                      setManualCutoutOpen(
+                        false
+                      )
+                    }
+                    onApply={(cutout) => {
+                      setClothingImageFile(
+                        cutout
+                      );
+                      setClothingCutoutMode(
+                        "manual"
+                      );
+                      setManualCutoutOpen(
+                        false
+                      );
+                    }}
+                  />
+                )}
 
               <input
                 type="text"
@@ -1750,6 +2096,7 @@ export function WardrobeExperienceScreen() {
                     setClothingOriginalFile(null);
                     setClothingImageFile(null);
                     setClothingCutoutMode("original");
+      setManualCutoutOpen(false);
                   }}
                 >
                   Cancel
