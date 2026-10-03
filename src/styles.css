@@ -16535,3 +16535,107 @@ html[data-diario-time-theme="continuous"] .statusbar {
     padding-inline:14px !important;
   }
 }
+
+
+/* =========================================================
+   VISUAL PASS 05C · FINAL MOBILE OVERRIDES
+   Device screenshots showed older max-height/contrast rules
+   still winning in the cascade. Force the intended result.
+   ========================================================= */
+
+/* Owner + section navigation: ivory first, burgundy only for active accent. */
+.music-screen .music-tabs button,
+.music-screen .music-section-tabs button{
+  color:rgba(249,233,217,.68) !important;
+  -webkit-text-fill-color:rgba(249,233,217,.68) !important;
+  opacity:1 !important;
+}
+.music-screen .music-tabs button.active{
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+  background:#7b1f2d !important;
+  border-color:#d88a92 !important;
+}
+.music-screen .music-section-tabs button.active{
+  color:#fff4e7 !important;
+  -webkit-text-fill-color:#fff4e7 !important;
+  border-bottom-color:#d88a92 !important;
+}
+
+/* Spotify lists: absolutely no nested vertical scrolling. */
+.music-screen .spotify-library-paper,
+.music-screen .spotify-library-paper *,
+.music-screen .spotify-compact-track-list,
+.music-screen .spotify-compact-track-list *,
+.music-screen .spotify-queue-list,
+.music-screen .spotify-playlist-grid{
+  max-height:none !important;
+}
+.music-screen .spotify-library-paper,
+.music-screen .spotify-compact-track-list,
+.music-screen .spotify-queue-list,
+.music-screen .spotify-playlist-grid{
+  height:auto !important;
+  overflow-y:visible !important;
+  overflow-x:visible !important;
+  contain:none !important;
+  clip-path:none !important;
+}
+
+/* Liked Songs specifically had a legacy scroll viewport. */
+.music-screen .spotify-library-paper:has(.spotify-compact-track-list){
+  max-height:none !important;
+  height:auto !important;
+  overflow:visible !important;
+}
+.music-screen .spotify-library-paper .spotify-compact-track-list{
+  display:block !important;
+  max-height:none !important;
+  height:auto !important;
+  overflow:visible !important;
+  padding-bottom:18px !important;
+}
+
+/* Hide any legacy scrollbar decoration that survived WebKit. */
+.music-screen .spotify-library-paper::-webkit-scrollbar,
+.music-screen .spotify-compact-track-list::-webkit-scrollbar,
+.music-screen .spotify-queue-list::-webkit-scrollbar{
+  width:0 !important;
+  height:0 !important;
+  display:none !important;
+}
+
+/* Liner note belongs to the same paper family as the music archive. */
+.music-screen .music-rule{
+  margin:0 10px 34px !important;
+  padding:15px 18px !important;
+  border:1px solid rgba(91,30,39,.10) !important;
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  box-shadow:4px 5px 0 rgba(20,5,9,.10) !important;
+}
+.music-screen .music-rule::before{
+  content:"LINER NOTE" !important;
+  display:block !important;
+  margin-bottom:6px !important;
+  color:#a24e58 !important;
+  -webkit-text-fill-color:#a24e58 !important;
+  font-size:6px !important;
+  font-weight:700 !important;
+  letter-spacing:.18em !important;
+}
+.music-screen .music-rule p{
+  margin:0 !important;
+  color:#704049 !important;
+  -webkit-text-fill-color:#704049 !important;
+  font-family:var(--font-serif,serif) !important;
+  font-size:10px !important;
+  line-height:1.45 !important;
+}
+
+/* More breathing room before the floating navigation on long Spotify pages. */
+.music-screen{padding-bottom:170px !important}
+
+@media (max-width:420px){
+  .music-screen .music-rule{margin-inline:6px !important}
+}
