@@ -15990,3 +15990,582 @@ html[data-diario-time-theme="continuous"] .statusbar {
   .letters-live .letter-envelope-visual{width:68px !important}
   .memories-live .memories-timeline{padding-right:17px !important}
 }
+
+
+/* =========================================================
+   WORLD ROOMS · PLACES / KEEPSAKES / WARDROBE
+   Editorial archive pass. Morning/Night intentionally untouched.
+   ========================================================= */
+
+.places-live,
+.keepsakes-live,
+.wardrobe-live{
+  --room-paper:#f5e7d8;
+  --room-paper-deep:#ead2c2;
+  --room-ink:#57222b;
+  --room-muted:#8b5c61;
+  --room-accent:#a64d58;
+  --room-line:rgba(91,30,39,.13);
+}
+
+/* Shared owner/filter tabs stop looking like pills. */
+.places-live .dates-tabs,
+.keepsakes-live .keepsakes-tabs,
+.wardrobe-live .wardrobe-owner-tabs,
+.wardrobe-live .wardrobe-view-tabs{
+  gap:0 !important;
+  padding:0 !important;
+  border:1px solid color-mix(in oklab,var(--text) 15%,transparent) !important;
+  border-radius:1px !important;
+  background:color-mix(in oklab,var(--surface-raised) 34%,transparent) !important;
+  box-shadow:none !important;
+}
+.places-live .dates-tabs button,
+.keepsakes-live .keepsakes-tabs button,
+.wardrobe-live .wardrobe-owner-tabs button,
+.wardrobe-live .wardrobe-view-tabs button{
+  min-height:43px !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:var(--text-soft) !important;
+  -webkit-text-fill-color:var(--text-soft) !important;
+  box-shadow:none !important;
+}
+.places-live .dates-tabs button + button,
+.keepsakes-live .keepsakes-tabs button + button,
+.wardrobe-live .wardrobe-owner-tabs button + button,
+.wardrobe-live .wardrobe-view-tabs button + button{
+  border-left:1px solid color-mix(in oklab,var(--text) 10%,transparent) !important;
+}
+.places-live .dates-tabs button.active,
+.keepsakes-live .keepsakes-tabs button.active,
+.wardrobe-live .wardrobe-owner-tabs button.active,
+.wardrobe-live .wardrobe-view-tabs button.active{
+  background:#6d1b27 !important;
+  color:#fff2e4 !important;
+  -webkit-text-fill-color:#fff2e4 !important;
+}
+
+/* ---------------- PLACES · city notebook ---------------- */
+.places-live .places-index{
+  gap:11px !important;
+  margin-top:18px !important;
+}
+.places-live .place-index-card{
+  position:relative !important;
+  padding:17px 17px 15px 43px !important;
+  overflow:visible !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 30px,rgba(103,45,52,.04) 30px 31px),
+    var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+  cursor:pointer !important;
+}
+.places-live .place-index-card:nth-child(even){
+  transform:rotate(.3deg);
+}
+.places-live .place-index-card::before{
+  content:"";
+  position:absolute;
+  left:20px;
+  top:-7px;
+  bottom:-12px;
+  width:1px;
+  background:#8d3340;
+  opacity:.42;
+}
+.places-live .place-index-card::after{
+  content:"";
+  position:absolute;
+  left:15px;
+  top:21px;
+  width:9px;
+  height:9px;
+  border:2px solid #f6e8d9;
+  border-radius:50%;
+  background:#7b2531;
+  box-shadow:0 0 0 1px #7b2531;
+}
+.places-live .place-index-card header{
+  align-items:flex-start !important;
+}
+.places-live .place-index-card header span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+  font-size:7px !important;
+  letter-spacing:.16em !important;
+}
+.places-live .place-index-card header strong{
+  margin-top:3px !important;
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+  font:500 25px/.95 var(--font-display) !important;
+}
+.places-live .place-index-card header svg{
+  color:#8d5660 !important;
+}
+.places-live .place-index-card .date-place{
+  margin-top:9px !important;
+  color:#7d4951 !important;
+  -webkit-text-fill-color:#7d4951 !important;
+  font-size:9px !important;
+}
+.places-live .place-index-card p,
+.places-live .place-index-card time{
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+}
+.places-live .place-index-card[data-place-status="visited"]::after{
+  background:#a64d58;
+}
+.places-live .place-index-card[data-place-status="saved"]{
+  background:
+    linear-gradient(90deg,rgba(190,112,123,.05),transparent 34%),
+    var(--room-paper) !important;
+}
+
+/* Place detail feels like a travel page, not a generic Date card. */
+.places-live .place-detail-card{
+  position:relative !important;
+  margin:16px 22px 0 !important;
+  padding:18px !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:5px 7px 0 rgba(38,10,15,.10) !important;
+}
+.places-live .place-detail-card::before{
+  content:"place note";
+  display:block;
+  margin-bottom:12px;
+  padding-bottom:9px;
+  border-bottom:1px solid var(--room-line);
+  color:var(--room-accent);
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.places-live .place-detail-card header span,
+.places-live .place-detail-card header strong,
+.places-live .place-detail-card p,
+.places-live .place-detail-card time,
+.places-live .place-detail-card .date-place{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+.places-live .place-history-sheet{
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  color:var(--room-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+}
+.places-live .place-history-sheet header span,
+.places-live .place-history-sheet header strong,
+.places-live .place-history-sheet p{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+.places-live .place-history-sheet > div article{
+  border-radius:1px !important;
+  background:rgba(255,247,237,.32) !important;
+}
+
+/* ---------------- KEEPSAKES · memory drawer ---------------- */
+.keepsakes-live .keepsakes-summary{
+  position:relative;
+  gap:0 !important;
+  border:1px solid var(--room-line);
+  background:var(--room-paper);
+  box-shadow:4px 5px 0 rgba(38,10,15,.08);
+}
+.keepsakes-live .keepsakes-summary::before{
+  content:"object drawer";
+  position:absolute;
+  top:-8px;
+  left:50%;
+  padding:2px 7px;
+  transform:translateX(-50%) rotate(-1deg);
+  background:#e4beb6;
+  color:#8c4650;
+  font-size:6px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.keepsakes-live .keepsakes-summary div{
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:var(--room-ink) !important;
+}
+.keepsakes-live .keepsakes-summary div + div{
+  border-left:1px solid var(--room-line) !important;
+}
+.keepsakes-live .keepsakes-summary span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+}
+.keepsakes-live .keepsakes-summary strong{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+
+.keepsakes-live .keepsakes-archive{
+  gap:14px !important;
+  margin-top:20px !important;
+}
+.keepsakes-live .keepsake-index-card{
+  position:relative !important;
+  min-height:112px !important;
+  padding:17px 18px 16px 76px !important;
+  overflow:visible !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+  cursor:pointer !important;
+}
+.keepsakes-live .keepsake-index-card:nth-child(even){
+  transform:rotate(.35deg);
+  background:#ead6c7 !important;
+}
+.keepsakes-live .keepsake-index-card::before{
+  content:"";
+  position:absolute;
+  left:16px;
+  top:19px;
+  width:43px;
+  height:53px;
+  border:1px solid rgba(101,35,44,.16);
+  background:
+    linear-gradient(145deg,rgba(176,85,96,.18),transparent 46%),
+    #f8eadc;
+  box-shadow:2px 3px 0 rgba(62,18,25,.08);
+}
+.keepsakes-live .keepsake-index-card::after{
+  content:attr(data-keepsake-type);
+  position:absolute;
+  left:16px;
+  top:78px;
+  width:43px;
+  overflow:hidden;
+  color:#a15d64;
+  font-size:6px;
+  letter-spacing:.08em;
+  text-align:center;
+  text-overflow:ellipsis;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.keepsakes-live .keepsake-index-card header span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+  font-size:7px !important;
+  letter-spacing:.16em !important;
+}
+.keepsakes-live .keepsake-index-card header strong{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+  font:500 24px/.98 var(--font-display) !important;
+}
+.keepsakes-live .keepsake-index-card .date-place,
+.keepsakes-live .keepsake-index-card p{
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+}
+.keepsakes-live .keepsake-index-card[data-keepsake-location="stored"]{
+  opacity:.87;
+}
+
+.keepsakes-live .keepsake-detail-card{
+  position:relative !important;
+  margin:16px 22px 0 !important;
+  padding:18px !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 30px,rgba(103,45,52,.04) 30px 31px),
+    var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:5px 7px 0 rgba(38,10,15,.10) !important;
+}
+.keepsakes-live .keepsake-detail-card::before{
+  content:"kept object";
+  display:block;
+  margin-bottom:12px;
+  padding-bottom:9px;
+  border-bottom:1px solid var(--room-line);
+  color:var(--room-accent);
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.keepsakes-live .keepsake-detail-card :is(header span,header strong,p,.date-place,time){
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+.keepsakes-live .keepsake-history-sheet{
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  color:var(--room-ink) !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.09) !important;
+}
+.keepsakes-live .keepsake-history-sheet :is(header span,header strong,p){
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+
+/* ---------------- WARDROBE · editorial closet / lookbook ---------------- */
+.wardrobe-live .wardrobe-owner-tabs,
+.wardrobe-live .wardrobe-view-tabs{
+  margin-top:10px !important;
+}
+.wardrobe-live .wardrobe-owner-tabs{
+  margin-top:17px !important;
+}
+
+.wardrobe-live .wardrobe-closet,
+.wardrobe-live .wardrobe-looks{
+  position:relative !important;
+  margin:18px 22px 0 !important;
+  padding:18px 16px 20px !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 34px,rgba(103,45,52,.035) 34px 35px),
+    var(--room-paper) !important;
+  color:var(--room-ink) !important;
+  box-shadow:5px 7px 0 rgba(38,10,15,.10) !important;
+}
+.wardrobe-live .wardrobe-closet::before,
+.wardrobe-live .wardrobe-looks::before{
+  content:"";
+  position:absolute;
+  top:-8px;
+  right:56px;
+  width:76px;
+  height:18px;
+  transform:rotate(2deg);
+  background:rgba(225,184,176,.54);
+}
+.wardrobe-live .wardrobe-closet > header,
+.wardrobe-live .wardrobe-looks > header{
+  margin-bottom:14px !important;
+  padding-bottom:11px !important;
+  border-bottom:1px solid var(--room-line) !important;
+}
+.wardrobe-live .wardrobe-closet > header span,
+.wardrobe-live .wardrobe-looks > header span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+}
+.wardrobe-live .wardrobe-closet > header strong,
+.wardrobe-live .wardrobe-looks > header strong{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+.wardrobe-live .wardrobe-closet > header small,
+.wardrobe-live .wardrobe-looks > header small{
+  border-radius:0 !important;
+  background:transparent !important;
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+}
+
+.wardrobe-live .wardrobe-item-grid{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:12px !important;
+}
+.wardrobe-live .wardrobe-item{
+  position:relative !important;
+  display:grid !important;
+  grid-template-rows:104px auto !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.13) !important;
+  border-radius:1px !important;
+  background:#f8eadc !important;
+  color:var(--room-ink) !important;
+  text-align:left !important;
+  box-shadow:2px 3px 0 rgba(62,18,25,.08) !important;
+}
+.wardrobe-live .wardrobe-item:nth-child(even){
+  transform:rotate(.4deg);
+}
+.wardrobe-live .wardrobe-item-image{
+  position:relative !important;
+  display:grid !important;
+  place-items:center !important;
+  width:100% !important;
+  min-height:104px !important;
+  border:0 !important;
+  border-bottom:1px solid rgba(91,30,39,.10) !important;
+  border-radius:0 !important;
+  background:
+    linear-gradient(150deg,rgba(177,78,91,.12),transparent 48%),
+    #ead7c8 !important;
+  color:#8b4651 !important;
+}
+.wardrobe-live .wardrobe-item-image::before{
+  content:"";
+  position:absolute;
+  top:12px;
+  left:50%;
+  width:58px;
+  height:1px;
+  transform:translateX(-50%);
+  background:rgba(93,35,43,.20);
+}
+.wardrobe-live .wardrobe-item > span{
+  display:block !important;
+  min-width:0 !important;
+  padding:11px 10px 12px !important;
+}
+.wardrobe-live .wardrobe-item strong{
+  display:block !important;
+  overflow:hidden !important;
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+  font:500 15px/1.05 var(--font-display) !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.wardrobe-live .wardrobe-item small{
+  display:block !important;
+  margin-top:3px !important;
+  overflow:hidden !important;
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+  font-size:7px !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.wardrobe-live .wardrobe-item.active{
+  outline:2px solid #9d4552 !important;
+  outline-offset:-2px !important;
+}
+
+.wardrobe-live .wardrobe-look-list{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:14px !important;
+}
+.wardrobe-live .wardrobe-look{
+  position:relative !important;
+  display:block !important;
+  min-height:180px !important;
+  padding:98px 13px 14px !important;
+  overflow:hidden !important;
+  border:1px solid rgba(91,30,39,.13) !important;
+  border-radius:1px !important;
+  background:#f8eadc !important;
+  color:var(--room-ink) !important;
+  text-align:left !important;
+  box-shadow:3px 4px 0 rgba(62,18,25,.09) !important;
+  cursor:pointer !important;
+}
+.wardrobe-live .wardrobe-look::before{
+  content:"look";
+  position:absolute;
+  inset:12px 12px auto;
+  height:73px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(91,30,39,.10);
+  background:
+    linear-gradient(135deg,#d8a7a8 0 48%,#eed7c7 48% 100%);
+  color:rgba(87,34,43,.60);
+  font:italic 22px var(--font-display);
+}
+.wardrobe-live .wardrobe-look:nth-child(even){
+  transform:rotate(.45deg);
+}
+.wardrobe-live .wardrobe-look span{
+  color:var(--room-accent) !important;
+  -webkit-text-fill-color:var(--room-accent) !important;
+}
+.wardrobe-live .wardrobe-look strong{
+  display:block !important;
+  margin-top:4px !important;
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+  font:500 18px/.98 var(--font-display) !important;
+}
+.wardrobe-live .wardrobe-look small{
+  display:block !important;
+  margin-top:5px !important;
+  color:var(--room-muted) !important;
+  -webkit-text-fill-color:var(--room-muted) !important;
+  font-size:7px !important;
+  line-height:1.35 !important;
+}
+.wardrobe-live .wardrobe-add-button,
+.wardrobe-live .wardrobe-create-look{
+  border-radius:1px !important;
+  box-shadow:none !important;
+}
+
+.wardrobe-live .wardrobe-date-link,
+.wardrobe-live .wardrobe-rule{
+  margin:16px 22px 0 !important;
+  border:1px solid var(--room-line) !important;
+  border-radius:1px !important;
+  background:#ead6c7 !important;
+  color:var(--room-ink) !important;
+  box-shadow:3px 4px 0 rgba(38,10,15,.08) !important;
+}
+.wardrobe-live .wardrobe-date-link :is(strong,p),
+.wardrobe-live .wardrobe-rule p{
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+
+/* Forms inside paper rooms keep dark ink even after sunset. */
+.places-live :is(.dates-empty,.place-detail-card),
+.keepsakes-live :is(.keepsakes-empty,.keepsake-detail-card),
+.wardrobe-live :is(.wardrobe-empty,.wardrobe-look-empty){
+  color:var(--room-ink) !important;
+}
+.places-live :is(.dates-empty,.place-detail-card) :is(input,textarea,select),
+.keepsakes-live :is(.keepsakes-empty,.keepsake-detail-card) :is(input,textarea,select),
+.wardrobe-live :is(.wardrobe-empty,.wardrobe-look-empty) :is(input,textarea,select){
+  border-radius:1px !important;
+  background:#fbefe2 !important;
+  color:var(--room-ink) !important;
+  -webkit-text-fill-color:var(--room-ink) !important;
+}
+
+/* Sunset/night: the world may darken, paper rooms remain readable. */
+.prototype-stage:is([data-time-theme="night"],[data-time-theme="late"]) :is(
+  .places-live .place-index-card,
+  .places-live .place-detail-card,
+  .places-live .place-history-sheet,
+  .keepsakes-live .keepsakes-summary,
+  .keepsakes-live .keepsake-index-card,
+  .keepsakes-live .keepsake-detail-card,
+  .keepsakes-live .keepsake-history-sheet,
+  .wardrobe-live .wardrobe-closet,
+  .wardrobe-live .wardrobe-looks,
+  .wardrobe-live .wardrobe-date-link,
+  .wardrobe-live .wardrobe-rule
+){
+  color:var(--room-ink) !important;
+}
+
+@media (max-width:390px){
+  .places-live .place-index-card{padding-left:39px !important}
+  .keepsakes-live .keepsake-index-card{padding-left:69px !important}
+  .wardrobe-live .wardrobe-item-grid,
+  .wardrobe-live .wardrobe-look-list{gap:10px !important}
+}
