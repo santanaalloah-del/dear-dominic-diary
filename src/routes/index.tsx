@@ -136,6 +136,7 @@ saveDiaryPage,
   saveDiarioSettings,
   setGalleryPhotoFavorite,
   uploadGalleryPhoto,
+  uploadDiarioItemImage,
   getHomeObjects,
 createHomeObject,
 updateHomeObjectPlacement,
@@ -151,6 +152,10 @@ restoreHomeObject,
   type VisualReferenceSubject,
   type VisualReferenceWithUrl,
 } from "@/lib/diario-world";
+import {
+  hydrateDiaryItems,
+} from "@/lib/connected-diary";
+
 import room from "@/assets/dominic-room.jpg";
 import livingRoomEmpty from "@/assets/living-room-empty.jpeg";
 import bedroomEmpty from "@/assets/bedroom-empty.jpeg";
@@ -6990,7 +6995,7 @@ function KeepsakesScreen() {
   const { session } = usePrivateDiario();
 
   const [keepsakeView, setKeepsakeView] =
-    useState<"all" | "home" | "stored">("all");
+    useState<"all" | "home" | "stored" | "gone">("all");
 
   const [keepsakes, setKeepsakes] =
     useState<DiarioItem[]>([]);
@@ -7029,7 +7034,7 @@ function KeepsakesScreen() {
     useState("object");
 
   const [keepsakeLocation, setKeepsakeLocation] =
-    useState<"home" | "stored">("home");
+    useState<"home" | "stored" | "gone">("home");
 
   const [keepsakeRoom, setKeepsakeRoom] =
     useState("");
@@ -7040,6 +7045,16 @@ function KeepsakesScreen() {
   const [keepsakeNote, setKeepsakeNote] =
     useState("");
 
+  const [keepsakeImageFile, setKeepsakeImageFile] =
+    useState<File | null>(null);
+
+  const [keepsakePreviewUrl, setKeepsakePreviewUrl] =
+    useState<string | null>(null);
+
+  const [keepsakeMediaById, setKeepsakeMediaById] =
+    useState<Record<string, string>>({});
+
+
   const [editTitle, setEditTitle] =
     useState("");
 
@@ -7047,7 +7062,7 @@ function KeepsakesScreen() {
     useState("object");
 
   const [editLocation, setEditLocation] =
-    useState<"home" | "stored">("home");
+    useState<"home" | "stored" | "gone">("home");
 
   const [editRoom, setEditRoom] =
     useState("");
@@ -7072,10 +7087,15 @@ function KeepsakesScreen() {
 
   const locationOf = (
     item: DiarioItem
-  ): "home" | "stored" =>
-    item.data?.location === "stored"
+  ): "home" | "stored" | "gone" => {
+    if (item.data?.location === "gone") {
+      return "gone";
+    }
+
+    return item.data?.location === "stored"
       ? "stored"
       : "home";
+  };
 
   const replaceKeepsake = (
     updated: DiarioItem
@@ -7170,6 +7190,72 @@ function KeepsakesScreen() {
   }, [session.user.id]);
 
   useEffect(() => {
+    if (!keepsakeImageFile) {
+      setKeepsakePreviewUrl(null);
+      return;
+    }
+
+    const url =
+      URL.createObjectURL(
+        keepsakeImageFile
+      );
+
+    setKeepsakePreviewUrl(
+      url
+    );
+
+    return () => {
+      URL.revokeObjectURL(
+        url
+      );
+    };
+  }, [keepsakeImageFile]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!keepsakes.length) {
+      setKeepsakeMediaById({});
+      return;
+    }
+
+    hydrateDiaryItems(
+      keepsakes
+    )
+      .then((views) => {
+        if (!active) {
+          return;
+        }
+
+        setKeepsakeMediaById(
+          Object.fromEntries(
+            views
+              .filter(
+                (view) =>
+                  Boolean(
+                    view.mediaUrl
+                  )
+              )
+              .map((view) => [
+                view.item.id,
+                view.mediaUrl as string,
+              ])
+          )
+        );
+      })
+      .catch((mediaError) => {
+        console.error(
+          "Could not hydrate Keepsake images:",
+          mediaError
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [keepsakes]);
+
+  useEffect(() => {
     if (!selectedKeepsakeId) {
       setConnections([]);
       setConnectionChoices([]);
@@ -7205,6 +7291,12 @@ function KeepsakesScreen() {
         locationOf(item) === "stored"
     );
 
+  const consumedKeepsakes =
+    keepsakes.filter(
+      (item) =>
+        locationOf(item) === "gone"
+    );
+
   const resetNewKeepsake = () => {
     setAddingKeepsake(false);
     setKeepsakeTitle("");
@@ -7213,6 +7305,7 @@ function KeepsakesScreen() {
     setKeepsakeRoom("");
     setKeepsakeOrigin("");
     setKeepsakeNote("");
+    setKeepsakeImageFile(null);
   };
 
   const saveKeepsake = async () => {
@@ -7224,6 +7317,18 @@ function KeepsakesScreen() {
     setKeepsakeError(null);
 
     try {
+      const storagePath =
+        keepsakeImageFile
+          ? await uploadDiarioItemImage({
+              userId:
+                session.user.id,
+              file:
+                keepsakeImageFile,
+              folder:
+                "keepsakes",
+            })
+          : null;
+
       const saved =
         await createKeepsake({
           userId:
@@ -7247,6 +7352,8 @@ function KeepsakesScreen() {
 
           note:
             keepsakeNote,
+
+          storagePath,
         });
 
       setKeepsakes((current) => [
@@ -7616,6 +7723,36 @@ const openConnectionManager =
           </p>
         </ScreenIntro>
 
+        {keepsakeMediaById[
+          selectedKeepsake.id
+        ] && (
+          <button
+            type="button"
+            className="keepsake-detail-visual"
+            onClick={() =>
+              setConnectionDetailId(
+                selectedKeepsake.id
+              )
+            }
+          >
+            <img
+              src={
+                keepsakeMediaById[
+                  selectedKeepsake.id
+                ]
+              }
+              alt={
+                selectedKeepsake.title ??
+                "Keepsake"
+              }
+            />
+
+            <span>
+              view object
+            </span>
+          </button>
+        )}
+
         <section className="date-card keepsake-detail-card">
           <header>
             <div>
@@ -7654,6 +7791,30 @@ const openConnectionManager =
               >
                 <option value="object">
                   Object
+                </option>
+
+                <option value="food">
+                  Food
+                </option>
+
+                <option value="drink">
+                  Drink
+                </option>
+
+                <option value="dessert">
+                  Dessert
+                </option>
+
+                <option value="snack">
+                  Snack
+                </option>
+
+                <option value="souvenir">
+                  Souvenir
+                </option>
+
+                <option value="purchase">
+                  Purchase
                 </option>
 
                 <option value="ticket">
@@ -7701,6 +7862,10 @@ const openConnectionManager =
 
                 <option value="stored">
                   Stored away
+                </option>
+
+                <option value="gone">
+                  Consumed / part of the moment
                 </option>
               </select>
 
@@ -7777,7 +7942,9 @@ const openConnectionManager =
                   {" · "}
                   {location === "home"
                     ? "At home"
-                    : "Stored"}
+                    : location === "gone"
+                      ? "Consumed / only in the moment"
+                      : "Stored"}
                 </span>
               </div>
 
@@ -7831,7 +7998,9 @@ const openConnectionManager =
                 >
                   {location === "home"
                     ? "Store away"
-                    : "Bring home"}
+                    : location === "gone"
+                      ? "Keep a physical trace"
+                      : "Bring home"}
                 </button>
               </div>
             </>
@@ -7867,6 +8036,29 @@ const openConnectionManager =
                     key={item.id}
                     className="date-card"
                   >
+                    <div
+                      className="keepsake-card-visual"
+                      aria-hidden="true"
+                    >
+                      {keepsakeMediaById[
+                        item.id
+                      ] ? (
+                        <img
+                          src={
+                            keepsakeMediaById[
+                              item.id
+                            ]
+                          }
+                          alt=""
+                        />
+                      ) : (
+                        <BoxIcon
+                          size={23}
+                          strokeWidth={1.2}
+                        />
+                      )}
+                    </div>
+
                     <header>
                       <div>
                         <span>
@@ -8098,6 +8290,20 @@ const openConnectionManager =
         >
           Stored
         </button>
+
+        <button
+          type="button"
+          className={
+            keepsakeView === "gone"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setKeepsakeView("gone")
+          }
+        >
+          Consumed
+        </button>
       </div>
 
       <section className="keepsakes-summary">
@@ -8120,6 +8326,17 @@ const openConnectionManager =
             {storedKeepsakes.length}
           </strong>
         </div>
+
+
+        <div>
+          <span>
+            consumed
+          </span>
+
+          <strong>
+            {consumedKeepsakes.length}
+          </strong>
+        </div>
       </section>
 
       {addingKeepsake ? (
@@ -8131,6 +8348,46 @@ const openConnectionManager =
           <h2>
             Keep an object
           </h2>
+
+          <label className="keepsake-image-picker">
+            <span>
+              {keepsakePreviewUrl ? (
+                <img
+                  src={
+                    keepsakePreviewUrl
+                  }
+                  alt="Keepsake preview"
+                />
+              ) : (
+                <>
+                  <ImageIcon
+                    size={24}
+                    strokeWidth={1.2}
+                  />
+
+                  <strong>
+                    Add a photo
+                  </strong>
+
+                  <small>
+                    ticket, cup, food, gift, wrapper, anything
+                  </small>
+                </>
+              )}
+            </span>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) =>
+                setKeepsakeImageFile(
+                  event.target
+                    .files?.[0] ??
+                    null
+                )
+              }
+            />
+          </label>
 
           <input
             type="text"
@@ -8154,6 +8411,30 @@ const openConnectionManager =
           >
             <option value="object">
               Object
+            </option>
+
+            <option value="food">
+              Food
+            </option>
+
+            <option value="drink">
+              Drink
+            </option>
+
+            <option value="dessert">
+              Dessert
+            </option>
+
+            <option value="snack">
+              Snack
+            </option>
+
+            <option value="souvenir">
+              Souvenir
+            </option>
+
+            <option value="purchase">
+              Purchase
             </option>
 
             <option value="ticket">
@@ -8192,6 +8473,7 @@ const openConnectionManager =
                 event.target.value as
                   | "home"
                   | "stored"
+                  | "gone"
               )
             }
           >
@@ -8201,6 +8483,10 @@ const openConnectionManager =
 
             <option value="stored">
               Stored away
+            </option>
+
+            <option value="gone">
+              Consumed / part of the moment
             </option>
           </select>
 
