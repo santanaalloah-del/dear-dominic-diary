@@ -193,6 +193,54 @@ export async function updateKeepsakeDetails({
   return data as DiarioItem;
 }
 
+export async function setKeepsakeGeneratedVisual({
+  userId,
+  keepsake,
+  storageBucket,
+  storagePath,
+  provider,
+  model,
+}: {
+  userId: string;
+  keepsake: DiarioItem;
+  storageBucket: string;
+  storagePath: string;
+  provider?: string | null;
+  model?: string | null;
+}): Promise<DiarioItem> {
+  const {
+    data,
+    error,
+  } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      data: {
+        ...(keepsake.data ?? {}),
+        storage_bucket:
+          storageBucket,
+        storage_path:
+          storagePath,
+        generated_object_visual:
+          true,
+        object_visual_provider:
+          provider ?? null,
+        object_visual_model:
+          model ?? null,
+      },
+    })
+    .eq("user_id", userId)
+    .eq("id", keepsake.id)
+    .eq("kind", "keepsake")
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as DiarioItem;
+}
+
 export async function getKeepsakeConnections({
   userId,
   keepsakeId,
