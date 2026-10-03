@@ -42,6 +42,14 @@ export function keepsakeLocationOf(
 ):
   | "home"
   | "stored" {
+  if (
+    keepsake.data
+      ?.location ===
+    "gone"
+  ) {
+    return "gone";
+  }
+
   return keepsake.data
     ?.location ===
     "stored"
@@ -73,7 +81,8 @@ export async function updateKeepsakeDetails({
 
   location:
     | "home"
-    | "stored";
+    | "stored"
+    | "gone";
 
   room:
     string;
@@ -133,6 +142,10 @@ export async function updateKeepsakeDetails({
                 ) ||
                 null
               : null,
+
+          consumed:
+            location ===
+            "gone",
 
           origin:
             clean(
