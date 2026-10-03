@@ -16934,3 +16934,21 @@ html[data-diario-time-theme="continuous"] .statusbar {
   color:#7d3943;
   font:24px/1 var(--font-display);
 }
+
+
+/* Wardrobe Experience owns four real views: Closet / Looks / Builder / Wearing. */
+.wardrobe-live .wardrobe-view-tabs.wardrobe-four-tabs{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+}
+.wardrobe-live .wardrobe-view-tabs.wardrobe-four-tabs button{
+  min-width:0 !important;
+  padding-inline:5px !important;
+  font-size:8px !important;
+  letter-spacing:.04em !important;
+}
+@media (max-width:390px){
+  .wardrobe-live .wardrobe-view-tabs.wardrobe-four-tabs button{
+    font-size:6.7px !important;
+    padding-inline:2px !important;
+  }
+}
