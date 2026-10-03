@@ -823,3 +823,35 @@
     font-size:7px;
   }
 }
+
+
+/* Dominic's side is stateful: his Wearing can move without user input. */
+.wardrobe-autonomy-note{
+  display:grid;
+  grid-template-columns:26px minmax(0,1fr);
+  gap:9px;
+  align-items:start;
+  margin:10px 0 4px;
+  padding:10px 11px;
+  border:1px dashed rgba(103,45,52,.22);
+  background:rgba(247,234,220,.42);
+  color:#70414a;
+}
+.wardrobe-autonomy-note > svg{
+  margin-top:1px;
+  color:#9b4654;
+}
+.wardrobe-autonomy-note > div{
+  display:grid;
+  gap:3px;
+}
+.wardrobe-autonomy-note small{
+  color:#a24e58;
+  font:700 6px var(--font-body);
+  letter-spacing:.15em;
+}
+.wardrobe-autonomy-note p{
+  margin:0;
+  color:#7f565b;
+  font:italic 9px/1.45 var(--font-display);
+}
