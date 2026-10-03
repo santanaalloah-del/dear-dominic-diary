@@ -1463,7 +1463,7 @@ type CreateClothingInput = {
   category: string;
   note?: string;
   storagePath?: string | null;
-  cutoutMode?: "original" | "auto";
+  cutoutMode?: "original" | "auto" | "manual";
 };
 
 export type LookLayoutItem = {
