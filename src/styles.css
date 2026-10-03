@@ -17331,3 +17331,67 @@ html[data-diario-time-theme="continuous"] .statusbar {
     animation:none !important;
   }
 }
+
+
+/* =========================================================
+   HOME · OBJECTS ACTUALLY LIVE IN THE APARTMENT
+   ========================================================= */
+.apartment-room-thing-mark.has-image{
+  overflow:hidden !important;
+  padding:0 !important;
+  background:#f4e5d8 !important;
+}
+.apartment-room-thing-mark.has-image img{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+
+/* Photo frames and wall art read as framed objects instead of generic PNGs. */
+.home-object-layer[data-object-type="photo_frame"] .home-object-image,
+.home-object-layer[data-object-type="wall_art"] .home-object-image{
+  padding:4.5% !important;
+  background:#f3e4d4 !important;
+  border:4px solid #6e3b32 !important;
+  box-shadow:
+    0 6px 12px rgba(26,8,10,.20),
+    inset 0 0 0 1px rgba(255,244,228,.42) !important;
+}
+.home-object-layer[data-object-type="photo_frame"] .home-object-image{
+  border-width:5px 5px 14px !important;
+}
+.home-object-layer[data-object-type="wall_art"] .home-object-image{
+  border-color:#4f302b !important;
+}
+.home-object-layer[data-object-type="keepsake"] .home-object-image{
+  filter:drop-shadow(0 8px 5px rgba(32,9,13,.18)) !important;
+}
+.home-object-layer[data-object-type="plant"] .home-object-image{
+  filter:drop-shadow(0 8px 7px rgba(26,16,10,.14)) !important;
+}
+.home-object-layer[data-object-type="lighting"] .home-object-image{
+  filter:drop-shadow(0 0 12px rgba(255,211,147,.32)) !important;
+}
+
+/* The room inventory is a little cabinet, not an admin list. */
+.our-things-item{
+  position:relative !important;
+  border-radius:1px !important;
+  background:#f2dfd0 !important;
+  box-shadow:3px 4px 0 rgba(45,13,18,.07) !important;
+}
+.our-things-item > img{
+  width:54px !important;
+  height:54px !important;
+  object-fit:contain !important;
+  padding:4px !important;
+  background:#f8eadc !important;
+}
+.home-add-panel{
+  border-radius:1px !important;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 32px,rgba(103,45,52,.035) 32px 33px),
+    #f2dfd0 !important;
+  box-shadow:4px 5px 0 rgba(38,10,15,.08) !important;
+}
