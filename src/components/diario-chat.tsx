@@ -194,7 +194,7 @@ type DominicWorldAction =
       venueAction:
         | "ordered"
         | "bought";
-    
+    }
   | {
       type:
         "update_profile_photo";
@@ -1647,6 +1647,15 @@ async function applyDominicAction(
     action.type ===
     "update_profile_photo"
   ) {
+    const duplicate =
+      await hasExistingDominicAction(
+        action
+      );
+
+    if (duplicate) {
+      return null;
+    }
+
     const {
       data: profilePhoto,
       error: profilePhotoError,
