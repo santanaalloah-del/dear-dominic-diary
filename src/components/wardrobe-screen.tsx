@@ -153,7 +153,9 @@ async function autoCutoutClothing(file: File): Promise<File> {
   canvas.width = width;
   canvas.height = height;
 
-  const context = canvas.getContext("2d", { willReadFrequently: true });
+  const context = canvas.getContext("2d", {
+    willReadFrequently: true,
+  });
 
   if (!context) {
     throw new Error("The cutout tool is not available in this browser.");
@@ -164,52 +166,128 @@ async function autoCutoutClothing(file: File): Promise<File> {
   const pixels = context.getImageData(0, 0, width, height);
   const data = pixels.data;
 
-  const samplePoints = [
-    [2, 2],
-    [width - 3, 2],
-    [2, height - 3],
-    [width - 3, height - 3],
-    [Math.floor(width / 2), 2],
-    [Math.floor(width / 2), height - 3],
-  ];
+  const samples: Array<[number, number, number]> = [];
+  const steps = 24;
 
-  const background = samplePoints
-    .reduce(
-      (acc, [x, y]) => {
-        const index =
-          (clamp(y, 0, height - 1) * width +
-            clamp(x, 0, width - 1)) *
-          4;
+  const sample = (x: number, y: number) => {
+    const pixel =
+      (clamp(y, 0, height - 1) * width +
+        clamp(x, 0, width - 1)) *
+      4;
 
-        acc[0] += data[index];
-        acc[1] += data[index + 1];
-        acc[2] += data[index + 2];
-
-        return acc;
-      },
-      [0, 0, 0]
-    )
-    .map((value) => value / samplePoints.length);
-
-  const threshold = 58;
-  const feather = 26;
-
-  for (let index = 0; index < data.length; index += 4) {
-    if (data[index + 3] < 245) {
-      continue;
+    if (data[pixel + 3] < 180) {
+      return;
     }
 
-    const distance = Math.sqrt(
-      (data[index] - background[0]) ** 2 +
-        (data[index + 1] - background[1]) ** 2 +
-        (data[index + 2] - background[2]) ** 2
+    samples.push([
+      data[pixel],
+      data[pixel + 1],
+      data[pixel + 2],
+    ]);
+  };
+
+  for (let step = 0; step <= steps; step += 1) {
+    const x = Math.round(((width - 1) * step) / steps);
+    const y = Math.round(((height - 1) * step) / steps);
+
+    sample(x, 1);
+    sample(x, height - 2);
+    sample(1, y);
+    sample(width - 2, y);
+  }
+
+  if (!samples.length) {
+    return file;
+  }
+
+  const median = (channel: 0 | 1 | 2) => {
+    const values = samples
+      .map((entry) => entry[channel])
+      .sort((a, b) => a - b);
+
+    return values[Math.floor(values.length / 2)];
+  };
+
+  const background = [
+    median(0),
+    median(1),
+    median(2),
+  ];
+
+  const distanceAt = (point: number) => {
+    const offset = point * 4;
+
+    return Math.sqrt(
+      (data[offset] - background[0]) ** 2 +
+        (data[offset + 1] - background[1]) ** 2 +
+        (data[offset + 2] - background[2]) ** 2
     );
+  };
+
+  /*
+   * Only remove background pixels that are actually connected to an edge.
+   * The old cutout removed every similar colour in the whole image, which
+   * could eat cream shirts, pale shoes and other parts of the garment.
+   */
+  const threshold = 54;
+  const feather = 34;
+  const maxDistance = threshold + feather;
+  const total = width * height;
+  const visited = new Uint8Array(total);
+  const queue = new Int32Array(total);
+  let head = 0;
+  let tail = 0;
+
+  const pushIfBackground = (point: number) => {
+    if (
+      point < 0 ||
+      point >= total ||
+      visited[point] ||
+      data[point * 4 + 3] < 10 ||
+      distanceAt(point) > maxDistance
+    ) {
+      return;
+    }
+
+    visited[point] = 1;
+    queue[tail++] = point;
+  };
+
+  for (let x = 0; x < width; x += 1) {
+    pushIfBackground(x);
+    pushIfBackground((height - 1) * width + x);
+  }
+
+  for (let y = 0; y < height; y += 1) {
+    pushIfBackground(y * width);
+    pushIfBackground(y * width + width - 1);
+  }
+
+  while (head < tail) {
+    const point = queue[head++];
+    const x = point % width;
+    const y = Math.floor(point / width);
+
+    if (x > 0) pushIfBackground(point - 1);
+    if (x < width - 1) pushIfBackground(point + 1);
+    if (y > 0) pushIfBackground(point - width);
+    if (y < height - 1) pushIfBackground(point + width);
+  }
+
+  for (let point = 0; point < total; point += 1) {
+    if (!visited[point]) continue;
+
+    const offset = point * 4;
+    const distance = distanceAt(point);
 
     if (distance <= threshold) {
-      data[index + 3] = 0;
-    } else if (distance < threshold + feather) {
-      data[index + 3] = Math.round(
-        255 * ((distance - threshold) / feather)
+      data[offset + 3] = 0;
+    } else {
+      data[offset + 3] = Math.min(
+        data[offset + 3],
+        Math.round(
+          255 * ((distance - threshold) / feather)
+        )
       );
     }
   }
@@ -236,17 +314,22 @@ async function autoCutoutClothing(file: File): Promise<File> {
 
 function WardrobeManualCutout({
   file,
+  restoreFile,
   onApply,
   onCancel,
 }: {
   file: File;
+  restoreFile?: File | null;
   onApply: (file: File) => void;
   onCancel: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const restoreImageRef = useRef<HTMLImageElement | null>(null);
   const drawingRef = useRef(false);
   const [brushSize, setBrushSize] = useState(26);
+  const [tool, setTool] = useState<"erase" | "restore">("erase");
+  const [zoom, setZoom] = useState(1);
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -267,20 +350,30 @@ function WardrobeManualCutout({
 
   useEffect(() => {
     let cancelled = false;
-    const url = URL.createObjectURL(file);
+    const baseUrl = URL.createObjectURL(file);
+    const sourceUrl = restoreFile
+      ? URL.createObjectURL(restoreFile)
+      : baseUrl;
+
     const image = new Image();
+    const restoreImage = new Image();
 
-    image.onload = () => {
-      if (cancelled) return;
+    const maybeReady = () => {
+      if (
+        cancelled ||
+        !image.complete ||
+        !image.naturalWidth ||
+        !restoreImage.complete ||
+        !restoreImage.naturalWidth
+      ) {
+        return;
+      }
 
-      const maxSide = 920;
+      const maxSide = 1100;
       const scale = Math.min(
         1,
         maxSide /
-          Math.max(
-            image.naturalWidth,
-            image.naturalHeight
-          )
+          Math.max(image.naturalWidth, image.naturalHeight)
       );
 
       const canvas = canvasRef.current;
@@ -289,37 +382,44 @@ function WardrobeManualCutout({
 
       canvas.width = Math.max(
         1,
-        Math.round(
-          image.naturalWidth * scale
-        )
+        Math.round(image.naturalWidth * scale)
       );
       canvas.height = Math.max(
         1,
-        Math.round(
-          image.naturalHeight * scale
-        )
+        Math.round(image.naturalHeight * scale)
       );
 
       imageRef.current = image;
+      restoreImageRef.current = restoreImage;
       redraw();
       setReady(true);
     };
 
+    image.onload = maybeReady;
+    restoreImage.onload = maybeReady;
+
     image.onerror = () => {
-      if (!cancelled) {
-        setReady(false);
-      }
+      if (!cancelled) setReady(false);
     };
 
-    image.src = url;
+    restoreImage.onerror = () => {
+      if (!cancelled) setReady(false);
+    };
+
+    image.src = baseUrl;
+    restoreImage.src = sourceUrl;
 
     return () => {
       cancelled = true;
-      URL.revokeObjectURL(url);
-    };
-  }, [file]);
+      URL.revokeObjectURL(baseUrl);
 
-  const eraseAt = (
+      if (sourceUrl !== baseUrl) {
+        URL.revokeObjectURL(sourceUrl);
+      }
+    };
+  }, [file, restoreFile]);
+
+  const paintAt = (
     clientX: number,
     clientY: number
   ) => {
@@ -327,44 +427,48 @@ function WardrobeManualCutout({
 
     if (!canvas) return;
 
-    const rect =
-      canvas.getBoundingClientRect();
-
+    const rect = canvas.getBoundingClientRect();
     const x =
-      ((clientX - rect.left) /
-        rect.width) *
+      ((clientX - rect.left) / rect.width) *
       canvas.width;
-
     const y =
-      ((clientY - rect.top) /
-        rect.height) *
+      ((clientY - rect.top) / rect.height) *
       canvas.height;
-
     const scale =
-      canvas.width /
-      Math.max(
-        1,
-        rect.width
-      );
-
-    const context =
-      canvas.getContext("2d");
+      canvas.width / Math.max(1, rect.width);
+    const radius = brushSize * scale;
+    const context = canvas.getContext("2d");
 
     if (!context) return;
 
     context.save();
-    context.globalCompositeOperation =
-      "destination-out";
     context.beginPath();
-    context.arc(
-      x,
-      y,
-      brushSize *
-        scale,
-      0,
-      Math.PI * 2
-    );
-    context.fill();
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.clip();
+
+    if (tool === "erase") {
+      context.globalCompositeOperation = "destination-out";
+      context.fillRect(
+        x - radius,
+        y - radius,
+        radius * 2,
+        radius * 2
+      );
+    } else {
+      const source = restoreImageRef.current;
+
+      if (source) {
+        context.globalCompositeOperation = "source-over";
+        context.drawImage(
+          source,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+      }
+    }
+
     context.restore();
   };
 
@@ -377,33 +481,25 @@ function WardrobeManualCutout({
 
     try {
       const blob =
-        await new Promise<Blob>(
-          (resolve, reject) => {
-            canvas.toBlob(
-              (result) =>
-                result
-                  ? resolve(result)
-                  : reject(
-                      new Error(
-                        "Could not save the cutout."
-                      )
-                    ),
-              "image/png"
-            );
-          }
-        );
+        await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (result) =>
+              result
+                ? resolve(result)
+                : reject(
+                    new Error("Could not save the cutout.")
+                  ),
+            "image/png"
+          );
+        });
 
       onApply(
         new File(
           [blob],
-          file.name.replace(
-            /\.[^.]+$/,
-            ""
-          ) +
-            "-manual-cutout.png",
+          file.name.replace(/\.[^.]+$/, "") +
+            "-refined-cutout.png",
           {
-            type:
-              "image/png",
+            type: "image/png",
           }
         )
       );
@@ -416,9 +512,9 @@ function WardrobeManualCutout({
     <section className="wardrobe-manual-cutout">
       <header>
         <div>
-          <small>manual cutout</small>
+          <small>refine cutout</small>
           <strong>
-            Erase the background
+            Fix only what the auto cutout missed
           </strong>
         </div>
 
@@ -432,45 +528,75 @@ function WardrobeManualCutout({
       </header>
 
       <p>
-        Rub away anything that should be
-        transparent. Use Reset if you want to
-        start over.
+        Auto cutout already did the first pass. Erase leftover
+        background or restore a part of the clothing it removed.
       </p>
+
+      <div className="wardrobe-cutout-editor-tools">
+        <button
+          type="button"
+          className={tool === "erase" ? "active" : ""}
+          onClick={() => setTool("erase")}
+        >
+          Erase
+        </button>
+
+        <button
+          type="button"
+          className={tool === "restore" ? "active" : ""}
+          onClick={() => setTool("restore")}
+        >
+          Restore
+        </button>
+
+        <button
+          type="button"
+          disabled={zoom <= 1}
+          onClick={() =>
+            setZoom((current) =>
+              Math.max(1, Number((current - 0.5).toFixed(1)))
+            )
+          }
+        >
+          −
+        </button>
+
+        <span>{Math.round(zoom * 100)}%</span>
+
+        <button
+          type="button"
+          disabled={zoom >= 3}
+          onClick={() =>
+            setZoom((current) =>
+              Math.min(3, Number((current + 0.5).toFixed(1)))
+            )
+          }
+        >
+          ＋
+        </button>
+      </div>
 
       <div className="wardrobe-manual-cutout-canvas">
         <canvas
           ref={canvasRef}
+          style={{
+            width: \`\${zoom * 100}%\`,
+            maxWidth: "none",
+          }}
           onPointerDown={(event) => {
-            drawingRef.current =
-              true;
-            event.currentTarget.setPointerCapture(
-              event.pointerId
-            );
-            eraseAt(
-              event.clientX,
-              event.clientY
-            );
+            drawingRef.current = true;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            paintAt(event.clientX, event.clientY);
           }}
           onPointerMove={(event) => {
-            if (
-              !drawingRef.current
-            ) {
-              return;
-            }
-
-            eraseAt(
-              event.clientX,
-              event.clientY
-            );
+            if (!drawingRef.current) return;
+            paintAt(event.clientX, event.clientY);
           }}
           onPointerUp={(event) => {
-            drawingRef.current =
-              false;
+            drawingRef.current = false;
 
             if (
-              event.currentTarget.hasPointerCapture(
-                event.pointerId
-              )
+              event.currentTarget.hasPointerCapture(event.pointerId)
             ) {
               event.currentTarget.releasePointerCapture(
                 event.pointerId
@@ -478,33 +604,26 @@ function WardrobeManualCutout({
             }
           }}
           onPointerCancel={() => {
-            drawingRef.current =
-              false;
+            drawingRef.current = false;
           }}
         />
       </div>
 
       <label className="wardrobe-cutout-brush">
-        <span>eraser size</span>
+        <span>brush size</span>
 
         <input
           type="range"
-          min="8"
+          min="5"
           max="70"
-          step="2"
+          step="1"
           value={brushSize}
           onChange={(event) =>
-            setBrushSize(
-              Number(
-                event.target.value
-              )
-            )
+            setBrushSize(Number(event.target.value))
           }
         />
 
-        <small>
-          {brushSize}px
-        </small>
+        <small>{brushSize}px</small>
       </label>
 
       <div className="wardrobe-manual-cutout-actions">
@@ -513,29 +632,23 @@ function WardrobeManualCutout({
           onClick={redraw}
           disabled={!ready}
         >
-          Reset
+          Reset refine
         </button>
 
         <button
           type="button"
           className="primary"
-          disabled={
-            !ready ||
-            saving
-          }
-          onClick={() =>
-            void apply()
-          }
+          disabled={!ready || saving}
+          onClick={() => void apply()}
         >
           <Scissors size={14} />
-          {saving
-            ? "Saving…"
-            : "Use cutout"}
+          {saving ? "Saving…" : "Use refined cutout"}
         </button>
       </div>
     </section>
   );
 }
+
 
 export function WardrobeExperienceScreen() {
   const { session } = usePrivateDiario();
@@ -1924,6 +2037,40 @@ export function WardrobeExperienceScreen() {
                     setClothingImageFile(file);
                     setClothingCutoutMode("original");
                     setManualCutoutOpen(false);
+
+                    if (!file) {
+                      return;
+                    }
+
+                    setCutoutBusy(true);
+                    setWardrobeError(null);
+
+                    void autoCutoutClothing(
+                      file
+                    )
+                      .then((cutout) => {
+                        setClothingImageFile(
+                          cutout
+                        );
+                        setClothingCutoutMode(
+                          "auto"
+                        );
+                      })
+                      .catch((cutoutError) => {
+                        console.error(
+                          "Could not make automatic clothing cutout:",
+                          cutoutError
+                        );
+
+                        setWardrobeError(
+                          "Auto cutout missed this one. The original is safe — use Refine cutout to fix it by hand."
+                        );
+                      })
+                      .finally(() =>
+                        setCutoutBusy(
+                          false
+                        )
+                      );
                   }}
                 />
               </label>
@@ -1966,7 +2113,7 @@ export function WardrobeExperienceScreen() {
                     <Scissors size={14} />
                     {cutoutBusy
                       ? "Cutting…"
-                      : "Auto cutout"}
+                      : "Run auto again"}
                   </button>
 
                   <button
@@ -1995,15 +2142,19 @@ export function WardrobeExperienceScreen() {
                     }
                   >
                     <Scissors size={14} />
-                    Manual cutout
+                    Refine cutout
                   </button>
                 </div>
               )}
 
               {manualCutoutOpen &&
-                clothingOriginalFile && (
+                clothingOriginalFile &&
+                clothingImageFile && (
                   <WardrobeManualCutout
                     file={
+                      clothingImageFile
+                    }
+                    restoreFile={
                       clothingOriginalFile
                     }
                     onCancel={() =>
