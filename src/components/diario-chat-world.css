@@ -980,3 +980,67 @@ html body .screen-chat .messenger-person p{
   color:#57222b;
   font:8px var(--font-body);
 }
+
+
+/* Profile photo picker uses the actual Diary camera roll. */
+.chat-profile-photo-picker{
+  margin-top:12px;
+  padding:12px;
+  border:1px solid rgba(91,30,39,.12);
+  background:#ead6c7;
+  box-shadow:3px 4px 0 rgba(45,13,18,.07);
+}
+.chat-profile-photo-picker > header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:9px;
+  border-bottom:1px solid rgba(91,30,39,.10);
+}
+.chat-profile-photo-picker > header > div{
+  display:grid;
+  gap:2px;
+}
+.chat-profile-photo-picker > header small{
+  color:#a24e58;
+  font:700 7px var(--font-body);
+  letter-spacing:.16em;
+}
+.chat-profile-photo-picker > header strong{
+  color:#57222b;
+  font:500 17px/1 var(--font-display);
+}
+.chat-profile-photo-picker > header > button{
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  padding:0;
+  border:1px solid rgba(91,30,39,.12);
+  background:transparent;
+  color:#74333c;
+}
+.chat-profile-photo-picker > p{
+  margin:12px 0 2px;
+  color:#8b5c61;
+  font:italic 9px var(--font-display);
+}
+.chat-profile-photo-picker > div:last-child{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;
+  margin-top:11px;
+}
+.chat-profile-photo-picker > div:last-child > button{
+  aspect-ratio:1;
+  padding:0;
+  overflow:hidden;
+  border:1px solid rgba(91,30,39,.10);
+  background:#f3e1d2;
+}
+.chat-profile-photo-picker img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
