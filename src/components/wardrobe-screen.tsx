@@ -36,6 +36,7 @@ import {
   getWearingSelection,
   setWearingClothing,
   setWearingLook,
+  WARDROBE_WEARING_CHANGED_EVENT,
   type WearingSelection,
   type WardrobeOwner,
 } from "@/lib/wardrobe-context";
@@ -948,6 +949,50 @@ export function WardrobeExperienceScreen() {
       return selection;
     };
 
+  useEffect(() => {
+    const onWearingChanged = (
+      event: Event
+    ) => {
+      const owner =
+        (
+          event as CustomEvent<{
+            owner?: WardrobeOwner;
+          }>
+        ).detail?.owner;
+
+      if (
+        owner === "alloah" ||
+        owner === "dominic"
+      ) {
+        void refreshOwnerWearing(
+          owner
+        );
+        return;
+      }
+
+      void Promise.all([
+        refreshOwnerWearing(
+          "alloah"
+        ),
+        refreshOwnerWearing(
+          "dominic"
+        ),
+      ]);
+    };
+
+    window.addEventListener(
+      WARDROBE_WEARING_CHANGED_EVENT,
+      onWearingChanged
+    );
+
+    return () => {
+      window.removeEventListener(
+        WARDROBE_WEARING_CHANGED_EVENT,
+        onWearingChanged
+      );
+    };
+  }, [session.user.id]);
+
   const saveClothing = async () => {
     if (!clothingName.trim()) return;
 
@@ -1348,6 +1393,31 @@ export function WardrobeExperienceScreen() {
           Dominic
         </button>
       </div>
+
+      {wardrobeOwner ===
+        "dominic" && (
+        <aside className="wardrobe-autonomy-note">
+          <Sparkles
+            size={15}
+            strokeWidth={1.3}
+          />
+
+          <div>
+            <small>
+              HIS CLOSET
+            </small>
+
+            <p>
+              Dominic chooses from his own
+              saved Looks when his day says
+              he is getting dressed or
+              getting ready. His current
+              outfit can change without you
+              selecting it.
+            </p>
+          </div>
+        </aside>
+      )}
 
       <section
         className={
