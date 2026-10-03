@@ -975,7 +975,7 @@ export function ConnectedObjectDetailScreen({
 
   if (loading) {
     return (
-      <section className={`connected-object-detail-screen connected-object-detail-${view.item.kind}`}>
+      <section className="connected-object-detail-screen">
         <button
           type="button"
           className="connected-object-back"
@@ -1074,7 +1074,7 @@ export function ConnectedObjectDetailScreen({
     ).length;
 
   return (
-    <section className="connected-object-detail-screen">
+    <section className={`connected-object-detail-screen connected-object-detail-${view.item.kind}`}>
       <button
         type="button"
         className="connected-object-back"
