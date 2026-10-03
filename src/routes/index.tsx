@@ -838,13 +838,13 @@ function HomeScreen({
   const sceneTo = sceneSet?.[time.homeScene.to] ?? sceneFrom;
   const sceneMix = sceneSet ? time.homeScene.amount : 0;
 
-  // Living + Bathroom use a single dominant photo at a time.
+  // Living + Bedroom + Bathroom use a single dominant photo at a time.
   // Their generated anchors are not pixel-identical, so a full opacity
   // crossfade creates double furniture/frames. Switching the dominant
   // frame removes that ghosting while keeping the seven time anchors.
   const usesSingleFrameTransition =
     hasPhotoTimeline &&
-    (activeRoom.id === "living" || activeRoom.id === "bathroom");
+    (activeRoom.id === "living" || activeRoom.id === "bedroom" || activeRoom.id === "bathroom");
   const dominantScene =
     usesSingleFrameTransition && sceneMix >= 0.5 ? sceneTo : sceneFrom;
 
