@@ -47,6 +47,7 @@ import {
   applyDominicWorldStateAction,
   getCurrentDominicState,
   resolveDominicPresence,
+  processDominicStateCheckIns,
   type DominicPresence,
   type DominicState,
 } from "@/lib/dominic-state";
@@ -1082,15 +1083,55 @@ useEffect(() => {
 
   void refreshDominicState();
 
+  const processDueInitiative =
+    async () => {
+      try {
+        const results =
+          await processDominicStateCheckIns(
+            session.user.id
+          );
+
+        if (
+          results.some(
+            (item) =>
+              item.decision ===
+              "send"
+          )
+        ) {
+          window.dispatchEvent(
+            new CustomEvent(
+              "diario-dominic-proactive-ready"
+            )
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Could not process Dominic proactive events:",
+          error
+        );
+      }
+    };
+
+  void processDueInitiative();
+
   const timer =
     window.setInterval(
       refreshDominicState,
       60_000
     );
 
+  const proactiveTimer =
+    window.setInterval(
+      processDueInitiative,
+      60_000
+    );
+
   return () => {
     cancelled = true;
     window.clearInterval(timer);
+    window.clearInterval(
+      proactiveTimer
+    );
   };
 }, [session.user.id]);
 
