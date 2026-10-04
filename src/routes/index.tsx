@@ -92,6 +92,7 @@ import {
 
 import {
   getCurrentDominicState,
+  setAlloahPresence,
   type DominicState,
 } from "@/lib/dominic-state";
 import {
@@ -909,6 +910,19 @@ function HomeScreen({
 
   const chooseRoom = (roomId: string) => {
     setActiveHomeRoom(roomId);
+
+    if (session?.user?.id) {
+      void setAlloahPresence(
+        session.user.id,
+        roomId as DominicState["location"]
+      ).catch((error) => {
+        console.error(
+          "Could not update Alloah room presence:",
+          error
+        );
+      });
+    }
+
     setShowRoomThings(false);
     setRoomThingTitle("");
     setRoomThingNote("");
@@ -1058,11 +1072,23 @@ function HomeScreen({
         <button
           type="button"
           className="apartment-enter-room"
-          onClick={() =>
+          onClick={() => {
+            if (session?.user?.id) {
+              void setAlloahPresence(
+                session.user.id,
+                activeRoom.id as DominicState["location"]
+              ).catch((error) => {
+                console.error(
+                  "Could not update Alloah room presence:",
+                  error
+                );
+              });
+            }
+
             onOpenRoom(
               activeRoom.id
-            )
-          }
+            );
+          }}
         >
           <Home
             size={14}
