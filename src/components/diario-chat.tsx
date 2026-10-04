@@ -207,6 +207,7 @@ type DominicWorldAction =
 
 type MessageKind =
   | "text"
+  | "physical_action"
   | "voice"
   | "photo"
   | "sticker"
@@ -281,6 +282,9 @@ type ChatMedia = {
 
   actionType?:
     DominicActionType;
+
+  physicalAction?:
+    string;
 };
 
 type ChatMessage = {
@@ -323,6 +327,71 @@ type ChatMessage = {
   actionType?:
     DominicActionType;
 };
+
+type DominicReplyPart = {
+  kind: "speech" | "action";
+  content: string;
+};
+
+function parseDominicReplyParts(
+  value: string
+): DominicReplyPart[] {
+  const clean = value.trim();
+  if (!clean) return [];
+
+  const parts: DominicReplyPart[] = [];
+  const actionPattern = /\*([^*]+)\*/g;
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+
+  while (
+    (match = actionPattern.exec(clean))
+  ) {
+    const speech = clean
+      .slice(cursor, match.index)
+      .trim();
+
+    if (speech) {
+      parts.push({
+        kind: "speech",
+        content: speech,
+      });
+    }
+
+    const action =
+      match[1]?.trim();
+
+    if (action) {
+      parts.push({
+        kind: "action",
+        content: action,
+      });
+    }
+
+    cursor =
+      match.index +
+      match[0].length;
+  }
+
+  const tail =
+    clean.slice(cursor).trim();
+
+  if (tail) {
+    parts.push({
+      kind: "speech",
+      content: tail,
+    });
+  }
+
+  return parts.length
+    ? parts
+    : [
+        {
+          kind: "speech",
+          content: clean,
+        },
+      ];
+}
 
 function isDominicActionType(
   value: unknown
@@ -2979,24 +3048,36 @@ const liveDateContext =
     (current) => [
       ...current,
 
-      ...replies.map(
-        (reply) => ({
-          id:
-            `reply-${crypto.randomUUID()}`,
+      ...replies.flatMap(
+        (reply) =>
+          parseDominicReplyParts(
+            reply
+          ).map((part) => ({
+            id:
+              `reply-${crypto.randomUUID()}`,
 
-          role:
-            "assistant" as const,
+            role:
+              "assistant" as const,
 
-          content:
-            reply,
+            content:
+              part.content,
 
-          createdAt:
-            new Date()
-              .toISOString(),
+            createdAt:
+              new Date()
+                .toISOString(),
 
-          kind:
-            "text" as const,
-        })
+            kind:
+              part.kind ===
+              "action"
+                ? "physical_action" as const
+                : "text" as const,
+
+            physicalAction:
+              part.kind ===
+              "action"
+                ? part.content
+                : undefined,
+          }))
       ),
     ]
   );
@@ -4235,6 +4316,17 @@ const recentConversationForPhoto = () =>
                   <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />
                 )}
 {message.kind ===
+"physical_action" ? (
+  <div
+    className="chat-physical-action"
+    aria-label="Dominic action"
+  >
+    <em>
+      {message.physicalAction ??
+        message.content}
+    </em>
+  </div>
+) : message.kind ===
 "agent_action" ? (
   <button
     type="button"
