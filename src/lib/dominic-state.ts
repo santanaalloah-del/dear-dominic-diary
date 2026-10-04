@@ -302,6 +302,9 @@ export async function syncDominicActiveContext(
       .limit(1)
       .maybeSingle();
 
+  const presence =
+    await resolveDominicPresence(userId);
+
   const payload = {
     activity: state.activity,
     place: state.location,
@@ -316,6 +319,16 @@ export async function syncDominicActiveContext(
       "autonomy_engine",
     source_id: "dominic",
     title: "Dominic",
+    together_now:
+      presence.togetherNow,
+    metadata: {
+      presence_reason:
+        presence.reason,
+      shared_place:
+        presence.place,
+      live_date_id:
+        presence.dateId,
+    },
   };
 
   if (existing) {
@@ -334,6 +347,98 @@ export async function syncDominicActiveContext(
       user_id: userId,
       ...payload,
     });
+}
+
+export type DominicPresence = {
+  togetherNow: boolean;
+  reason:
+    | "active_date"
+    | "shared_context"
+    | "separate";
+  place: string | null;
+  dateId: string | null;
+};
+
+export async function resolveDominicPresence(
+  userId: string
+): Promise<DominicPresence> {
+  const { data: liveDates, error: dateError } =
+    await supabase
+      .from("diario_items")
+      .select("id,title,data")
+      .eq("user_id", userId)
+      .eq("kind", "date")
+      .eq("status", "active")
+      .contains("data", {
+        flow_state: "live",
+      })
+      .order("updated_at", {
+        ascending: false,
+      })
+      .limit(1);
+
+  if (dateError) throw dateError;
+
+  const liveDate = liveDates?.[0] ?? null;
+
+  if (liveDate) {
+    const experience =
+      liveDate.data &&
+      typeof liveDate.data === "object" &&
+      !Array.isArray(liveDate.data)
+        ? (liveDate.data as Record<string, any>)
+            .date_experience
+        : null;
+
+    const place =
+      experience &&
+      typeof experience === "object" &&
+      !Array.isArray(experience)
+        ? typeof experience.currentPlaceName === "string"
+          ? experience.currentPlaceName
+          : null
+        : null;
+
+    return {
+      togetherNow: true,
+      reason: "active_date",
+      place,
+      dateId: liveDate.id,
+    };
+  }
+
+  const { data: sharedContexts, error: contextError } =
+    await supabase
+      .from("active_context")
+      .select("place,source_id,context_type")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .eq("together_now", true)
+      .neq("source_id", "dominic")
+      .order("last_activity_at", {
+        ascending: false,
+      })
+      .limit(1);
+
+  if (contextError) throw contextError;
+
+  const shared = sharedContexts?.[0] ?? null;
+
+  if (shared) {
+    return {
+      togetherNow: true,
+      reason: "shared_context",
+      place: shared.place ?? null,
+      dateId: null,
+    };
+  }
+
+  return {
+    togetherNow: false,
+    reason: "separate",
+    place: null,
+    dateId: null,
+  };
 }
 
 export type DominicWorldContext = {
