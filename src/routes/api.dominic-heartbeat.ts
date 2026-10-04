@@ -7,9 +7,12 @@ function envValue(name: string) {
 export const Route = createFileRoute("/api/dominic-heartbeat")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
+      GET: async ({ request }) => {
         const secret = envValue("DOMINIC_CRON_SECRET");
-        const supplied = request.headers.get("x-dominic-cron-secret")?.trim();
+        const auth = request.headers.get("authorization")?.trim();
+        const supplied =
+          request.headers.get("x-dominic-cron-secret")?.trim() ||
+          (auth?.startsWith("Bearer ") ? auth.slice(7).trim() : "");
 
         if (!secret || supplied !== secret) {
           return Response.json({ error: "Unauthorized." }, { status: 401 });
