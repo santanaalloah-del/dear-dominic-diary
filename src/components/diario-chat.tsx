@@ -487,6 +487,13 @@ function dominicActionLabel(
     return "Dominic changed his profile photo";
   }
 
+  if (
+    type ===
+    "change_live_state"
+  ) {
+    return "Dominic changed what he is doing";
+  }
+
   return "Dominic added something";
 }
 
