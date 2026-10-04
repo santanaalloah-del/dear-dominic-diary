@@ -633,20 +633,11 @@ export async function scheduleDominicStateCheckIn(
   userId: string,
   state: DominicState
 ) {
-  const quietActivities: DominicActivity[] = [
-    "sleeping",
-    "showering",
-    "performing",
-    "rehearsing",
-    "recording",
-    "driving",
-  ];
-
-  if (quietActivities.includes(state.activity)) {
-    return;
-  }
-
   const now = Date.now();
+
+  // Every meaningful state transition gets a future evaluation.
+  // Busy states lower availability when the event is evaluated instead
+  // of making Dominic categorically incapable of initiating.
   const nextChange = new Date(state.nextChangeAt).getTime();
   const delayMinutes =
     state.location === "out" ? 18 : 28;
