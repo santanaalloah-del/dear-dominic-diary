@@ -14,7 +14,8 @@ type ActionType =
   | "create_place"
   | "create_song"
   | "date_venue_action"
-  | "update_profile_photo";
+  | "update_profile_photo"
+  | "change_live_state";
 
 type DominicWorldAction =
   | {
@@ -61,6 +62,12 @@ type DominicWorldAction =
   | {
       type: "update_profile_photo";
       photoId: string;
+    }
+  | {
+      type: "change_live_state";
+      location: "living" | "bedroom" | "kitchen" | "bathroom" | "hall" | "out";
+      activity: string;
+      detail?: string;
     };
 
 type RequestBody = {
@@ -109,6 +116,8 @@ const ACTION_ITEM_SCHEMA = {
     "itemId",
     "venueAction",
     "photoId",
+    "location",
+    "activity",
   ],
 
   properties: {
@@ -123,6 +132,7 @@ const ACTION_ITEM_SCHEMA = {
         "create_song",
         "date_venue_action",
         "update_profile_photo",
+        "change_live_state",
       ],
     },
 
@@ -197,6 +207,12 @@ body:
     },
 
     photoId:
+      nullableStringSchema,
+
+    location:
+      nullableStringSchema,
+
+    activity:
       nullableStringSchema,
   },
 } as const;
@@ -417,6 +433,48 @@ function normalizeAction(
 
 if (!type) {
   return null;
+}
+
+if (
+  type ===
+  "change_live_state"
+) {
+  const location =
+    cleanString(raw.location);
+  const activity =
+    cleanString(raw.activity);
+  const allowedLocations = [
+    "living",
+    "bedroom",
+    "kitchen",
+    "bathroom",
+    "hall",
+    "out",
+  ];
+
+  if (
+    !location ||
+    !allowedLocations.includes(location) ||
+    !activity
+  ) {
+    return null;
+  }
+
+  return {
+    type,
+    location:
+      location as
+        | "living"
+        | "bedroom"
+        | "kitchen"
+        | "bathroom"
+        | "hall"
+        | "out",
+    activity,
+    detail:
+      cleanString(raw.note) ??
+      undefined,
+  };
 }
 
 if (
