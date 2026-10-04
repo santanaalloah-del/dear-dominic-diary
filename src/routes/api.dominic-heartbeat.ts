@@ -6,6 +6,25 @@ function envValue(name: string) {
   return process.env[name]?.trim() || "";
 }
 
+function isDuplicateBackgroundEvent(
+  eventContext: unknown,
+  marker: string
+) {
+  if (
+    !eventContext ||
+    typeof eventContext !== "object" ||
+    Array.isArray(eventContext)
+  ) {
+    return false;
+  }
+
+  return Boolean(
+    (eventContext as Record<string, unknown>)[
+      marker
+    ]
+  );
+}
+
 async function generateInitiative({
   apiKey,
   state,
@@ -176,6 +195,43 @@ export const Route = createFileRoute("/api/dominic-heartbeat")({
           events ?? []
         ) {
           try {
+            if (
+              event.status === "ready" &&
+              isDuplicateBackgroundEvent(
+                event.context,
+                "background_generated_at"
+              )
+            ) {
+              continue;
+            }
+
+            const lockTime =
+              new Date().toISOString();
+
+            const { data: lockedEvent } =
+              await supabaseAdmin
+                .from("proactive_events")
+                .update({
+                  status: "processing",
+                  processed_at: lockTime,
+                  context: {
+                    ...(event.context &&
+                    typeof event.context === "object" &&
+                    !Array.isArray(event.context)
+                      ? event.context
+                      : {}),
+                    background_processing_at:
+                      lockTime,
+                  },
+                })
+                .eq("id", event.id)
+                .in("status", ["pending", "ready"])
+                .select("id")
+                .maybeSingle();
+
+            if (!lockedEvent) {
+              continue;
+            }
             const [
               { data: homeState },
               { data: activeContexts },
@@ -502,6 +558,31 @@ export const Route = createFileRoute("/api/dominic-heartbeat")({
             eventError
           ) {
             failed += 1;
+
+            await supabaseAdmin
+              .from("proactive_events")
+              .update({
+                status: "pending",
+                processed_at: null,
+                scheduled_for:
+                  new Date(
+                    Date.now() +
+                      20 * 60_000
+                  ).toISOString(),
+                decision_reason:
+                  "Background generation failed; retry later.",
+                context: {
+                  ...(event.context &&
+                  typeof event.context === "object" &&
+                  !Array.isArray(event.context)
+                    ? event.context
+                    : {}),
+                  background_error_at:
+                    new Date().toISOString(),
+                },
+              })
+              .eq("id", event.id)
+              .eq("status", "processing");
 
             console.error(
               "Dominic background initiative failed:",
