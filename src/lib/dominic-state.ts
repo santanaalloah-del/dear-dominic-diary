@@ -705,6 +705,80 @@ export async function scheduleDominicStateCheckIn(
     });
 }
 
+export type DominicInteractionDecision = {
+  mode:
+    | "speak"
+    | "act"
+    | "speak_and_act"
+    | "wait";
+  channel:
+    | "co_present"
+    | "remote";
+  reason: string;
+};
+
+export function decideDominicInteraction({
+  state,
+  presence,
+  hasSomethingToSay,
+  hasWorldAction,
+}: {
+  state: DominicState;
+  presence: DominicPresence;
+  hasSomethingToSay: boolean;
+  hasWorldAction: boolean;
+}): DominicInteractionDecision {
+  const channel =
+    presence.togetherNow
+      ? "co_present"
+      : "remote";
+
+  if (
+    !hasSomethingToSay &&
+    !hasWorldAction
+  ) {
+    return {
+      mode: "wait",
+      channel,
+      reason:
+        "Nothing concrete is pulling Dominic into speech or action. Silence is a valid choice.",
+    };
+  }
+
+  if (
+    hasSomethingToSay &&
+    hasWorldAction
+  ) {
+    return {
+      mode:
+        "speak_and_act",
+      channel,
+      reason:
+        presence.togetherNow
+          ? "Dominic can speak in the shared scene while a concrete action changes the world."
+          : "Dominic can message while a concrete remote/world action is carried out.",
+    };
+  }
+
+  if (hasWorldAction) {
+    return {
+      mode: "act",
+      channel,
+      reason:
+        "A concrete action matters more than narrating it.",
+    };
+  }
+
+  return {
+    mode: "speak",
+    channel,
+    reason:
+      presence.togetherNow
+        ? "Treat the Chat line as spoken dialogue inside the shared physical scene."
+        : "Treat the Chat line as remote conversation.",
+  };
+}
+
 export type DominicProactiveDecision = {
   decision: "send" | "skip" | "reschedule";
   reason: string;
