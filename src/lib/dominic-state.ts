@@ -568,6 +568,145 @@ export async function scheduleDominicStateCheckIn(
     });
 }
 
+export type DominicProactiveDecision = {
+  decision: "send" | "skip" | "reschedule";
+  reason: string;
+  rescheduleFor: string | null;
+};
+
+export function decideDominicStateCheckIn(input: {
+  state: DominicState;
+  presence: DominicPresence;
+  lastUserMessageAt?: string | null;
+  lastDominicMessageAt?: string | null;
+  now?: Date;
+}): DominicProactiveDecision {
+  const now = input.now ?? new Date();
+  const hour = now.getHours();
+
+  if (input.presence.togetherNow) {
+    return {
+      decision: "skip",
+      reason: "They are physically together; do not simulate distance with a phone check-in.",
+      rescheduleFor: null,
+    };
+  }
+
+  if (["sleeping","showering","performing","rehearsing","recording","driving"].includes(input.state.activity)) {
+    return {
+      decision: "reschedule",
+      reason: "Dominic is occupied in a low-availability activity.",
+      rescheduleFor: input.state.nextChangeAt,
+    };
+  }
+
+  if (hour >= 1 && hour < 7) {
+    const later = new Date(now);
+    later.setHours(8, 20, 0, 0);
+    return {
+      decision: "reschedule",
+      reason: "Quiet hours; spontaneous contact can wait until morning.",
+      rescheduleFor: later.toISOString(),
+    };
+  }
+
+  const lastUserAt = input.lastUserMessageAt ? new Date(input.lastUserMessageAt).getTime() : 0;
+  const lastDominicAt = input.lastDominicMessageAt ? new Date(input.lastDominicMessageAt).getTime() : 0;
+  const sinceUserMinutes = lastUserAt > 0 ? (now.getTime() - lastUserAt) / 60000 : Number.POSITIVE_INFINITY;
+  const sinceDominicMinutes = lastDominicAt > 0 ? (now.getTime() - lastDominicAt) / 60000 : Number.POSITIVE_INFINITY;
+
+  if (sinceUserMinutes < 20) {
+    return { decision: "skip", reason: "The conversation is already active; a separate proactive check-in would be redundant.", rescheduleFor: null };
+  }
+
+  if (sinceDominicMinutes < 75 && sinceUserMinutes > 20) {
+    return { decision: "skip", reason: "Dominic already initiated recently; silence is more natural than stacking another check-in.", rescheduleFor: null };
+  }
+
+  const sociallyOpen = ["relaxing","walking","at_a_cafe","listening_to_music","playing_guitar","scrolling","with_friends","at_the_studio","traveling"].includes(input.state.activity);
+  if (sociallyOpen && sinceDominicMinutes >= 120) {
+    return { decision: "send", reason: "Dominic is available, they are apart, and enough time has passed for a contextual initiative to feel natural.", rescheduleFor: null };
+  }
+
+  return { decision: "skip", reason: "Nothing in the current state strongly justifies interrupting the silence.", rescheduleFor: null };
+}
+
+export async function processDominicStateCheckIns(userId: string) {
+  const now = new Date();
+  const { data: events, error } = await supabase
+    .from("proactive_events")
+    .select("id,context,scheduled_for")
+    .eq("user_id", userId)
+    .eq("event_type", "dominic_state_checkin")
+    .eq("status", "pending")
+    .lte("scheduled_for", now.toISOString())
+    .order("scheduled_for", { ascending: true })
+    .limit(4);
+  if (error) throw error;
+  if (!events?.length) return [];
+
+  const state = await getCurrentDominicState(userId);
+  const presence = await resolveDominicPresence(userId);
+
+  const { data: conversations } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
+  const conversationId = conversations?.[0]?.id ?? null;
+  let lastUserMessageAt: string | null = null;
+  let lastDominicMessageAt: string | null = null;
+
+  if (conversationId) {
+    const { data: recentMessages } = await supabase
+      .from("messages")
+      .select("role,speaker_name,created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: false })
+      .limit(30);
+
+    for (const message of recentMessages ?? []) {
+      const speaker = (message.speaker_name ?? "").toLowerCase();
+      if (!lastUserMessageAt && (message.role === "user" || speaker === "alloah")) lastUserMessageAt = message.created_at;
+      if (!lastDominicMessageAt && (message.role === "assistant" || speaker === "dominic")) lastDominicMessageAt = message.created_at;
+      if (lastUserMessageAt && lastDominicMessageAt) break;
+    }
+  }
+
+  const decision = decideDominicStateCheckIn({ state, presence, lastUserMessageAt, lastDominicMessageAt, now });
+  const results = [];
+
+  for (const event of events) {
+    if (decision.decision === "reschedule" && decision.rescheduleFor) {
+      await supabase.from("proactive_events").update({
+        scheduled_for: decision.rescheduleFor,
+        decision_reason: decision.reason,
+      }).eq("id", event.id);
+      results.push({ id: event.id, ...decision });
+      continue;
+    }
+
+    await supabase.from("proactive_events").update({
+      status: decision.decision === "send" ? "ready" : "skipped",
+      processed_at: now.toISOString(),
+      decision_reason: decision.reason,
+      context: {
+        ...(event.context && typeof event.context === "object" && !Array.isArray(event.context) ? event.context : {}),
+        decision: decision.decision,
+        resolved_state: { activity: state.activity, location: state.location, mood: state.mood ?? null, energy: state.energy ?? null },
+        presence,
+        last_user_message_at: lastUserMessageAt,
+        last_dominic_message_at: lastDominicMessageAt,
+      },
+    }).eq("id", event.id);
+
+    results.push({ id: event.id, ...decision });
+  }
+
+  return results;
+}
 export async function recordDominicAction(
   userId: string,
   state: DominicState
