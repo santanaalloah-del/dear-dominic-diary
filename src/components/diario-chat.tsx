@@ -45,6 +45,8 @@ import { usePrivateDiario } from "@/components/private-diario";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import {
   getCurrentDominicState,
+  resolveDominicPresence,
+  type DominicPresence,
   type DominicState,
 } from "@/lib/dominic-state";
 import {
@@ -843,6 +845,9 @@ const activeListeningLabel =
   const [dominicState, setDominicState] =
   useState<DominicState | null>(null);
 
+  const [dominicPresence, setDominicPresence] =
+    useState<DominicPresence | null>(null);
+
   const [
     dominicWearingLabel,
     setDominicWearingLabel,
@@ -872,6 +877,24 @@ useEffect(() => {
 
       if (!cancelled) {
         setDominicState(state);
+      }
+
+      try {
+        const presence =
+          await resolveDominicPresence(
+            session.user.id
+          );
+
+        if (!cancelled) {
+          setDominicPresence(
+            presence
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Could not resolve Dominic presence:",
+          error
+        );
       }
 
       try {
@@ -1397,6 +1420,15 @@ async function extractDominicActions({
                             owner: activeListeningTrack.owner,
                           }
                         : null,
+                      togetherNow:
+                        dominicPresence?.togetherNow ??
+                        false,
+                      presenceReason:
+                        dominicPresence?.reason ??
+                        "separate",
+                      sharedPlace:
+                        dominicPresence?.place ??
+                        null,
                     }
                   : null,
 
@@ -2859,6 +2891,18 @@ const liveDateContext =
 
                   isHome:
                     dominicState.location !== "out",
+
+                  togetherNow:
+                    dominicPresence?.togetherNow ??
+                    false,
+
+                  presenceReason:
+                    dominicPresence?.reason ??
+                    "separate",
+
+                  sharedPlace:
+                    dominicPresence?.place ??
+                    null,
 
                   availability:
                     [
