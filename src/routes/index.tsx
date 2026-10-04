@@ -1071,6 +1071,27 @@ function HomeScreen({
 
         <button
           type="button"
+          className="apartment-presence-away"
+          onClick={() => {
+            if (!session?.user?.id) return;
+
+            void setAlloahPresence(
+              session.user.id,
+              "out"
+            ).catch((error) => {
+              console.error(
+                "Could not update Alloah away presence:",
+                error
+              );
+            });
+          }}
+          aria-label="Mark me as out of the apartment"
+        >
+          I'm going out
+        </button>
+
+        <button
+          type="button"
           className="apartment-enter-room"
           onClick={() => {
             if (session?.user?.id) {
