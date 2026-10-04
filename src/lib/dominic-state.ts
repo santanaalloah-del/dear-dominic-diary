@@ -721,13 +721,21 @@ export function decideDominicStateCheckIn(input: {
   const now = input.now ?? new Date();
   const hour = now.getHours();
 
-  if (["sleeping","showering","performing","rehearsing","recording","driving"].includes(input.state.activity)) {
+  if (input.state.activity === "sleeping") {
     return {
       decision: "reschedule",
-      reason: "Dominic is occupied in a low-availability activity.",
+      reason: "Dominic is asleep; wait until he wakes.",
       rescheduleFor: input.state.nextChangeAt,
     };
   }
+
+  const attentionHeavy = [
+    "showering",
+    "performing",
+    "rehearsing",
+    "recording",
+    "driving",
+  ].includes(input.state.activity);
 
   if (
     hour >= 1 &&
@@ -757,6 +765,19 @@ export function decideDominicStateCheckIn(input: {
   }
 
   const sociallyOpen = ["relaxing","walking","at_a_cafe","listening_to_music","playing_guitar","scrolling","with_friends","at_the_studio","traveling"].includes(input.state.activity);
+
+  if (
+    attentionHeavy &&
+    sinceDominicMinutes < 180
+  ) {
+    return {
+      decision: "reschedule",
+      reason:
+        "Dominic is busy right now. This lowers availability instead of forbidding contact; reconsider after the current activity changes.",
+      rescheduleFor:
+        input.state.nextChangeAt,
+    };
+  }
   if (
     input.presence.togetherNow &&
     sociallyOpen &&
