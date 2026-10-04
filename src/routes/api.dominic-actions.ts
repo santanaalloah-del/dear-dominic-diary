@@ -212,8 +212,17 @@ body:
     location:
       nullableStringSchema,
 
-    activity:
-      nullableStringSchema,
+    activity: {
+      anyOf: [
+        {
+          type: "string",
+          enum: ["sleeping","waking_up","showering","getting_dressed","making_coffee","cooking","eating","washing_dishes","cleaning","doing_laundry","watching_something","listening_to_music","playing_guitar","writing_music","recording","reading","scrolling","on_the_phone","relaxing","napping","getting_ready","leaving_home","coming_home","walking","getting_food","shopping","at_a_cafe","with_friends","working","at_the_studio","rehearsing","performing","backstage","traveling","driving","idle"],
+        },
+        {
+          type: "null",
+        },
+      ],
+    },
   },
 } as const;
 
@@ -455,7 +464,8 @@ if (
   if (
     !location ||
     !allowedLocations.includes(location) ||
-    !activity
+    !activity ||
+    !["sleeping","waking_up","showering","getting_dressed","making_coffee","cooking","eating","washing_dishes","cleaning","doing_laundry","watching_something","listening_to_music","playing_guitar","writing_music","recording","reading","scrolling","on_the_phone","relaxing","napping","getting_ready","leaving_home","coming_home","walking","getting_food","shopping","at_a_cafe","with_friends","working","at_the_studio","rehearsing","performing","backstage","traveling","driving","idle"].includes(activity)
   ) {
     return null;
   }
