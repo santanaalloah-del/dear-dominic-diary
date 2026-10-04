@@ -349,6 +349,121 @@ export async function syncDominicActiveContext(
     });
 }
 
+export type AlloahPresence = {
+  location: DominicLocation | "out";
+  atHome: boolean;
+  updatedAt: string;
+};
+
+export async function setAlloahPresence(
+  userId: string,
+  location: DominicLocation | "out"
+): Promise<AlloahPresence> {
+  const now = new Date().toISOString();
+  const payload = {
+    activity:
+      location === "out"
+        ? "away"
+        : "in_room",
+    place: location,
+    status: "active",
+    started_at: now,
+    last_activity_at: now,
+    context_type:
+      "alloah_live_state",
+    source_type:
+      "user_presence",
+    source_id: "alloah",
+    title: "Alloah",
+    state: {
+      location,
+      atHome:
+        location !== "out",
+      updatedAt: now,
+    },
+  };
+
+  const { data: existing, error } =
+    await supabase
+      .from("active_context")
+      .select("id")
+      .eq("user_id", userId)
+      .eq(
+        "context_type",
+        "alloah_live_state"
+      )
+      .eq("source_id", "alloah")
+      .limit(1)
+      .maybeSingle();
+
+  if (error) throw error;
+
+  if (existing) {
+    const { error: updateError } =
+      await supabase
+        .from("active_context")
+        .update(payload)
+        .eq("id", existing.id)
+        .eq("user_id", userId);
+    if (updateError) throw updateError;
+  } else {
+    const { error: insertError } =
+      await supabase
+        .from("active_context")
+        .insert({
+          user_id: userId,
+          ...payload,
+        });
+    if (insertError) throw insertError;
+  }
+
+  return {
+    location,
+    atHome:
+      location !== "out",
+    updatedAt: now,
+  };
+}
+
+export async function loadAlloahPresence(
+  userId: string
+): Promise<AlloahPresence | null> {
+  const { data, error } =
+    await supabase
+      .from("active_context")
+      .select(
+        "place,state,last_activity_at"
+      )
+      .eq("user_id", userId)
+      .eq(
+        "context_type",
+        "alloah_live_state"
+      )
+      .eq("source_id", "alloah")
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+
+  const location =
+    data.place as
+      | DominicLocation
+      | "out"
+      | null;
+
+  if (!location) return null;
+
+  return {
+    location,
+    atHome:
+      location !== "out",
+    updatedAt:
+      data.last_activity_at,
+  };
+}
+
 export type DominicPresence = {
   togetherNow: boolean;
   reason:
@@ -404,6 +519,28 @@ export async function resolveDominicPresence(
       reason: "active_date",
       place,
       dateId: liveDate.id,
+    };
+  }
+
+  const alloahPresence =
+    await loadAlloahPresence(userId);
+
+  const dominicState =
+    await loadDominicState(userId);
+
+  if (
+    alloahPresence?.atHome &&
+    dominicState &&
+    dominicState.location !== "out" &&
+    alloahPresence.location ===
+      dominicState.location
+  ) {
+    return {
+      togetherNow: true,
+      reason: "shared_context",
+      place:
+        alloahPresence.location,
+      dateId: null,
     };
   }
 
