@@ -44,6 +44,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePrivateDiario } from "@/components/private-diario";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import {
+  applyDominicWorldStateAction,
   getCurrentDominicState,
   resolveDominicPresence,
   type DominicPresence,
@@ -105,7 +106,8 @@ type DominicActionType =
   | "create_place"
   | "create_song"
   | "date_venue_action"
-  | "update_profile_photo";
+  | "update_profile_photo"
+  | "change_live_state";
 
 type DominicWorldAction =
   | {
@@ -202,6 +204,19 @@ type DominicWorldAction =
         "update_profile_photo";
 
       photoId:
+        string;
+    }
+  | {
+      type:
+        "change_live_state";
+
+      location:
+        DominicState["location"];
+
+      activity:
+        DominicState["activity"];
+
+      detail?:
         string;
     };
 
@@ -413,7 +428,9 @@ function isDominicActionType(
     value ===
       "date_venue_action" ||
     value ===
-      "update_profile_photo"
+      "update_profile_photo" ||
+    value ===
+      "change_live_state"
   );
 }
 
@@ -1788,6 +1805,41 @@ async function applyDominicAction(
 ): Promise<
   DiarioItem | null
 > {
+  if (
+    action.type ===
+      "change_live_state"
+  ) {
+    const nextState =
+      await applyDominicWorldStateAction({
+        userId:
+          session.user.id,
+        location:
+          action.location,
+        activity:
+          action.activity,
+        detail:
+          action.detail ??
+          null,
+      });
+
+    setDominicState(
+      nextState
+    );
+
+    const presence =
+      await resolveDominicPresence(
+        session.user.id
+      ).catch(() => null);
+
+    if (presence) {
+      setDominicPresence(
+        presence
+      );
+    }
+
+    return null;
+  }
+
   if (
     action.type ===
     "update_profile_photo"
