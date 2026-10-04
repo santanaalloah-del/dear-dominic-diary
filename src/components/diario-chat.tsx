@@ -1098,11 +1098,7 @@ useEffect(() => {
               "send"
           )
         ) {
-          window.dispatchEvent(
-            new CustomEvent(
-              "diario-dominic-proactive-ready"
-            )
-          );
+          await generateReadyDominicInitiative();
         }
       } catch (error) {
         console.error(
@@ -2977,6 +2973,189 @@ useEffect(() => {
     },
     [],
   );
+
+async function generateReadyDominicInitiative() {
+  const { data: readyEvents } =
+    await supabase
+      .from("proactive_events")
+      .select("id,context,decision_reason")
+      .eq("user_id", session.user.id)
+      .eq("event_type", "dominic_state_checkin")
+      .eq("status", "ready")
+      .order("scheduled_for", { ascending: true })
+      .limit(1);
+
+  const event = readyEvents?.[0];
+  if (!event) return false;
+
+  const state =
+    await getCurrentDominicState(
+      session.user.id
+    );
+  const presence =
+    await resolveDominicPresence(
+      session.user.id
+    );
+
+  const prompt = presence.togetherNow
+    ? "You are physically with Alloah right now. Initiate one natural in-person beat from your current state. You may use one brief physical/body-language action in single asterisks when natural. Do not talk like a distant text message. Do not invent events. Avoid generic check-ins."
+    : "Initiate one natural message to Alloah from your actual current state. Do not invent events. Avoid generic check-ins and do not narrate physical contact with her while you are apart.";
+
+  const { data, error } =
+    await supabase.functions.invoke(
+      "clever-service",
+      {
+        body: {
+          message: prompt,
+          proactive: true,
+          proactiveEventId: event.id,
+          proactiveContext: event.context,
+          dominicContext: {
+            activity: state.activity,
+            location: state.location,
+            mood: state.mood ?? null,
+            energy: state.energy ?? null,
+            detail: state.detail ?? null,
+            startedAt: state.startedAt,
+            nextChangeAt: state.nextChangeAt,
+            togetherNow: presence.togetherNow,
+            presenceReason: presence.reason,
+            sharedPlace: presence.place,
+            interactionMode:
+              presence.togetherNow
+                ? "co_present"
+                : "remote",
+          },
+        },
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  const replies =
+    Array.isArray(data?.replies)
+      ? data.replies.filter(
+          (value: unknown): value is string =>
+            typeof value === "string" &&
+            Boolean(value.trim())
+        )
+      : typeof data?.reply === "string" &&
+          data.reply.trim()
+        ? [data.reply.trim()]
+        : [];
+
+  if (!replies.length) {
+    await supabase
+      .from("proactive_events")
+      .update({
+        status: "skipped",
+        processed_at:
+          new Date().toISOString(),
+        decision_reason:
+          "The proactive generator found no natural initiative worth sending.",
+      })
+      .eq("id", event.id);
+
+    return false;
+  }
+
+  const { data: conversations } =
+    await supabase
+      .from("conversations")
+      .select("id,title,updated_at")
+      .eq("user_id", session.user.id)
+      .order("updated_at", { ascending: false });
+
+  const conversation =
+    conversations?.find((item) =>
+      item.title
+        ?.toLowerCase()
+        .includes("dominic")
+    ) ??
+    conversations?.[0];
+
+  if (!conversation) {
+    await supabase
+      .from("proactive_events")
+      .update({
+        status: "pending",
+        processed_at: null,
+        scheduled_for:
+          new Date(
+            Date.now() + 15 * 60_000
+          ).toISOString(),
+        decision_reason:
+          "No Dominic conversation exists yet; retry after Chat has one.",
+      })
+      .eq("id", event.id);
+
+    return false;
+  }
+
+  const now =
+    new Date().toISOString();
+
+  const rows =
+    replies.map((content) => ({
+      user_id: session.user.id,
+      conversation_id:
+        conversation.id,
+      role: "assistant",
+      speaker_name: "Dominic",
+      content,
+      created_at: now,
+    }));
+
+  const { data: inserted, error: insertError } =
+    await supabase
+      .from("messages")
+      .insert(rows)
+      .select("id");
+
+  if (insertError) {
+    throw insertError;
+  }
+
+  const messageId =
+    inserted?.[0]?.id ?? null;
+
+  await supabase
+    .from("proactive_events")
+    .update({
+      status: "sent",
+      processed_at: now,
+      message_id: messageId,
+      decision_reason:
+        event.decision_reason ??
+        "Dominic initiated from live context.",
+      context: {
+        ...(event.context &&
+        typeof event.context === "object" &&
+        !Array.isArray(event.context)
+          ? event.context
+          : {}),
+        delivered_at: now,
+        delivery_mode:
+          presence.togetherNow
+            ? "co_present"
+            : "remote",
+      },
+    })
+    .eq("id", event.id);
+
+  await supabase
+    .from("conversations")
+    .update({
+      updated_at: now,
+    })
+    .eq("id", conversation.id)
+    .eq("user_id", session.user.id);
+
+  await loadHistory(false);
+  return true;
+}
 
 async function requestDominicReply(
   combinedMessage: string
