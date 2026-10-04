@@ -979,6 +979,20 @@ Be conservative:
 - If it is ambiguous which candidate he means, return no update_profile_photo.
 - Never invent a photoId.
 
+change_live_state
+
+Use when Dominic's actual reply clearly performs a concrete movement or starts a concrete activity that changes his current live state.
+
+Examples:
+- he gets up and goes to the kitchen to make coffee -> location "kitchen", activity "making_coffee";
+- he leaves the apartment -> location "out", activity "leaving_home";
+- he goes into the bedroom and starts playing guitar -> location "bedroom", activity "playing_guitar".
+
+Do NOT use change_live_state for transient body language or affection such as hugs, kisses, looks, touching, leaning closer, holding hands, or sitting closer.
+Do not use it for a vague intention ("I'll make coffee later").
+The new state must be directly supported by Dominic's actual reply and must remain physically consistent with dominicContext and liveDateContext.
+Use note only for a short concrete detail of the action.
+
 date_venue_action
 
 Use only during an active Date when liveDateContext says locationMode is "place".
