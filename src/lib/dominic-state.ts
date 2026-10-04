@@ -2211,6 +2211,96 @@ energy: internal.energy,
   };
 }
 
+export async function applyDominicWorldStateAction({
+  userId,
+  location,
+  activity,
+  detail,
+}: {
+  userId: string;
+  location: DominicLocation;
+  activity: DominicActivity;
+  detail?: string | null;
+}): Promise<DominicState> {
+  const previous =
+    await loadDominicState(userId);
+
+  const now = new Date();
+  const duration =
+    ACTIVITY_DURATION[
+      activity
+    ] ?? [15, 60];
+
+  const minutes =
+    randomBetween(
+      duration[0],
+      duration[1]
+    );
+
+  const state: DominicState = {
+    location,
+    activity,
+    detail:
+      detail?.trim() ||
+      undefined,
+    mood:
+      previous?.mood ??
+      "calm",
+    energy:
+      previous?.energy ??
+      65,
+    recent:
+      previous
+        ? [
+            ...(previous.recent ?? []),
+            {
+              activity:
+                previous.activity,
+              location:
+                previous.location,
+              endedAt:
+                now.toISOString(),
+            },
+          ].slice(-8)
+        : [],
+    startedAt:
+      now.toISOString(),
+    nextChangeAt:
+      new Date(
+        now.getTime() +
+          minutes * 60_000
+      ).toISOString(),
+    source: "event",
+  };
+
+  await saveDominicState(
+    userId,
+    state
+  );
+
+  await recordDominicAction(
+    userId,
+    state
+  );
+
+  await syncDominicActiveContext(
+    userId,
+    state
+  );
+
+  await syncDominicWardrobeAutonomy({
+    userId,
+    state,
+  }).catch((error) => {
+    console.error(
+      "Could not sync wardrobe after Dominic world action:",
+      error
+    );
+  });
+
+  return state;
+}
+
 export async function getCurrentDominicState(
   userId: string
 ): Promise<DominicState> {
