@@ -3145,6 +3145,49 @@ async function generateReadyDominicInitiative() {
     })
     .eq("id", event.id);
 
+  if (
+    !presence.togetherNow &&
+    messageId
+  ) {
+    const preview =
+      replies.join(" ").slice(0, 180);
+
+    const { error: pushError } =
+      await supabase
+        .from("push_outbox")
+        .insert({
+          user_id:
+            session.user.id,
+          message_id:
+            messageId,
+          title:
+            "Dominic",
+          body:
+            preview,
+          notification_type:
+            "dominic_proactive",
+          target_route:
+            "/?screen=chat",
+          status:
+            "pending",
+          metadata: {
+            source:
+              "dominic_proactive",
+            proactive_event_id:
+              event.id,
+            interaction_mode:
+              "remote",
+          },
+        });
+
+    if (pushError) {
+      console.error(
+        "Dominic proactive message was saved, but push could not be queued:",
+        pushError
+      );
+    }
+  }
+
   await supabase
     .from("conversations")
     .update({
