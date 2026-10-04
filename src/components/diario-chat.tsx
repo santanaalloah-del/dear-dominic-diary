@@ -326,6 +326,9 @@ type ChatMessage = {
 
   actionType?:
     DominicActionType;
+
+  physicalAction?:
+    string;
 };
 
 type DominicReplyPart = {
@@ -1498,6 +1501,13 @@ async function extractDominicActions({
                       sharedPlace:
                         dominicPresence?.place ??
                         null,
+                      interactionMode:
+                        dominicPresence?.togetherNow
+                          ? "co_present"
+                          : "remote",
+                      physicalActionsAllowed:
+                        dominicPresence?.togetherNow ??
+                        false,
                     }
                   : null,
 
@@ -2911,6 +2921,11 @@ const liveDateContext =
           message:
             combinedMessage,
 
+          interactionGuidance:
+            dominicPresence?.togetherNow
+              ? "Alloah and Dominic are physically together. Treat text wrapped in single asterisks from either side as real-time body language or physical action in the shared scene. Respond with grounded continuity; affectionate touch is possible when natural."
+              : "Alloah and Dominic are physically separate. Do not treat physical touch as currently possible unless the conversation explicitly changes the physical context.",
+
                     liveDateContext,
 
           liveDatePrompt,
@@ -2995,6 +3010,36 @@ const liveDateContext =
                         )
                         ? "medium"
                         : "high",
+
+                  interactionMode:
+                    dominicPresence?.togetherNow
+                      ? "co_present"
+                      : "remote",
+
+                  physicalActionPolicy:
+                    dominicPresence?.togetherNow
+                      ? {
+                          allowed: true,
+                          syntax:
+                            "Wrap brief physical/body-language actions in single asterisks, e.g. *wraps an arm around her waist*. Keep spoken words outside the asterisks.",
+                          naturalExamples: [
+                            "hug",
+                            "kiss forehead",
+                            "hold hands",
+                            "lean closer",
+                            "play with her hair",
+                            "sit beside her",
+                            "hand her something",
+                            "walk to another room",
+                          ],
+                          continuity:
+                            "Actions must respect current room, activity, live Date context and what just happened. Small affectionate gestures are transient and should not become diary objects by default.",
+                        }
+                      : {
+                          allowed: false,
+                          syntax:
+                            "Do not narrate impossible touch or co-present physical contact while separate. Use remote speech, intention or longing instead.",
+                        },
                 }
               : null,
 
