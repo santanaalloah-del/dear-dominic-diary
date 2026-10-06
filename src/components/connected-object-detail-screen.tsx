@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -9,6 +10,7 @@ import {
   X,
   ZoomIn,
   ZoomOut,
+  Trash2,
 } from "lucide-react";
 
 import {
@@ -509,6 +511,9 @@ export function ConnectedObjectDetailScreen({
     setPhotoZoom,
   ] = useState(1);
 
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
+  const photoStageRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     let active = true;
 
@@ -986,6 +991,40 @@ export function ConnectedObjectDetailScreen({
       }
     };
 
+
+  const deletePhoto = async () => {
+    if (!view || view.item.kind !== "photo" || deletingPhoto) return;
+    if (!window.confirm("Delete this photo? This cannot be undone.")) return;
+
+    setDeletingPhoto(true);
+    setError(null);
+
+    try {
+      const { error: linkError } = await db
+        .from("diario_links")
+        .delete()
+        .eq("user_id", session.user.id)
+        .or(`source_item_id.eq.${itemId},target_item_id.eq.${itemId}`);
+      if (linkError) throw linkError;
+
+      const { error: deleteError } = await db
+        .from("diario_items")
+        .delete()
+        .eq("user_id", session.user.id)
+        .eq("id", itemId)
+        .eq("kind", "photo");
+      if (deleteError) throw deleteError;
+
+      setPhotoViewerOpen(false);
+      onBack();
+    } catch (nextError) {
+      console.error("Could not delete photo:", nextError);
+      setError("The photo could not be deleted.");
+    } finally {
+      setDeletingPhoto(false);
+    }
+  };
+
   if (loading) {
     return (
       <section className="connected-object-detail-screen">
@@ -1211,6 +1250,16 @@ export function ConnectedObjectDetailScreen({
 
               <button
                 type="button"
+                className="connected-photo-viewer-delete"
+                aria-label="Delete photo"
+                disabled={deletingPhoto}
+                onClick={() => void deletePhoto()}
+              >
+                <Trash2 size={18} />
+              </button>
+
+              <button
+                type="button"
                 className="connected-photo-viewer-close"
                 aria-label="Close photo"
                 onClick={() => {
@@ -1223,12 +1272,12 @@ export function ConnectedObjectDetailScreen({
             </div>
 
             <div
+              ref={photoStageRef}
               className="connected-photo-viewer-stage"
-              onClick={() =>
-                setPhotoZoom((current) =>
-                  current === 1 ? 2 : 1
-                )
-              }
+              onClick={(event) => {
+                if (event.currentTarget.scrollLeft !== 0 || event.currentTarget.scrollTop !== 0) return;
+                setPhotoZoom((current) => current === 1 ? 2 : 1);
+              }}
             >
               <img
                 src={view.mediaUrl}
