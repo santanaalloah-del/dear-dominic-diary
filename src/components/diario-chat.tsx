@@ -624,7 +624,7 @@ function dominicPresenceCopy(
     DominicState | null
 ) {
   if (!state) {
-    return "a moment away";
+    return "loading his day…";
   }
 
   const room: Record<
@@ -1102,6 +1102,19 @@ useEffect(() => {
 
   void refreshDominicState();
 
+  const refreshOnVisible = () => {
+    if (document.visibilityState === "visible") {
+      void refreshDominicState();
+    }
+  };
+
+  const refreshOnFocus = () => {
+    void refreshDominicState();
+  };
+
+  document.addEventListener("visibilitychange", refreshOnVisible);
+  window.addEventListener("focus", refreshOnFocus);
+
   const processDueInitiative =
     async () => {
       try {
@@ -1147,6 +1160,8 @@ useEffect(() => {
     window.clearInterval(
       proactiveTimer
     );
+    document.removeEventListener("visibilitychange", refreshOnVisible);
+    window.removeEventListener("focus", refreshOnFocus);
   };
 }, [session.user.id]);
 
