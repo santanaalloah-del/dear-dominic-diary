@@ -78,7 +78,7 @@ export async function applyMusicAutonomy(db:any,uid:string,actionId:any) {
     if(priorError)throw priorError;
     if(!prior?.length) {
       const {error}=await db.from("character_music_events").insert({
-        user_id:uid,character_name:"dominic",event_type:"character_choice",
+        user_id:uid,character_name:"Dominic",event_type:"character_choice",
         artist_name:track.artist,track_name:track.title,album_name:track.album,occurred_at:at,
         source_type:"dominic_music_autonomy",source_context_type:"character_action",source_context_id:String(a.id),
         reason:intent.reason,significance:intent.affinity,
@@ -88,7 +88,7 @@ export async function applyMusicAutonomy(db:any,uid:string,actionId:any) {
       if(error)throw error;
     }
     const {error:affError}=await db.from("character_music_affinity").upsert({
-      user_id:uid,character_name:"dominic",entity_type:"track",entity_key:key,
+      user_id:uid,character_name:"Dominic",entity_type:"track",entity_key:(track.artist.trim()+"::"+track.title.trim()).toLowerCase(),
       artist_name:track.artist,track_name:track.title,affinity_score:intent.affinity,
       last_seen_at:at,metadata:{source:"dominic_music_autonomy",reaction:intent.reaction,action_id:a.id}
     },{onConflict:"user_id,character_name,entity_type,entity_key"});
