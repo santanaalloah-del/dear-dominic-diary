@@ -198,6 +198,47 @@ export const DOMINIC_ACTIVITIES = [
 export async function loadDominicState(
   userId: string
 ): Promise<DominicState | null> {
+  const { data: lifeContext } = await supabase
+    .from("active_context")
+    .select("activity,place,state,last_activity_at")
+    .eq("user_id", userId)
+    .eq("context_type", "dominic_live_state")
+    .eq("source_id", "dominic")
+    .eq("source_type", "dominic_life_loop")
+    .eq("status", "active")
+    .order("last_activity_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (lifeContext) {
+    const raw =
+      lifeContext.state &&
+      typeof lifeContext.state === "object" &&
+      !Array.isArray(lifeContext.state)
+        ? (lifeContext.state as Record<string, unknown>)
+        : {};
+    const activity = (raw.activity ?? lifeContext.activity) as DominicActivity;
+    const location = (raw.location ?? lifeContext.place) as DominicLocation;
+    if (
+      DOMINIC_ACTIVITIES.some((item) => item.activity === activity) &&
+      ["living", "bedroom", "kitchen", "bathroom", "hall", "out"].includes(location)
+    ) {
+      const startedAt =
+        typeof raw.updated_at === "string"
+          ? raw.updated_at
+          : lifeContext.last_activity_at;
+      return {
+        activity,
+        location,
+        detail: typeof raw.detail === "string" ? raw.detail : undefined,
+        mood: typeof raw.mood === "string" ? raw.mood as DominicMood : undefined,
+        startedAt,
+        nextChangeAt: "2999-01-01T00:00:00.000Z",
+        source: "event",
+      };
+    }
+  }
+
   const { data, error } = await supabase
     .from("home_state")
     .select(
