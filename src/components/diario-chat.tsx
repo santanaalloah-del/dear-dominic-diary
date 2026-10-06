@@ -4204,9 +4204,9 @@ setMessages((current) => [
         recognition.interimResults =
           true;
 
+        // Alloah speaks to Dominic in English; do not inherit the iPhone UI language.
         recognition.lang =
-          navigator.language ||
-          "pt-BR";
+          "en-US";
 
         recognitionRef.current =
           recognition;
