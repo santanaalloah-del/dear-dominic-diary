@@ -1441,3 +1441,44 @@
   user-select: none;
   -webkit-touch-callout: none;
 }
+
+
+/* Visible swipe-to-reply motion */
+.messenger-message {
+  position: relative;
+  overflow: visible;
+}
+.chat-swipe-message-body {
+  position: relative;
+  z-index: 1;
+  transform: translateX(var(--reply-swipe-x, 0px));
+  transition: transform 160ms ease-out;
+  will-change: transform;
+}
+.messenger-message[style*="--reply-swipe-x"] .chat-swipe-message-body {
+  transition: none;
+}
+.chat-swipe-reply-indicator {
+  position: absolute;
+  top: 50%;
+  z-index: 0;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(125, 46, 60, 0.10);
+  color: var(--wine, #7d2e3c);
+  font-size: 18px;
+  opacity: var(--reply-swipe-progress, 0);
+  transform: translateY(-50%) scale(calc(.78 + (var(--reply-swipe-progress, 0) * .22)));
+  transition: opacity 90ms linear, transform 90ms linear;
+  pointer-events: none;
+}
+.messenger-message[data-from="user"] .chat-swipe-reply-indicator,
+.messenger-message[data-role="user"] .chat-swipe-reply-indicator {
+  right: 2px;
+}
+.messenger-message:not([data-from="user"]):not([data-role="user"]) .chat-swipe-reply-indicator {
+  left: 2px;
+}
