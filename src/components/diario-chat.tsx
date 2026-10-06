@@ -964,6 +964,37 @@ const activeListeningLabel =
   const [dominicPresence, setDominicPresence] =
     useState<DominicPresence | null>(null);
 
+  type AlloahLocation = "home" | "work" | "on_my_way" | "out";
+  const [alloahLocation, setAlloahLocation] = useState<AlloahLocation | null>(null);
+  const alloahLocationOptions: { value: AlloahLocation; label: string }[] = [
+    { value: "home", label: "Home" },
+    { value: "work", label: "Work" },
+    { value: "on_my_way", label: "On my way" },
+    { value: "out", label: "Out" },
+  ];
+
+  useEffect(() => {
+    let cancelled = false;
+    void supabase.from("world_state").select("alloah_location").eq("user_id", session.user.id).maybeSingle()
+      .then(({ data, error }) => {
+        if (error) throw error;
+        const value = data?.alloah_location;
+        if (!cancelled && ["home","work","on_my_way","out"].includes(value ?? "")) setAlloahLocation(value as AlloahLocation);
+      })
+      .catch((error) => console.error("Could not load Alloah presence:", error));
+    return () => { cancelled = true; };
+  }, [session.user.id]);
+
+  const updateAlloahLocation = async (next: AlloahLocation) => {
+    const previous = alloahLocation;
+    setAlloahLocation(next);
+    const { error } = await supabase.from("world_state").update({ alloah_location: next, updated_at: new Date().toISOString() }).eq("user_id", session.user.id);
+    if (error) {
+      setAlloahLocation(previous);
+      console.error("Could not update Alloah presence:", error);
+    }
+  };
+
   const [
     dominicWearingLabel,
     setDominicWearingLabel,
@@ -3468,6 +3499,8 @@ const liveDateContext =
                 }
               : null,
 
+          alloahPresence: { location: alloahLocation },
+
           nearbyCommitments:
             liveNearbyCommitments,
         },
@@ -4687,6 +4720,20 @@ const recentConversationForPhoto = () =>
               )}
             </div>
           )}
+        </div>
+
+        <div className="alloah-presence-picker" aria-label="Your presence">
+          {alloahLocationOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={alloahLocation === option.value ? "is-active" : ""}
+              aria-pressed={alloahLocation === option.value}
+              onClick={() => void updateAlloahLocation(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
 
         <div className="messenger-header-actions">
