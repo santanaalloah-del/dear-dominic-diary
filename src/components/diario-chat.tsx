@@ -779,6 +779,119 @@ function dominicPresenceCopy(
   return `${action} · ${place}`;
 }
 
+function DiarioVoiceNote({
+  src,
+  transcript,
+  open,
+  onToggleTranscript,
+}: {
+  src?: string;
+  transcript?: string;
+  open: boolean;
+  onToggleTranscript: () => void;
+}) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [playbackError, setPlaybackError] = useState(false);
+
+  const formatTime = (seconds: number) => {
+    const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 0;
+    return `${Math.floor(safe / 60)}:${String(Math.floor(safe % 60)).padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="voice-note-real">
+      {src ? (
+        <>
+          <audio
+            ref={audioRef}
+            className="voice-note-native-audio"
+            preload="metadata"
+            src={src}
+            onLoadedMetadata={(event) => {
+              const next = event.currentTarget.duration;
+              setDuration(Number.isFinite(next) ? next : 0);
+              setPlaybackError(false);
+            }}
+            onTimeUpdate={(event) => {
+              setProgress(event.currentTarget.currentTime || 0);
+            }}
+            onPlay={() => {
+              setPlaying(true);
+              setPlaybackError(false);
+            }}
+            onPause={() => setPlaying(false)}
+            onEnded={() => {
+              setPlaying(false);
+              setProgress(0);
+            }}
+            onError={() => {
+              setPlaying(false);
+              setPlaybackError(true);
+            }}
+          />
+          <div className="voice-note-player">
+            <button
+              type="button"
+              className="voice-note-play"
+              aria-label={playing ? "Pause voice note" : "Play voice note"}
+              onClick={() => {
+                const audio = audioRef.current;
+                if (!audio) return;
+                if (!audio.paused) {
+                  audio.pause();
+                  return;
+                }
+                setPlaybackError(false);
+                audio.play().catch(() => {
+                  setPlaying(false);
+                  setPlaybackError(true);
+                });
+              }}
+            >
+              {playing ? "Ⅱ" : "▶"}
+            </button>
+            <div className="voice-note-track" aria-hidden="true">
+              <span
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (progress / Math.max(duration || 1, 1)) * 100
+                  )}%`,
+                }}
+              />
+            </div>
+            <span className="voice-note-time">
+              {playing || progress > 0
+                ? formatTime(progress)
+                : formatTime(duration)}
+            </span>
+          </div>
+          {playbackError && (
+            <span className="voice-note-error">Audio unavailable</span>
+          )}
+        </>
+      ) : (
+        <span className="voice-note-error">Audio unavailable</span>
+      )}
+
+      {transcript && (
+        <button
+          type="button"
+          className="voice-transcript-toggle"
+          onClick={onToggleTranscript}
+        >
+          Transcript
+        </button>
+      )}
+
+      {open && transcript && <em>{transcript}</em>}
+    </div>
+  );
+}
+
 export function DiarioChat({
   onOpen,
 }: {
@@ -822,10 +935,6 @@ onOpen: (
   const [voiceStatus, setVoiceStatus] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [openTranscript, setOpenTranscript] = useState<string | null>(null);
-  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
-  const [voiceProgress, setVoiceProgress] = useState<Record<string, number>>({});
-  const [voiceDuration, setVoiceDuration] = useState<Record<string, number>>({});
-  const voiceAudioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
   const [
   selectedChatObjectId,
   setSelectedChatObjectId,
@@ -5198,104 +5307,16 @@ const recentConversationForPhoto = () =>
   </div>
 ) : message.kind ===
   "voice" ? (
-  <div className="voice-note-real">
-    {message.mediaUrl && (
-      <>
-        <audio
-          ref={(node) => {
-            voiceAudioRefs.current[message.id] = node;
-          }}
-          className="voice-note-native-audio"
-          preload="metadata"
-          src={message.mediaUrl}
-          onLoadedMetadata={(event) => {
-            setVoiceDuration((current) => ({
-              ...current,
-              [message.id]: event.currentTarget.duration || 0,
-            }));
-          }}
-          onTimeUpdate={(event) => {
-            setVoiceProgress((current) => ({
-              ...current,
-              [message.id]: event.currentTarget.currentTime || 0,
-            }));
-          }}
-          onPlay={() => setPlayingVoiceId(message.id)}
-          onPause={() =>
-            setPlayingVoiceId((current) =>
-              current === message.id ? null : current
-            )
-          }
-          onEnded={() => {
-            setPlayingVoiceId(null);
-            setVoiceProgress((current) => ({
-              ...current,
-              [message.id]: 0,
-            }));
-          }}
-        />
-        <div className="voice-note-player">
-          <button
-            type="button"
-            className="voice-note-play"
-            aria-label={playingVoiceId === message.id ? "Pause voice note" : "Play voice note"}
-            onClick={() => {
-              const audio = voiceAudioRefs.current[message.id];
-              if (!audio) return;
-              if (audio.paused) {
-                void audio.play();
-              } else {
-                audio.pause();
-              }
-            }}
-          >
-            {playingVoiceId === message.id ? "Ⅱ" : "▶"}
-          </button>
-          <div className="voice-note-track" aria-hidden="true">
-            <span
-              style={{
-                width: `${Math.min(
-                  100,
-                  ((voiceProgress[message.id] ?? 0) /
-                    Math.max(voiceDuration[message.id] ?? 1, 1)) *
-                    100
-                )}%`,
-              }}
-            />
-          </div>
-          <span className="voice-note-time">
-            {Math.floor((voiceProgress[message.id] ?? 0) / 60)}:
-            {String(Math.floor((voiceProgress[message.id] ?? 0) % 60)).padStart(2, "0")}
-          </span>
-        </div>
-      </>
-    )}
-
-    {message.content && (
-      <button
-        type="button"
-        className="voice-transcript-toggle"
-        onClick={() =>
-          setOpenTranscript(
-            (current) =>
-              current ===
-              message.id
-                ? null
-                : message.id
-          )
-        }
-      >
-        Transcript
-      </button>
-    )}
-
-    {openTranscript ===
-      message.id && (
-      <em>
-        {message.content}
-      </em>
-    )}
-  </div>
+  <DiarioVoiceNote
+    src={message.mediaUrl}
+    transcript={message.content}
+    open={openTranscript === message.id}
+    onToggleTranscript={() =>
+      setOpenTranscript((current) =>
+        current === message.id ? null : message.id
+      )
+    }
+  />
 ) : (
   <MessageContent className="diario-message-content messenger-bubble">
     <MessageResponse>
