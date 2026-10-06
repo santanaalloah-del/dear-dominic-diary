@@ -4436,7 +4436,30 @@ const recentConversationForPhoto = () =>
                 }
                 alt="Dominic"
               />
-              <span className="presence-dot" />
+              <span
+                className={`presence-dot ${
+                  dominicState?.activity === "sleeping"
+                    ? "is-asleep"
+                    : dominicState?.location === "out"
+                      ? "is-away"
+                      : [
+                          "showering",
+                          "recording",
+                          "rehearsing",
+                          "performing",
+                          "on_the_phone",
+                        ].includes(dominicState?.activity ?? "")
+                        ? "is-occupied"
+                        : "is-available"
+                }`}
+                title={
+                  dominicState?.activity === "sleeping"
+                    ? "asleep"
+                    : dominicState?.location === "out"
+                      ? "away"
+                      : "available"
+                }
+              />
             </button>
           </SheetTrigger>
 
