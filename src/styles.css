@@ -17280,3 +17280,28 @@ html[data-diario-time-theme="continuous"] .statusbar {
   margin-bottom: var(--app-content-bottom-space) !important;
   padding-bottom: 6px !important;
 }
+
+
+/* =========================================================
+   CHAT FULL CONTENT VIEWPORT · no duplicate Diário strip
+   The global statusbar is redundant on Chat; give its space
+   back to the conversation and keep composer above bottom nav.
+   ========================================================= */
+.app-shell:has(.screen-chat) .app-shell-statusbar {
+  display: none !important;
+}
+
+.app-shell:has(.screen-chat) .app-shell-content {
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
+.app-shell-content.screen-chat {
+  padding-bottom: 0 !important;
+}
+
+.screen-chat .messenger-composer-wrap,
+.screen-chat .live-composer-wrap {
+  margin-bottom: calc(var(--app-nav-height) + var(--app-nav-bottom) + 10px) !important;
+  padding: 6px 10px !important;
+}
