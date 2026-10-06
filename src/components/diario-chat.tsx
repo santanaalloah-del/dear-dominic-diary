@@ -4365,9 +4365,11 @@ const recentConversationForPhoto = () =>
     null;
 
   const dominicAvatar =
-    dominicProfile
-      ?.photoUrl ??
-    dominic;
+    dominicProfile?.photoUrl ??
+    null;
+
+  const dominicProfileReady =
+    chatProfiles !== null;
 
   const alloahInitial =
     (
@@ -4466,12 +4468,19 @@ const recentConversationForPhoto = () =>
               className="messenger-avatar"
               aria-label="Open Dominic profile"
             >
-              <img
-                src={
-                  dominicAvatar
-                }
-                alt="Dominic"
-              />
+              {dominicAvatar ? (
+                <img
+                  src={dominicAvatar}
+                  alt="Dominic"
+                />
+              ) : (
+                <span
+                  className="messenger-avatar-placeholder"
+                  aria-hidden="true"
+                >
+                  D
+                </span>
+              )}
               <span
                 className={`presence-dot ${
                   dominicState?.activity === "sleeping"
@@ -4738,7 +4747,7 @@ const recentConversationForPhoto = () =>
                 key={message.id}
                 className={`diario-message messenger-message ${message.kind === "voice" ? "voice-message" : ""}`}
               >
-                {message.role === "assistant" && preferences.showDominicAvatar && (
+                {message.role === "assistant" && preferences.showDominicAvatar && dominicAvatar && (
                   <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />
                 )}
 {message.kind ===
@@ -4900,7 +4909,7 @@ const recentConversationForPhoto = () =>
           )}
           {sending && (
             <Message from="assistant" className="diario-message messenger-message typing-message">
-              {preferences.showDominicAvatar && <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />}
+              {preferences.showDominicAvatar && dominicAvatar && <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />}
               <MessageContent className="diario-message-content messenger-bubble">
                 <span className="ink-dots" aria-label="Dominic is typing"><i /><i /><i /></span>
               </MessageContent>
