@@ -9,6 +9,9 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+const ONESIGNAL_APP_ID = "16858aa1-a487-41b1-9ac6-1a97684f240b";
+const ONESIGNAL_SAFARI_WEB_ID = "web.onesignal.auto.44737891-769a-4856-a052-0f3c94719003";
+
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useTimeMood } from "../lib/time-mood";
@@ -94,6 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "preconnect", href: "https://cdn.onesignal.com" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Libre+Franklin:wght@300;400;500&display=swap" },
@@ -146,11 +150,41 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function OneSignalBootstrap() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const w = window as any;
+    w.OneSignalDeferred = w.OneSignalDeferred || [];
+    w.OneSignalDeferred.push(async (OneSignal: any) => {
+      await OneSignal.init({
+        appId: ONESIGNAL_APP_ID,
+        safari_web_id: ONESIGNAL_SAFARI_WEB_ID,
+        serviceWorkerPath: "/OneSignalSDKWorker.js",
+        serviceWorkerParam: { scope: "/" },
+        notifyButton: { enable: false },
+        allowLocalhostAsSecureOrigin: true,
+      });
+    });
+
+    if (!document.querySelector('script[data-diario-onesignal="true"]')) {
+      const script = document.createElement("script");
+      script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+      script.defer = true;
+      script.dataset.diarioOnesignal = "true";
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
+      <OneSignalBootstrap />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
