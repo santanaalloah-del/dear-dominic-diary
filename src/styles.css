@@ -17336,7 +17336,7 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .alloah-presence-menu{position:relative;display:flex;align-items:center}
 .messenger-header-actions .alloah-presence-trigger{width:auto;height:27px;padding:0 8px;border:1px solid color-mix(in oklab,var(--chat-ink) 14%,transparent);border-radius:999px;background:color-mix(in oklab,var(--chat-panel) 86%,transparent);font:500 9px/1 var(--font-body);white-space:nowrap;color:color-mix(in oklab,var(--chat-ink) 72%,transparent)}
 .alloah-presence-popover{display:none;position:absolute;z-index:30;top:32px;right:0;min-width:112px;padding:5px;flex-direction:column;gap:2px;border:1px solid color-mix(in oklab,var(--chat-ink) 14%,transparent);border-radius:13px;background:var(--chat-panel);box-shadow:0 8px 24px rgba(66,31,35,.14)}
-.alloah-presence-menu:focus-within .alloah-presence-popover{display:flex}
+.alloah-presence-popover.is-open{display:flex}
 .messenger-header-actions .alloah-presence-popover button{width:100%;height:auto;display:block;padding:7px 9px;border-radius:9px;text-align:left;font:500 10px/1.15 var(--font-body);white-space:nowrap}
 .messenger-header-actions .alloah-presence-popover button.is-active{background:color-mix(in oklab,var(--chat-accent) 12%,transparent);color:var(--chat-accent)}
 @media(max-width:760px){.messenger-header-actions{gap:0}.messenger-header-actions .alloah-presence-trigger{padding:0 6px;font-size:8px}.alloah-presence-popover{right:-4px}}
