@@ -4896,9 +4896,6 @@ const recentConversationForPhoto = () =>
                     <span>{message.replyTo.content || "Message"}</span>
                   </button>
                 )}
-                {message.role === "assistant" && preferences.showDominicAvatar && dominicAvatar && (
-                  <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />
-                )}
 {message.kind ===
 "physical_action" ? (
   <div
@@ -5059,7 +5056,6 @@ const recentConversationForPhoto = () =>
           )}
           {sending && (
             <Message from="assistant" className="diario-message messenger-message typing-message">
-              {preferences.showDominicAvatar && dominicAvatar && <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />}
               <MessageContent className="diario-message-content messenger-bubble">
                 <span className="ink-dots" aria-label="Dominic is typing"><i /><i /><i /></span>
               </MessageContent>
