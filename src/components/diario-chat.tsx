@@ -3129,6 +3129,7 @@ async function generateReadyDominicInitiative() {
           proactive: true,
           proactiveEventId: event.id,
           proactiveContext: event.context,
+          alloahPresence: { location: alloahLocation },
           dominicContext: {
             activity: state.activity,
             location: state.location,
