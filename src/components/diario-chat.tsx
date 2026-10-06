@@ -815,6 +815,10 @@ onOpen: (
     {
       text: string;
       kind: MessageKind;
+      photoContext?: {
+        storagePath: string;
+        storageBucket: string;
+      };
     }[]
   >([]);
 
@@ -3201,7 +3205,11 @@ async function generateReadyDominicInitiative() {
 }
 
 async function requestDominicReply(
-  combinedMessage: string
+  combinedMessage: string,
+  photoContext?: {
+    storagePath: string;
+    storageBucket: string;
+  }
 ) {
   const liveNearbyCommitments =
     await loadNearbyCommitmentsNow()
@@ -3242,6 +3250,9 @@ const liveDateContext =
         body: {
           message:
             combinedMessage,
+
+          photoContext:
+            photoContext ?? null,
 
           interactionGuidance:
             dominicPresence?.togetherNow
@@ -3535,9 +3546,20 @@ async function flushPendingMessages() {
             "\n"
           );
 
+  const queuedPhoto =
+    [...queuedMessages]
+      .reverse()
+      .find(
+        (item) =>
+          item.kind === "photo" &&
+          item.photoContext
+      )
+      ?.photoContext;
+
   try {
     await requestDominicReply(
-      combinedMessage
+      combinedMessage,
+      queuedPhoto
     );
   } catch (
     error
@@ -3648,7 +3670,11 @@ async function sendMessage(
   kind: MessageKind =
     "text",
   sharedItem?:
-    PendingChatShare
+    PendingChatShare,
+  photoContext?: {
+    storagePath: string;
+    storageBucket: string;
+  }
 ) {
   const clean =
     text.trim();
@@ -3717,6 +3743,7 @@ async function sendMessage(
         clean,
 
       kind,
+      photoContext,
     }
   );
 
@@ -3783,15 +3810,24 @@ async function sendPhoto(file: File) {
   ]);
 
   try {
-    await uploadChatMedia({
-      file,
-      type: "photo",
-    });
+    const uploaded =
+      await uploadChatMedia({
+        file,
+        type: "photo",
+      });
 
     await loadHistory(false);
 
     await sendMessage(
-      "I sent you a photo."
+      "I sent you this photo.",
+      "photo",
+      undefined,
+      {
+        storagePath:
+          uploaded.storagePath,
+        storageBucket:
+          "diario-media",
+      }
     );
   } catch (error) {
     console.error(
