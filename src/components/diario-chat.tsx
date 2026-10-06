@@ -3767,7 +3767,12 @@ const liveDateContext =
     .join(" ")
     .trim();
 
-  if (spokenForVoice) {
+  const dominicReplyModality =
+    data?.modality === "voice"
+      ? "voice"
+      : "text";
+
+  if (spokenForVoice && dominicReplyModality === "voice") {
     try {
       const { error: voiceError } =
         await supabase.functions.invoke(
