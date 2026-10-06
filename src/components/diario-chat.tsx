@@ -301,6 +301,12 @@ type ChatMedia = {
 
   physicalAction?:
     string;
+
+  replyTo?: {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+  } | null;
 };
 
 type ChatMessage = {
@@ -788,6 +794,8 @@ onOpen: (
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
+  const [replyTarget, setReplyTarget] = useState<ChatMessage | null>(null);
+  const replyTouchRef = useRef<{ id: string; x: number; y: number; timer: ReturnType<typeof window.setTimeout> | null } | null>(null);
   const [preferences, setPreferences] = useState<ChatPreferences>(defaultPreferences);
 
   const [
@@ -819,6 +827,11 @@ onOpen: (
         storagePath: string;
         storageBucket: string;
       };
+      replyTo?: {
+        id: string;
+        role: "user" | "assistant";
+        content: string;
+      } | null;
     }[]
   >([]);
 
@@ -2617,7 +2630,7 @@ if (
         await supabase
           .from("messages")
           .select(
-            "id,role,content,created_at"
+            "id,role,content,created_at,reply_to_message_id"
           )
           .eq(
             "user_id",
@@ -2637,6 +2650,10 @@ if (
 
     const matchedSharedMediaIds =
   new Set<string>();
+
+const messageLookup = new Map(
+  (data ?? []).map((item) => [String(item.id), item])
+);
 
 const normalMessages =
   (data ?? []).map(
@@ -2764,6 +2781,20 @@ const normalMessages =
         sharedKind:
           matchingSharedItem
             ?.sharedKind,
+
+        replyTo:
+          message.reply_to_message_id
+            ? (() => {
+                const original = messageLookup.get(String(message.reply_to_message_id));
+                return original
+                  ? {
+                      id: String(original.id),
+                      role: original.role === "assistant" ? "assistant" : "user",
+                      content: original.content,
+                    }
+                  : null;
+              })()
+            : null,
       };
     }
   );
@@ -3209,7 +3240,12 @@ async function requestDominicReply(
   photoContext?: {
     storagePath: string;
     storageBucket: string;
-  }
+  },
+  replyTo?: {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+  } | null
 ) {
   const liveNearbyCommitments =
     await loadNearbyCommitmentsNow()
@@ -3253,6 +3289,9 @@ const liveDateContext =
 
           photoContext:
             photoContext ?? null,
+
+          replyTo:
+            replyTo ?? null,
 
           interactionGuidance:
             dominicPresence?.togetherNow
@@ -3546,6 +3585,12 @@ async function flushPendingMessages() {
             "\n"
           );
 
+  const queuedReply =
+    [...queuedMessages]
+      .reverse()
+      .find((item) => item.replyTo)
+      ?.replyTo ?? null;
+
   const queuedPhoto =
     [...queuedMessages]
       .reverse()
@@ -3559,7 +3604,8 @@ async function flushPendingMessages() {
   try {
     await requestDominicReply(
       combinedMessage,
-      queuedPhoto
+      queuedPhoto,
+      queuedReply
     );
   } catch (
     error
@@ -3683,6 +3729,16 @@ async function sendMessage(
     return;
   }
 
+  const activeReply = replyTarget
+    ? {
+        id: replyTarget.id,
+        role: replyTarget.role,
+        content: replyTarget.content || (replyTarget.kind === "photo" ? "Photo" : replyTarget.kind === "voice" ? "Voice message" : "Message"),
+      }
+    : null;
+
+  setReplyTarget(null);
+
   const now =
     new Date()
       .toISOString();
@@ -3733,6 +3789,9 @@ async function sendMessage(
         sharedKind:
           sharedItem
             ?.kind,
+
+        replyTo:
+          activeReply,
       },
     ]
   );
@@ -3744,6 +3803,7 @@ async function sendMessage(
 
       kind,
       photoContext,
+      replyTo: activeReply,
     }
   );
 
@@ -4745,8 +4805,45 @@ const recentConversationForPhoto = () =>
               <Message
                 from={message.role}
                 key={message.id}
+                id={`chat-message-${message.id}`}
                 className={`diario-message messenger-message ${message.kind === "voice" ? "voice-message" : ""}`}
+                onTouchStart={(event) => {
+                  const touch = event.touches[0];
+                  if (!touch) return;
+                  const timer = window.setTimeout(() => setReplyTarget(message), 520);
+                  replyTouchRef.current = { id: message.id, x: touch.clientX, y: touch.clientY, timer };
+                }}
+                onTouchMove={(event) => {
+                  const state = replyTouchRef.current;
+                  const touch = event.touches[0];
+                  if (!state || !touch || state.id !== message.id) return;
+                  const dx = touch.clientX - state.x;
+                  const dy = touch.clientY - state.y;
+                  if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                    if (state.timer) window.clearTimeout(state.timer);
+                    state.timer = null;
+                  }
+                  if (Math.abs(dx) > 54 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+                    setReplyTarget(message);
+                    replyTouchRef.current = null;
+                  }
+                }}
+                onTouchEnd={() => {
+                  const state = replyTouchRef.current;
+                  if (state?.timer) window.clearTimeout(state.timer);
+                  replyTouchRef.current = null;
+                }}
               >
+                {message.replyTo && (
+                  <button
+                    type="button"
+                    className="chat-reply-quote"
+                    onClick={() => document.getElementById(`chat-message-${message.replyTo?.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                  >
+                    <strong>{message.replyTo.role === "assistant" ? "Dominic" : preferredName}</strong>
+                    <span>{message.replyTo.content || "Message"}</span>
+                  </button>
+                )}
                 {message.role === "assistant" && preferences.showDominicAvatar && dominicAvatar && (
                   <img className="message-avatar" src={dominicAvatar} alt="" aria-hidden="true" />
                 )}
@@ -4921,6 +5018,15 @@ const recentConversationForPhoto = () =>
       </Conversation>
 
       <div className="live-composer-wrap messenger-composer-wrap">
+        {replyTarget && (
+          <div className="chat-reply-composer">
+            <div>
+              <small>Replying to {replyTarget.role === "assistant" ? "Dominic" : preferredName}</small>
+              <span>{replyTarget.content || (replyTarget.kind === "photo" ? "Photo" : replyTarget.kind === "voice" ? "Voice message" : "Message")}</span>
+            </div>
+            <button type="button" aria-label="Cancel reply" onClick={() => setReplyTarget(null)}>×</button>
+          </div>
+        )}
      {failedMessage && (
   <div
     className="send-error"
