@@ -68,9 +68,9 @@ Deno.serve(async (req)=>{
     ]);
     const [{data:character,error:characterError},{data:musicProfile,error:musicProfileError},{data:musicAffinity,error:affinityError},{data:musicHistory,error:historyError}]=await Promise.all([
       sb.from("character_config").select("system_prompt,character_profile").eq("user_id",uid).ilike("name","dominic").limit(1).maybeSingle(),
-      sb.from("character_music_profile").select("favorite_artists,favorite_tracks,favorite_genres,current_artists,current_tracks,dislikes,music_notes").eq("user_id",uid).eq("character_name","dominic").maybeSingle(),
-      sb.from("character_music_affinity").select("artist_name,track_name,affinity_score,metadata").eq("user_id",uid).eq("character_name","dominic").order("last_seen_at",{ascending:false}).limit(30),
-      sb.from("character_music_events").select("artist_name,track_name,reason,occurred_at,metadata").eq("user_id",uid).eq("character_name","dominic").order("occurred_at",{ascending:false}).limit(12)
+      sb.from("character_music_profile").select("favorite_artists,favorite_tracks,favorite_genres,current_artists,current_tracks,dislikes,music_notes").eq("user_id",uid).eq("character_name","Dominic").maybeSingle(),
+      sb.from("character_music_affinity").select("artist_name,track_name,affinity_score,metadata").eq("user_id",uid).eq("character_name","Dominic").order("last_seen_at",{ascending:false}).limit(30),
+      sb.from("character_music_events").select("artist_name,track_name,reason,occurred_at,metadata").eq("user_id",uid).eq("character_name","Dominic").order("occurred_at",{ascending:false}).limit(12)
     ]);
     if(characterError||musicProfileError||affinityError||historyError){out.push({user_id:uid,error:"music_identity_read_failed"});continue;}
     const prompt=`You are the autonomous off-screen life resolver for Dominic in a private fictional diary universe.
