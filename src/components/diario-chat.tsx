@@ -369,6 +369,15 @@ type ActiveListeningTrack = {
 type ChatTheme = "diary" | "cherry" | "old-letter" | "soft-rose" | "midnight";
 type BubbleStyle = "soft" | "paper" | "minimal" | "classic";
 
+type AlloahLocation = "home" | "work" | "on_my_way" | "out";
+
+const ALLOAH_LOCATION_OPTIONS: { id: AlloahLocation; label: string }[] = [
+  { id: "home", label: "Home" },
+  { id: "work", label: "Work" },
+  { id: "on_my_way", label: "On my way" },
+  { id: "out", label: "Out" },
+];
+
 type ChatPreferences = {
   theme: ChatTheme;
   bubbles: BubbleStyle;
@@ -597,6 +606,57 @@ const activeListeningLabel =
 
   const [dominicState, setDominicState] =
   useState<DominicState | null>(null);
+
+  const [alloahLocation, setAlloahLocation] = useState<AlloahLocation>("out");
+  const [savingAlloahLocation, setSavingAlloahLocation] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAlloahLocation = async () => {
+      const { data, error } = await supabase
+        .from("world_state")
+        .select("alloah_location")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Could not load Alloah location:", error);
+        return;
+      }
+
+      const value = data?.alloah_location;
+      if (!cancelled && (value === "home" || value === "work" || value === "on_my_way" || value === "out")) {
+        setAlloahLocation(value);
+      }
+    };
+
+    void loadAlloahLocation();
+    return () => { cancelled = true; };
+  }, [session.user.id]);
+
+  const updateAlloahLocation = useCallback(async (next: AlloahLocation) => {
+    if (next === alloahLocation || savingAlloahLocation) return;
+
+    const previous = alloahLocation;
+    setAlloahLocation(next);
+    setSavingAlloahLocation(true);
+
+    const { error } = await supabase
+      .from("world_state")
+      .update({
+        alloah_location: next,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", session.user.id);
+
+    if (error) {
+      console.error("Could not update Alloah location:", error);
+      setAlloahLocation(previous);
+    }
+
+    setSavingAlloahLocation(false);
+  }, [alloahLocation, savingAlloahLocation, session.user.id]);
 
   const [nearbyCommitments, setNearbyCommitments] =
   useState<
@@ -3109,6 +3169,21 @@ const recentConversationForPhoto = () =>
           <button aria-label="More chat options"><MoreVertical /></button>
         </div>
       </header>
+
+      <div className="alloah-presence-picker" role="group" aria-label="Where you are">
+        {ALLOAH_LOCATION_OPTIONS.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            className={alloahLocation === option.id ? "active" : ""}
+            aria-pressed={alloahLocation === option.id}
+            disabled={savingAlloahLocation}
+            onClick={() => void updateAlloahLocation(option.id)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
 
 <DateModeChatBridge
   userId={session.user.id}

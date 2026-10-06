@@ -128,7 +128,8 @@ RECENT PHOTOS: ${JSON.stringify(recentPhotos??[])}`;
     }
     if(!inputs.length) throw new Error("No usable Dominic references.");
 
-    const together=world?.together_now===true;
+    const alloahAtHome=world?.alloah_location==="home";
+    const together=world?.together_now===true && alloahAtHome;
     const alloahInputs:any[]=[]; const alloahRefIds:string[]=[];
     if(together){
       for(const r of alloahRefs??[]){
@@ -153,6 +154,7 @@ The photo must feel genuinely taken in this lived moment: ordinary phone optics,
 If the moment implies selfie, make phone/selfie geometry believable. Otherwise a plausible casual snapshot is fine.
 WORLD NOW: ${JSON.stringify(world??{})}
 RECENT CHAT: ${JSON.stringify((recentMessages??[]).slice(0,8))}
+ALLOAH LOCATION: ${String(world?.alloah_location??"unknown")}
 TOGETHER NOW: ${together}
 ${together
   ? alloahInputs.length

@@ -44,7 +44,7 @@ Deno.serve(async (req)=>{
       catch(error){console.error("Photo links deferred",photo.id,error instanceof Error?error.message:"unknown");}
     }
     const [{data:world,error:worldError},{data:liveDates,error:dateError},{data:sharedContexts,error:contextError}]=await Promise.all([
-      sb.from("world_state").select("together_now").eq("user_id",uid).maybeSingle(),
+      sb.from("world_state").select("together_now,alloah_location,dominic_location").eq("user_id",uid).maybeSingle(),
       sb.from("diario_items").select("id").eq("user_id",uid).eq("kind","date").eq("status","active").contains("data",{flow_state:"live"}).limit(1),
       sb.from("active_context").select("id").eq("user_id",uid).eq("status","active").eq("together_now",true).limit(1)
     ]);
@@ -80,6 +80,7 @@ Hard rules:
 - "nothing" is valid and preferred over filler.
 - Never create engagement quotas or contact merely because Alloah was inactive.
 - Never invent Alloah's actions, consent, promises, purchases, dates, places, or shared decisions.
+- ALLOAH LOCATION is manual context only. If it is not "home", never imply she is physically in the apartment. If it is "home", only infer that she is somewhere at home; never invent her room, activity, or attention. Her location does not disable Chat.
 - Self actions and small environmental actions are allowed. Anything requiring Alloah must not execute here.
 - Preserve continuity. Prefer continuing an existing activity/thread/state over random novelty.
 - Dominic is a musician with a real independent life; work/studio/rehearsal/writing/rest/friends/travel may happen only when context supports it.
@@ -132,7 +133,11 @@ ${JSON.stringify(pack??{})}
 RECENT LIVED EVENTS:
 ${JSON.stringify(recent??[])}
 RECENT ACTIONS:
-${JSON.stringify(actions??[])}`;
+${JSON.stringify(actions??[])}
+ALLOAH LOCATION NOW:
+${JSON.stringify(world?.alloah_location??"unknown")}
+DOMINIC LOCATION NOW:
+${JSON.stringify(world?.dominic_location??"unknown")}`;
     try{
       const rr=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{"Authorization":`Bearer ${ai}`,"Content-Type":"application/json"},body:JSON.stringify({model:Deno.env.get("DOMINIC_LIFE_MODEL")||Deno.env.get("CHAT_MODEL")||"google/gemini-3.8-flash",temperature:.72,response_format:{type:"json_object"},messages:[{role:"user",content:prompt}]})});
       if(!rr.ok){out.push({user_id:uid,error:`provider_${rr.status}`});continue;}
@@ -144,7 +149,7 @@ ${JSON.stringify(actions??[])}`;
       if(!["self","environment"].includes(d.agency_class)){out.push({user_id:uid,decision:"rejected",reason:"unsafe_agency"});continue;}
       // User activity may change while the model is thinking; re-check before committing solo canon.
       const [{data:latestWorld,error:latestWorldError},{data:latestDate,error:latestDateError},{data:latestShared,error:latestSharedError}]=await Promise.all([
-        sb.from("world_state").select("together_now").eq("user_id",uid).maybeSingle(),
+        sb.from("world_state").select("together_now,alloah_location,dominic_location").eq("user_id",uid).maybeSingle(),
         sb.from("diario_items").select("id").eq("user_id",uid).eq("kind","date").eq("status","active").contains("data",{flow_state:"live"}).limit(1),
         sb.from("active_context").select("id").eq("user_id",uid).eq("status","active").eq("together_now",true).limit(1)
       ]);

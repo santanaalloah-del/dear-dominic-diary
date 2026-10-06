@@ -15208,3 +15208,37 @@ html[data-diario-time-theme="continuous"] .statusbar {
   --chat-readable-ink:#f8ecdd !important;
   --chat-readable-muted:#d4bbb2 !important;
 }
+
+
+/* Alloah presence — compact manual world-state control */
+.alloah-presence-picker {
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.alloah-presence-picker::-webkit-scrollbar { display: none; }
+
+.alloah-presence-picker button {
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  color: inherit;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  opacity: .62;
+  cursor: pointer;
+}
+
+.alloah-presence-picker button.active {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 11%, transparent);
+  border-color: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.alloah-presence-picker button:disabled { cursor: default; }
