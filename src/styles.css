@@ -17305,3 +17305,18 @@ html[data-diario-time-theme="continuous"] .statusbar {
   margin-bottom: calc(var(--app-nav-height) + var(--app-nav-bottom) + 10px) !important;
   padding: 6px 10px !important;
 }
+
+
+/* =========================================================
+   APP SHELL · remove redundant global Diário status strip
+   Native iOS already owns the system status area. All screens
+   use the full app viewport; local screen headers remain.
+   ========================================================= */
+.app-shell .app-shell-statusbar {
+  display: none !important;
+}
+
+.app-shell .app-shell-content {
+  height: 100% !important;
+  max-height: 100% !important;
+}
