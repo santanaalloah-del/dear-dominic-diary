@@ -333,7 +333,7 @@ export async function syncDominicActiveContext(
   const { data: existing } =
     await supabase
       .from("active_context")
-      .select("id")
+      .select("id,source_type")
       .eq("user_id", userId)
       .eq(
         "context_type",
@@ -342,6 +342,13 @@ export async function syncDominicActiveContext(
       .eq("source_id", "dominic")
       .limit(1)
       .maybeSingle();
+
+  if (
+    existing?.source_type === "dominic_life_loop" &&
+    state.source === "event"
+  ) {
+    return;
+  }
 
   const presence =
     await resolveDominicPresence(userId);
@@ -357,7 +364,9 @@ export async function syncDominicActiveContext(
     context_type:
       "dominic_live_state",
     source_type:
-      "autonomy_engine",
+      state.source === "event"
+        ? "dominic_life_loop"
+        : "autonomy_engine",
     source_id: "dominic",
     title: "Dominic",
     together_now:
