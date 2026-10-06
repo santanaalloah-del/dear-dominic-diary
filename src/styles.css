@@ -17320,3 +17320,13 @@ html[data-diario-time-theme="continuous"] .statusbar {
   height: 100% !important;
   max-height: 100% !important;
 }
+
+
+/* CHAT · avatarless message rows
+   Message avatars were removed from the markup; reclaim their old gutter. */
+.screen-chat .messenger-message.is-assistant {
+  padding-left: 0 !important;
+}
+.screen-chat .messenger-message {
+  gap: 2px !important;
+}
