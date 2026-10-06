@@ -1429,3 +1429,15 @@
 .messenger-message {
   touch-action: pan-y;
 }
+
+
+/* Keep iOS text selection from competing with reply gestures. */
+.messenger-message,
+.messenger-message .messenger-bubble,
+.messenger-message .diario-message-content,
+.messenger-message .chat-physical-action,
+.messenger-message .chat-reply-quote {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
