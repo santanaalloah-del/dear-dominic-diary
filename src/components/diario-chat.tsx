@@ -4832,6 +4832,12 @@ const recentConversationForPhoto = () =>
                   const state = replyTouchRef.current;
                   if (state?.timer) window.clearTimeout(state.timer);
                   replyTouchRef.current = null;
+                  window.getSelection()?.removeAllRanges();
+                }}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  window.getSelection()?.removeAllRanges();
+                  setReplyTarget(message);
                 }}
               >
                 {message.replyTo && (
