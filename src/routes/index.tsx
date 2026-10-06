@@ -90,6 +90,7 @@ import {
   hasHomeSceneTimeline,
 } from "@/lib/home-scene-assets";
 
+import { enableDiarioPush, getDiarioPushStatus } from "@/lib/push-notifications";
 import {
   getCurrentDominicState,
   setAlloahPresence,
@@ -14342,6 +14343,30 @@ const handleSpotifyDisconnect =
                 private
               </small>
             </div>
+          </section>
+
+          <section className="settings-group">
+            <header>
+              <span>notifications</span>
+              <strong>Dominic can reach you</strong>
+            </header>
+            <button
+              type="button"
+              className="settings-row"
+              onClick={() => { if (!pushEnabled) void handlePushEnable(); }}
+              aria-pressed={pushEnabled}
+              disabled={pushBusy || pushEnabled}
+            >
+              <div>
+                <Send size={19} strokeWidth={1.4} />
+                <span>
+                  <strong>{pushEnabled ? "Notifications enabled" : "Enable notifications"}</strong>
+                  <small>{pushBusy ? "asking this device…" : pushEnabled ? "Dominic can notify this device when you're away" : "allow Dominic to reach you when Diário is closed"}</small>
+                </span>
+              </div>
+              <i className={pushEnabled ? "settings-toggle on" : "settings-toggle"} aria-hidden="true" />
+            </button>
+            {pushError && <p role="alert">{pushError}</p>}
           </section>
 
           <section className="settings-group">
