@@ -198,7 +198,7 @@ export const DOMINIC_ACTIVITIES = [
 export async function loadDominicState(
   userId: string
 ): Promise<DominicState | null> {
-  const { data: lifeContext } = await supabase
+  const { data: lifeContext, error: lifeContextError } = await supabase
     .from("active_context")
     .select("activity,place,state,last_activity_at")
     .eq("user_id", userId)
@@ -209,6 +209,10 @@ export async function loadDominicState(
     .order("last_activity_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (lifeContextError) {
+    throw lifeContextError;
+  }
 
   if (lifeContext) {
     const raw =
