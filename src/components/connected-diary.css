@@ -1492,3 +1492,23 @@
 .messenger-message:not([data-from="user"]):not([data-role="user"]) .chat-swipe-reply-indicator {
   left: 2px;
 }
+
+
+/* Keep chat avatars from bleeding behind neighboring bubbles after swipe overflow was enabled. */
+.messenger-message .message-avatar,
+.messenger-message .messenger-avatar,
+.messenger-message .messenger-self-avatar,
+.messenger-message .messenger-avatar-placeholder {
+  overflow: hidden;
+  isolation: isolate;
+  clip-path: circle(50%);
+}
+.messenger-message .message-avatar img,
+.messenger-message .messenger-avatar img,
+.messenger-message .messenger-self-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
