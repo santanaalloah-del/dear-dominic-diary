@@ -5967,30 +5967,74 @@ html[data-diario-appearance="dark"] .settings-static-row {
 
 .voice-note-real{
   display:grid;
-  gap:8px;
-  width:min(300px,78vw);
-  padding:12px 14px 10px;
-  border-radius:22px;
-  background:rgba(255,250,244,.88);
-  box-shadow:0 8px 22px rgba(89,45,42,.05);
+  gap:7px;
+  width:min(286px,76vw);
+  padding:11px 13px 9px;
+  border-radius:22px 22px 22px 7px;
+  background:rgba(255,248,240,.92);
+  border:1px solid rgba(116,56,57,.06);
+  box-shadow:0 7px 18px rgba(89,45,42,.045);
 }
 
-.voice-note-real audio{
-  display:block;
-  width:100%;
-  height:34px;
-  accent-color:var(--chat-accent);
+.voice-note-native-audio{
+  display:none;
+}
+
+.voice-note-player{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr) 36px;
+  align-items:center;
+  gap:9px;
+  min-height:36px;
+}
+
+.voice-note-play{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:50%;
+  padding:0;
+  background:var(--chat-accent);
+  color:#fff8f1;
+  font-size:12px;
+  line-height:1;
+  box-shadow:0 3px 9px rgba(105,36,48,.14);
+}
+
+.voice-note-track{
+  position:relative;
+  height:3px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(112,63,62,.14);
+}
+
+.voice-note-track span{
+  position:absolute;
+  inset:0 auto 0 0;
+  border-radius:inherit;
+  background:var(--chat-accent);
+}
+
+.voice-note-time{
+  font-size:10px;
+  font-variant-numeric:tabular-nums;
+  text-align:right;
+  color:var(--chat-ink);
+  opacity:.48;
 }
 
 .voice-transcript-toggle{
   justify-self:start;
   border:0;
   background:none;
-  padding:0 2px;
-  font:12px var(--font-display);
+  padding:1px 2px 0;
+  font:11px var(--font-display);
   color:var(--chat-ink);
   text-align:left;
-  opacity:.58;
+  opacity:.5;
 }
 
 .voice-note-real em{
@@ -6004,8 +6048,9 @@ html[data-diario-appearance="dark"] .settings-static-row {
 }
 
 .voice-message .chat-swipe-message-body{
-  max-width:min(300px,78vw);
+  max-width:min(286px,76vw);
 }
+
 .chat-sticker-grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
