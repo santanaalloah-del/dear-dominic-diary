@@ -966,6 +966,7 @@ const activeListeningLabel =
 
   type AlloahLocation = "home" | "work" | "on_my_way" | "out";
   const [alloahLocation, setAlloahLocation] = useState<AlloahLocation | null>(null);
+  const [alloahPresenceOpen, setAlloahPresenceOpen] = useState(false);
   const alloahLocationOptions: { value: AlloahLocation; label: string }[] = [
     { value: "home", label: "Home" },
     { value: "work", label: "Work" },
@@ -4729,18 +4730,23 @@ const recentConversationForPhoto = () =>
               type="button"
               className="alloah-presence-trigger"
               aria-label="Change your presence"
+              aria-expanded={alloahPresenceOpen}
               title="Your presence"
+              onClick={() => setAlloahPresenceOpen((open) => !open)}
             >
               You · {alloahLocationOptions.find((option) => option.value === alloahLocation)?.label ?? "Set"} ▾
             </button>
-            <div className="alloah-presence-popover">
+            <div className={`alloah-presence-popover${alloahPresenceOpen ? " is-open" : ""}`}>
               {alloahLocationOptions.map((option) => (
                 <button
                   key={option.value}
                   type="button"
                   className={alloahLocation === option.value ? "is-active" : ""}
                   aria-pressed={alloahLocation === option.value}
-                  onClick={() => void updateAlloahLocation(option.value)}
+                  onClick={() => {
+                    setAlloahPresenceOpen(false);
+                    void updateAlloahLocation(option.value);
+                  }}
                 >
                   {option.label}
                 </button>
