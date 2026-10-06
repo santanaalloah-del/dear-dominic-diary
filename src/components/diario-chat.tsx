@@ -12,7 +12,9 @@ import {
   Mic,
   Music2,
   Palette,
+  Pause,
   Phone,
+  Play,
   Plus,
   RotateCcw,
   Search,
@@ -851,7 +853,11 @@ function DiarioVoiceNote({
                 });
               }}
             >
-              {playing ? "Ⅱ" : "▶"}
+              {playing ? (
+                <Pause aria-hidden="true" />
+              ) : (
+                <Play aria-hidden="true" />
+              )}
             </button>
             <div className="voice-note-track" aria-hidden="true">
               <span
@@ -4913,11 +4919,10 @@ const recentConversationForPhoto = () =>
 
         <div className="messenger-person">
           <h1>
-            {dominicProfile
-              ?.displayName ??
-              DOMINIC_NAME}
-            {" "}
-            <span>♡</span>
+            <span className="messenger-person-name">
+              {dominicProfile?.displayName ?? DOMINIC_NAME}
+            </span>
+            <span className="messenger-person-heart" aria-hidden="true">♡</span>
           </h1>
           <p>
             {statusCopy}
