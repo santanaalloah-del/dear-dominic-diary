@@ -1,21 +1,64 @@
 import { supabase } from "@/integrations/supabase/client";
 
-type OneSignalLike = {
-  login?: (externalId: string) => Promise<void>;
-  User?: { PushSubscription?: { id?: string | null; optedIn?: boolean; optIn?: () => Promise<void> } };
-  Notifications?: { permission?: boolean; permissionNative?: string; requestPermission?: () => Promise<boolean | void> };
+type PushSubscriptionLike = {
+  id?: string | null;
+  token?: string | null;
+  optedIn?: boolean;
+  optIn?: () => Promise<void>;
+  addEventListener?: (event: "change", listener: (event?: unknown) => void) => void;
+  removeEventListener?: (event: "change", listener: (event?: unknown) => void) => void;
 };
 
-function waitForSubscriptionId(OneSignal: OneSignalLike, timeoutMs = 10000) {
+type OneSignalLike = {
+  login?: (externalId: string) => Promise<void>;
+  User?: { PushSubscription?: PushSubscriptionLike };
+  Notifications?: {
+    permission?: boolean;
+    permissionNative?: string;
+    requestPermission?: () => Promise<boolean | void>;
+  };
+};
+
+function readSubscriptionId(OneSignal: OneSignalLike) {
+  return OneSignal.User?.PushSubscription?.id || null;
+}
+
+function waitForSubscriptionId(OneSignal: OneSignalLike, timeoutMs = 30000) {
   return new Promise<string | null>((resolve) => {
-    const started = Date.now();
-    const poll = () => {
-      const id = OneSignal.User?.PushSubscription?.id;
-      if (id) return resolve(id);
-      if (Date.now() - started >= timeoutMs) return resolve(null);
-      window.setTimeout(poll, 250);
+    const subscription = OneSignal.User?.PushSubscription;
+    const existing = readSubscriptionId(OneSignal);
+    if (existing) {
+      resolve(existing);
+      return;
+    }
+
+    let finished = false;
+    let timer = 0;
+
+    const finish = (id: string | null) => {
+      if (finished) return;
+      finished = true;
+      if (timer) window.clearInterval(timer);
+      subscription?.removeEventListener?.("change", onChange);
+      resolve(id);
     };
-    poll();
+
+    const onChange = () => {
+      const id = readSubscriptionId(OneSignal);
+      if (id) finish(id);
+    };
+
+    subscription?.addEventListener?.("change", onChange);
+
+    const started = Date.now();
+    timer = window.setInterval(() => {
+      const id = readSubscriptionId(OneSignal);
+      if (id) {
+        finish(id);
+        return;
+      }
+      if (Date.now() - started >= timeoutMs) finish(null);
+    }, 250);
   });
 }
 
@@ -26,11 +69,27 @@ function withOneSignal(run: (oneSignal: OneSignalLike) => void | Promise<void>) 
   w.OneSignalDeferred.push(run);
 }
 
+async function saveDevice(userId: string, subscriptionId: string) {
+  const now = new Date().toISOString();
+  const { error } = await supabase.from("push_devices").upsert({
+    user_id: userId,
+    platform: "onesignal_web",
+    push_token: subscriptionId,
+    device_name: navigator.userAgent.includes("iPhone") ? "iPhone" : "Web",
+    is_active: true,
+    last_seen_at: now,
+    updated_at: now,
+  }, { onConflict: "user_id,push_token" });
+
+  if (error) throw error;
+}
+
 export async function enableDiarioPush(userId: string) {
   return new Promise<{ enabled: boolean; reason?: string }>((resolve) => {
     withOneSignal(async (OneSignal) => {
       try {
-        await OneSignal.login?.(userId);
+        // On iOS, requesting permission must stay as close as possible to the
+        // user's tap. Do it before login/network work can consume user activation.
         if (!OneSignal.Notifications?.permission) {
           await OneSignal.Notifications?.requestPermission?.();
         }
@@ -38,30 +97,33 @@ export async function enableDiarioPush(userId: string) {
           resolve({ enabled: false, reason: "permission_denied" });
           return;
         }
+
+        await OneSignal.login?.(userId);
+
+        const existingId = readSubscriptionId(OneSignal);
+        if (existingId) {
+          await saveDevice(userId, existingId);
+          resolve({ enabled: true });
+          return;
+        }
+
         await OneSignal.User?.PushSubscription?.optIn?.();
         const subscriptionId = await waitForSubscriptionId(OneSignal);
+
         if (!subscriptionId) {
           console.warn("OneSignal permission exists but subscription ID did not arrive.", {
             permission: OneSignal.Notifications?.permission,
             permissionNative: OneSignal.Notifications?.permissionNative,
             optedIn: OneSignal.User?.PushSubscription?.optedIn,
+            tokenPresent: Boolean(OneSignal.User?.PushSubscription?.token),
             standalone: window.matchMedia("(display-mode: standalone)").matches,
+            origin: window.location.origin,
           });
           resolve({ enabled: false, reason: "subscription_missing" });
           return;
         }
 
-        const { error } = await supabase.from("push_devices").upsert({
-          user_id: userId,
-          platform: "onesignal_web",
-          push_token: subscriptionId,
-          device_name: navigator.userAgent.includes("iPhone") ? "iPhone" : "Web",
-          is_active: true,
-          last_seen_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "user_id,push_token" });
-
-        if (error) throw error;
+        await saveDevice(userId, subscriptionId);
         resolve({ enabled: true });
       } catch (error) {
         console.error("Could not enable Diario notifications:", error);
