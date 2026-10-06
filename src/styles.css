@@ -17534,3 +17534,21 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .screen-chat .voice-message .chat-swipe-message-body{
   max-width:min(268px,72vw);
 }
+
+
+/* Chat composer · keep typed text readable on the ivory writing field.
+   The conversation theme may be dark, but the input paper stays light. */
+.screen-chat .messenger-composer textarea,
+.screen-chat .live-composer textarea{
+  color:#57222b !important;
+  -webkit-text-fill-color:#57222b !important;
+  caret-color:#7b2634 !important;
+  opacity:1 !important;
+}
+
+.screen-chat .messenger-composer textarea::placeholder,
+.screen-chat .live-composer textarea::placeholder{
+  color:#9a686b !important;
+  -webkit-text-fill-color:#9a686b !important;
+  opacity:.72 !important;
+}
