@@ -13896,7 +13896,9 @@ const [
     if (!result.enabled) {
       setPushError(result.reason === "permission_denied"
         ? "Notifications were not allowed on this device."
-        : "Notifications could not be enabled yet.");
+        : result.diagnostic
+          ? `OneSignal debug · ${result.diagnostic}`
+          : "Notifications could not be enabled yet.");
     }
   };
 
