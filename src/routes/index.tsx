@@ -13855,6 +13855,10 @@ const [
     setVoiceEnabled,
   ] = useState(false);
 
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState<string | null>(null);
+
   const [
     loadingSettings,
     setLoadingSettings,
@@ -13876,6 +13880,25 @@ const [
     settingsSaved,
     setSettingsSaved,
   ] = useState(false);
+
+  useEffect(() => {
+    void getDiarioPushStatus(session.user.id)
+      .then(setPushEnabled)
+      .catch((error) => console.error("Could not read notification status:", error));
+  }, [session.user.id]);
+
+  const handlePushEnable = async () => {
+    setPushBusy(true);
+    setPushError(null);
+    const result = await enableDiarioPush(session.user.id);
+    setPushBusy(false);
+    setPushEnabled(result.enabled);
+    if (!result.enabled) {
+      setPushError(result.reason === "permission_denied"
+        ? "Notifications were not allowed on this device."
+        : "Notifications could not be enabled yet.");
+    }
+  };
 
   useEffect(() => {
     let active = true;
