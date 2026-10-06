@@ -17340,3 +17340,14 @@ html[data-diario-time-theme="continuous"] .statusbar {
 .messenger-header-actions .alloah-presence-popover button{width:100%;height:auto;display:block;padding:7px 9px;border-radius:9px;text-align:left;font:500 10px/1.15 var(--font-body);white-space:nowrap}
 .messenger-header-actions .alloah-presence-popover button.is-active{background:color-mix(in oklab,var(--chat-accent) 12%,transparent);color:var(--chat-accent)}
 @media(max-width:760px){.messenger-header-actions{gap:0}.messenger-header-actions .alloah-presence-trigger{padding:0 6px;font-size:8px}.alloah-presence-popover{right:-4px}}
+
+
+/* iOS: prevent Safari/PWA auto-zoom when focusing chat fields */
+@media (hover: none) and (pointer: coarse) {
+  .screen-chat .messenger-composer textarea,
+  .screen-chat .live-composer textarea,
+  .screen-chat .messenger-composer input,
+  .screen-chat .live-composer input {
+    font-size: 16px !important;
+  }
+}
