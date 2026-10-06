@@ -986,13 +986,32 @@ useEffect(() => {
 
   const refreshDominicState =
     async () => {
-      const state =
-        await getCurrentDominicState(
-          session.user.id
+      try {
+        const state =
+          await getCurrentDominicState(
+            session.user.id
+          );
+
+        if (!cancelled) {
+          setDominicState(state);
+        }
+      } catch (error) {
+        console.error(
+          "Could not refresh Dominic live state:",
+          error
         );
 
-      if (!cancelled) {
-        setDominicState(state);
+        if (!cancelled) {
+          setDominicState({
+            location: "living",
+            activity: "idle",
+            mood: "calm",
+            energy: 65,
+            startedAt: new Date().toISOString(),
+            nextChangeAt: new Date(Date.now() + 30 * 60_000).toISOString(),
+            source: "schedule",
+          });
+        }
       }
 
       try {
@@ -2673,7 +2692,24 @@ const messageLookup = new Map(
 );
 
 const normalMessages =
-  (data ?? []).map(
+  (data ?? [])
+    .filter((message) => {
+      if (
+        message.role !== "user" ||
+        message.content.trim() !== "I sent you this photo."
+      ) {
+        return true;
+      }
+
+      const sentAt = new Date(message.created_at).getTime();
+      return !chatMedia.some(
+        (media) =>
+          media.type === "photo" &&
+          (media.sender ?? "user") === "user" &&
+          Math.abs(new Date(media.createdAt).getTime() - sentAt) < 5 * 60_000
+      );
+    })
+    .map(
     (
       message
     ): ChatMessage => {
@@ -5032,7 +5068,9 @@ const recentConversationForPhoto = () =>
   message.kind !==
     "agent_action" &&
   message.kind !==
-    "sticker" && (
+    "sticker" &&
+  message.kind !==
+    "photo" && (
     <button
       type="button"
       className="letter-connected-button"
