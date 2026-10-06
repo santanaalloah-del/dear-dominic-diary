@@ -17416,3 +17416,121 @@ html[data-diario-time-theme="continuous"] .statusbar {
 
 /* iPhone-friendly escape hatch while recording a voice note */
 .messenger-composer .voice-cancel{width:auto!important;height:30px!important;padding:0 8px!important;border-radius:999px!important;font-size:11px!important;color:var(--chat-accent)!important}
+
+
+/* Chat header + voice notes · iPhone polish */
+.screen-chat .messenger-header{
+  grid-template-columns:46px minmax(112px,1fr) auto !important;
+  gap:8px !important;
+  padding-inline:12px !important;
+}
+
+.screen-chat .messenger-person{
+  min-width:0;
+  align-self:center;
+}
+
+.screen-chat .messenger-person h1{
+  display:flex;
+  align-items:baseline;
+  gap:5px;
+  width:max-content;
+  max-width:100%;
+  margin:0;
+  white-space:nowrap;
+  font-size:23px !important;
+}
+
+.screen-chat .messenger-person-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.screen-chat .messenger-person-heart{
+  flex:0 0 auto;
+  font-size:18px !important;
+  line-height:1;
+}
+
+.screen-chat .messenger-person p{
+  margin-top:3px !important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.screen-chat .messenger-presence-meta{
+  margin-top:1px;
+}
+
+@media (max-width:430px){
+  .screen-chat .messenger-header-actions{
+    gap:0 !important;
+  }
+
+  .screen-chat .messenger-header-actions > button{
+    width:27px !important;
+    height:29px !important;
+  }
+
+  .screen-chat .alloah-presence-trigger{
+    width:auto !important;
+    max-width:116px;
+    padding-inline:8px !important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
+
+.screen-chat .voice-note-real{
+  width:min(268px,72vw);
+  gap:5px;
+  padding:9px 11px 8px;
+  border-radius:18px 18px 18px 6px;
+  background:var(--chat-theirs);
+  border:1px solid color-mix(in oklab,var(--chat-ink) 8%,transparent);
+  box-shadow:0 5px 14px color-mix(in oklab,var(--chat-ink) 6%,transparent);
+  color:var(--chat-ink);
+}
+
+.screen-chat .voice-note-player{
+  grid-template-columns:30px minmax(0,1fr) 34px;
+  gap:8px;
+  min-height:32px;
+}
+
+.screen-chat .voice-note-play{
+  width:30px;
+  height:30px;
+  color:var(--chat-panel);
+  background:var(--chat-accent);
+  box-shadow:none;
+}
+
+.screen-chat .voice-note-play svg{
+  width:14px;
+  height:14px;
+  stroke-width:1.8;
+  fill:currentColor;
+}
+
+.screen-chat .voice-note-track{
+  background:color-mix(in oklab,var(--chat-ink) 17%,transparent);
+}
+
+.screen-chat .voice-note-track span{
+  background:var(--chat-accent);
+}
+
+.screen-chat .voice-note-time,
+.screen-chat .voice-transcript-toggle,
+.screen-chat .voice-note-real em,
+.screen-chat .voice-note-error{
+  color:var(--chat-ink);
+}
+
+.screen-chat .voice-message .chat-swipe-message-body{
+  max-width:min(268px,72vw);
+}
