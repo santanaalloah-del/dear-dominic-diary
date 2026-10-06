@@ -2358,6 +2358,10 @@ const liveDateContext =
                 }
               : null,
 
+          alloahPresence: {
+            location: alloahLocation,
+          },
+
           nearbyCommitments:
             liveNearbyCommitments,
         },
