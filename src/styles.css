@@ -17351,3 +17351,7 @@ html[data-diario-time-theme="continuous"] .statusbar {
     font-size: 16px !important;
   }
 }
+
+
+/* iPhone-friendly escape hatch while recording a voice note */
+.messenger-composer .voice-cancel{width:auto!important;height:30px!important;padding:0 8px!important;border-radius:999px!important;font-size:11px!important;color:var(--chat-accent)!important}
