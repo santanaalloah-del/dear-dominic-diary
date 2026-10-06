@@ -850,56 +850,86 @@
   .photo-engine-preview-placeholder { min-height: 300px; }
 }
 
-
-/* PHOTO ENGINE · READABILITY FIX */
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block-heading strong,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block-heading span,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block h2,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block h3,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block label,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block small,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-block p{
-  color:#6b2933 !important;
-  -webkit-text-fill-color:#6b2933 !important;
-  opacity:1 !important;
-}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-subject-grid button,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-mode-grid button{
-  color:#6b2933 !important;
-  -webkit-text-fill-color:#6b2933 !important;
-}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-subject-grid button *,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-mode-grid button *{
-  color:inherit !important;
-  -webkit-text-fill-color:inherit !important;
-  opacity:1 !important;
-}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-subject-grid button:not(.active),
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-mode-grid button:not(.active){
-  color:#86555b !important;
-  -webkit-text-fill-color:#86555b !important;
-}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-scene-block input,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-scene-block textarea,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-advanced select{
-  color:#5d2530 !important;
-  -webkit-text-fill-color:#5d2530 !important;
-  opacity:1 !important;
-}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-scene-block input::placeholder,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-scene-block textarea::placeholder{
-  color:#a77d78 !important;
-  -webkit-text-fill-color:#a77d78 !important;
-  opacity:1 !important;
+/* PHOTO ENGINE · NIGHT/LATE CONTRAST
+   Ivory cards keep dark ink; only copy sitting directly on the dark page is light. */
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-intro,
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-preview-heading {
+  color: var(--cream);
 }
 
-/* PHOTO ENGINE · FINAL CONTRAST OVERRIDE */
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-block{opacity:1 !important;filter:none !important;}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-block :is(h2,h3,strong,span,p,small,label,button,input,textarea,select){opacity:1 !important;filter:none !important;}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-block :is(h2,h3,strong,label){color:#642631 !important;-webkit-text-fill-color:#642631 !important;}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-subject-grid button,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-mode-grid button{color:#71343d !important;-webkit-text-fill-color:#71343d !important;}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-subject-grid button :is(span,strong,small),
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-mode-grid button :is(span,strong,small){color:#71343d !important;-webkit-text-fill-color:#71343d !important;opacity:1 !important;}
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-subject-grid button svg,
-.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-screen .photo-engine-mode-grid button svg{color:#71343d !important;stroke:#71343d !important;opacity:1 !important;}
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-intro :is(h1,p),
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) .photo-engine-preview-heading :is(h2,p) {
+  color: var(--cream);
+  -webkit-text-fill-color: var(--cream);
+  opacity: 1;
+}
+
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) :is(
+  .photo-engine-block,
+  .photo-engine-ready-card,
+  .photo-engine-preview-card
+) {
+  color: #5d2530;
+  -webkit-text-fill-color: #5d2530;
+}
+
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) :is(
+  .photo-engine-block,
+  .photo-engine-ready-card,
+  .photo-engine-preview-card
+) :is(h2,h3,strong,label,span,p,small) {
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+  opacity: 1;
+}
+
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) :is(
+  .photo-engine-subject-grid button,
+  .photo-engine-mode-grid button,
+  .photo-engine-count-row button,
+  .photo-engine-scene-block input,
+  .photo-engine-scene-block textarea,
+  .photo-engine-advanced select,
+  .photo-engine-adjust-box textarea
+) {
+  color: #5d2530;
+  -webkit-text-fill-color: #5d2530;
+  opacity: 1;
+}
+
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) :is(
+  .photo-engine-subject-grid button,
+  .photo-engine-mode-grid button
+) :is(strong,small,span,svg) {
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+  stroke: currentColor;
+  opacity: 1;
+}
+
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) :is(
+  .photo-engine-subject-grid button:not(.active),
+  .photo-engine-mode-grid button:not(.active)
+) {
+  color: #82515a;
+  -webkit-text-fill-color: #82515a;
+}
+
+.phone-shell:is([data-time-theme="night"], [data-time-theme="late"]) :is(
+  .photo-engine-scene-block input,
+  .photo-engine-scene-block textarea,
+  .photo-engine-adjust-box textarea
+)::placeholder {
+  color: #9b7474;
+  -webkit-text-fill-color: #9b7474;
+  opacity: .9;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .photo-engine-scene-block input,
+  .photo-engine-scene-block textarea,
+  .photo-engine-adjust-box textarea,
+  .photo-engine-advanced select {
+    font-size: 16px;
+  }
+}
