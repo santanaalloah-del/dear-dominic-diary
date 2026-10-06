@@ -2733,9 +2733,47 @@ const messageLookup = new Map(
   (data ?? []).map((item) => [String(item.id), item])
 );
 
+const normalizeVoiceCopy = (value: string) =>
+  value.replace(/\s+/g, " ").trim();
+
+const suppressedDominicTextIds = new Set<string>();
+
+for (const voice of chatMedia.filter(
+  (media) =>
+    media.type === "voice" &&
+    media.sender === "assistant" &&
+    Boolean(media.transcript)
+)) {
+  const voiceAt = new Date(voice.createdAt).getTime();
+  const candidates = (data ?? []).filter(
+    (message) =>
+      message.role === "assistant" &&
+      Math.abs(new Date(message.created_at).getTime() - voiceAt) < 5 * 60_000
+  );
+
+  for (let start = 0; start < candidates.length; start += 1) {
+    let joined = "";
+    for (let end = start; end < candidates.length; end += 1) {
+      joined = normalizeVoiceCopy(
+        [joined, candidates[end].content].filter(Boolean).join(" ")
+      );
+      if (joined === normalizeVoiceCopy(voice.transcript ?? "")) {
+        for (let index = start; index <= end; index += 1) {
+          suppressedDominicTextIds.add(String(candidates[index].id));
+        }
+        break;
+      }
+    }
+  }
+}
+
 const normalMessages =
   (data ?? [])
     .filter((message) => {
+      if (suppressedDominicTextIds.has(String(message.id))) {
+        return false;
+      }
+
       if (
         message.role !== "user" ||
         message.content.trim() !== "I sent you this photo."
@@ -5206,7 +5244,9 @@ const recentConversationForPhoto = () =>
   message.kind !==
     "sticker" &&
   message.kind !==
-    "photo" && (
+    "photo" &&
+  message.kind !==
+    "voice" && (
     <button
       type="button"
       className="letter-connected-button"
