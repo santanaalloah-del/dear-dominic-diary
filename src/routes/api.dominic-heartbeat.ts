@@ -132,7 +132,9 @@ export const Route = createFileRoute("/api/dominic-heartbeat")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const secret = envValue("DOMINIC_CRON_SECRET");
+        const secret =
+          envValue("CRON_SECRET") ||
+          envValue("DOMINIC_CRON_SECRET");
         const auth = request.headers.get("authorization")?.trim();
         const supplied =
           request.headers.get("x-dominic-cron-secret")?.trim() ||
