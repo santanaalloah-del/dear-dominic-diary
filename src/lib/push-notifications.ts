@@ -71,6 +71,11 @@ function withOneSignal(run: (oneSignal: OneSignalLike) => void | Promise<void>) 
 
 async function saveDevice(userId: string, subscriptionId: string) {
   const now = new Date().toISOString();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError) throw new Error(`auth: ${authError.message}`);
+  if (!authData.user?.id) throw new Error("auth: no signed-in user");
+  if (authData.user.id !== userId) throw new Error("auth: session user mismatch");
+
   const { error } = await supabase.from("push_devices").upsert({
     user_id: userId,
     platform: "onesignal_web",
@@ -81,7 +86,9 @@ async function saveDevice(userId: string, subscriptionId: string) {
     updated_at: now,
   }, { onConflict: "user_id,push_token" });
 
-  if (error) throw error;
+  if (error) {
+    throw new Error(`push_devices: ${error.code ?? "unknown"} · ${error.message ?? "unknown"} · ${error.details ?? ""} · ${error.hint ?? ""}`);
+  }
 }
 
 export async function enableDiarioPush(userId: string) {
@@ -137,7 +144,11 @@ export async function enableDiarioPush(userId: string) {
         resolve({ enabled: true });
       } catch (error) {
         console.error("Could not enable Diario notifications:", error);
-        const message = error instanceof Error ? error.message : String(error);
+        const message = error instanceof Error
+          ? error.message
+          : typeof error === "object" && error
+            ? JSON.stringify(error)
+            : String(error);
         const registration = await navigator.serviceWorker?.getRegistration?.("/").catch(() => null);
         const diagnostic = [
           `stage=exception`,
