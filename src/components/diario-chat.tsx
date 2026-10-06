@@ -2908,7 +2908,9 @@ const standaloneMedia =
           "shared_item" &&
           !matchedSharedMediaIds.has(
             media.id
-          ))
+          )) ||
+        media.type ===
+          "voice"
     )
     .map(
       (
