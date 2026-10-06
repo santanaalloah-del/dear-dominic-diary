@@ -85,7 +85,7 @@ async function saveDevice(userId: string, subscriptionId: string) {
 }
 
 export async function enableDiarioPush(userId: string) {
-  return new Promise<{ enabled: boolean; reason?: string }>((resolve) => {
+  return new Promise<{ enabled: boolean; reason?: string; diagnostic?: string }>((resolve) => {
     withOneSignal(async (OneSignal) => {
       try {
         // On iOS, requesting permission must stay as close as possible to the
@@ -119,7 +119,7 @@ export async function enableDiarioPush(userId: string) {
             standalone: window.matchMedia("(display-mode: standalone)").matches,
             origin: window.location.origin,
           });
-          resolve({ enabled: false, reason: "subscription_missing" });
+          const registration = await navigator.serviceWorker?.getRegistration?.("/").catch(() => null);\n          const diagnostic = [\n            `permission=${String(OneSignal.Notifications?.permission)}`,\n            `native=${String(OneSignal.Notifications?.permissionNative ?? "unknown")}`,\n            `optedIn=${String(OneSignal.User?.PushSubscription?.optedIn)}`,\n            `token=${OneSignal.User?.PushSubscription?.token ? "yes" : "no"}`,\n            `worker=${registration?.active ? "active" : registration?.installing ? "installing" : registration?.waiting ? "waiting" : "missing"}`,\n            `standalone=${window.matchMedia("(display-mode: standalone)").matches ? "yes" : "no"}`,\n            `origin=${window.location.origin}`,\n          ].join(" · ");\n          resolve({ enabled: false, reason: "subscription_missing", diagnostic });
           return;
         }
 
