@@ -3722,6 +3722,9 @@ async function sendMessage(
   photoContext?: {
     storagePath: string;
     storageBucket: string;
+  },
+  options?: {
+    silentLocal?: boolean;
   }
 ) {
   const clean =
@@ -3755,48 +3758,50 @@ async function sendMessage(
     );
   }
 
-  setMessages(
-    (current) => [
-      ...current,
-      {
-        id:
-          `local-${crypto.randomUUID()}`,
+  if (!options?.silentLocal) {
+    setMessages(
+      (current) => [
+        ...current,
+        {
+          id:
+            `local-${crypto.randomUUID()}`,
 
-        role:
-          "user",
+          role:
+            "user",
 
-        content:
-          clean,
+          content:
+            clean,
 
-        createdAt:
-          now,
+          createdAt:
+            now,
 
-        kind:
-          sharedItem
-            ? "shared_item"
-            : kind,
+          kind:
+            sharedItem
+              ? "shared_item"
+              : kind,
 
-        diaryItemId:
-          sharedItem
-            ?.itemId,
+          diaryItemId:
+            sharedItem
+              ?.itemId,
 
-        sharedTitle:
-          sharedItem
-            ?.title,
+          sharedTitle:
+            sharedItem
+              ?.title,
 
-        sharedSubtitle:
-          sharedItem
-            ?.subtitle,
+          sharedSubtitle:
+            sharedItem
+              ?.subtitle,
 
-        sharedKind:
-          sharedItem
-            ?.kind,
+          sharedKind:
+            sharedItem
+              ?.kind,
 
-        replyTo:
-          activeReply,
-      },
-    ]
-  );
+          replyTo:
+            activeReply,
+        },
+      ]
+    );
+  }
 
   pendingMessagesRef.current.push(
     {
@@ -3889,6 +3894,9 @@ async function sendPhoto(file: File) {
           uploaded.storagePath,
         storageBucket:
           "diario-media",
+      },
+      {
+        silentLocal: true,
       }
     );
   } catch (error) {
