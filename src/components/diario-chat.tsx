@@ -358,10 +358,16 @@ type DominicReplyPart = {
   content: string;
 };
 
+function stripInternalReplyDirective(value: string) {
+  return value
+    .replace(/<REPLY_TO\s*:\s*message_id\s*:\s*[^>]+>\s*/gi, "")
+    .trim();
+}
+
 function parseDominicReplyParts(
   value: string
 ): DominicReplyPart[] {
-  const clean = value.trim();
+  const clean = stripInternalReplyDirective(value);
   if (!clean) return [];
 
   const parts: DominicReplyPart[] = [];
@@ -2875,7 +2881,7 @@ const normalMessages =
                   ? {
                       id: String(original.id),
                       role: original.role === "assistant" ? "assistant" : "user",
-                      content: original.content,
+                      content: stripInternalReplyDirective(original.content),
                     }
                   : null;
               })()
@@ -3565,7 +3571,7 @@ const liveDateContext =
               "assistant" as const,
 
             content:
-              part.content,
+              stripInternalReplyDirective(part.content),
 
             createdAt:
               new Date()
