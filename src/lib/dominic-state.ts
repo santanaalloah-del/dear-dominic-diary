@@ -572,24 +572,52 @@ export async function resolveDominicPresence(
     };
   }
 
+  const { data: broadPresence, error: broadPresenceError } = await supabase
+    .from("world_state")
+    .select("alloah_location")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (broadPresenceError) throw broadPresenceError;
+
+  const alloahBroadLocation = broadPresence?.alloah_location as
+    | "home"
+    | "work"
+    | "on_my_way"
+    | "out"
+    | null
+    | undefined;
+
+  // Manual broad presence is authoritative for physical plausibility.
+  // Being home does not establish a room or shared scene by itself.
+  if (alloahBroadLocation && alloahBroadLocation !== "home") {
+    return {
+      togetherNow: false,
+      reason: "separate",
+      place: null,
+      dateId: null,
+    };
+  }
+
   const alloahPresence =
     await loadAlloahPresence(userId);
 
   const dominicState =
     await loadDominicState(userId);
 
+  // Legacy room-level presence may establish a shared scene only when the
+  // manual broad state is Home. Never infer a room from Home itself.
   if (
+    alloahBroadLocation === "home" &&
     alloahPresence?.atHome &&
     dominicState &&
     dominicState.location !== "out" &&
-    alloahPresence.location ===
-      dominicState.location
+    alloahPresence.location === dominicState.location
   ) {
     return {
       togetherNow: true,
       reason: "shared_context",
-      place:
-        alloahPresence.location,
+      place: alloahPresence.location,
       dateId: null,
     };
   }
