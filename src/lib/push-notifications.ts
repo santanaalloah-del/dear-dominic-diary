@@ -137,7 +137,20 @@ export async function enableDiarioPush(userId: string) {
         resolve({ enabled: true });
       } catch (error) {
         console.error("Could not enable Diario notifications:", error);
-        resolve({ enabled: false, reason: "registration_failed" });
+        const message = error instanceof Error ? error.message : String(error);
+        const registration = await navigator.serviceWorker?.getRegistration?.("/").catch(() => null);
+        const diagnostic = [
+          `stage=exception`,
+          `error=${message || "unknown"}`,
+          `permission=${String(OneSignal.Notifications?.permission)}`,
+          `native=${String(OneSignal.Notifications?.permissionNative ?? "unknown")}`,
+          `subscription=${readSubscriptionId(OneSignal) ? "yes" : "no"}`,
+          `token=${OneSignal.User?.PushSubscription?.token ? "yes" : "no"}`,
+          `worker=${registration?.active ? "active" : registration?.installing ? "installing" : registration?.waiting ? "waiting" : "missing"}`,
+          `standalone=${window.matchMedia("(display-mode: standalone)").matches ? "yes" : "no"}`,
+          `origin=${window.location.origin}`,
+        ].join(" · ");
+        resolve({ enabled: false, reason: "registration_failed", diagnostic });
       }
     });
   });
