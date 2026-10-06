@@ -866,6 +866,9 @@ const photoInputRef =
   const audioTranscriptRef =
     useRef("");
 
+  const cancelVoiceRef =
+    useRef(false);
+
   const [uploadingMedia, setUploadingMedia] =
     useState(false);
 
@@ -4018,6 +4021,14 @@ async function sendPhoto(file: File) {
   event.target.value = "";
 }
   
+function cancelVoiceCapture() {
+    if (voiceStatus !== "listening") return;
+    cancelVoiceRef.current = true;
+    recognitionRef.current?.stop();
+    mediaRecorderRef.current?.stop();
+    setVoiceNotice("Voice cancelled.");
+  }
+
 async function startVoiceCapture() {
     if (
       voiceStatus ===
@@ -4047,6 +4058,9 @@ async function startVoiceCapture() {
 
       audioTranscriptRef.current =
         "";
+
+      cancelVoiceRef.current =
+        false;
 
       recorder.ondataavailable = (
         event
@@ -4081,6 +4095,16 @@ async function startVoiceCapture() {
 
           const transcript =
             audioTranscriptRef.current.trim();
+
+          if (cancelVoiceRef.current) {
+            cancelVoiceRef.current = false;
+            audioChunksRef.current = [];
+            audioTranscriptRef.current = "";
+            setVoiceNotice(null);
+            setVoiceStatus("idle");
+            mediaRecorderRef.current = null;
+            return;
+          }
 
           if (!blob.size) {
             setVoiceStatus("idle");
@@ -5315,6 +5339,17 @@ onPhotoFromConversation={() =>
 </Button>
             </PromptInputTools>
             <div className="composer-end-tools">
+              {voiceStatus === "listening" && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="voice-cancel"
+                  aria-label="Cancel voice note"
+                  onClick={cancelVoiceCapture}
+                >
+                  Cancel
+                </Button>
+              )}
               <Button
                 type="button"
                 size="icon"
