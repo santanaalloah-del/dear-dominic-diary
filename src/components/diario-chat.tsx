@@ -3002,7 +3002,7 @@ const normalMessages =
             : "assistant",
 
         content:
-          message.content,
+          stripInternalReplyDirective(message.content),
 
         createdAt:
           message.created_at,
