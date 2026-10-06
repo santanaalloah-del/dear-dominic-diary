@@ -795,6 +795,8 @@ onOpen: (
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
   const [replyTarget, setReplyTarget] = useState<ChatMessage | null>(null);
+  const [swipingMessageId, setSwipingMessageId] = useState<string | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
   const replyTouchRef = useRef<{ id: string; x: number; y: number; timer: ReturnType<typeof window.setTimeout> | null } | null>(null);
   const [preferences, setPreferences] = useState<ChatPreferences>(defaultPreferences);
 
@@ -4823,23 +4825,40 @@ const recentConversationForPhoto = () =>
                     if (state.timer) window.clearTimeout(state.timer);
                     state.timer = null;
                   }
-                  if (Math.abs(dx) > 54 && Math.abs(dx) > Math.abs(dy) * 1.4) {
-                    setReplyTarget(message);
-                    replyTouchRef.current = null;
+                  if (Math.abs(dx) > Math.abs(dy) * 1.15) {
+                    const direction = message.role === "user" ? -1 : 1;
+                    const directed = Math.max(0, dx * direction);
+                    setSwipingMessageId(message.id);
+                    setSwipeOffset(Math.min(64, directed));
                   }
                 }}
                 onTouchEnd={() => {
                   const state = replyTouchRef.current;
                   if (state?.timer) window.clearTimeout(state.timer);
+                  if (swipingMessageId === message.id && swipeOffset >= 52) {
+                    setReplyTarget(message);
+                  }
+                  setSwipingMessageId(null);
+                  setSwipeOffset(0);
                   replyTouchRef.current = null;
                   window.getSelection()?.removeAllRanges();
                 }}
+                style={
+                  swipingMessageId === message.id
+                    ? ({
+                        "--reply-swipe-x": `${message.role === "user" ? -swipeOffset : swipeOffset}px`,
+                        "--reply-swipe-progress": Math.min(1, swipeOffset / 52),
+                      } as React.CSSProperties)
+                    : undefined
+                }
                 onContextMenu={(event) => {
                   event.preventDefault();
                   window.getSelection()?.removeAllRanges();
                   setReplyTarget(message);
                 }}
               >
+                <span className="chat-swipe-reply-indicator" aria-hidden="true">↩</span>
+                <div className="chat-swipe-message-body">
                 {message.replyTo && (
                   <button
                     type="button"
@@ -5007,6 +5026,7 @@ const recentConversationForPhoto = () =>
                 {preferences.showTimestamps && (
                   <time>{formatTime(message.createdAt)}{message.role === "user" ? "  ✓✓" : ""}</time>
                 )}
+                </div>
               </Message>
             ))
           )}
