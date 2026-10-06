@@ -4723,21 +4723,30 @@ const recentConversationForPhoto = () =>
           )}
         </div>
 
-        <div className="alloah-presence-picker" aria-label="Your presence">
-          {alloahLocationOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={alloahLocation === option.value ? "is-active" : ""}
-              aria-pressed={alloahLocation === option.value}
-              onClick={() => void updateAlloahLocation(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-
         <div className="messenger-header-actions">
+          <div className="alloah-presence-menu">
+            <button
+              type="button"
+              className="alloah-presence-trigger"
+              aria-label="Change your presence"
+              title="Your presence"
+            >
+              You · {alloahLocationOptions.find((option) => option.value === alloahLocation)?.label ?? "Set"} ▾
+            </button>
+            <div className="alloah-presence-popover">
+              {alloahLocationOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={alloahLocation === option.value ? "is-active" : ""}
+                  aria-pressed={alloahLocation === option.value}
+                  onClick={() => void updateAlloahLocation(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
             aria-label="Call Dominic"
             title="Call"
