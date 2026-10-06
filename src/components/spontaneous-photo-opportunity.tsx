@@ -3,6 +3,15 @@ import { Camera, X } from "lucide-react";
 
 import type { DominicState } from "@/lib/dominic-state";
 import {
+  createPhotoGenerationRequest,
+  saveGeneratedPhoto,
+  updatePhotoRequest,
+} from "@/lib/photo-engine";
+import {
+  dataUrlToBlob,
+  generatePhotoProviderPreview,
+} from "@/lib/photo-provider";
+import {
   acceptSpontaneousPhotoOpportunity,
   dismissSpontaneousPhotoOpportunity,
   evaluateSpontaneousPhotoOpportunity,
@@ -27,7 +36,6 @@ export function SpontaneousPhotoOpportunity({
   userId,
   dominicState,
   conversationSummary,
-  onOpenPhoto,
 }: {
   userId: string;
   dominicState: DominicState | null;
@@ -88,29 +96,88 @@ export function SpontaneousPhotoOpportunity({
   }
 
   async function open() {
-    if (busy || !opportunity) return;
+    if (busy || !opportunity || !dominicState) return;
 
     setBusy(true);
 
     try {
+      const request = await createPhotoGenerationRequest({
+        userId,
+        mode: "chat_photo",
+        subjectType: "dominic",
+        sourceContext: "chat",
+        scene: opportunity.scene,
+        mood: opportunity.mood,
+        photoStyle: "natural_iphone",
+        spontaneityLevel: "high",
+        useCurrentLook: true,
+        avoidRecentPoses: true,
+        avoidRecentLocations: true,
+        avoidRecentCompositions: true,
+        contextSnapshot: {
+          source: "chat",
+          mood: opportunity.mood,
+          activity: dominicState.activity,
+          location: dominicState.location,
+          localTime: new Date().toISOString(),
+          dominicState: dominicState as unknown as Record<string, unknown>,
+          conversationSummary:
+            opportunity.conversationSummary || conversationSummary || null,
+          custom: {
+            requestedFrom: "dominic-right-now",
+            directToChat: true,
+          },
+        },
+      });
+
+      await updatePhotoRequest({
+        userId,
+        requestId: request.id,
+        values: { status: "generating", error_message: null },
+      });
+
+      const generated = await generatePhotoProviderPreview({
+        userId,
+        request,
+      });
+
+      await updatePhotoRequest({
+        userId,
+        requestId: request.id,
+        values: {
+          status: "preparing",
+          provider: generated.provider,
+          provider_model: generated.model,
+          final_prompt: generated.prompt,
+          error_message: null,
+        },
+      });
+
+      await saveGeneratedPhoto({
+        userId,
+        request,
+        blob: dataUrlToBlob(generated.dataUrl),
+        mimeType: generated.mimeType,
+        title: "Chat photo",
+        owner: "dominic",
+        feature: generated.feature,
+        extraData: {
+          provider: generated.provider,
+          provider_model: generated.model,
+          chat_sender: "dominic",
+          right_now: true,
+        },
+      });
+
       await acceptSpontaneousPhotoOpportunity({
         userId,
         opportunity,
       });
 
       setOpportunity(null);
-
-      onOpenPhoto({
-        mode: "spontaneous",
-        subjectType: "dominic",
-        scene: opportunity.scene,
-        mood: opportunity.mood,
-        ...(opportunity.conversationSummary
-          ? { conversationSummary: opportunity.conversationSummary }
-          : {}),
-      });
+      window.dispatchEvent(new Event("diario-generated-chat-photo"));
     } catch (error) {
-      console.error("Could not open spontaneous photo:", error);
+      console.error("Could not generate right-now photo:", error);
       setBusy(false);
     }
   }
@@ -149,12 +216,12 @@ export function SpontaneousPhotoOpportunity({
           onClick={() => void open()}
           disabled={busy}
         >
-          {busy ? "Opening…" : "Let me see"}
+          {busy ? "Taking photo…" : "Let me see"}
         </button>
       </div>
 
       <p>
-        No image is generated until you choose to continue in Photo Engine.
+        Generate one photo from Dominic's real current moment and send it here.
       </p>
     </aside>
   );
