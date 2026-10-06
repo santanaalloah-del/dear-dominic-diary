@@ -1,3 +1,4 @@
+import { linkLifePhoto } from "../_shared/life-consequences.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const MODEL = Deno.env.get("DOMINIC_PHOTO_MODEL") || "openai/gpt-image-2.5-sunburst";
@@ -185,6 +186,10 @@ Never invent a shared date, location, action, or physical interaction that the w
       await sb.from("push_outbox").insert({user_id:uid,message_id:messageId,title:"Dominic",body:"sent you a photo",notification_type:"dominic_photo",target_route:"/?screen=chat",status:"pending",metadata:{source:"dominic_photo_autonomy",photo_item_id:item.id,proactive_event_id:claimed.id}});
     }
     await sb.from("proactive_events").update({status:"sent",processed_at:now,decision_reason:`photo:${decision.decision}`,context:{...ctx,photo_item_id:item.id,storage_path:path,photo_decision:decision.decision,photo_decision_reason:decision.reason||null}}).eq("id",claimed.id);
+    if(ctx.character_action_id){
+      try{await linkLifePhoto(sb,uid,ctx.character_action_id,item.id);}
+      catch(error){console.error("Photo links deferred",error instanceof Error?error.message:"unknown");}
+    }
     // The photo is already saved and the event completed. Memory failure must never regenerate it.
     try {
       await rememberAutonomousPhoto(sb,ai,uid,item.id,path,`data:${mime};base64,${b64}`,{
