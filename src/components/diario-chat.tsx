@@ -822,6 +822,10 @@ onOpen: (
   const [voiceStatus, setVoiceStatus] = useState<"idle" | "listening" | "processing">("idle");
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [openTranscript, setOpenTranscript] = useState<string | null>(null);
+  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+  const [voiceProgress, setVoiceProgress] = useState<Record<string, number>>({});
+  const [voiceDuration, setVoiceDuration] = useState<Record<string, number>>({});
+  const voiceAudioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
   const [
   selectedChatObjectId,
   setSelectedChatObjectId,
@@ -5196,11 +5200,75 @@ const recentConversationForPhoto = () =>
   "voice" ? (
   <div className="voice-note-real">
     {message.mediaUrl && (
-      <audio
-        controls
-        preload="metadata"
-        src={message.mediaUrl}
-      />
+      <>
+        <audio
+          ref={(node) => {
+            voiceAudioRefs.current[message.id] = node;
+          }}
+          className="voice-note-native-audio"
+          preload="metadata"
+          src={message.mediaUrl}
+          onLoadedMetadata={(event) => {
+            setVoiceDuration((current) => ({
+              ...current,
+              [message.id]: event.currentTarget.duration || 0,
+            }));
+          }}
+          onTimeUpdate={(event) => {
+            setVoiceProgress((current) => ({
+              ...current,
+              [message.id]: event.currentTarget.currentTime || 0,
+            }));
+          }}
+          onPlay={() => setPlayingVoiceId(message.id)}
+          onPause={() =>
+            setPlayingVoiceId((current) =>
+              current === message.id ? null : current
+            )
+          }
+          onEnded={() => {
+            setPlayingVoiceId(null);
+            setVoiceProgress((current) => ({
+              ...current,
+              [message.id]: 0,
+            }));
+          }}
+        />
+        <div className="voice-note-player">
+          <button
+            type="button"
+            className="voice-note-play"
+            aria-label={playingVoiceId === message.id ? "Pause voice note" : "Play voice note"}
+            onClick={() => {
+              const audio = voiceAudioRefs.current[message.id];
+              if (!audio) return;
+              if (audio.paused) {
+                void audio.play();
+              } else {
+                audio.pause();
+              }
+            }}
+          >
+            {playingVoiceId === message.id ? "Ⅱ" : "▶"}
+          </button>
+          <div className="voice-note-track" aria-hidden="true">
+            <span
+              style={{
+                width: `${Math.min(
+                  100,
+                  ((voiceProgress[message.id] ?? 0) /
+                    Math.max(voiceDuration[message.id] ?? 1, 1)) *
+                    100
+                )}%`,
+              }}
+            />
+          </div>
+          <span className="voice-note-time">
+            {Math.floor((voiceProgress[message.id] ?? 0) / 60)}:
+            {String(Math.floor((voiceProgress[message.id] ?? 0) % 60)).padStart(2, "0")}
+          </span>
+        </div>
+      </>
     )}
 
     {message.content && (
