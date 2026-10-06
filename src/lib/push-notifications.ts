@@ -3,8 +3,21 @@ import { supabase } from "@/integrations/supabase/client";
 type OneSignalLike = {
   login?: (externalId: string) => Promise<void>;
   User?: { PushSubscription?: { id?: string | null; optedIn?: boolean; optIn?: () => Promise<void> } };
-  Notifications?: { permission?: boolean; requestPermission?: () => Promise<boolean | void> };
+  Notifications?: { permission?: boolean; permissionNative?: string; requestPermission?: () => Promise<boolean | void> };
 };
+
+function waitForSubscriptionId(OneSignal: OneSignalLike, timeoutMs = 10000) {
+  return new Promise<string | null>((resolve) => {
+    const started = Date.now();
+    const poll = () => {
+      const id = OneSignal.User?.PushSubscription?.id;
+      if (id) return resolve(id);
+      if (Date.now() - started >= timeoutMs) return resolve(null);
+      window.setTimeout(poll, 250);
+    };
+    poll();
+  });
+}
 
 function withOneSignal(run: (oneSignal: OneSignalLike) => void | Promise<void>) {
   if (typeof window === "undefined") return;
@@ -26,8 +39,14 @@ export async function enableDiarioPush(userId: string) {
           return;
         }
         await OneSignal.User?.PushSubscription?.optIn?.();
-        const subscriptionId = OneSignal.User?.PushSubscription?.id;
+        const subscriptionId = await waitForSubscriptionId(OneSignal);
         if (!subscriptionId) {
+          console.warn("OneSignal permission exists but subscription ID did not arrive.", {
+            permission: OneSignal.Notifications?.permission,
+            permissionNative: OneSignal.Notifications?.permissionNative,
+            optedIn: OneSignal.User?.PushSubscription?.optedIn,
+            standalone: window.matchMedia("(display-mode: standalone)").matches,
+          });
           resolve({ enabled: false, reason: "subscription_missing" });
           return;
         }
