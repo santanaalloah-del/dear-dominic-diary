@@ -119,7 +119,17 @@ export async function enableDiarioPush(userId: string) {
             standalone: window.matchMedia("(display-mode: standalone)").matches,
             origin: window.location.origin,
           });
-          const registration = await navigator.serviceWorker?.getRegistration?.("/").catch(() => null);\n          const diagnostic = [\n            `permission=${String(OneSignal.Notifications?.permission)}`,\n            `native=${String(OneSignal.Notifications?.permissionNative ?? "unknown")}`,\n            `optedIn=${String(OneSignal.User?.PushSubscription?.optedIn)}`,\n            `token=${OneSignal.User?.PushSubscription?.token ? "yes" : "no"}`,\n            `worker=${registration?.active ? "active" : registration?.installing ? "installing" : registration?.waiting ? "waiting" : "missing"}`,\n            `standalone=${window.matchMedia("(display-mode: standalone)").matches ? "yes" : "no"}`,\n            `origin=${window.location.origin}`,\n          ].join(" · ");\n          resolve({ enabled: false, reason: "subscription_missing", diagnostic });
+          const registration = await navigator.serviceWorker?.getRegistration?.("/").catch(() => null);
+          const diagnostic = [
+            `permission=${String(OneSignal.Notifications?.permission)}`,
+            `native=${String(OneSignal.Notifications?.permissionNative ?? "unknown")}`,
+            `optedIn=${String(OneSignal.User?.PushSubscription?.optedIn)}`,
+            `token=${OneSignal.User?.PushSubscription?.token ? "yes" : "no"}`,
+            `worker=${registration?.active ? "active" : registration?.installing ? "installing" : registration?.waiting ? "waiting" : "missing"}`,
+            `standalone=${window.matchMedia("(display-mode: standalone)").matches ? "yes" : "no"}`,
+            `origin=${window.location.origin}`,
+          ].join(" · ");
+          resolve({ enabled: false, reason: "subscription_missing", diagnostic });
           return;
         }
 
