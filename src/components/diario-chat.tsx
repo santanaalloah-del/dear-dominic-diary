@@ -3596,6 +3596,46 @@ const liveDateContext =
     ]
   );
 
+  // Try to turn Dominic's spoken reply into a Cartesia voice note.
+  // The Edge Function enforces the monthly free-budget ceiling before calling Cartesia.
+  const spokenForVoice = replies
+    .flatMap((reply) =>
+      parseDominicReplyParts(reply)
+        .filter((part) => part.kind === "speech")
+        .map((part) => stripInternalReplyDirective(part.content))
+    )
+    .join(" ")
+    .trim();
+
+  if (spokenForVoice) {
+    try {
+      const { error: voiceError } =
+        await supabase.functions.invoke(
+          "dominic-voice-tts",
+          {
+            body: {
+              transcript: spokenForVoice,
+            },
+          }
+        );
+
+      if (!voiceError) {
+        window.setTimeout(
+          () => {
+            void loadHistory(false);
+          },
+          350
+        );
+      }
+    } catch (voiceError) {
+      // Voice is optional: text reply must remain the reliable fallback.
+      console.warn(
+        "Dominic voice note unavailable; keeping text reply:",
+        voiceError
+      );
+    }
+  }
+
   const worldActions =
     await extractDominicActions({
       userMessage:
