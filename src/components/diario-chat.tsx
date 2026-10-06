@@ -4857,7 +4857,11 @@ const recentConversationForPhoto = () =>
                   setReplyTarget(message);
                 }}
               >
-                <span className="chat-swipe-reply-indicator" aria-hidden="true">↩</span>
+                <span className="chat-swipe-reply-indicator" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M9.2 7.1 4.3 12l4.9 4.9M5 12h7.2c4.3 0 6.8 2 7.5 5.2" />
+                  </svg>
+                </span>
                 <div className="chat-swipe-message-body">
                 {message.replyTo && (
                   <button
