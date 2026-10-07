@@ -20,6 +20,7 @@ import {
   addClothingToLook,
   createClothing,
   createLook,
+  deleteClothing,
   getLookClothingIds,
   getLooks,
   getWardrobeItems,
@@ -1540,18 +1541,62 @@ export function WardrobeExperienceScreen() {
   };
 
   if (selectedWardrobeObjectId) {
-  return (
-    <ConnectedObjectDetailScreen
-      itemId={selectedWardrobeObjectId}
-      onOpenRelated={
-        setSelectedWardrobeObjectId
-      }
-      onBack={() =>
-        setSelectedWardrobeObjectId(null)
-      }
-    />
-  );
-}
+    const selectedClothing = wardrobeItems.find(
+      (item) => item.id === selectedWardrobeObjectId && item.kind === "clothing"
+    );
+
+    return (
+      <div className="wardrobe-object-detail-wrap">
+        <ConnectedObjectDetailScreen
+          itemId={selectedWardrobeObjectId}
+          onOpenRelated={setSelectedWardrobeObjectId}
+          onBack={() => setSelectedWardrobeObjectId(null)}
+        />
+        {selectedClothing && (
+          <button
+            type="button"
+            className="wardrobe-delete-clothing"
+            onClick={async () => {
+              if (!window.confirm(`Delete "${selectedClothing.title ?? "this clothing"}"? This cannot be undone.`)) return;
+              setWardrobeError(null);
+              try {
+                const owner = selectedClothing.owner === "dominic" ? "dominic" : "alloah";
+                const currentWearing = wearingByOwner[owner];
+                if (currentWearing?.clothingIds.includes(selectedClothing.id)) {
+                  await setWearingClothing({
+                    userId: session.user.id,
+                    owner,
+                    clothingIds: currentWearing.clothingIds.filter((id) => id !== selectedClothing.id),
+                  });
+                }
+                await deleteClothing({
+                  userId: session.user.id,
+                  clothingId: selectedClothing.id,
+                });
+                setWardrobeItems((items) => items.filter((item) => item.id !== selectedClothing.id));
+                setLookClothingByLookId((current) =>
+                  Object.fromEntries(
+                    Object.entries(current).map(([lookId, ids]) => [
+                      lookId,
+                      ids.filter((id) => id !== selectedClothing.id),
+                    ])
+                  )
+                );
+                setBuilderLayout((layout) => layout.filter((piece) => piece.clothingId !== selectedClothing.id));
+                setSelectedWardrobeObjectId(null);
+                await refreshOwnerWearing(owner);
+              } catch (error) {
+                console.error("Could not delete clothing:", error);
+                setWardrobeError("The clothing item could not be deleted.");
+              }
+            }}
+          >
+            Delete clothing
+          </button>
+        )}
+      </div>
+    );
+  }
   
   return (
     <section className="wardrobe-screen wardrobe-live">
