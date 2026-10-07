@@ -313,6 +313,142 @@ async function autoCutoutClothing(file: File): Promise<File> {
 }
 
 
+
+function WardrobeCropEditor({
+  file,
+  onApply,
+  onCancel,
+}: {
+  file: File;
+  onApply: (file: File) => void;
+  onCancel: () => void;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const gestureRef = useRef<{ distance: number; scale: number; x: number; y: number; offsetX: number; offsetY: number } | null>(null);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [ready, setReady] = useState(false);
+  const scaleRef = useRef(1);
+  const offsetRef = useRef({ x: 0, y: 0 });
+
+  const draw = (nextScale = scaleRef.current, nextOffset = offsetRef.current) => {
+    const canvas = canvasRef.current;
+    const image = imageRef.current;
+    if (!canvas || !image) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const cover = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight);
+    const s = cover * nextScale;
+    const w = image.naturalWidth * s;
+    const h = image.naturalHeight * s;
+    const x = (canvas.width - w) / 2 + nextOffset.x;
+    const y = (canvas.height - h) / 2 + nextOffset.y;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, x, y, w, h);
+  };
+
+  const commitView = (nextScale: number, nextOffset: { x: number; y: number }) => {
+    const z = clamp(nextScale, 1, 6);
+    scaleRef.current = z;
+    offsetRef.current = nextOffset;
+    setScale(z);
+    setOffset(nextOffset);
+    draw(z, nextOffset);
+  };
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      imageRef.current = image;
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = 900;
+        canvas.height = 900;
+        draw(1, { x: 0, y: 0 });
+        setReady(true);
+      }
+    };
+    image.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const apply = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const blob = await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((value) => value ? resolve(value) : reject(new Error("Could not crop clothing photo.")), "image/png")
+    );
+    onApply(new File([blob], file.name.replace(/\.[^.]+$/, "") + "-crop.png", { type: "image/png" }));
+  };
+
+  return (
+    <section className="wardrobe-crop-editor">
+      <header>
+        <div><small>crop photo</small><strong>Focus on one piece</strong></div>
+        <button type="button" onClick={onCancel} aria-label="Close crop editor"><X size={16} /></button>
+      </header>
+      <p>Drag to move · pinch to zoom. Keep only the clothing you want inside the square.</p>
+      <div className="wardrobe-crop-viewport">
+        <canvas
+          ref={canvasRef}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            const points = [...pointersRef.current.values()];
+            if (points.length === 1) {
+              gestureRef.current = { distance: 0, scale: scaleRef.current, x: points[0].x, y: points[0].y, offsetX: offsetRef.current.x, offsetY: offsetRef.current.y };
+            } else if (points.length === 2) {
+              const d = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+              gestureRef.current = { distance: d, scale: scaleRef.current, x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2, offsetX: offsetRef.current.x, offsetY: offsetRef.current.y };
+            }
+          }}
+          onPointerMove={(event) => {
+            if (!pointersRef.current.has(event.pointerId)) return;
+            pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            const points = [...pointersRef.current.values()];
+            const start = gestureRef.current;
+            if (!start) return;
+            if (points.length === 1) {
+              commitView(start.scale, { x: start.offsetX + points[0].x - start.x, y: start.offsetY + points[0].y - start.y });
+            } else if (points.length === 2) {
+              const distance = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+              const centerX = (points[0].x + points[1].x) / 2;
+              const centerY = (points[0].y + points[1].y) / 2;
+              const nextScale = start.distance ? start.scale * (distance / start.distance) : start.scale;
+              commitView(nextScale, { x: start.offsetX + centerX - start.x, y: start.offsetY + centerY - start.y });
+            }
+          }}
+          onPointerUp={(event) => {
+            pointersRef.current.delete(event.pointerId);
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+            const points = [...pointersRef.current.values()];
+            gestureRef.current = points.length === 1
+              ? { distance: 0, scale: scaleRef.current, x: points[0].x, y: points[0].y, offsetX: offsetRef.current.x, offsetY: offsetRef.current.y }
+              : null;
+          }}
+          onPointerCancel={(event) => {
+            pointersRef.current.delete(event.pointerId);
+            gestureRef.current = null;
+          }}
+        />
+      </div>
+      <div className="wardrobe-crop-zoom">
+        <button type="button" onClick={() => commitView(scaleRef.current - .25, offsetRef.current)}>−</button>
+        <span>{Math.round(scale * 100)}%</span>
+        <button type="button" onClick={() => commitView(scaleRef.current + .25, offsetRef.current)}>＋</button>
+        <button type="button" onClick={() => commitView(1, { x: 0, y: 0 })}>Reset</button>
+      </div>
+      <div className="wardrobe-manual-cutout-actions">
+        <button type="button" onClick={onCancel}>Cancel</button>
+        <button type="button" className="primary" disabled={!ready} onClick={() => void apply()}><Scissors size={14} /> Use crop</button>
+      </div>
+    </section>
+  );
+}
+
 function WardrobeManualCutout({
   file,
   restoreFile,
@@ -706,6 +842,8 @@ export function WardrobeExperienceScreen() {
 
   const [manualCutoutOpen, setManualCutoutOpen] =
     useState(false);
+
+  const [cropEditorOpen, setCropEditorOpen] = useState(false);
 
   const [cutoutBusy, setCutoutBusy] =
     useState(false);
@@ -2205,6 +2343,14 @@ export function WardrobeExperienceScreen() {
 
                   <button
                     type="button"
+                    onClick={() => setCropEditorOpen(true)}
+                  >
+                    <Scissors size={14} />
+                    Crop photo
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() =>
                       setManualCutoutOpen(
                         true
@@ -2215,6 +2361,30 @@ export function WardrobeExperienceScreen() {
                     Refine cutout
                   </button>
                 </div>
+              )}
+
+              {cropEditorOpen && clothingOriginalFile && (
+                <WardrobeCropEditor
+                  file={clothingOriginalFile}
+                  onCancel={() => setCropEditorOpen(false)}
+                  onApply={(cropped) => {
+                    setClothingOriginalFile(cropped);
+                    setClothingImageFile(cropped);
+                    setClothingCutoutMode("original");
+                    setCropEditorOpen(false);
+                    setCutoutBusy(true);
+                    void autoCutoutClothing(cropped)
+                      .then((cutout) => {
+                        setClothingImageFile(cutout);
+                        setClothingCutoutMode("auto");
+                      })
+                      .catch((error) => {
+                        console.error("Could not cut cropped clothing:", error);
+                        setWardrobeError("The crop is saved, but automatic cutout could not finish.");
+                      })
+                      .finally(() => setCutoutBusy(false));
+                  }}
+                />
               )}
 
               {manualCutoutOpen &&
