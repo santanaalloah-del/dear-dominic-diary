@@ -5430,6 +5430,12 @@ const recentConversationForPhoto = () =>
   placeholder="Message Dominic…"
   disabled={voiceStatus === "listening"}
   aria-label="Message Dominic"
+  onKeyDown={(event) => {
+    if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+      event.stopPropagation();
+      // Enter belongs to writing in Diary chat. Sending is explicit via the send button.
+    }
+  }}
 />
           <PromptInputFooter>
             <PromptInputTools>
