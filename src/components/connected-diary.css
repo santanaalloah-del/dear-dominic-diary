@@ -1401,7 +1401,9 @@
   padding: 7px 9px 7px 11px;
   border-left: 3px solid var(--wine, #7d2e3c);
   border-radius: 8px;
-  background: rgba(255, 248, 244, 0.92);
+  background: color-mix(in oklab, var(--paper) 92%, var(--blush));
+  color: var(--foreground);
+  box-shadow: 0 3px 14px color-mix(in oklab, var(--foreground) 10%, transparent);
 }
 .chat-reply-composer > div {
   display: flex;
@@ -1423,6 +1425,7 @@
   flex: 0 0 auto;
   border: 0;
   background: transparent;
+  color: var(--foreground);
   font-size: 22px;
   line-height: 1;
 }
