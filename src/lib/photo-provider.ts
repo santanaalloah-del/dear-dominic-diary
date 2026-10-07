@@ -9,6 +9,34 @@ import {
   type WardrobeOwner,
 } from "@/lib/wardrobe-context";
 import apartmentFloorPlanUrl from "@/assets/apartment-floor-plan.png";
+import homeBathroom0200 from "@/assets/home-bathroom-0200.jpeg";
+import homeBathroom0700 from "@/assets/home-bathroom-0700.jpeg";
+import homeBathroom1100 from "@/assets/home-bathroom-1100.jpeg";
+import homeBathroom1740 from "@/assets/home-bathroom-1740.jpeg";
+import homeBathroom1830 from "@/assets/home-bathroom-1830.jpeg";
+import homeBathroom1910 from "@/assets/home-bathroom-1910.jpeg";
+import homeBathroom2100 from "@/assets/home-bathroom-2100.jpeg";
+import homeBedroom0200 from "@/assets/home-bedroom-0200.png";
+import homeBedroom0700 from "@/assets/home-bedroom-0700.png";
+import homeBedroom1100 from "@/assets/home-bedroom-1100.png";
+import homeBedroom1740 from "@/assets/home-bedroom-1740.png";
+import homeBedroom1830 from "@/assets/home-bedroom-1830.png";
+import homeBedroom1910 from "@/assets/home-bedroom-1910.png";
+import homeBedroom2100 from "@/assets/home-bedroom-2100.png";
+import homeKitchen0200 from "@/assets/home-kitchen-0200.jpeg";
+import homeKitchen0700 from "@/assets/home-kitchen-0700.jpeg";
+import homeKitchen1100 from "@/assets/home-kitchen-1100.jpeg";
+import homeKitchen1740 from "@/assets/home-kitchen-1740.jpeg";
+import homeKitchen1830 from "@/assets/home-kitchen-1830.jpeg";
+import homeKitchen1910 from "@/assets/home-kitchen-1910.jpeg";
+import homeKitchen2100 from "@/assets/home-kitchen-2100.jpeg";
+import homeLiving0200 from "@/assets/home-living-0200.png";
+import homeLiving0700 from "@/assets/home-living-0700.png";
+import homeLiving1100 from "@/assets/home-living-1100.jpeg";
+import homeLiving1740 from "@/assets/home-living-1740.png";
+import homeLiving1830 from "@/assets/home-living-1830.png";
+import homeLiving1910 from "@/assets/home-living-1910.png";
+import homeLiving2100 from "@/assets/home-living-2100.png";
 
 import {
   getPhotoReferenceBundle,
@@ -92,44 +120,62 @@ type VisualCanonPayload = {
 
 const MAX_PROVIDER_REFERENCES = 10;
 
+const HOME_TIME_VARIANTS = [
+  { minute: 120, key: "0200" },
+  { minute: 420, key: "0700" },
+  { minute: 660, key: "1100" },
+  { minute: 1060, key: "1740" },
+  { minute: 1110, key: "1830" },
+  { minute: 1150, key: "1910" },
+  { minute: 1260, key: "2100" },
+] as const;
+
+const HOME_ROOM_IMAGES: Record<string, Record<string, string>> = {
+  living: { "0200": homeLiving0200, "0700": homeLiving0700, "1100": homeLiving1100, "1740": homeLiving1740, "1830": homeLiving1830, "1910": homeLiving1910, "2100": homeLiving2100 },
+  bedroom: { "0200": homeBedroom0200, "0700": homeBedroom0700, "1100": homeBedroom1100, "1740": homeBedroom1740, "1830": homeBedroom1830, "1910": homeBedroom1910, "2100": homeBedroom2100 },
+  kitchen: { "0200": homeKitchen0200, "0700": homeKitchen0700, "1100": homeKitchen1100, "1740": homeKitchen1740, "1830": homeKitchen1830, "1910": homeKitchen1910, "2100": homeKitchen2100 },
+  bathroom: { "0200": homeBathroom0200, "0700": homeBathroom0700, "1100": homeBathroom1100, "1740": homeBathroom1740, "1830": homeBathroom1830, "1910": homeBathroom1910, "2100": homeBathroom2100 },
+};
+
+function closestHomeTimeKey(date = new Date()) {
+  const minute = date.getHours() * 60 + date.getMinutes();
+  return HOME_TIME_VARIANTS.reduce((best, candidate) => {
+    const direct = Math.abs(candidate.minute - minute);
+    const wrapped = Math.min(direct, 1440 - direct);
+    const bestDirect = Math.abs(best.minute - minute);
+    const bestWrapped = Math.min(bestDirect, 1440 - bestDirect);
+    return wrapped < bestWrapped ? candidate : best;
+  }).key;
+}
+
 async function homeCanonContext(userId: string, request: PhotoGenerationRequest) {
-  const room =
-    typeof request.context_snapshot?.location === "string"
-      ? request.context_snapshot.location
-      : null;
+  const room = typeof request.context_snapshot?.location === "string" ? request.context_snapshot.location : null;
+  const roomImages = room ? HOME_ROOM_IMAGES[room] : null;
+  if (!room || !roomImages) return null;
 
-  if (!room || !["living", "bedroom", "kitchen", "bathroom", "hall"].includes(room)) {
-    return null;
-  }
-
+  const timeKey = closestHomeTimeKey();
   const { data: objects } = await (supabase as any)
     .from("home_objects")
-    .select("name,object_type,room,position_x,position_y,metadata")
+    .select("name,object_type,room,metadata")
     .eq("user_id", userId)
     .eq("room", room)
     .eq("is_active", true);
 
-  const objectList = (objects ?? []).map((item: any) => {
-    const note =
-      item?.metadata && typeof item.metadata.note === "string"
-        ? ` — ${item.metadata.note}`
-        : "";
-    return `${item.name || item.object_type}${note}`;
-  });
+  const objectList = (objects ?? []).map((item: any) => item.name || item.object_type).filter(Boolean);
 
   return {
     room,
+    timeKey,
+    sceneUrl: roomImages[timeKey],
     floorPlanUrl: apartmentFloorPlanUrl,
     instruction: [
       "SHARED HOME VISUAL CANON:",
-      "This scene is inside Alloah and Dominic's one shared apartment.",
-      "The attached apartment floor plan is the authoritative architectural reference. Preserve room boundaries, doors, windows and circulation; do not invent or relocate architectural features.",
-      `Current room: ${room}.`,
-      objectList.length
-        ? `Canon movable objects currently persisted in this room: ${objectList.join(" | ")}.`
-        : "No movable furniture/decor is currently persisted as visual canon for this room. Do not treat furniture from identity photos or generated previews as canonical.",
-      "The floor plan controls architecture, not camera angle. Make the photo feel naturally taken inside the same apartment.",
-    ].join(" "),
+      "This is Alloah and Dominic's one shared apartment.",
+      `Current room: ${room}. The attached ${room} reference at ${timeKey} is the PRIMARY visual canon for this room: preserve its actual furniture, decor, materials, colors, windows, spatial identity and time-of-day lighting.`,
+      "The apartment floor plan is a secondary structural reference for room boundaries and circulation.",
+      objectList.length ? `Persisted room objects: ${objectList.join(" | ")}.` : null,
+      "Vary pose, framing and camera angle naturally, but keep the environment recognizably the same canonical apartment. Never replace it with a generic bedroom, living room, kitchen or bathroom.",
+    ].filter(Boolean).join(" "),
   };
 }
 
@@ -762,13 +808,25 @@ export async function generatePhotoProviderPreview({
 
   if (homeCanon) {
     references.push({
+      id: `shared-home-${homeCanon.room}-${homeCanon.timeKey}`,
+      url: new URL(homeCanon.sceneUrl, window.location.origin).toString(),
+      subject: "shared_home",
+      title: `Canonical ${homeCanon.room} at ${homeCanon.timeKey}`,
+      description: homeCanon.instruction,
+      purposes: ["environment", "scene", homeCanon.room, homeCanon.timeKey],
+      strength: "primary",
+      referenceKind: "scene",
+      lookType: null,
+      isCurrent: true,
+    });
+    references.push({
       id: "shared-home-floor-plan",
       url: new URL(homeCanon.floorPlanUrl, window.location.origin).toString(),
       subject: "shared_home",
       title: "Shared apartment floor plan",
-      description: homeCanon.instruction,
-      purposes: ["architecture", "scene", homeCanon.room],
-      strength: "primary",
+      description: "Secondary structural reference for the shared apartment.",
+      purposes: ["architecture", "layout"],
+      strength: "supporting",
       referenceKind: "scene",
       lookType: null,
       isCurrent: true,
