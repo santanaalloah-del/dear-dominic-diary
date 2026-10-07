@@ -5432,8 +5432,28 @@ const recentConversationForPhoto = () =>
   aria-label="Message Dominic"
   onKeyDown={(event) => {
     if (event.key === "Enter" && !event.nativeEvent.isComposing) {
-      event.stopPropagation();
-      // Enter belongs to writing in Diary chat. Sending is explicit via the send button.
+      event.preventDefault();
+
+      const textarea = event.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const nextValue =
+        textarea.value.slice(0, start) +
+        "\n" +
+        textarea.value.slice(end);
+
+      const nativeValueSetter = Object.getOwnPropertyDescriptor(
+        HTMLTextAreaElement.prototype,
+        "value"
+      )?.set;
+
+      nativeValueSetter?.call(textarea, nextValue);
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+
+      requestAnimationFrame(() => {
+        textarea.selectionStart = start + 1;
+        textarea.selectionEnd = start + 1;
+      });
     }
   }}
 />
