@@ -925,3 +925,42 @@
   touch-action:none;
   will-change:transform,width;
 }
+
+
+/* Refine editor is a fixed camera viewport: zoom must never grow page layout. */
+.wardrobe-manual-cutout-canvas{
+  position:relative;
+  width:100%;
+  aspect-ratio:1 / 1;
+  min-height:0;
+  overflow:hidden !important;
+}
+.wardrobe-manual-cutout-canvas canvas{
+  position:absolute;
+  inset:0;
+  display:block;
+  width:100% !important;
+  height:100% !important;
+  max-width:none !important;
+}
+.wardrobe-cutout-editor-tools{
+  grid-template-columns:repeat(3,minmax(0,1fr)) 34px 48px 34px !important;
+  align-items:center;
+}
+.wardrobe-cutout-editor-tools > *{
+  min-width:0;
+}
+.wardrobe-cutout-editor-tools > span{
+  text-align:center;
+  white-space:nowrap;
+}
+@media (max-width:420px){
+  .wardrobe-cutout-editor-tools{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+  .wardrobe-cutout-editor-tools > button:nth-of-type(4),
+  .wardrobe-cutout-editor-tools > span,
+  .wardrobe-cutout-editor-tools > button:nth-of-type(5){
+    margin-top:2px;
+  }
+}
