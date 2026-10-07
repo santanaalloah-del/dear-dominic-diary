@@ -964,3 +964,17 @@
     margin-top:2px;
   }
 }
+
+
+.wardrobe-object-detail-wrap{
+  display:grid;
+}
+.wardrobe-delete-clothing{
+  margin:12px 18px 28px;
+  min-height:44px;
+  border:1px solid color-mix(in oklab,#9b3038 55%,var(--border));
+  background:transparent;
+  color:#8b2932;
+  font:11px var(--font-body);
+  cursor:pointer;
+}
