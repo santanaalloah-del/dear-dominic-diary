@@ -106,12 +106,15 @@ async function verifyUser(request: Request, userId: string) {
 
 async function referenceToDataUrl(
   reference: ProviderReference,
-  allowedHost: string
+  allowedHosts: Set<string>
 ): Promise<string | null> {
   try {
     const url = new URL(reference.url);
 
-    if (url.protocol !== "https:" || url.host !== allowedHost) {
+    if (
+      url.protocol !== "https:" ||
+      !allowedHosts.has(url.host)
+    ) {
       return null;
     }
 
@@ -355,12 +358,15 @@ export const Route = createFileRoute("/api/photo-engine")({
             )
           : [];
 
-        const allowedHost = new URL(verified.supabaseUrl).host;
+        const allowedHosts = new Set([
+          new URL(verified.supabaseUrl).host,
+          new URL(request.url).host,
+        ]);
 
         const resolved = await Promise.all(
           references.map(async (reference) => ({
             reference,
-            dataUrl: await referenceToDataUrl(reference, allowedHost),
+            dataUrl: await referenceToDataUrl(reference, allowedHosts),
           }))
         );
 
