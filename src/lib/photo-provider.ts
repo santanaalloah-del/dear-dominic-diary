@@ -8,6 +8,8 @@ import {
   type WardrobePhotoContext,
   type WardrobeOwner,
 } from "@/lib/wardrobe-context";
+import apartmentFloorPlanUrl from "@/assets/apartment-floor-plan.png";
+
 import {
   getPhotoReferenceBundle,
   type PhotoFeatureInput,
@@ -89,6 +91,47 @@ type VisualCanonPayload = {
 };
 
 const MAX_PROVIDER_REFERENCES = 10;
+
+async function homeCanonContext(userId: string, request: PhotoGenerationRequest) {
+  const room =
+    typeof request.context_snapshot?.location === "string"
+      ? request.context_snapshot.location
+      : null;
+
+  if (!room || !["living", "bedroom", "kitchen", "bathroom", "hall"].includes(room)) {
+    return null;
+  }
+
+  const { data: objects } = await (supabase as any)
+    .from("home_objects")
+    .select("name,object_type,room,position_x,position_y,metadata")
+    .eq("user_id", userId)
+    .eq("room", room)
+    .eq("is_active", true);
+
+  const objectList = (objects ?? []).map((item: any) => {
+    const note =
+      item?.metadata && typeof item.metadata.note === "string"
+        ? ` — ${item.metadata.note}`
+        : "";
+    return `${item.name || item.object_type}${note}`;
+  });
+
+  return {
+    room,
+    floorPlanUrl: apartmentFloorPlanUrl,
+    instruction: [
+      "SHARED HOME VISUAL CANON:",
+      "This scene is inside Alloah and Dominic's one shared apartment.",
+      "The attached apartment floor plan is the authoritative architectural reference. Preserve room boundaries, doors, windows and circulation; do not invent or relocate architectural features.",
+      `Current room: ${room}.`,
+      objectList.length
+        ? `Canon movable objects currently persisted in this room: ${objectList.join(" | ")}.`
+        : "No movable furniture/decor is currently persisted as visual canon for this room. Do not treat furniture from identity photos or generated previews as canonical.",
+      "The floor plan controls architecture, not camera angle. Make the photo feel naturally taken inside the same apartment.",
+    ].join(" "),
+  };
+}
 
 function cleanReferencePayload(
   item: Awaited<ReturnType<typeof getPhotoReferenceBundle>>["selected"][number]
@@ -684,7 +727,7 @@ export async function generatePhotoProviderPreview({
   request,
   sourceImageDataUrl,
 }: GeneratePreviewInput): Promise<PhotoProviderPreview> {
-  const [{ data: sessionData }, bundle, canons, wardrobeContexts] =
+  const [{ data: sessionData }, bundle, canons, wardrobeContexts, homeCanon] =
     await Promise.all([
       supabase.auth.getSession(),
       getPhotoReferenceBundle({
@@ -700,6 +743,7 @@ export async function generatePhotoProviderPreview({
         userId,
         owners: wardrobeOwnersForRequest(request.subject_type),
       }),
+      homeCanonContext(userId, request),
     ]);
 
   const accessToken = sessionData.session?.access_token;
@@ -715,6 +759,21 @@ export async function generatePhotoProviderPreview({
   );
 
   const references = selectedReferences.map(cleanReferencePayload);
+
+  if (homeCanon) {
+    references.push({
+      id: "shared-home-floor-plan",
+      url: new URL(homeCanon.floorPlanUrl, window.location.origin).toString(),
+      subject: "shared_home",
+      title: "Shared apartment floor plan",
+      description: homeCanon.instruction,
+      purposes: ["architecture", "scene", homeCanon.room],
+      strength: "primary",
+      referenceKind: "scene",
+      lookType: null,
+      isCurrent: true,
+    });
+  }
 
   const identityReferenceUsage: IdentityReferenceUsage[] =
     selectedReferences.map((item) => ({
@@ -741,6 +800,7 @@ export async function generatePhotoProviderPreview({
           currentOverrideInstruction(request, canons),
           tattooRegionInstruction(request, canons),
           wardrobeInstruction(request, wardrobeContexts),
+          homeCanon?.instruction ?? null,
         ]
           .filter((value): value is string => Boolean(value))
           .join(" ") || null,
