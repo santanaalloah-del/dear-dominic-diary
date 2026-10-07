@@ -338,10 +338,28 @@ export const Route = createFileRoute("/api/photo-engine")({
           ? Math.max(1, MAX_REFERENCES - 1)
           : MAX_REFERENCES;
 
-        const references = (body.references ?? []).slice(
-          0,
-          referenceLimit
+        const isRightNow =
+          body.request.mode === "chat_photo" &&
+          body.request.context_snapshot?.custom &&
+          typeof body.request.context_snapshot.custom === "object" &&
+          (body.request.context_snapshot.custom as Record<string, unknown>).requestedFrom === "dominic-right-now";
+
+        const requestedReferences = body.references ?? [];
+        const rightNowHomeScene = requestedReferences.find(
+          (reference) =>
+            reference.subject === "shared_home" &&
+            reference.referenceKind === "scene" &&
+            reference.purposes?.includes("environment")
         );
+        const rightNowIdentity = requestedReferences
+          .filter((reference) => reference.subject !== "shared_home")
+          .slice(0, 6);
+
+        const references = (
+          isRightNow
+            ? [...rightNowIdentity, ...(rightNowHomeScene ? [rightNowHomeScene] : [])]
+            : requestedReferences
+        ).slice(0, referenceLimit);
 
         const canons = Array.isArray(body.canons)
           ? body.canons.filter(
@@ -428,11 +446,11 @@ const prompt = buildPrompt(
                 prompt,
                 n: 1,
                 aspect_ratio: "3:4",
-                quality: "max",
+                quality: isRightNow ? "high" : "max",
                 background: "opaque",
                 input_references: inputReferences,
               }),
-              signal: AbortSignal.timeout(180_000),
+              signal: AbortSignal.timeout(isRightNow ? 90_000 : 180_000),
             }
           );
         } catch (error) {
@@ -494,7 +512,7 @@ compositionType: variationPlan.compositionType,
               openRouterImageApi: true,
               identityProvider: "openai-via-openrouter",
               imageModel: IMAGE_MODEL,
-              quality: "max",
+              quality: isRightNow ? "high" : "max",
               canonConnected: canons.length > 0,
               canonSubjects: canons.map((canon) => canon.subject),
               referenceCount: inputReferences.length,
