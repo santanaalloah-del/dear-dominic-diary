@@ -464,9 +464,15 @@ function WardrobeManualCutout({
   const imageRef = useRef<HTMLImageElement | null>(null);
   const restoreImageRef = useRef<HTMLImageElement | null>(null);
   const drawingRef = useRef(false);
+  const panPointerRef = useRef<{ id: number; x: number; y: number; startX: number; startY: number } | null>(null);
+  const pinchRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
+  const historyRef = useRef<ImageData[]>([]);
+  const [historySize, setHistorySize] = useState(0);
   const [brushSize, setBrushSize] = useState(26);
-  const [tool, setTool] = useState<"erase" | "restore">("erase");
+  const [tool, setTool] = useState<"move" | "erase" | "restore">("erase");
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -555,6 +561,24 @@ function WardrobeManualCutout({
       }
     };
   }, [file, restoreFile]);
+
+  const rememberCanvas = () => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    historyRef.current.push(context.getImageData(0, 0, canvas.width, canvas.height));
+    if (historyRef.current.length > 30) historyRef.current.shift();
+    setHistorySize(historyRef.current.length);
+  };
+
+  const undo = () => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    const previous = historyRef.current.pop();
+    if (!canvas || !context || !previous) return;
+    context.putImageData(previous, 0, 0);
+    setHistorySize(historyRef.current.length);
+  };
 
   const paintAt = (
     clientX: number,
@@ -672,6 +696,14 @@ function WardrobeManualCutout({
       <div className="wardrobe-cutout-editor-tools">
         <button
           type="button"
+          className={tool === "move" ? "active" : ""}
+          onClick={() => setTool("move")}
+        >
+          Move
+        </button>
+
+        <button
+          type="button"
           className={tool === "erase" ? "active" : ""}
           onClick={() => setTool("erase")}
         >
@@ -719,29 +751,63 @@ function WardrobeManualCutout({
           style={{
             width: `${zoom * 100}%`,
             maxWidth: "none",
+            transform: `translate(${pan.x}px, ${pan.y}px)`,
+            transformOrigin: "center center",
+            touchAction: "none",
           }}
           onPointerDown={(event) => {
-            drawingRef.current = true;
             event.currentTarget.setPointerCapture(event.pointerId);
+            pinchRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            const points = [...pinchRef.current.values()];
+            if (points.length === 2) {
+              pinchStartRef.current = {
+                distance: Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y),
+                zoom,
+              };
+              drawingRef.current = false;
+              return;
+            }
+            if (tool === "move") {
+              panPointerRef.current = { id: event.pointerId, x: pan.x, y: pan.y, startX: event.clientX, startY: event.clientY };
+              return;
+            }
+            rememberCanvas();
+            drawingRef.current = true;
             paintAt(event.clientX, event.clientY);
           }}
           onPointerMove={(event) => {
-            if (!drawingRef.current) return;
-            paintAt(event.clientX, event.clientY);
+            if (!pinchRef.current.has(event.pointerId)) return;
+            pinchRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            const points = [...pinchRef.current.values()];
+            if (points.length === 2 && pinchStartRef.current) {
+              const distance = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+              setZoom(clamp(pinchStartRef.current.zoom * distance / Math.max(1, pinchStartRef.current.distance), 1, 5));
+              drawingRef.current = false;
+              return;
+            }
+            if (tool === "move" && panPointerRef.current?.id === event.pointerId) {
+              setPan({
+                x: panPointerRef.current.x + event.clientX - panPointerRef.current.startX,
+                y: panPointerRef.current.y + event.clientY - panPointerRef.current.startY,
+              });
+              return;
+            }
+            if (drawingRef.current) paintAt(event.clientX, event.clientY);
           }}
           onPointerUp={(event) => {
             drawingRef.current = false;
-
-            if (
-              event.currentTarget.hasPointerCapture(event.pointerId)
-            ) {
-              event.currentTarget.releasePointerCapture(
-                event.pointerId
-              );
+            pinchRef.current.delete(event.pointerId);
+            pinchStartRef.current = null;
+            if (panPointerRef.current?.id === event.pointerId) panPointerRef.current = null;
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
             }
           }}
-          onPointerCancel={() => {
+          onPointerCancel={(event) => {
             drawingRef.current = false;
+            pinchRef.current.delete(event.pointerId);
+            pinchStartRef.current = null;
+            panPointerRef.current = null;
           }}
         />
       </div>
@@ -766,7 +832,19 @@ function WardrobeManualCutout({
       <div className="wardrobe-manual-cutout-actions">
         <button
           type="button"
-          onClick={redraw}
+          onClick={undo}
+          disabled={!historySize}
+        >
+          Undo
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            redraw();
+            historyRef.current = [];
+            setHistorySize(0);
+          }}
           disabled={!ready}
         >
           Reset refine
