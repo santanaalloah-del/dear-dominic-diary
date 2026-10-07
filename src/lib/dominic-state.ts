@@ -231,13 +231,22 @@ export async function loadDominicState(
         typeof raw.updated_at === "string"
           ? raw.updated_at
           : lifeContext.last_activity_at;
+      const nextChangeAt =
+        typeof raw.next_change_at === "string"
+          ? raw.next_change_at
+          : typeof raw.nextChangeAt === "string"
+            ? raw.nextChangeAt
+            : new Date(
+                new Date(startedAt).getTime() + 20 * 60 * 1000
+              ).toISOString();
+
       return {
         activity,
         location,
         detail: typeof raw.detail === "string" ? raw.detail : undefined,
         mood: typeof raw.mood === "string" ? raw.mood as DominicMood : undefined,
         startedAt,
-        nextChangeAt: "2999-01-01T00:00:00.000Z",
+        nextChangeAt,
         source: "event",
       };
     }
