@@ -589,16 +589,28 @@ function WardrobeManualCutout({
 
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x =
-      ((clientX - rect.left) / rect.width) *
-      canvas.width;
-    const y =
-      ((clientY - rect.top) / rect.height) *
-      canvas.height;
-    const scale =
-      canvas.width / Math.max(1, rect.width);
-    const radius = brushSize * scale;
+    const viewport = canvas.parentElement;
+    const viewportRect = viewport?.getBoundingClientRect();
+
+    if (!viewportRect) return;
+
+    /*
+     * The canvas is visually transformed for pan/zoom, but its bitmap stays
+     * fixed. Convert the finger from viewport space back through that visual
+     * transform so the brush always lands on the exact source pixel.
+     */
+    const baseWidth = viewportRect.width;
+    const baseHeight = viewportRect.height;
+    const centerX = viewportRect.left + baseWidth / 2;
+    const centerY = viewportRect.top + baseHeight / 2;
+    const localX =
+      (clientX - centerX - pan.x) / zoom + baseWidth / 2;
+    const localY =
+      (clientY - centerY - pan.y) / zoom + baseHeight / 2;
+    const x = (localX / Math.max(1, baseWidth)) * canvas.width;
+    const y = (localY / Math.max(1, baseHeight)) * canvas.height;
+    const pixelPerCssX = canvas.width / Math.max(1, baseWidth);
+    const radius = brushSize * pixelPerCssX / zoom;
     const context = canvas.getContext("2d");
 
     if (!context) return;
