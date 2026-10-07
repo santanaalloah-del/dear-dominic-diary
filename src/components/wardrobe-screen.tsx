@@ -749,9 +749,10 @@ function WardrobeManualCutout({
         <canvas
           ref={canvasRef}
           style={{
-            width: `${zoom * 100}%`,
+            width: "100%",
+            height: "100%",
             maxWidth: "none",
-            transform: `translate(${pan.x}px, ${pan.y}px)`,
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: "center center",
             touchAction: "none",
           }}
