@@ -137,8 +137,20 @@ const HOME_ROOM_IMAGES: Record<string, Record<string, string>> = {
   bathroom: { "0200": homeBathroom0200, "0700": homeBathroom0700, "1100": homeBathroom1100, "1740": homeBathroom1740, "1830": homeBathroom1830, "1910": homeBathroom1910, "2100": homeBathroom2100 },
 };
 
+function rioClock(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? 0) % 24;
+  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? 0);
+  return { hour, minute, totalMinutes: hour * 60 + minute };
+}
+
 function closestHomeTimeKey(date = new Date()) {
-  const minute = date.getHours() * 60 + date.getMinutes();
+  const minute = rioClock(date).totalMinutes;
   return HOME_TIME_VARIANTS.reduce((best, candidate) => {
     const direct = Math.abs(candidate.minute - minute);
     const wrapped = Math.min(direct, 1440 - direct);
@@ -146,6 +158,23 @@ function closestHomeTimeKey(date = new Date()) {
     const bestWrapped = Math.min(bestDirect, 1440 - bestDirect);
     return wrapped < bestWrapped ? candidate : best;
   }).key;
+}
+
+function homeLightingInstruction(date = new Date()) {
+  const { hour } = rioClock(date);
+  if (hour < 5) {
+    return "It is after midnight in Rio de Janeiro. Exterior windows MUST read as nighttime/dark. ZERO sunlight, ZERO blue-sky daylight, ZERO sunbeams. Interior lamps/screens/flash may illuminate the room naturally.";
+  }
+  if (hour < 7) {
+    return "It is pre-dawn/early morning in Rio de Janeiro. Keep exterior light very dim and cool; no strong direct sunlight.";
+  }
+  if (hour < 17) {
+    return "It is daytime in Rio de Janeiro. Daylight through windows is physically plausible and should follow the selected timed room reference.";
+  }
+  if (hour < 19) {
+    return "It is late afternoon/early evening in Rio de Janeiro. Follow the selected timed room reference for fading exterior light; do not turn it into midday sun.";
+  }
+  return "It is nighttime in Rio de Janeiro. Exterior windows MUST be dark/nighttime. ZERO sunlight and ZERO daytime sky. Use believable interior artificial light, phone flash, screens, or practical lamps.";
 }
 
 async function homeCanonContext(userId: string, request: PhotoGenerationRequest) {
@@ -172,6 +201,8 @@ async function homeCanonContext(userId: string, request: PhotoGenerationRequest)
       "SHARED HOME VISUAL CANON:",
       "This is Alloah and Dominic's one shared apartment.",
       `Current room: ${room}. The attached ${room} reference at ${timeKey} is the PRIMARY visual canon for this room: preserve its actual furniture, decor, materials, colors, windows, spatial identity and time-of-day lighting.`,
+      homeLightingInstruction(),
+      "Time-of-day lighting is a hard physical constraint, not a stylistic suggestion. Never introduce sunlight or a bright daytime exterior into a nighttime reference.",
       "The apartment floor plan is a secondary structural reference for room boundaries and circulation.",
       objectList.length ? `Persisted room objects: ${objectList.join(" | ")}.` : null,
       "Vary pose, framing and camera angle naturally, but keep the environment recognizably the same canonical apartment. Never replace it with a generic bedroom, living room, kitchen or bathroom.",
