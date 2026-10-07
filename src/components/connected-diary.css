@@ -1515,3 +1515,11 @@
   object-fit: cover;
   border-radius: inherit;
 }
+
+
+/* Preserve intentional Enter/newline formatting in sent chat messages. */
+.messenger-message .diario-message-content .response,
+.messenger-message .diario-message-content [data-slot="message-response"],
+.messenger-message .diario-message-content p {
+  white-space: pre-wrap;
+}
