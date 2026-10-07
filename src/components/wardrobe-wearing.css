@@ -914,3 +914,14 @@
   color:inherit;
 }
 .wardrobe-crop-zoom span{min-width:48px;text-align:center;font-size:10px}
+
+
+/* Refine cutout viewport can be panned/zoomed without clipping the working image. */
+.wardrobe-manual-cutout-canvas{
+  overflow:hidden;
+  touch-action:none;
+}
+.wardrobe-manual-cutout-canvas canvas{
+  touch-action:none;
+  will-change:transform,width;
+}
