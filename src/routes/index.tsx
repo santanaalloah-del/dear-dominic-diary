@@ -89,6 +89,7 @@ import {
   HOME_SCENE_ASSETS,
   hasHomeSceneTimeline,
 } from "@/lib/home-scene-assets";
+import { getRioWeather, type RioWeather } from "@/lib/rio-weather";
 
 import { enableDiarioPush, getDiarioPushStatus } from "@/lib/push-notifications";
 import {
@@ -768,6 +769,7 @@ function HomeScreen({
 }) {
   const { session } = usePrivateDiario();
   const [dominicState, setDominicState] = useState<DominicState | null>(null);
+  const [rioWeather, setRioWeather] = useState<RioWeather | null>(null);
   const [activeHomeRoom, setActiveHomeRoom] = useState("living");
   const [homeKeepsakes, setHomeKeepsakes] = useState<DiarioItem[]>([]);
   const [
@@ -779,6 +781,31 @@ function HomeScreen({
   const [roomThingNote, setRoomThingNote] = useState("");
   const [savingRoomThing, setSavingRoomThing] = useState(false);
   const [roomThingsError, setRoomThingsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+
+    const refreshWeather = async () => {
+      try {
+        const weather = await getRioWeather(controller.signal);
+        if (!cancelled) setRioWeather(weather);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error("Could not load Rio weather:", error);
+        }
+      }
+    };
+
+    void refreshWeather();
+    const timer = window.setInterval(refreshWeather, 15 * 60_000);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      window.clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -1034,6 +1061,12 @@ function HomeScreen({
           <div className="apartment-home-clock">
             <strong>{time.timeLabel}</strong>
             <small>{time.dateLabel}</small>
+            {rioWeather && (
+              <div className="apartment-home-weather" aria-label={`Rio de Janeiro weather: ${Math.round(rioWeather.temperature)} degrees, ${rioWeather.label}`}>
+                <span>Rio · {Math.round(rioWeather.temperature)}° · {rioWeather.label}</span>
+                <small>feels {Math.round(rioWeather.apparentTemperature)}°</small>
+              </div>
+            )}
           </div>
         </header>
 
