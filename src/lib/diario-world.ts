@@ -2002,6 +2002,32 @@ export type DiarioSettings = {
   updated_at: string;
 };
 
+
+export async function deleteClothing({
+  userId,
+  clothingId,
+}: {
+  userId: string;
+  clothingId: string;
+}) {
+  const { error: linksError } = await diarioSupabase
+    .from("diario_links")
+    .delete()
+    .eq("user_id", userId)
+    .or(`source_item_id.eq.${clothingId},target_item_id.eq.${clothingId}`);
+
+  if (linksError) throw linksError;
+
+  const { error } = await diarioSupabase
+    .from("diario_items")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", clothingId)
+    .eq("kind", "clothing");
+
+  if (error) throw error;
+}
+
 export async function getDiarioSettings(
   userId: string
 ): Promise<DiarioSettings> {
