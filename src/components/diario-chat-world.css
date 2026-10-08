@@ -694,3 +694,23 @@
     grid-template-columns:repeat(6,minmax(0,1fr));
   }
 }
+
+/* Message favorites: small, accessible, unobtrusive heart. */
+.diario-message-favorite{
+  align-self:flex-end;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  margin-top:3px;
+  border:0;
+  background:transparent;
+  color:var(--muted-foreground);
+  opacity:.65;
+  cursor:pointer;
+}
+.diario-message-favorite[aria-pressed="true"]{
+  color:var(--wine,#8a334b);
+  opacity:1;
+}
