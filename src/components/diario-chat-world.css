@@ -695,22 +695,79 @@
   }
 }
 
-/* Message favorites: small, accessible, unobtrusive heart. */
-.diario-message-favorite{
-  align-self:flex-end;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:28px;
-  height:28px;
-  margin-top:3px;
+/* Message actions appear only when a message is selected. */
+.diario-message-actions{
+  width:min(292px,calc(100vw - 24px));
+  padding:8px;
+  border:1px solid rgba(91,30,39,.14);
+  border-radius:18px;
+  background:#f8eadf;
+  color:#57222b;
+  box-shadow:0 8px 32px rgba(42,18,22,.2);
+}
+.diario-reaction-options{
+  display:flex;
+  justify-content:space-between;
+  gap:2px;
+  padding-bottom:7px;
+  border-bottom:1px solid rgba(91,30,39,.1);
+}
+.diario-reaction-options button{
+  display:grid;
+  place-items:center;
+  width:44px;
+  min-width:0;
+  height:44px;
   border:0;
+  border-radius:50%;
   background:transparent;
-  color:var(--muted-foreground);
-  opacity:.65;
+  font-size:24px;
   cursor:pointer;
 }
-.diario-message-favorite[aria-pressed="true"]{
-  color:var(--wine,#8a334b);
-  opacity:1;
+.diario-reaction-options button[aria-pressed="true"],
+.diario-reaction-options button:hover{background:#eacbd0;}
+.diario-message-action{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  min-height:44px;
+  padding:10px 12px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  font:13px var(--font-body);
+  cursor:pointer;
+}
+.diario-message-action:hover{background:#f0dbd4;}
+.diario-message-actions button:focus-visible,
+.diario-message-reaction:focus-visible{
+  outline:2px solid #9f4653;
+  outline-offset:2px;
+}
+.diario-message-marks{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-top:3px;
+}
+.is-user .diario-message-marks{justify-content:flex-end;}
+.diario-message-reaction{
+  display:grid;
+  place-items:center;
+  min-width:32px;
+  min-height:28px;
+  padding:1px 6px;
+  border:1px solid rgba(91,30,39,.14);
+  border-radius:20px;
+  background:var(--chat-theirs,#f8eadf);
+  font-size:16px;
+  cursor:pointer;
+}
+.diario-message-star{display:inline-flex;color:var(--chat-accent,#9f4653);}
+.messenger-message[aria-expanded="true"] .messenger-bubble{
+  outline:1px solid var(--chat-accent,#9f4653);
+  outline-offset:2px;
 }

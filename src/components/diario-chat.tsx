@@ -17,6 +17,8 @@ import {
   Play,
   Plus,
   RotateCcw,
+  Reply,
+  Star,
   Search,
   SendHorizontal,
   Smile,
@@ -41,6 +43,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { usePrivateDiario } from "@/components/private-diario";
@@ -929,6 +932,30 @@ onOpen: (
       return next;
     });
   };
+  const [messageActionTarget, setMessageActionTarget] = useState<string | null>(null);
+  const [messageReactions, setMessageReactions] = useState<Record<string, string>>({});
+  const suppressMessageClickRef = useRef(false);
+  const reactionStorageKey = `diario:message-reactions:${session.user.id}`;
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(reactionStorageKey) || "{}");
+      setMessageReactions(saved && typeof saved === "object" && !Array.isArray(saved)
+        ? Object.fromEntries(Object.entries(saved).filter(([, value]) =>
+            typeof value === "string" && ["❤️", "👍", "😂", "😮", "😢", "🙏"].includes(value)))
+        : {});
+    } catch { setMessageReactions({}); }
+    setMessageActionTarget(null);
+  }, [reactionStorageKey]);
+  const reactToMessage = (id: string, emoji: string) => {
+    setMessageReactions((current) => {
+      const next = { ...current };
+      if (next[id] === emoji) delete next[id];
+      else next[id] = emoji;
+      try { localStorage.setItem(reactionStorageKey, JSON.stringify(next)); } catch {}
+      return next;
+    });
+    setMessageActionTarget(null);
+  };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -938,6 +965,10 @@ onOpen: (
   const [swipeOffset, setSwipeOffset] = useState(0);
   const replyTouchRef = useRef<{ id: string; x: number; y: number; timer: ReturnType<typeof window.setTimeout> | null } | null>(null);
   const [preferences, setPreferences] = useState<ChatPreferences>(defaultPreferences);
+  useEffect(() => () => {
+    if (replyTouchRef.current?.timer) window.clearTimeout(replyTouchRef.current.timer);
+  }, []);
+
 
   const [
     chatProfiles,
@@ -5173,15 +5204,47 @@ const recentConversationForPhoto = () =>
             </ConversationEmptyState>
           ) : (
             messages.map((message) => (
+              <Popover
+                key={message.id}
+                open={messageActionTarget === message.id}
+                onOpenChange={(open) => setMessageActionTarget(open ? message.id : null)}
+              >
+              <PopoverAnchor asChild>
               <Message
                 from={message.role}
-                key={message.id}
                 id={`chat-message-${message.id}`}
+                tabIndex={0}
+                aria-label={`${message.role === "assistant" ? "Dominic" : preferredName} message. Open message actions`}
+                aria-haspopup="dialog"
+                aria-expanded={messageActionTarget === message.id}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return;
+                  if (event.key === "Enter" || event.key === " " || (event.shiftKey && event.key === "F10")) {
+                    event.preventDefault();
+                    setMessageActionTarget(message.id);
+                  }
+                }}
+                onClick={(event) => {
+                  if (suppressMessageClickRef.current) {
+                    suppressMessageClickRef.current = false;
+                    return;
+                  }
+                  if ((event.target as HTMLElement).closest("button, a, input, textarea, audio, video")) return;
+                  if (window.getSelection()?.toString()) return;
+                  setMessageActionTarget(message.id);
+                }}
                 className={`diario-message messenger-message ${message.kind === "voice" ? "voice-message" : ""}`}
                 onTouchStart={(event) => {
+                  suppressMessageClickRef.current = false;
+                  if ((event.target as HTMLElement).closest("button, a, input, textarea, audio, video")) return;
                   const touch = event.touches[0];
-                  if (!touch) return;
-                  const timer = window.setTimeout(() => setReplyTarget(message), 520);
+                  if (!touch || event.touches.length !== 1) return;
+                  if (replyTouchRef.current?.timer) window.clearTimeout(replyTouchRef.current.timer);
+                  const timer = window.setTimeout(() => {
+                    suppressMessageClickRef.current = true;
+                    window.getSelection()?.removeAllRanges();
+                    setMessageActionTarget(message.id);
+                  }, 520);
                   replyTouchRef.current = { id: message.id, x: touch.clientX, y: touch.clientY, timer };
                 }}
                 onTouchMove={(event) => {
@@ -5191,6 +5254,7 @@ const recentConversationForPhoto = () =>
                   const dx = touch.clientX - state.x;
                   const dy = touch.clientY - state.y;
                   if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                    suppressMessageClickRef.current = true;
                     if (state.timer) window.clearTimeout(state.timer);
                     state.timer = null;
                   }
@@ -5212,6 +5276,12 @@ const recentConversationForPhoto = () =>
                   replyTouchRef.current = null;
                   window.getSelection()?.removeAllRanges();
                 }}
+                onTouchCancel={() => {
+                  if (replyTouchRef.current?.timer) window.clearTimeout(replyTouchRef.current.timer);
+                  replyTouchRef.current = null;
+                  setSwipingMessageId(null);
+                  setSwipeOffset(0);
+                }}
                 style={
                   swipingMessageId === message.id
                     ? ({
@@ -5223,7 +5293,7 @@ const recentConversationForPhoto = () =>
                 onContextMenu={(event) => {
                   event.preventDefault();
                   window.getSelection()?.removeAllRanges();
-                  setReplyTarget(message);
+                  setMessageActionTarget(message.id);
                 }}
               >
                 <span className="chat-swipe-reply-indicator" aria-hidden="true">
@@ -5373,12 +5443,63 @@ const recentConversationForPhoto = () =>
     </button>
   )}
                 
-                <button type="button" aria-label={favoriteMessageIds.includes(message.id) ? "Unfavorite message" : "Favorite message"} aria-pressed={favoriteMessageIds.includes(message.id)} onClick={() => toggleMessageFavorite(message.id)} className="diario-message-favorite"><Heart size={13} fill={favoriteMessageIds.includes(message.id) ? "currentColor" : "none"} /></button>
+                {(messageReactions[message.id] || favoriteMessageIds.includes(message.id)) && (
+                  <div className="diario-message-marks">
+                    {messageReactions[message.id] && (
+                      <button type="button" className="diario-message-reaction"
+                        aria-label={`Your reaction: ${messageReactions[message.id]}. Change reaction`}
+                        onClick={() => setMessageActionTarget(message.id)}>
+                        {messageReactions[message.id]}
+                      </button>
+                    )}
+                    {favoriteMessageIds.includes(message.id) && (
+                      <span className="diario-message-star" role="img" aria-label="Favorited message">
+                        <Star size={12} fill="currentColor" aria-hidden="true" />
+                      </span>
+                    )}
+                  </div>
+                )}
                 {preferences.showTimestamps && (
                   <time>{formatTime(message.createdAt)}{message.role === "user" ? "  ✓✓" : ""}</time>
                 )}
                 </div>
               </Message>
+              </PopoverAnchor>
+              <PopoverContent
+                className="diario-message-actions"
+                side="top"
+                align={message.role === "user" ? "end" : "start"}
+                sideOffset={8}
+                collisionPadding={12}
+                aria-label="Message actions"
+                onCloseAutoFocus={(event) => {
+                  event.preventDefault();
+                  document.getElementById(`chat-message-${message.id}`)?.focus({ preventScroll: true });
+                }}
+              >
+                <div className="diario-reaction-options" role="group" aria-label="React to message">
+                  {[
+                    ["❤️", "Love"], ["👍", "Like"], ["😂", "Laugh"],
+                    ["😮", "Surprised"], ["😢", "Sad"], ["🙏", "Thanks"],
+                  ].map(([emoji, label]) => (
+                    <button key={emoji} type="button"
+                      aria-label={messageReactions[message.id] === emoji ? `Remove ${label} reaction` : `React: ${label}`}
+                      aria-pressed={messageReactions[message.id] === emoji}
+                      onClick={() => reactToMessage(message.id, emoji)}>{emoji}</button>
+                  ))}
+                </div>
+                <button type="button" className="diario-message-action" onClick={() => {
+                  setReplyTarget(message);
+                  setMessageActionTarget(null);
+                }}><Reply size={17} aria-hidden="true" /> Reply</button>
+                <button type="button" className="diario-message-action" onClick={() => {
+                  toggleMessageFavorite(message.id);
+                  setMessageActionTarget(null);
+                }}><Star size={17} aria-hidden="true" fill={favoriteMessageIds.includes(message.id) ? "currentColor" : "none"} />
+                  {favoriteMessageIds.includes(message.id) ? "Unfavorite" : "Favorite"}
+                </button>
+              </PopoverContent>
+              </Popover>
             ))
           )}
           {sending && (
