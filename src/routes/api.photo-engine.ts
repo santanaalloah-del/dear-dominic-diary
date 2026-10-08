@@ -478,7 +478,8 @@ const prompt = buildPrompt(
             }),
           });
           if (!result.ok) {
-            console.error("Photo worker dispatch HTTP", result.status, await result.text().catch(() => ""));
+            const workerError = (await result.json().catch(() => null)) as { error?: string } | null;
+            console.error("Photo worker dispatch HTTP", result.status, workerError?.error || "Unknown error");
             // A rejected dispatch must not leave a request permanently queued.
             // Only transition an untouched queued request; never overwrite a worker
             // that has already claimed it, or an image already saved to Gallery.
@@ -495,7 +496,7 @@ const prompt = buildPrompt(
                 updated_at: new Date().toISOString(),
               }),
             }).catch(() => null);
-            return jsonError("Photo worker rejected request (HTTP " + result.status + "). No automatic retry was made.", 503);
+            return jsonError("Photo worker HTTP " + result.status + ": " + (workerError?.error || "No details provided") + ". No automatic retry was made.", 503);
           }
           return Response.json({ status: "queued", requestId: body.request.id }, { status: 202 });
         }
