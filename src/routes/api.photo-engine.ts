@@ -477,6 +477,7 @@ const prompt = buildPrompt(
             }),
           });
           if (!result.ok) {
+            console.error("Photo worker dispatch HTTP", result.status, await result.text().catch(() => ""));
             // A rejected dispatch must not leave a request permanently queued.
             // Only transition an untouched queued request; never overwrite a worker
             // that has already claimed it, or an image already saved to Gallery.
