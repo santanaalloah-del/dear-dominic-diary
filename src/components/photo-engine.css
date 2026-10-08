@@ -933,3 +933,61 @@
     font-size: 16px;
   }
 }
+
+/* Photo Engine: readable ink on ivory in every time-of-day theme. */
+.photo-engine-screen .photo-engine-block,
+.photo-engine-screen .photo-engine-preview-card,
+.photo-engine-screen .photo-engine-ready-card {
+  color: #51212b !important;
+  -webkit-text-fill-color: #51212b !important;
+}
+.photo-engine-screen .photo-engine-block-heading :is(strong,small),
+.photo-engine-screen .photo-engine-block :is(h2,h3,strong,label,p,small),
+.photo-engine-screen .photo-engine-preview-card :is(strong,span,small,p) {
+  color: #51212b !important;
+  -webkit-text-fill-color: #51212b !important;
+  opacity: 1 !important;
+}
+.photo-engine-screen .photo-engine-subject-grid button,
+.photo-engine-screen .photo-engine-mode-grid button {
+  background: #f8ede5 !important;
+  color: #51212b !important;
+  -webkit-text-fill-color: #51212b !important;
+}
+.photo-engine-screen .photo-engine-subject-grid button :is(strong,small,svg),
+.photo-engine-screen .photo-engine-mode-grid button :is(strong,small,span,svg) {
+  color: #51212b !important;
+  -webkit-text-fill-color: #51212b !important;
+  opacity: 1 !important;
+  stroke: currentColor;
+}
+.photo-engine-screen .photo-engine-subject-grid button.active,
+.photo-engine-screen .photo-engine-mode-grid button.active {
+  background: #ead4d1 !important;
+  border: 2px solid #642635 !important;
+}
+.photo-engine-screen .photo-engine-scene-block :is(input,textarea),
+.photo-engine-screen .photo-engine-advanced select {
+  background: #fff8f1 !important;
+  color: #51212b !important;
+  -webkit-text-fill-color: #51212b !important;
+  border-color: #ad7a7f !important;
+}
+.photo-engine-screen .photo-engine-scene-block :is(input,textarea)::placeholder {
+  color: #77545b !important;
+  -webkit-text-fill-color: #77545b !important;
+  opacity: 1 !important;
+}
+.photo-engine-screen .photo-engine-preview-placeholder {
+  color: #51212b !important;
+  -webkit-text-fill-color: #51212b !important;
+}
+.photo-engine-screen .photo-engine-preview-placeholder :is(span,small,svg) {
+  color: #51212b !important;
+  -webkit-text-fill-color: #51212b !important;
+  opacity: 1 !important;
+}
+.photo-engine-screen .photo-engine-preview-status.error {
+  color: #fff8f1 !important;
+  -webkit-text-fill-color: #fff8f1 !important;
+}
