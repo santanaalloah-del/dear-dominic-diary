@@ -95,6 +95,7 @@ import { getRioWeather, type RioWeather } from "@/lib/rio-weather";
 import { enableDiarioPush, getDiarioPushStatus } from "@/lib/push-notifications";
 import {
   loadDominicState,
+  getCurrentDominicState,
   setAlloahPresence,
   type DominicState,
 } from "@/lib/dominic-state";
@@ -841,7 +842,7 @@ function HomeScreen({
 
     const refresh = async () => {
       try {
-        const state = await loadDominicState(session.user.id);
+        const state = await getCurrentDominicState(session.user.id);
         if (!cancelled && state) setDominicState(state);
       } catch (error) {
         // A temporary read error must not remove the location from Home.
