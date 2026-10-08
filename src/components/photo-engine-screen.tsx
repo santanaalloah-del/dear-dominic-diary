@@ -367,6 +367,7 @@ export function PhotoEngineScreen() {
     try {
       await enqueuePhotoProviderJob({ userId: session.user.id, request, sourceImageDataUrl });
       patchPreview(key, { status: "generating" });
+      return true;
     } catch (nextError) {
       const reason = messageFromError(nextError, "Could not queue photo.");
       // The request was persisted before dispatch. Never leave it as a
@@ -384,6 +385,8 @@ export function PhotoEngineScreen() {
         .eq("status", "queued")
         .then(() => null, () => null);
       patchPreview(key, { status: "error", error: reason });
+      setError(reason);
+      return false;
     }
   }
 
@@ -401,36 +404,29 @@ export function PhotoEngineScreen() {
 
       const count = isDailyLife ? dailyCount : 1;
       const batchId = count > 1 ? crypto.randomUUID() : null;
-      const requests: PhotoGenerationRequest[] = [];
-
-      for (let index = 0; index < count; index += 1) {
-        requests.push(
-          await buildRequest({
-            dominicState,
-            batchId,
-            batchIndex: count > 1 ? index : null,
-          })
-        );
-      }
-
-      const initial = requests.map((request) => ({
-        key: previewKey(request),
-        request,
-        status: "waiting" as const,
-        preview: null,
-        error: null,
-        adjustOpen: false,
-        adjustText: "",
-        savedPhotoId: null,
-      }));
-
-      setPreviews(initial);
       setShowRecentPreviews(true);
 
-      // Generate sequentially: Daily Life 1–5 must not hammer
-      // the provider or race through rate limits.
-      for (const item of initial) {
-        await generateIntoPreview(item.key, item.request);
+      // Create and dispatch only one request at a time. If dispatch fails,
+      // do not create more queued records or attempt the rest of the batch.
+      for (let index = 0; index < count; index += 1) {
+        const request = await buildRequest({
+          dominicState,
+          batchId,
+          batchIndex: count > 1 ? index : null,
+        });
+        const item = {
+          key: previewKey(request),
+          request,
+          status: "waiting" as const,
+          preview: null,
+          error: null,
+          adjustOpen: false,
+          adjustText: "",
+          savedPhotoId: null,
+        };
+        setPreviews(current => [...current, item]);
+        const queued = await generateIntoPreview(item.key, item.request);
+        if (!queued) break;
       }
     } catch (nextError) {
       console.error("Could not create Photo Engine request:", nextError);
@@ -619,6 +615,8 @@ export function PhotoEngineScreen() {
           look, visual canon and anti-repeat built into every request.
         </p>
       </header>
+
+      {error && <p className="photo-engine-error" role="alert">{error}</p>}
 
       {!hasPreviews && previews.length > 0 && (
         <Button type="button" variant="outline" onClick={() => setShowRecentPreviews(true)}>
@@ -1001,8 +999,6 @@ export function PhotoEngineScreen() {
               </div>
             )}
           </section>
-
-          {error && <p className="photo-engine-error">{error}</p>}
 
           <Button
             type="button"
