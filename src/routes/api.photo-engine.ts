@@ -479,10 +479,18 @@ const prompt = buildPrompt(
           );
         }
 
-        await budgetRpc(providerResponse.ok ? "settle_ai_budget" : "release_ai_budget", { p_id: budgetId });
         const providerJson = (await providerResponse
           .json()
           .catch(() => null)) as Record<string, any> | null;
+        // A provider-side failure can still be billed. Keep a conservative
+        // reservation unless OpenRouter reports an actual charge.
+        const providerCost = providerJson?.usage?.cost;
+        await budgetRpc("settle_ai_budget", {
+          p_id: budgetId,
+          ...(typeof providerCost === "number" && Number.isFinite(providerCost) && providerCost >= 0
+            ? { p_actual_usd: providerCost }
+            : {}),
+        });
 
         if (!providerResponse.ok) {
           return jsonError(
