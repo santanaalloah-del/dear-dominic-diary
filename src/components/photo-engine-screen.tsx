@@ -217,6 +217,7 @@ export function PhotoEngineScreen() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previews, setPreviews] = useState<PreviewState[]>([]);
+  const [showRecentPreviews, setShowRecentPreviews] = useState(false);
 
   useEffect(() => {
     const draft = readDraft();
@@ -246,7 +247,7 @@ export function PhotoEngineScreen() {
 
   const isDailyLife = mode === "daily_life";
   const isConversation = mode === "chat_context";
-  const hasPreviews = previews.length > 0;
+  const hasPreviews = previews.length > 0 && showRecentPreviews;
   const savedCount = previews.filter((item) => item.status === "saved").length;
   const readyCount = previews.filter((item) => item.status === "ready").length;
 
@@ -424,6 +425,7 @@ export function PhotoEngineScreen() {
       }));
 
       setPreviews(initial);
+      setShowRecentPreviews(true);
 
       // Generate sequentially: Daily Life 1–5 must not hammer
       // the provider or race through rate limits.
@@ -602,6 +604,7 @@ export function PhotoEngineScreen() {
   }
 
   function resetComposer() {
+    setShowRecentPreviews(false);
     setPreviews([]);
     setError(null);
   }
@@ -616,6 +619,12 @@ export function PhotoEngineScreen() {
           look, visual canon and anti-repeat built into every request.
         </p>
       </header>
+
+      {!hasPreviews && previews.length > 0 && (
+        <Button type="button" variant="outline" onClick={() => setShowRecentPreviews(true)}>
+          View recent photo attempts ({previews.length})
+        </Button>
+      )}
 
       {hasPreviews ? (
         <section className="photo-engine-preview-stage">
