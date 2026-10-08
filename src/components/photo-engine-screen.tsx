@@ -280,10 +280,10 @@ export function PhotoEngineScreen() {
         for (const request of data as PhotoGenerationRequest[]) {
           const existing = next.findIndex(item => item.request.id === request.id);
           const recoveredPhotoId = request.photo_item_id ?? savedPhotoIds.get(request.id) ?? null;
-          const status: PreviewState["status"] = recoveredPhotoId ? "saved" : request.status === "failed" ? "error" : "generating";
+          const status: PreviewState["status"] = recoveredPhotoId ? "saved" : request.status === "failed" ? "error" : request.status === "completed" ? "error" : "generating";
           const item = {
             key: request.id, request, status, preview: null,
-            error: request.status === "failed" ? request.error_message : null,
+            error: request.status === "failed" ? request.error_message : request.status === "completed" && !recoveredPhotoId ? "Photo marked completed but missing from Gallery. Check storage before regenerating." : null,
             savedPhotoId: recoveredPhotoId, adjustOpen: false, adjustText: "",
           };
           if (existing < 0) next.push(item);
