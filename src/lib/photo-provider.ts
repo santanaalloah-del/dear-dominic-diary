@@ -119,7 +119,7 @@ type VisualCanonPayload = {
   lastAnalyzedAt: string | null;
 };
 
-const MAX_PROVIDER_REFERENCES = 10;
+const MAX_PROVIDER_REFERENCES = 14;
 
 const HOME_TIME_VARIANTS = [
   { minute: 120, key: "0200" },
@@ -481,7 +481,8 @@ function requestNeedsTattoos(request: PhotoGenerationRequest) {
 function chooseProviderReferences(
   request: PhotoGenerationRequest,
   selected: Awaited<ReturnType<typeof getPhotoReferenceBundle>>["selected"],
-  canons: VisualCanonRow[]
+  canons: VisualCanonRow[],
+  maxReferences = MAX_PROVIDER_REFERENCES
 ) {
   const requestedIds = new Set(request.reference_ids ?? []);
   const pool = selected
@@ -504,7 +505,7 @@ function chooseProviderReferences(
     count: number
   ) => {
     for (const item of pool) {
-      if (chosen.length >= MAX_PROVIDER_REFERENCES || count <= 0) break;
+      if (chosen.length >= maxReferences || count <= 0) break;
       if (used.has(item.reference.id) || !predicate(item)) continue;
 
       chosen.push(item);
@@ -578,14 +579,10 @@ function chooseProviderReferences(
   if (request.subject_type === "both") {
     const alloahGroups = groupsFor("alloah");
     const dominicGroups = groupsFor("dominic");
-    const coupleGroups = groupsFor("couple");
 
     // Identity first: two strong face anchors for each person.
     takeIds("alloah", alloahGroups.face, 2);
     takeIds("dominic", dominicGroups.face, 2);
-
-    // Couple anchors teach spacing, relative scale and how they look together.
-    takeIds("couple", coupleGroups.couple, 2);
 
     if (wantsProfile) {
       takeIds("alloah", alloahGroups.profile, 1);
@@ -628,7 +625,6 @@ function chooseProviderReferences(
     // Backwards-compatible fallback while older canons are upgraded.
     takeFallbackAnchors("alloah", 1);
     takeFallbackAnchors("dominic", 1);
-    takeFallbackAnchors("couple", 1);
   } else {
     const subject =
       request.subject_type === "me" ? "alloah" : "dominic";
@@ -681,9 +677,41 @@ function chooseProviderReferences(
     );
   }
 
-  take(() => true, MAX_PROVIDER_REFERENCES - chosen.length);
+  // Pinterest "Us" photos provide optional inspiration, NEVER identity.
+  // Reserve at most two slots, and never require an exact pose or composition.
+  if (request.subject_type === "both") {
+    const inspirationWords = requestText(request)
+      .split(/[^a-z]+/)
+      .filter(word => word.length > 3);
+    const matching = pool
+      .filter(item => item.reference.subject === "couple")
+      .map(item => ({
+        item,
+        score: inspirationWords.filter(word =>
+          [
+            item.reference.title ?? "",
+            item.reference.description ?? "",
+            ...(item.reference.tags ?? []),
+          ].join(" ").toLowerCase().includes(word)
+        ).length,
+      }))
+      .filter(entry => entry.score > 0)
+      .sort((a, b) => b.score - a.score);
+    for (const match of matching.slice(0, 2)) {
+      take(item => item.reference.id === match.item.reference.id, 1);
+    }
+  }
 
-  return chosen.slice(0, MAX_PROVIDER_REFERENCES);
+  // Keep remaining capacity for actual identity anchors. Never fill gaps with
+  // unrelated Pinterest people masquerading as Alloah or Dominic.
+  take(
+    item =>
+      item.reference.subject === "alloah" ||
+      item.reference.subject === "dominic",
+    maxReferences - chosen.length
+  );
+
+  return chosen.slice(0, maxReferences);
 }
 
 function tattooRegionInstruction(
@@ -834,7 +862,8 @@ export async function generatePhotoProviderPreview({
   const selectedReferences = chooseProviderReferences(
     request,
     bundle.selected,
-    canons
+    canons.filter(canon => canon.subject !== "couple"),
+    Math.max(1, MAX_PROVIDER_REFERENCES - (homeCanon ? 2 : 0) - (sourceImageDataUrl ? 1 : 0))
   );
 
   const references = selectedReferences.map(cleanReferencePayload);
@@ -897,7 +926,7 @@ export async function generatePhotoProviderPreview({
           .join(" ") || null,
       },
       references,
-      canons: canonPayload(canons),
+      canons: canonPayload(canons.filter(canon => canon.subject !== "couple")),
       sourceImageDataUrl: sourceImageDataUrl ?? null,
       background,
     }),
