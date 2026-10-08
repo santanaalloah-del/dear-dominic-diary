@@ -50,9 +50,8 @@ import { usePrivateDiario } from "@/components/private-diario";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
 import {
   applyDominicWorldStateAction,
-  getCurrentDominicState,
+  loadDominicState,
   resolveDominicPresence,
-  processDominicStateCheckIns,
   type DominicPresence,
   type DominicState,
 } from "@/lib/dominic-state";
@@ -1211,11 +1210,11 @@ useEffect(() => {
     async () => {
       try {
         const state =
-          await getCurrentDominicState(
+          await loadDominicState(
             session.user.id
           );
 
-        if (!cancelled) {
+        if (!cancelled && state) {
           setDominicState(state);
         }
       } catch (error) {
@@ -1224,17 +1223,7 @@ useEffect(() => {
           error
         );
 
-        if (!cancelled) {
-          setDominicState({
-            location: "living",
-            activity: "idle",
-            mood: "calm",
-            energy: 65,
-            startedAt: new Date().toISOString(),
-            nextChangeAt: new Date(Date.now() + 30 * 60_000).toISOString(),
-            source: "schedule",
-          });
-        }
+        // Keep the last confirmed presence instead of inventing a room/activity.
       }
 
       try {
@@ -1357,51 +1346,15 @@ useEffect(() => {
   document.addEventListener("visibilitychange", refreshOnVisible);
   window.addEventListener("focus", refreshOnFocus);
 
-  const processDueInitiative =
-    async () => {
-      try {
-        const results =
-          await processDominicStateCheckIns(
-            session.user.id
-          );
-
-        if (
-          results.some(
-            (item) =>
-              item.decision ===
-              "send"
-          )
-        ) {
-          await generateReadyDominicInitiative();
-        }
-      } catch (error) {
-        console.error(
-          "Could not process Dominic proactive events:",
-          error
-        );
-      }
-    };
-
-  void processDueInitiative();
-
   const timer =
     window.setInterval(
       refreshDominicState,
       60_000
     );
 
-  const proactiveTimer =
-    window.setInterval(
-      processDueInitiative,
-      60_000
-    );
-
   return () => {
     cancelled = true;
     window.clearInterval(timer);
-    window.clearInterval(
-      proactiveTimer
-    );
     document.removeEventListener("visibilitychange", refreshOnVisible);
     window.removeEventListener("focus", refreshOnFocus);
   };
@@ -3340,9 +3293,10 @@ async function generateReadyDominicInitiative() {
   if (!event) return false;
 
   const state =
-    await getCurrentDominicState(
+    await loadDominicState(
       session.user.id
     );
+  if (!state) return false;
   const presence =
     await resolveDominicPresence(
       session.user.id
