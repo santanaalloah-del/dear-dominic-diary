@@ -746,7 +746,25 @@ async function callOpenRouter({
   schemaName: string;
   schema: Record<string, unknown>;
 }): Promise<OpenRouterResult> {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  const budgetUrl = process.env.SUPABASE_URL?.trim() || import.meta.env.VITE_SUPABASE_URL;
+  const budgetKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!budgetUrl || !budgetKey) throw new Error("AI budget protection not configured");
+  const rpc = async (name: string, payload: Record<string, unknown>) => {
+    const response = await fetch(`${budgetUrl}/rest/v1/rpc/${name}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: budgetKey, Authorization: `Bearer ${budgetKey}` },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error("AI budget check failed");
+    return response.json();
+  };
+  const budgetId = await rpc("reserve_ai_budget", { p_source: "vercel-visual-canon", p_estimated_usd: 0.35 });
+  if (!budgetId) throw new Error("Monthly AI budget reached.");
+  let providerReached = false;
+  let response: Response;
+  try {
+    providerReached = true;
+    response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -771,7 +789,12 @@ async function callOpenRouter({
       },
     }),
     signal: AbortSignal.timeout(90_000),
-  });
+    });
+  } catch (error) {
+    await rpc(providerReached ? "settle_ai_budget" : "release_ai_budget", { p_id: budgetId });
+    throw error;
+  }
+  await rpc(response.ok ? "settle_ai_budget" : "release_ai_budget", { p_id: budgetId });
 
   const json = (await response.json().catch(() => null)) as
     | Record<string, any>
