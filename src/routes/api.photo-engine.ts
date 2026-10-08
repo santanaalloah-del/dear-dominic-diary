@@ -6,7 +6,7 @@ import {
   type PhotoVariationPlan,
 } from "@/lib/photo-variation-plan";
 
-const IMAGE_MODEL = "openai/gpt-image-2.5-sunburst";
+const IMAGE_MODEL = "bytedance-seed/seedream-4.5";
 const MAX_REFERENCES = 16;
 const MAX_REFERENCE_BYTES = 8 * 1024 * 1024;
 const MAX_SOURCE_DATA_URL = 12 * 1024 * 1024;
@@ -443,7 +443,7 @@ const prompt = buildPrompt(
           return res.json();
         };
         const budgetId = await budgetRpc("reserve_ai_budget", {
-          p_source: "vercel-photo-engine", p_estimated_usd: 0.75
+          p_source: "vercel-photo-engine", p_estimated_usd: 0.06
         });
         if (!budgetId) return jsonError("Monthly photo budget reached.", 429);
         let providerResponse: Response;
@@ -463,11 +463,10 @@ const prompt = buildPrompt(
                 prompt,
                 n: 1,
                 aspect_ratio: "3:4",
-                quality: isRightNow ? "high" : "max",
-                background: "opaque",
+                resolution: "2K",
                 input_references: inputReferences,
               }),
-              signal: AbortSignal.timeout(isRightNow ? 90_000 : 180_000),
+              signal: AbortSignal.timeout(75_000),
             }
           );
         } catch (error) {
@@ -529,9 +528,9 @@ const prompt = buildPrompt(
 compositionType: variationPlan.compositionType,
            featureData: {
               openRouterImageApi: true,
-              identityProvider: "openai-via-openrouter",
+              identityProvider: "bytedance-via-openrouter",
               imageModel: IMAGE_MODEL,
-              quality: isRightNow ? "high" : "max",
+              quality: "2K",
               canonConnected: canons.length > 0,
               canonSubjects: canons.map((canon) => canon.subject),
               referenceCount: inputReferences.length,
