@@ -367,7 +367,22 @@ export function PhotoEngineScreen() {
       await enqueuePhotoProviderJob({ userId: session.user.id, request, sourceImageDataUrl });
       patchPreview(key, { status: "generating" });
     } catch (nextError) {
-      patchPreview(key, { status: "error", error: messageFromError(nextError, "Could not queue photo.") });
+      const reason = messageFromError(nextError, "Could not queue photo.");
+      // The request was persisted before dispatch. Never leave it as a
+      // permanent spinner when dispatch fails; only touch still-queued jobs.
+      // If the worker already claimed the job, this conditional update does nothing.
+      await (supabase as any)
+        .from("photo_generation_requests")
+        .update({
+          status: "failed",
+          error_message: `Dispatch did not complete: ${reason.slice(0, 200)}. Check provider usage before a new attempt.`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", request.id)
+        .eq("user_id", session.user.id)
+        .eq("status", "queued")
+        .then(() => null, () => null);
+      patchPreview(key, { status: "error", error: reason });
     }
   }
 
