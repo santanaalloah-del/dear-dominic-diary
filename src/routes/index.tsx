@@ -35,6 +35,7 @@ import {
   SkipForward,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { DiarioChat } from "@/components/diario-chat";
 import { PrivateDiario, usePrivateDiario } from "@/components/private-diario";
 import { VisualReferencesScreen } from "@/components/visual-references-screen";
@@ -13885,6 +13886,23 @@ function SettingsScreen() {
     signOut,
   } = usePrivateDiario();
 
+  const [openRouterUsage, setOpenRouterUsage] = useState<any>(null);
+  const [openRouterBusy, setOpenRouterBusy] = useState(false);
+  const [openRouterError, setOpenRouterError] = useState<string | null>(null);
+  const refreshOpenRouterUsage = async () => {
+    setOpenRouterBusy(true);
+    setOpenRouterError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("openrouter-usage", { method: "GET" });
+      if (error || !data?.metrics) throw new Error("Could not read OpenRouter usage.");
+      setOpenRouterUsage(data);
+    } catch {
+      setOpenRouterError("Usage unavailable. No AI credits were spent on this check.");
+    } finally {
+      setOpenRouterBusy(false);
+    }
+  };
+
   const [appearance, setAppearance] =
     useState<
       "system" | "light" | "dark"
@@ -14170,6 +14188,25 @@ const handleSpotifyDisconnect =
           that shape this private world.
         </p>
       </ScreenIntro>
+
+      <section className="settings-group" aria-label="OpenRouter usage">
+        <header><span>AI budget</span><strong>OpenRouter usage</strong></header>
+        <p>Read-only usage for the Diário API key. This is not necessarily your full account balance.</p>
+        <button type="button" onClick={refreshOpenRouterUsage} disabled={openRouterBusy}>
+          {openRouterBusy ? "Checking…" : "Check usage (no AI generation)"}
+        </button>
+        {openRouterError && <p role="alert">{openRouterError}</p>}
+        {openRouterUsage && (
+          <div aria-live="polite">
+            {(["limit", "limit_remaining", "usage", "usage_daily", "usage_weekly", "usage_monthly"] as const).map((key) =>
+              typeof openRouterUsage.metrics?.[key] === "number" ? (
+                <p key={key}><strong>{key.replaceAll("_", " ")}:</strong> US$ {openRouterUsage.metrics[key].toFixed(4)}</p>
+              ) : null
+            )}
+            <small>Checked: {new Date(openRouterUsage.checked_at).toLocaleString()} · Source: OpenRouter API key</small>
+          </div>
+        )}
+      </section>
 
       {loadingSettings ? (
         <section className="settings-group">
