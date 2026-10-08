@@ -56,6 +56,7 @@ type BodyShape = {
   canons?: VisualCanonPayload[];
   sourceImageDataUrl?: string | null;
   background?: boolean;
+  checkConnection?: boolean;
 };
 
 function envValue(name: string) {
@@ -312,7 +313,7 @@ export const Route = createFileRoute("/api/photo-engine")({
           return jsonError("Invalid JSON body.", 400);
         }
 
-        if (!body.userId || !body.request?.id) {
+        if (!body.userId || (!body.checkConnection && !body.request?.id)) {
           return jsonError("Missing Photo Engine request.", 400);
         }
 
@@ -320,6 +321,30 @@ export const Route = createFileRoute("/api/photo-engine")({
 
         if (!verified) {
           return jsonError("Unauthorized Photo Engine request.", 401);
+        }
+
+        // Zero-credit end-to-end check: verified browser session -> Vercel ->
+        // authenticated Supabase worker. No photo job, ledger reservation or AI call.
+        if (body.checkConnection === true) {
+          const workerUrl = envValue("SUPABASE_URL") || verified.supabaseUrl;
+          try {
+            const check = await fetch(workerUrl + "/functions/v1/photo-background-worker", {
+              method: "POST",
+              headers: {
+                Authorization: request.headers.get("authorization") || "",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ checkConnection: true }),
+              signal: AbortSignal.timeout(12000),
+            });
+            const answer = (await check.json().catch(() => null)) as { error?: string; ok?: boolean } | null;
+            if (!check.ok || !answer?.ok) {
+              return jsonError("Photo connection HTTP " + check.status + ": " + (answer?.error || "Worker unavailable"), 503);
+            }
+            return Response.json({ ok: true, message: "Photo worker connection verified. No credits used." });
+          } catch {
+            return jsonError("Photo worker connection timed out or could not be reached. No credits used.", 503);
+          }
         }
 
         const openRouterKey = envValue("OPENROUTER_API_KEY");
