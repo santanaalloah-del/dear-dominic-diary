@@ -460,9 +460,14 @@ const prompt = buildPrompt(
         if (!Array.isArray(claimed) || claimed.length !== 1) {
           return jsonError("This photo request has already started. Check Gallery before requesting another.", 409);
         }
-        const budgetId = await budgetRpc("reserve_ai_budget", {
-          p_source: "vercel-photo-engine", p_estimated_usd: 0.06
-        });
+        let budgetId: string | null;
+        try {
+          budgetId = await budgetRpc("reserve_ai_budget", {
+            p_source: "vercel-photo-engine", p_estimated_usd: 0.06
+          });
+        } catch {
+          return jsonError("Photo budget is temporarily unavailable; no provider call was made.", 503);
+        }
         if (!budgetId) {
           await fetch(`${budgetUrl}/rest/v1/photo_generation_requests?id=eq.${encodeURIComponent(body.request.id)}&user_id=eq.${encodeURIComponent(body.userId)}&status=eq.generating`, {
             method: "PATCH",
