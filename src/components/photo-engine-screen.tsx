@@ -260,15 +260,31 @@ export function PhotoEngineScreen() {
         .order("created_at", { ascending: false })
         .limit(6);
       if (cancelled || !data) return;
+      const requestIds = (data as PhotoGenerationRequest[]).map(request => request.id);
+      const { data: existingPhotos } = requestIds.length
+        ? await (supabase as any)
+            .from("diario_items")
+            .select("id,data")
+            .eq("user_id", userId)
+            .eq("kind", "photo")
+            .in("data->>generation_request_id", requestIds)
+        : { data: [] };
+      if (cancelled) return;
+      const savedPhotoIds = new Map<string, string>(
+        ((existingPhotos ?? []) as Array<{ id: string; data: { generation_request_id?: string } }>).flatMap(
+          photo => photo.data?.generation_request_id ? [[photo.data.generation_request_id, photo.id] as [string, string]] : []
+        )
+      );
       setPreviews(previous => {
         const next = [...previous];
         for (const request of data as PhotoGenerationRequest[]) {
           const existing = next.findIndex(item => item.request.id === request.id);
-          const status: PreviewState["status"] = request.status === "completed" ? "saved" : request.status === "failed" ? "error" : "generating";
+          const recoveredPhotoId = request.photo_item_id ?? savedPhotoIds.get(request.id) ?? null;
+          const status: PreviewState["status"] = recoveredPhotoId ? "saved" : request.status === "failed" ? "error" : "generating";
           const item = {
             key: request.id, request, status, preview: null,
             error: request.status === "failed" ? request.error_message : null,
-            savedPhotoId: request.photo_item_id ?? null, adjustOpen: false, adjustText: "",
+            savedPhotoId: recoveredPhotoId, adjustOpen: false, adjustText: "",
           };
           if (existing < 0) next.push(item);
           else next[existing] = { ...next[existing], status, savedPhotoId: item.savedPhotoId, error: item.error };
