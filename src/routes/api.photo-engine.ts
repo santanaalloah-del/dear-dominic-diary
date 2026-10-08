@@ -456,7 +456,8 @@ const prompt = buildPrompt(
           const result = await fetch(budgetUrl + "/functions/v1/photo-background-worker", {
             method: "POST",
             headers: {
-              Authorization: "Bearer " + budgetKey,
+              // Forward the already-verified Supabase user session to the worker.
+              Authorization: request.headers.get("authorization") || "",
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
