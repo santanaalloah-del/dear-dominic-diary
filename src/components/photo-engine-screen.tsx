@@ -248,6 +248,39 @@ export function PhotoEngineScreen() {
     );
   };
 
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+    let cancelled = false;
+    async function refresh() {
+      const { data } = await (supabase as any)
+        .from("photo_generation_requests")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(6);
+      if (cancelled || !data) return;
+      setPreviews(previous => {
+        const next = [...previous];
+        for (const request of data as PhotoGenerationRequest[]) {
+          const existing = next.findIndex(item => item.request.id === request.id);
+          const status: PreviewState["status"] = request.status === "completed" ? "saved" : request.status === "failed" ? "error" : "generating";
+          const item = {
+            key: request.id, request, status, preview: null,
+            error: request.status === "failed" ? request.error_message : null,
+            savedPhotoId: request.photo_item_id ?? null, adjustOpen: false, adjustText: "",
+          };
+          if (existing < 0) next.push(item);
+          else next[existing] = { ...next[existing], status, savedPhotoId: item.savedPhotoId, error: item.error };
+        }
+        return next.slice(-8);
+      });
+    }
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 5000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [session?.user?.id]);
+
   async function buildRequest({
     dominicState,
     batchId,
