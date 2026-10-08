@@ -55,6 +55,7 @@ type BodyShape = {
   references?: ProviderReference[];
   canons?: VisualCanonPayload[];
   sourceImageDataUrl?: string | null;
+  background?: boolean;
 };
 
 function envValue(name: string) {
@@ -442,6 +443,33 @@ const prompt = buildPrompt(
           if (!res.ok) throw new Error("AI budget service unavailable");
           return res.json();
         };
+        if (body.background === true) {
+          const result = await fetch(budgetUrl + "/functions/v1/photo-background-worker", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + budgetKey,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: body.userId,
+              requestId: body.request.id,
+              prompt,
+              inputReferences,
+              model: IMAGE_MODEL,
+              feature: {
+                poseType: variationPlan.poseType,
+                cameraAngle: variationPlan.cameraAngle,
+                framing: variationPlan.framing,
+                expression: variationPlan.expression,
+                lightingType: variationPlan.lightingType,
+                compositionType: variationPlan.compositionType,
+                locationCategory: body.request.context_snapshot?.location ?? null,
+              },
+            }),
+          });
+          if (!result.ok) return jsonError("Could not queue background photo.", 503);
+          return Response.json({ status: "queued", requestId: body.request.id }, { status: 202 });
+        }
         // Atomically claim this request before any paid image call.
         // A repeated POST or a reconnect must not generate a second image.
         // A service-role-only database RPC claims exactly one queued job.
