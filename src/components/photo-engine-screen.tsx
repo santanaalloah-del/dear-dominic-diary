@@ -741,7 +741,7 @@ export function PhotoEngineScreen() {
                         : "Dominic"}
                   </strong>
                   <span>
-                    {item.request.photo_style.replaceAll("_", " ")} · {item.request.reference_ids.length} canon refs
+                    {item.request.photo_style.replaceAll("_", " ")} · {item.request.reference_ids.length} saved references (up to 14 chosen)
                   </span>
                 </div>
 
