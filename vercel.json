@@ -1,10 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "bun install",
-  "crons": [
-    {
-      "path": "/api/dominic-heartbeat",
-      "schedule": "0 15 * * *"
-    }
-  ]
+  "crons": []
 }
