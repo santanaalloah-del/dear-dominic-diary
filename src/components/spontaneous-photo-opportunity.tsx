@@ -130,12 +130,7 @@ export function SpontaneousPhotoOpportunity({
         },
       });
 
-      await updatePhotoRequest({
-        userId,
-        requestId: request.id,
-        values: { status: "generating", error_message: null },
-      });
-
+      // The server claims queued requests atomically before spending credits.
       const generated = await generatePhotoProviderPreview({
         userId,
         request,
