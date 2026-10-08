@@ -870,11 +870,13 @@ export async function generatePhotoProviderPreview({
   // text titles. Keep 14 max input images total, including home and source.
   // With both subjects wearing selected outfits, allocate up to two pieces
   // per person; otherwise allow up to three from the active outfit.
-  const clothingWithPhotos = wardrobeContexts.flatMap((context) =>
-    context.clothing
-      .filter((piece) => Boolean(piece.imageUrl))
-      .map((piece) => ({ owner: context.owner, piece }))
-  );
+  const clothingWithPhotos = request.use_current_look
+    ? wardrobeContexts.flatMap((context) =>
+        context.clothing
+          .filter((piece) => Boolean(piece.imageUrl))
+          .map((piece) => ({ owner: context.owner, piece }))
+      )
+    : [];
   const wardrobePhotos = (wardrobeContexts.length > 1
     ? clothingWithPhotos.filter(({ owner }) => owner === "alloah").slice(0, 2)
         .concat(clothingWithPhotos.filter(({ owner }) => owner === "dominic").slice(0, 2))
