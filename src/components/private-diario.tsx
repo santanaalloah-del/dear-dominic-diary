@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
@@ -104,6 +105,8 @@ export function PrivateDiario({
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const autoUnlockInFlight = useRef(false);
+  const lastAutomaticAttempt = useRef(0);
 
   const [privacyCover, setPrivacyCover] =
     useState(false);
@@ -170,6 +173,40 @@ export function PrivateDiario({
       window.removeEventListener("pagehide", lockOnReturn);
     };
   }, [session?.user?.id]);
+
+  // Request platform verification on opening or returning to the app.
+  // Safari may require a user gesture: the Unlock button remains as fallback.
+  useEffect(() => {
+    if (!deviceLocked || !biometricEnabled || !session?.user.id) return;
+    let cancelled = false;
+    const autoUnlock = async () => {
+      if (autoUnlockInFlight.current || document.visibilityState !== "visible") return;
+      if (Date.now() - lastAutomaticAttempt.current < 1500) return;
+      lastAutomaticAttempt.current = Date.now();
+      autoUnlockInFlight.current = true;
+      setUnlockBusy(true);
+      setUnlockError(null);
+      try {
+        await verifyDeviceUnlock(session.user.id);
+        if (!cancelled) setDeviceLocked(false);
+      } catch {
+        // Passkey requests may require a tap on iOS. Avoid repeated prompts.
+      } finally {
+        autoUnlockInFlight.current = false;
+        if (!cancelled) setUnlockBusy(false);
+      }
+    };
+    const timeout = window.setTimeout(() => void autoUnlock(), 250);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void autoUnlock();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [deviceLocked, biometricEnabled, session?.user.id]);
 
   useEffect(() => {
     if (!session) return;
