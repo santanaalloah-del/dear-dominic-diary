@@ -338,11 +338,28 @@ export function PhotoEngineScreen() {
         },
       });
 
+      // Persist the paid result immediately instead of waiting for Keep.
+      const blob = dataUrlToBlob(generated.dataUrl);
+      const saved = await saveGeneratedPhoto({
+        userId: session.user.id,
+        request,
+        blob,
+        mimeType: generated.mimeType,
+        title: request.mode === "daily_life" ? "Daily life" : "Photo",
+        feature: generated.feature,
+        extraData: {
+          provider: generated.provider,
+          provider_model: generated.model,
+          automatically_saved: true,
+        },
+      });
       patchPreview(key, {
-        status: "ready",
+        status: "saved",
         preview: generated,
+        savedPhotoId: saved.item.id,
         error: null,
       });
+      window.dispatchEvent(new Event("diario-generated-chat-photo"));
     } catch (nextError) {
       const message = messageFromError(
         nextError,
