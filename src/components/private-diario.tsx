@@ -7,7 +7,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { BookHeart } from "lucide-react";
+import { BookHeart, Fingerprint, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { getDiarioSettings } from "@/lib/diario-world";
@@ -37,6 +37,55 @@ export function usePrivateDiario() {
   return context;
 }
 
+const biometricKey = (userId: string) => `diario-biometric-v1:${userId}`;
+
+function decodeCredentialId(encoded: string): Uint8Array {
+  const binary = atob(encoded);
+  return Uint8Array.from(binary, character => character.charCodeAt(0));
+}
+
+function encodeCredentialId(bytes: ArrayBuffer): string {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)));
+}
+
+function canUseDeviceUnlock() {
+  return typeof window !== "undefined" && window.isSecureContext &&
+    typeof PublicKeyCredential !== "undefined" && Boolean(navigator.credentials);
+}
+
+async function enrollDeviceUnlock(userId: string) {
+  if (!canUseDeviceUnlock()) throw new Error("Device unlock is not available in this browser.");
+  const credential = await navigator.credentials.create({
+    publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rp: { name: "Diário" },
+      user: { id: new TextEncoder().encode(userId), name: "Diário owner", displayName: "Diário owner" },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: "platform", residentKey: "preferred", userVerification: "required" },
+      timeout: 60000,
+      attestation: "none",
+    },
+  }) as PublicKeyCredential | null;
+  if (!credential) throw new Error("Device unlock was not enabled.");
+  localStorage.setItem(biometricKey(userId), encodeCredentialId(credential.rawId));
+}
+
+async function verifyDeviceUnlock(userId: string) {
+  const stored = localStorage.getItem(biometricKey(userId));
+  if (!stored || !canUseDeviceUnlock()) throw new Error("Device unlock is unavailable.");
+  const assertion = await navigator.credentials.get({
+    publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials: [{ id: decodeCredentialId(stored), type: "public-key" }],
+      userVerification: "required",
+      timeout: 60000,
+    },
+  }) as PublicKeyCredential | null;
+  if (!assertion || encodeCredentialId(assertion.rawId) !== stored) {
+    throw new Error("Could not verify this device.");
+  }
+}
+
 export function PrivateDiario({
   children,
 }: {
@@ -50,6 +99,11 @@ export function PrivateDiario({
 
   const [ready, setReady] =
     useState(false);
+
+  const [deviceLocked, setDeviceLocked] = useState(false);
+  const [unlockBusy, setUnlockBusy] = useState(false);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
 
   const [privacyCover, setPrivacyCover] =
     useState(false);
@@ -86,6 +140,36 @@ export function PrivateDiario({
       data.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) {
+      setDeviceLocked(false);
+      setBiometricEnabled(false);
+      return;
+    }
+    const enabled = Boolean(localStorage.getItem(biometricKey(userId)));
+    setBiometricEnabled(enabled);
+    setDeviceLocked(enabled);
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    const lockOnReturn = () => {
+      const userId = session?.user?.id;
+      if (userId && localStorage.getItem(biometricKey(userId))) {
+        setDeviceLocked(true);
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") lockOnReturn();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", lockOnReturn);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", lockOnReturn);
+    };
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (!session) return;
@@ -263,7 +347,47 @@ export function PrivateDiario({
 
       {children}
 
-      {privacyCover && (
+      {deviceLocked && biometricEnabled ? (
+        <main className="private-entry" style={{ position: "fixed", inset: 0, zIndex: 2147483647 }}>
+          <section className="private-login" aria-label="Unlock Diário" style={{ textAlign: "center" }}>
+            <LockKeyhole aria-hidden="true" />
+            <p className="private-kicker">private</p>
+            <h1>Diário</h1>
+            <p className="private-note">Unlock with Face ID or your device security.</p>
+            <Button disabled={unlockBusy} onClick={async () => {
+              setUnlockBusy(true);
+              setUnlockError(null);
+              try {
+                await verifyDeviceUnlock(session.user.id);
+                setDeviceLocked(false);
+              } catch {
+                setUnlockError("Could not unlock. Try again or sign in with your password.");
+              } finally {
+                setUnlockBusy(false);
+              }
+            }}><Fingerprint /> {unlockBusy ? "Unlocking…" : "Unlock Diário"}</Button>
+            {unlockError && <p className="private-error" role="alert">{unlockError}</p>}
+            <Button variant="outline" onClick={async () => {
+              clearAppShellContinuity();
+              await supabase.auth.signOut();
+            }}>Use account password</Button>
+          </section>
+        </main>
+      ) : !biometricEnabled && !deviceLocked && canUseDeviceUnlock() ? (
+        <div style={{ position: "fixed", bottom: 14, left: 14, zIndex: 1000 }}>
+          <Button variant="outline" onClick={async () => {
+            try {
+              await enrollDeviceUnlock(session.user.id);
+              setBiometricEnabled(true);
+              setDeviceLocked(true);
+            } catch {
+              setUnlockError("Could not enable Face ID on this device.");
+            }
+          }}><Fingerprint /> Enable Face ID</Button>
+          {unlockError && <p className="private-error" role="alert">{unlockError}</p>}
+        </div>
+      ) : null}
+      {privacyCover && !deviceLocked && (
         <PrivacyCover />
       )}
     </PrivateDiarioContext.Provider>
