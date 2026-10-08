@@ -287,7 +287,7 @@ export function PhotoEngineScreen() {
       );
       setPreviews(previous => {
         const next = [...previous];
-        for (const request of data as PhotoGenerationRequest[]) {
+        for (const request of (data as PhotoGenerationRequest[]).filter(request => request.status !== "failed")) {
           const existing = next.findIndex(item => item.request.id === request.id);
           const recoveredPhotoId = request.photo_item_id ?? savedPhotoIds.get(request.id) ?? null;
           const status: PreviewState["status"] = recoveredPhotoId ? "saved" : request.status === "failed" ? "error" : request.status === "completed" ? "error" : "generating";
@@ -299,7 +299,7 @@ export function PhotoEngineScreen() {
           if (existing < 0) next.push(item);
           else next[existing] = { ...next[existing], request, status, savedPhotoId: item.savedPhotoId, error: item.error };
         }
-        return next.slice(-8);
+        return next.filter(item => item.status !== "error").slice(-8);
       });
     }
     void refresh();
