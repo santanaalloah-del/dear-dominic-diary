@@ -494,7 +494,7 @@ const prompt = buildPrompt(
                 updated_at: new Date().toISOString(),
               }),
             }).catch(() => null);
-            return jsonError("Could not queue background photo. No automatic retry was made.", 503);
+            return jsonError("Photo worker rejected request (HTTP " + result.status + "). No automatic retry was made.", 503);
           }
           return Response.json({ status: "queued", requestId: body.request.id }, { status: 202 });
         }
