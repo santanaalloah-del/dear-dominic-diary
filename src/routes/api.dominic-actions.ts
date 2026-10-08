@@ -1413,8 +1413,25 @@ export const Route =
                 ) ||
                 DEFAULT_MODEL;
 
-              const actions =
-                await interpretActions({
+              const supabaseUrl = envValue("SUPABASE_URL") || import.meta.env.VITE_SUPABASE_URL;
+              const serviceRoleKey = envValue("SUPABASE_SERVICE_ROLE_KEY");
+              if (!supabaseUrl || !serviceRoleKey) {
+                return jsonError("Budget protection unavailable.", 503);
+              }
+              const rpc = async (name: string, body: Record<string, unknown>) => {
+                const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+                  body: JSON.stringify(body),
+                });
+                if (!response.ok) throw new Error("Budget check failed");
+                return response.json();
+              };
+              const budgetId = await rpc("reserve_ai_budget", { p_source: "dominic-actions", p_estimated_usd: 0.04 });
+              if (!budgetId) return Response.json({ actions: [], budgetExhausted: true });
+              let actions: DominicWorldAction[];
+              try {
+                actions = await interpretActions({
                   apiKey,
                   model,
                   userMessage,
@@ -1441,6 +1458,11 @@ export const Route =
                       : [],
                 });
 
+                await rpc("settle_ai_budget", { p_id: budgetId });
+              } catch (error) {
+                await rpc("release_ai_budget", { p_id: budgetId });
+                throw error;
+              }
               return Response.json({
                 actions,
               });
