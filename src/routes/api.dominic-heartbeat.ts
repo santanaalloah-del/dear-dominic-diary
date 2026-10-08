@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const DEFAULT_MODEL = "google/gemini-3.8-flash";
+// Bound paid background decisions per cron invocation; monthly spending
+// still requires a shared server-side budget ledger across all routes.
+const MAX_HEARTBEAT_EVENTS_PER_RUN = 2;
 
 function envValue(name: string) {
   return process.env[name]?.trim() || "";
@@ -184,7 +187,7 @@ export const Route = createFileRoute("/api/dominic-heartbeat")({
               "scheduled_for",
               { ascending: true }
             )
-            .limit(20);
+            .limit(MAX_HEARTBEAT_EVENTS_PER_RUN);
 
         if (error) throw error;
 
