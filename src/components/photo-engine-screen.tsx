@@ -221,6 +221,12 @@ export function PhotoEngineScreen() {
   const [previews, setPreviews] = useState<PreviewState[]>([]);
   const [showRecentPreviews, setShowRecentPreviews] = useState(false);
   const activeRequestIds = useRef(new Set<string>());
+  const componentActive = useRef(true);
+
+  useEffect(() => {
+    componentActive.current = true;
+    return () => { componentActive.current = false; };
+  }, []);
 
   useEffect(() => {
     const draft = readDraft();
@@ -430,6 +436,34 @@ export function PhotoEngineScreen() {
     }
   }
 
+  async function waitForBatchPhoto(request: PhotoGenerationRequest): Promise<boolean> {
+    // Daily Life multi-photo batches must not start the next paid image while
+    // an earlier provider job is still generating or has failed.
+    for (let attempt = 0; attempt < 72; attempt += 1) {
+      if (!componentActive.current) return false;
+      await new Promise<void>(resolve => window.setTimeout(resolve, 2500));
+      if (!componentActive.current) return false;
+      const { data, error: pollError } = await (supabase as any)
+        .from("photo_generation_requests")
+        .select("status,error_message")
+        .eq("id", request.id)
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      if (pollError || !data) {
+        setError("Could not confirm whether the previous photo finished. Remaining photos were not requested.");
+        return false;
+      }
+      if (data.status === "completed") return true;
+      if (data.status === "failed") {
+        activeRequestIds.current.delete(request.id);
+        setError(data.error_message || "The previous photo failed. Remaining photos were not requested.");
+        return false;
+      }
+    }
+    setError("The previous photo is still processing. Remaining photos were not requested. Check Gallery before trying again.");
+    return false;
+  }
+
   async function createPhotos() {
     if (!session?.user?.id || creating) return;
 
@@ -467,8 +501,10 @@ export function PhotoEngineScreen() {
         };
         activeRequestIds.current.add(request.id);
         setPreviews(current => [...current, item]);
+        if (!componentActive.current) break;
         const queued = await generateIntoPreview(item.key, item.request);
         if (!queued) break;
+        if (index < count - 1 && !(await waitForBatchPhoto(request))) break;
       }
     } catch (nextError) {
       console.error("Could not create Photo Engine request:", nextError);
