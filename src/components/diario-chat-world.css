@@ -771,3 +771,63 @@
   outline:1px solid var(--chat-accent,#9f4653);
   outline-offset:2px;
 }
+
+/* Portals live outside the chat: carry its actual palette into their surfaces. */
+.diario-message-actions,
+.diario-favorites-sheet{
+  background:var(--chat-panel,#503039) !important;
+  color:var(--chat-ink,#f7eadb) !important;
+  -webkit-text-fill-color:var(--chat-ink,#f7eadb) !important;
+  border-color:color-mix(in oklab,var(--chat-ink,#f7eadb) 18%,transparent) !important;
+}
+.diario-message-actions .diario-message-action,
+.diario-favorites-sheet button,
+.diario-favorites-sheet h2,
+.diario-favorites-sheet p,
+.diario-favorites-sheet span,
+.diario-favorites-sheet strong,
+.diario-favorites-sheet time{
+  color:var(--chat-ink,#f7eadb) !important;
+  -webkit-text-fill-color:var(--chat-ink,#f7eadb) !important;
+}
+.diario-reaction-options button[aria-pressed="true"],
+.diario-reaction-options button:hover,
+.diario-message-actions .diario-message-action:hover{
+  background:color-mix(in oklab,var(--chat-accent,#df909b) 25%,transparent) !important;
+}
+.messenger-chat .messenger-message:is([aria-expanded="true"],.is-favorite-jump) .messenger-bubble{
+  background:color-mix(in oklab,var(--chat-accent,#df909b) 25%,var(--chat-panel,#503039)) !important;
+  outline:2px solid var(--chat-accent,#df909b) !important;
+  outline-offset:2px;
+}
+.messenger-chat .messenger-message:is([aria-expanded="true"],.is-favorite-jump) .messenger-bubble,
+.messenger-chat .messenger-message:is([aria-expanded="true"],.is-favorite-jump) .messenger-bubble *{
+  color:var(--chat-ink,#f7eadb) !important;
+  -webkit-text-fill-color:var(--chat-ink,#f7eadb) !important;
+}
+.diario-favorites-sheet{
+  width:100%;
+  max-width:480px;
+  margin-inline:auto;
+  max-height:82dvh;
+  overflow-y:auto;
+  border-radius:20px 20px 0 0;
+  padding:24px 16px calc(22px + env(safe-area-inset-bottom));
+}
+.diario-favorites-description,.diario-favorites-empty{font-size:13px;line-height:1.5;opacity:.8;}
+.diario-favorites-description{margin:10px 0 18px;}
+.diario-favorites-list{display:grid;gap:10px;}
+.diario-favorite-row{
+  display:flex;
+  gap:4px;
+  border:1px solid color-mix(in oklab,var(--chat-ink,#f7eadb) 16%,transparent);
+  border-radius:14px;
+  background:color-mix(in oklab,var(--chat-theirs,#633941) 65%,transparent);
+}
+.diario-favorite-preview{display:grid;gap:7px;min-width:0;flex:1;text-align:left;padding:14px;border:0;background:transparent;cursor:pointer;}
+.diario-favorite-preview strong{font-size:12px;}
+.diario-favorite-preview span{font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;}
+.diario-favorite-preview time{font-size:11px;opacity:.7;}
+.diario-favorite-preview img{width:100%;max-height:140px;object-fit:cover;border-radius:8px;}
+.diario-favorite-remove{display:grid;place-items:center;align-self:flex-start;min-width:44px;min-height:44px;padding:8px;border:0;background:transparent;cursor:pointer;}
+.diario-favorites-sheet button:focus-visible{outline:2px solid var(--chat-accent,#df909b);outline-offset:2px;}

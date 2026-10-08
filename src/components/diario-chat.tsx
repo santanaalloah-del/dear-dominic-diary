@@ -932,6 +932,24 @@ onOpen: (
       return next;
     });
   };
+  const chatSurfaceRef = useRef<HTMLElement | null>(null);
+  const [messageSurfaceStyle, setMessageSurfaceStyle] = useState<React.CSSProperties>({});
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
+  const [favoriteJumpId, setFavoriteJumpId] = useState<string | null>(null);
+  const captureChatColors = () => {
+    if (!chatSurfaceRef.current) return;
+    const styles = getComputedStyle(chatSurfaceRef.current);
+    setMessageSurfaceStyle(Object.fromEntries(
+      ["--chat-panel", "--chat-ink", "--chat-accent", "--chat-theirs", "--chat-mine"]
+        .map((name) => [name, styles.getPropertyValue(name).trim()])
+        .filter(([, value]) => value)
+    ) as React.CSSProperties);
+  };
+  const openMessageActions = (id: string) => {
+    captureChatColors();
+    setFavoriteJumpId(null);
+    setMessageActionTarget(id);
+  };
   const [messageActionTarget, setMessageActionTarget] = useState<string | null>(null);
   const [messageReactions, setMessageReactions] = useState<Record<string, string>>({});
   const suppressMessageClickRef = useRef(false);
@@ -4895,7 +4913,7 @@ const recentConversationForPhoto = () =>
   }
 
   return (
-    <section className={chatClassName}>
+    <section ref={chatSurfaceRef} className={chatClassName}>
       <header className="messenger-header">
         <Sheet>
           <SheetTrigger asChild>
@@ -5003,6 +5021,10 @@ const recentConversationForPhoto = () =>
         </div>
 
         <div className="messenger-header-actions">
+          <button type="button" aria-label="Open favorite messages" title="Favorite messages"
+            onClick={() => { captureChatColors(); setFavoriteJumpId(null); setFavoritesOpen(true); }}>
+            <Star />
+          </button>
           <div className="alloah-presence-menu">
             <button
               type="button"
@@ -5221,7 +5243,7 @@ const recentConversationForPhoto = () =>
                   if (event.target !== event.currentTarget) return;
                   if (event.key === "Enter" || event.key === " " || (event.shiftKey && event.key === "F10")) {
                     event.preventDefault();
-                    setMessageActionTarget(message.id);
+                    openMessageActions(message.id);
                   }
                 }}
                 onClick={(event) => {
@@ -5231,9 +5253,9 @@ const recentConversationForPhoto = () =>
                   }
                   if ((event.target as HTMLElement).closest("button, a, input, textarea, audio, video")) return;
                   if (window.getSelection()?.toString()) return;
-                  setMessageActionTarget(message.id);
+                  openMessageActions(message.id);
                 }}
-                className={`diario-message messenger-message ${message.kind === "voice" ? "voice-message" : ""}`}
+                className={`diario-message messenger-message ${message.kind === "voice" ? "voice-message" : ""} ${favoriteJumpId === message.id ? "is-favorite-jump" : ""}`}
                 onTouchStart={(event) => {
                   suppressMessageClickRef.current = false;
                   if ((event.target as HTMLElement).closest("button, a, input, textarea, audio, video")) return;
@@ -5243,7 +5265,7 @@ const recentConversationForPhoto = () =>
                   const timer = window.setTimeout(() => {
                     suppressMessageClickRef.current = true;
                     window.getSelection()?.removeAllRanges();
-                    setMessageActionTarget(message.id);
+                    openMessageActions(message.id);
                   }, 520);
                   replyTouchRef.current = { id: message.id, x: touch.clientX, y: touch.clientY, timer };
                 }}
@@ -5293,7 +5315,7 @@ const recentConversationForPhoto = () =>
                 onContextMenu={(event) => {
                   event.preventDefault();
                   window.getSelection()?.removeAllRanges();
-                  setMessageActionTarget(message.id);
+                  openMessageActions(message.id);
                 }}
               >
                 <span className="chat-swipe-reply-indicator" aria-hidden="true">
@@ -5448,7 +5470,7 @@ const recentConversationForPhoto = () =>
                     {messageReactions[message.id] && (
                       <button type="button" className="diario-message-reaction"
                         aria-label={`Your reaction: ${messageReactions[message.id]}. Change reaction`}
-                        onClick={() => setMessageActionTarget(message.id)}>
+                        onClick={() => openMessageActions(message.id)}>
                         {messageReactions[message.id]}
                       </button>
                     )}
@@ -5467,6 +5489,7 @@ const recentConversationForPhoto = () =>
               </PopoverAnchor>
               <PopoverContent
                 className="diario-message-actions"
+                style={messageSurfaceStyle}
                 side="top"
                 align={message.role === "user" ? "end" : "start"}
                 sideOffset={8}
@@ -5980,6 +6003,42 @@ onPhotoFromConversation={() =>
         {stickerNotice}
       </p>
     )}
+  </SheetContent>
+</Sheet>
+
+<Sheet open={favoritesOpen} onOpenChange={setFavoritesOpen}>
+  <SheetContent side="bottom" className="diario-favorites-sheet" style={messageSurfaceStyle}
+    aria-describedby="favorite-messages-description"
+    onCloseAutoFocus={(event) => {
+      if (!favoriteJumpId) return;
+      event.preventDefault();
+      const target = document.getElementById(`chat-message-${favoriteJumpId}`);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      target?.focus({ preventScroll: true });
+    }}>
+    <SheetHeader><SheetTitle>Favorite messages</SheetTitle></SheetHeader>
+    <p id="favorite-messages-description" className="diario-favorites-description">
+      Tap a message to find it in your conversation.
+    </p>
+    <div className="diario-favorites-list">
+      {messages.filter((message) => favoriteMessageIds.includes(message.id)).length === 0 ? (
+        <p className="diario-favorites-empty">No favorites yet. Tap or hold a message and choose Favorite.</p>
+      ) : messages.filter((message) => favoriteMessageIds.includes(message.id)).map((message) => (
+        <div key={message.id} className="diario-favorite-row">
+          <button type="button" className="diario-favorite-preview" onClick={() => {
+            setFavoriteJumpId(message.id);
+            setFavoritesOpen(false);
+          }}>
+            <strong>{message.role === "assistant" ? "Dominic" : preferredName}</strong>
+            {message.kind === "photo" && message.mediaUrl && <img src={message.mediaUrl} alt="Favorite photo" />}
+            <span>{message.content || message.sharedTitle || (message.kind === "photo" ? "Photo" : message.kind === "voice" ? "Voice message" : message.kind === "sticker" ? "Sticker" : "Message")}</span>
+            <time>{new Date(message.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Sao_Paulo" })} · {formatTime(message.createdAt)}</time>
+          </button>
+          <button type="button" className="diario-favorite-remove" aria-label="Unfavorite message"
+            onClick={() => toggleMessageFavorite(message.id)}><Star size={17} fill="currentColor" /></button>
+        </div>
+      ))}
+    </div>
   </SheetContent>
 </Sheet>
 
