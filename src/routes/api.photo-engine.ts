@@ -412,20 +412,34 @@ export const Route = createFileRoute("/api/photo-engine")({
           new URL(request.url).host,
         ]);
 
+        const storageHost = new URL(verified.supabaseUrl).host;
         const resolved = await Promise.all(
-          references.map(async (reference) => ({
-            reference,
-            dataUrl: body.background === true
-              ? (() => {
-                  try {
-                    const u = new URL(reference.url);
-                    return u.protocol === "https:" && allowedHosts.has(u.host) ? reference.url : null;
-                  } catch {
-                    return null;
-                  }
-                })()
-              : await referenceToDataUrl(reference, allowedHosts),
-          }))
+          references.map(async (reference) => {
+            let dataUrl: string | null = null;
+            // The worker can safely forward signed Supabase Storage URLs to
+            // OpenRouter, preserving full resolution without large JSON bodies.
+            // App-hosted room references are converted here, because the worker
+            // intentionally does not fetch arbitrary external hostnames.
+            if (body.background === true) {
+              try {
+                const u = new URL(reference.url);
+                if (
+                  u.protocol === "https:" &&
+                  u.host === storageHost &&
+                  u.pathname.startsWith("/storage/v1/")
+                ) {
+                  dataUrl = reference.url;
+                } else {
+                  dataUrl = await referenceToDataUrl(reference, allowedHosts);
+                }
+              } catch {
+                dataUrl = null;
+              }
+            } else {
+              dataUrl = await referenceToDataUrl(reference, allowedHosts);
+            }
+            return { reference, dataUrl };
+          })
         );
 
         const attachedReferences = resolved.filter(
