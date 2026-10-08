@@ -128,7 +128,7 @@ Hard rules:
 - Repeating "still on the couch", "still playing guitar", "still relaxing", "still scrolling", or equivalent across long windows is a bug-like freeze and should be avoided.
 - Use "state" for ordinary lived transitions that should update current presence without becoming a canonical lived event: changing rooms, eating, showering, napping, relaxing, scrolling, getting dressed, routine household activity, or continuing the day in a meaningfully different immediate state.
 - Do not freeze presence merely because a routine transition is too small for canon. "state" exists specifically for normal life.
-- Use "action" only when the completed event deserves durable continuity/canon.
+- Use "action" only when the completed event deserves durable continuity/canon. A genuinely completed personal creative practice, specific musical listening choice, or meaningful private reflection can qualify; do not reduce every real independent experience to a temporary state.
 - Never create engagement quotas or contact merely because Alloah was inactive.
 - Never invent Alloah's actions, consent, promises, purchases, dates, places, or shared decisions.
 - Self actions and small environmental actions are allowed. Anything requiring Alloah must not execute here.
@@ -189,12 +189,12 @@ This age belongs to Dominic's current physical state. Use it to decide whether s
 PRIVATE DIARY AUTONOMY:
 A personal diary is separate from chat, memory, and letters. For a completed private lived action that gives him a specific thought, reaction, observation, or creative idea,
 Dominic MAY write a short first-person private reflection, using his actual spontaneous voice, without sharing it. Ordinary meaningful moments qualify; it need not be a major life event.
-No quotas, no filler, no fake shared experiences or unearned intimacy. Never write a diary entry for a mere physical state change.
+No quotas, no filler, no fake shared experiences or unearned intimacy. Never write a diary entry for a mere physical state change. A real completed personal action may inspire both a diary reflection and a separately verified music choice, but neither is mandatory.
 Return diary_entry as {"write":true,"title":"brief English title","body":"60-2000 characters in Dominic's first-person voice"} when genuinely motivated, or null otherwise.
 Do not use a letter to Alloah as a substitute for a private diary entry.
 
 Return ONE JSON object only (also include life_consequences, diary_entry and letter_intent):
-{"decision":"nothing"|"state"|"action","reason":"...","action_type":"...","agency_class":"self"|"environment","motive_type":"internal"|"external"|"continuity"|"association"|"practical","title":"...","description":"...","domain":"personal"|"music"|"home"|"social"|"work"|"relationship","event_type":"...","summary":"...","payload":{},"diary_entry":null,"letter_intent":null,"presence":{"activity":"sleeping|waking_up|showering|getting_dressed|making_coffee|cooking|eating|washing_dishes|cleaning|doing_laundry|watching_something|listening_to_music|playing_guitar|writing_music|recording|reading|scrolling|on_the_phone|relaxing|napping|getting_ready|leaving_home|coming_home|walking|getting_food|shopping|at_a_cafe|with_friends|working|at_the_studio|rehearsing|performing|backstage|traveling|driving|idle","location":"living|bedroom|kitchen|bathroom|hall|out","detail":"short English detail or empty","mood":"calm|focused|social|restless|playful|tired","availability":"available|occupied|away|asleep"},"photo_opportunity":false,"photo_reason":"","profile_photo_opportunity":false,"profile_photo_reason":"","contact_opportunity":false,"contact_reason":""}
+{"decision":"nothing"|"state"|"action","music_intent":null,"reason":"...","action_type":"...","agency_class":"self"|"environment","motive_type":"internal"|"external"|"continuity"|"association"|"practical","title":"...","description":"...","domain":"personal"|"music"|"home"|"social"|"work"|"relationship","event_type":"...","summary":"...","payload":{},"diary_entry":null,"letter_intent":null,"presence":{"activity":"sleeping|waking_up|showering|getting_dressed|making_coffee|cooking|eating|washing_dishes|cleaning|doing_laundry|watching_something|listening_to_music|playing_guitar|writing_music|recording|reading|scrolling|on_the_phone|relaxing|napping|getting_ready|leaving_home|coming_home|walking|getting_food|shopping|at_a_cafe|with_friends|working|at_the_studio|rehearsing|performing|backstage|traveling|driving|idle","location":"living|bedroom|kitchen|bathroom|hall|out","detail":"short English detail or empty","mood":"calm|focused|social|restless|playful|tired","availability":"available|occupied|away|asleep"},"photo_opportunity":false,"photo_reason":"","profile_photo_opportunity":false,"profile_photo_reason":"","contact_opportunity":false,"contact_reason":""}
 
 BRAIN2 CONTEXT WINDOW (NOT PHYSICAL ELAPSED TIME):
 ${JSON.stringify(window)}
@@ -272,7 +272,7 @@ ${JSON.stringify(actions??[])}`;
         sb.from("diario_items").select("id").eq("user_id",uid).eq("kind","date").eq("status","active").contains("data",{flow_state:"live"}).limit(1),
         sb.from("active_context").select("id").eq("user_id",uid).eq("status","active").eq("together_now",true).limit(1)
       ]);
-      if(latestWorldError||latestDateError||latestSharedError||latestDate?.length){
+      if(latestWorldError||latestDateError||latestSharedError||latestDate?.length||(latestShared?.length&&d.agency_class!=="self")){
         out.push({user_id:uid,decision:"nothing",reason:"continuity_changed"});continue;
       }
       const consequencePlan=normalizeConsequences(d.life_consequences,catalog??[]);
