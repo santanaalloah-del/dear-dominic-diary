@@ -56,7 +56,7 @@ const referenceSubjects: {
 }[] = [
   { id: "alloah", label: "Alloah", note: "your face and identity" },
   { id: "dominic", label: "Dominic", note: "his face, body and tattoos" },
-  { id: "couple", label: "Us", note: "how you look together" },
+  { id: "couple", label: "Us · Inspiration", note: "Pinterest poses and mood, not your faces" },
 ];
 
 const currentLookTypes: {
@@ -124,7 +124,7 @@ function autoReferenceSettings(subject: IdentitySubject): {
     purposes: ["pose", "expression", "body"],
     strength: "supporting",
     description:
-      "Use this as a couple reference for how Alloah and Dominic naturally look together.",
+      "Optional Pinterest inspiration for pose, framing and mood only. The people pictured are not Alloah or Dominic. Never copy their faces.",
   };
 }
 
@@ -488,7 +488,7 @@ export function VisualReferencesScreen() {
           referenceId: created.reference.id,
           purposes: settings.purposes,
           strength: settings.strength,
-          referenceKind: "identity",
+          referenceKind: subject === "couple" ? "pose" : "identity",
         });
 
         createdItems.push({
@@ -500,7 +500,9 @@ export function VisualReferencesScreen() {
       const mergedReferences = [...createdItems, ...references];
       setReferences(mergedReferences);
 
-      void runCanonAnalysis(mergedReferences);
+      if (subject !== "couple") {
+        void runCanonAnalysis(mergedReferences);
+      }
     } catch (uploadError) {
       console.error("Could not upload references:", uploadError);
       setError(
@@ -842,8 +844,9 @@ export function VisualReferencesScreen() {
               <small>identity</small>
               <h2>{activeSubject?.label}</h2>
               <p>
-                Choose several photos at once. We&apos;ll use them automatically
-                as canon references.
+                {subject === "couple"
+                  ? "Add Pinterest photos for optional inspiration, not exact copies. Faces must come from individual identity photos."
+                  : "Choose several photos at once. We'll use them automatically as identity references."}
               </p>
             </div>
 
