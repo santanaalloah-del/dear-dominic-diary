@@ -916,6 +916,19 @@ onOpen: (
 }) {
   const { session, preferredName } = usePrivateDiario();
   const time = useTimeMood();
+  const [favoriteMessageIds, setFavoriteMessageIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("diario:favorite-message-ids");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const toggleMessageFavorite = (id: string) => {
+    setFavoriteMessageIds((current) => {
+      const next = current.includes(id) ? current.filter((value) => value !== id) : [...current, id];
+      try { localStorage.setItem("diario:favorite-message-ids", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -5360,6 +5373,7 @@ const recentConversationForPhoto = () =>
     </button>
   )}
                 
+                <button type="button" aria-label={favoriteMessageIds.includes(message.id) ? "Unfavorite message" : "Favorite message"} aria-pressed={favoriteMessageIds.includes(message.id)} onClick={() => toggleMessageFavorite(message.id)} className="diario-message-favorite"><Heart size={13} fill={favoriteMessageIds.includes(message.id) ? "currentColor" : "none"} /></button>
                 {preferences.showTimestamps && (
                   <time>{formatTime(message.createdAt)}{message.role === "user" ? "  ✓✓" : ""}</time>
                 )}
