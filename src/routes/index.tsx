@@ -1070,11 +1070,13 @@ function HomeScreen({
           </div>
         </header>
 
-        {dominicState && dominicState.location === activeRoom.id && (
-          <div className="apartment-home-dominic">
+        {dominicState && (
+          <div className="apartment-home-dominic" role="status" aria-live="polite">
             <span>DOMINIC NOW</span>
             <strong>{dominicState.activity.replaceAll("_", " ")}</strong>
-            <small>{activeRoom.title.toLowerCase()}</small>
+            <small>{dominicState.location === "out"
+              ? "away from the apartment"
+              : rooms.find((room) => room.id === dominicState.location)?.title.toLowerCase() ?? "at home"}</small>
           </div>
         )}
 
