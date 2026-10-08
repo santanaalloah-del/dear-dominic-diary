@@ -400,18 +400,6 @@ export function PhotoEngineScreen() {
     }
   }
 
-  async function retryPreview(item: PreviewState) {
-    if (creating) return;
-    setCreating(true);
-    setError(null);
-
-    try {
-      await generateIntoPreview(item.key, item.request);
-    } finally {
-      setCreating(false);
-    }
-  }
-
   async function regeneratePreview(item: PreviewState) {
     if (creating) return;
     setCreating(true);
