@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { usePrivateDiario } from "@/components/private-diario";
 import { loadDominicState } from "@/lib/dominic-state";
+import { supabase } from "@/integrations/supabase/client";
 import { useTimeMood } from "@/lib/time-mood";
 import {
   createPhotoGenerationRequest,
