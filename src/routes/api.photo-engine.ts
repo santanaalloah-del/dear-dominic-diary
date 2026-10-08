@@ -444,20 +444,19 @@ const prompt = buildPrompt(
         };
         // Atomically claim this request before any paid image call.
         // A repeated POST or a reconnect must not generate a second image.
-        const requestUrl = `${budgetUrl}/rest/v1/photo_generation_requests?id=eq.${encodeURIComponent(body.request.id)}&user_id=eq.${encodeURIComponent(body.userId)}&status=eq.queued&select=id`;
-        const claimResponse = await fetch(requestUrl, {
-          method: "PATCH",
+        // A service-role-only database RPC claims exactly one queued job.
+        const claimResponse = await fetch(`${budgetUrl}/rest/v1/rpc/claim_photo_job`, {
+          method: "POST",
           headers: {
             apikey: budgetKey,
             Authorization: `Bearer ${budgetKey}`,
             "Content-Type": "application/json",
-            Prefer: "return=representation",
           },
-          body: JSON.stringify({ status: "generating", updated_at: new Date().toISOString() }),
+          body: JSON.stringify({ p_request_id: body.request.id, p_user_id: body.userId }),
         });
         if (!claimResponse.ok) return jsonError("Photo request could not be claimed.", 503);
         const claimed = await claimResponse.json();
-        if (!Array.isArray(claimed) || claimed.length !== 1) {
+        if (claimed !== true) {
           return jsonError("This photo request has already started. Check Gallery before requesting another.", 409);
         }
         let budgetId: string | null;
