@@ -358,7 +358,7 @@ export function PhotoEngineScreen() {
         () => null
       );
 
-      const count = 1;
+      const count = isDailyLife ? dailyCount : 1;
       const batchId = count > 1 ? crypto.randomUUID() : null;
       const requests: PhotoGenerationRequest[] = [];
 
@@ -867,7 +867,7 @@ export function PhotoEngineScreen() {
               <div className="photo-engine-count-row">
                 <span>How many?</span>
                 <div>
-                  {[1].map((count) => (
+                  {[1, 2, 3, 4, 5].map((count) => (
                     <button
                       key={count}
                       type="button"
