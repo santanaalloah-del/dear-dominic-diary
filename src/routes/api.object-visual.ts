@@ -137,6 +137,22 @@ export const Route = createFileRoute("/api/object-visual")({
           .filter(Boolean)
           .join("\n");
 
+        const budgetUrl = envValue("SUPABASE_URL") || import.meta.env.VITE_SUPABASE_URL;
+        const budgetKey = envValue("SUPABASE_SERVICE_ROLE_KEY");
+        if (!budgetUrl || !budgetKey) return jsonError("AI budget protection is unavailable.", 503);
+        const budgetRpc = async (name: string, body: Record<string, unknown>) => {
+          const res = await fetch(`${budgetUrl}/rest/v1/rpc/${name}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", apikey: budgetKey, Authorization: `Bearer ${budgetKey}` },
+            body: JSON.stringify(body)
+          });
+          if (!res.ok) throw new Error("Budget RPC failed");
+          return res.json();
+        };
+        const budgetId = await budgetRpc("reserve_ai_budget", {
+          p_source: "vercel-object-visual", p_estimated_usd: 0.40
+        });
+        if (!budgetId) return jsonError("Monthly image budget reached.", 429);
         let providerResponse: Response;
 
         try {
@@ -161,6 +177,7 @@ export const Route = createFileRoute("/api/object-visual")({
             }
           );
         } catch (error) {
+          await budgetRpc("settle_ai_budget", { p_id: budgetId });
           return jsonError(
             error instanceof Error
               ? `Object image request failed: ${error.message}`
@@ -169,6 +186,7 @@ export const Route = createFileRoute("/api/object-visual")({
           );
         }
 
+        await budgetRpc(providerResponse.ok ? "settle_ai_budget" : "release_ai_budget", { p_id: budgetId });
         const providerJson = (await providerResponse
           .json()
           .catch(() => null)) as Record<string, any> | null;
