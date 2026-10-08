@@ -311,15 +311,7 @@ export function PhotoEngineScreen() {
     });
 
     try {
-      await updatePhotoRequest({
-        userId: session.user.id,
-        requestId: request.id,
-        values: {
-          status: "generating",
-          error_message: null,
-        },
-      });
-
+      // Server atomically claims queued requests to prevent duplicate charges.
       const generated = await generatePhotoProviderPreview({
         userId: session.user.id,
         request,
