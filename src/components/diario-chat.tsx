@@ -362,7 +362,7 @@ type DominicReplyPart = {
 
 function stripInternalReplyDirective(value: string) {
   return value
-    .replace(/<REPLY_TO\s*:[^>]*>\s*/gi, "")
+    .replace(/<REPLY_TO\s*:[\s\S]*?>\s*/gi, "")
     .replace(/\[\s*message_id\s*:\s*[^\]]+\]\s*/gi, "")
     .trim();
 }
