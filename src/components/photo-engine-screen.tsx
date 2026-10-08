@@ -216,6 +216,8 @@ export function PhotoEngineScreen() {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkingConnection, setCheckingConnection] = useState(false);
+  const [connectionResult, setConnectionResult] = useState<string | null>(null);
   const [previews, setPreviews] = useState<PreviewState[]>([]);
   const [showRecentPreviews, setShowRecentPreviews] = useState(false);
 
@@ -387,6 +389,31 @@ export function PhotoEngineScreen() {
       patchPreview(key, { status: "error", error: reason });
       setError(reason);
       return false;
+    }
+  }
+
+  async function checkPhotoConnection() {
+    if (checkingConnection || creating) return;
+    setCheckingConnection(true);
+    setConnectionResult(null);
+    try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession?.access_token) throw new Error("Sign in again to check the photo connection.");
+      const response = await fetch("/api/photo-engine", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + currentSession.access_token,
+        },
+        body: JSON.stringify({ userId: currentSession.user.id, checkConnection: true }),
+      });
+      const payload = (await response.json().catch(() => null)) as { message?: string; error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "Photo connection failed (HTTP " + response.status + ").");
+      setConnectionResult(payload?.message || "Photo connection verified. No credits used.");
+    } catch (nextError) {
+      setConnectionResult(messageFromError(nextError, "Could not verify the photo connection.") + " No image was requested.");
+    } finally {
+      setCheckingConnection(false);
     }
   }
 
@@ -999,6 +1026,11 @@ export function PhotoEngineScreen() {
               </div>
             )}
           </section>
+
+          <Button type="button" variant="outline" onClick={() => void checkPhotoConnection()} disabled={checkingConnection || creating}>
+            {checkingConnection ? "Checking connection…" : "Check photo connection (free)"}
+          </Button>
+          {connectionResult && <p className="photo-engine-error" role="status">{connectionResult}</p>}
 
           <Button
             type="button"
