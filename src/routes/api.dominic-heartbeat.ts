@@ -374,6 +374,20 @@ export const Route = createFileRoute("/api/dominic-heartbeat")({
                   : "separate",
             };
 
+            const { data: budgetId, error: budgetError } =
+              await supabaseAdmin.rpc("reserve_ai_budget", {
+                p_source: "vercel-dominic-heartbeat",
+                p_estimated_usd: 0.03,
+              });
+            if (budgetError || !budgetId) {
+              await supabaseAdmin.from("proactive_events").update({
+                status: "pending",
+                processed_at: null,
+                scheduled_for: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                decision_reason: "monthly_ai_budget_unavailable",
+              }).eq("id", event.id);
+              continue;
+            }
             const generated =
               await generateInitiative({
                 apiKey,
@@ -391,6 +405,7 @@ export const Route = createFileRoute("/api/dominic-heartbeat")({
                 ].reverse(),
               });
 
+            await supabaseAdmin.rpc("settle_ai_budget", { p_id: budgetId });
             if (
               generated.decision !==
                 "send" ||
