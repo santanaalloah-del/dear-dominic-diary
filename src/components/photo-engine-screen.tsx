@@ -198,7 +198,7 @@ export function PhotoEngineScreen() {
   const [photoStyle, setPhotoStyle] = useState<PhotoStyle>("natural_iphone");
   const [closeness, setCloseness] = useState<PhotoCloseness>("casual");
   const [useCurrentLook, setUseCurrentLook] = useState(true);
-  const [dailyCount, setDailyCount] = useState<3 | 5 | 8>(5);
+  const [dailyCount, setDailyCount] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [conversationSummary, setConversationSummary] = useState("");
   const [sourceContextOverride, setSourceContextOverride] =
     useState<PhotoSourceContext | null>(null);
@@ -886,12 +886,12 @@ export function PhotoEngineScreen() {
               <div className="photo-engine-count-row">
                 <span>How many?</span>
                 <div>
-                  {[3, 5, 8].map((count) => (
+                  {[1, 2, 3, 4, 5].map((count) => (
                     <button
                       key={count}
                       type="button"
                       className={dailyCount === count ? "active" : ""}
-                      onClick={() => setDailyCount(count as 3 | 5 | 8)}
+                      onClick={() => setDailyCount(count as 1 | 2 | 3 | 4 | 5)}
                     >
                       {count}
                     </button>
