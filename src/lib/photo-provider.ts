@@ -57,6 +57,7 @@ type GeneratePreviewInput = {
   userId: string;
   request: PhotoGenerationRequest;
   sourceImageDataUrl?: string | null;
+  background?: boolean;
 };
 
 type ProviderReferencePayload = {
@@ -803,6 +804,7 @@ export async function generatePhotoProviderPreview({
   userId,
   request,
   sourceImageDataUrl,
+  background = false,
 }: GeneratePreviewInput): Promise<PhotoProviderPreview> {
   const [{ data: sessionData }, bundle, canons, wardrobeContexts, homeCanon] =
     await Promise.all([
@@ -897,6 +899,7 @@ export async function generatePhotoProviderPreview({
       references,
       canons: canonPayload(canons),
       sourceImageDataUrl: sourceImageDataUrl ?? null,
+      background,
     }),
   });
 
@@ -908,6 +911,10 @@ export async function generatePhotoProviderPreview({
     throw new Error(
       body?.error || `Photo provider failed with status ${response.status}.`
     );
+  }
+
+  if (background && response.status === 202 && (body as any)?.requestId === request.id) {
+    return { status: "queued", requestId: request.id } as unknown as PhotoProviderPreview;
   }
 
   if (!body?.dataUrl || !body?.mimeType) {
@@ -943,4 +950,11 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   }
 
   return new Blob([bytes], { type: match[1] });
+}
+
+/** Enqueues one paid photo; the Supabase worker saves it directly to Gallery. */
+export async function enqueuePhotoProviderJob(input: Omit<GeneratePreviewInput, "background">): Promise<{ status: "queued"; requestId: string }> {
+  const result = await generatePhotoProviderPreview({ ...input, background: true });
+  if ((result as any).status !== "queued") throw new Error("Photo job was not accepted.");
+  return result as unknown as { status: "queued"; requestId: string };
 }
