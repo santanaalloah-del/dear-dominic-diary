@@ -251,7 +251,14 @@ function buildPrompt(
       : "identity";
 
     const isInspiration = reference.subject === "couple" || ["pose", "style"].includes(reference.referenceKind);
-    return `Image ${index + (hasSourceImage ? 2 : 1)}: ROLE=${isInspiration ? "OPTIONAL POSE/COMPOSITION INSPIRATION — NOT THESE PEOPLE'S IDENTITY" : reference.subject === "shared_home" ? "REAL ROOM REFERENCE" : "PERSON IDENTITY"}; subject=${
+    const role = reference.subject === "wardrobe"
+      ? "EXACT CURRENT CLOTHING IMAGE — CLOTHES ONLY, NEVER FACE IDENTITY"
+      : isInspiration
+        ? "OPTIONAL POSE/COMPOSITION INSPIRATION — NOT THESE PEOPLE'S IDENTITY"
+        : reference.subject === "shared_home"
+          ? "REAL ROOM REFERENCE"
+          : "PERSON IDENTITY";
+    return `Image ${index + (hasSourceImage ? 2 : 1)}: ROLE=${role}; subject=${
       reference.subject
     }; purposes=${purposes}; strength=${reference.strength}; current=${
       reference.isCurrent ? "yes" : "no"
@@ -271,6 +278,8 @@ function buildPrompt(
     "If identity references differ in temporary styling, infer the stable identity shared across them. Hair color, clothing, makeup, jewelry and styling may be historical unless marked current.",
     "PINTEREST / US / COUPLE INSPIRATION: These are photos of OTHER people, never photographs of Alloah and Dominic together. They only suggest possible poses, candid energy, distance, framing or general mood. You may combine, vary or completely ignore their compositions. NEVER transfer Pinterest faces, bodies, skin, clothes, or exact staging to Alloah or Dominic.",
     "A scene description and the characters' authentic identity override Pinterest inspirations. The inspiration is not a mandatory template or a demand to reconstruct any reference.",
+    "WARDROBE VISUAL CANON: Wardrobe reference images are photos of the EXACT SAVED CLOTHING PIECES, not photos of a person. When visible in this scene, reproduce each selected garment's silhouette, fit, construction, fabric and color. Do not replace wide/baggy jeans with slim or skinny jeans. Do not replace Adidas Samba-style sneakers with slides, sandals or flip-flops. The clothing reference's shape overrides the model's generic clothing assumptions, while the identity photos govern the real faces and bodies.",
+    "FRAMING FOR TWO PEOPLE: Unless explicitly requesting a rear view or extremely wide establishing shot, show recognizable faces for BOTH people at a size that makes their identity evaluable. Preserve the scene and room but do not let the entire apartment dominate the image.",
     hasSourceImage
       ? "Image 1 is an existing generated preview being adjusted. Preserve scene continuity while correcting the person toward the identity references."
       : null,
