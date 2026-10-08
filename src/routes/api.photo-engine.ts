@@ -429,6 +429,23 @@ const prompt = buildPrompt(
           );
         }
 
+        // Protect expensive manual photos with the same server-side monthly ledger.
+        const budgetUrl = envValue("SUPABASE_URL") || import.meta.env.VITE_SUPABASE_URL;
+        const budgetKey = envValue("SUPABASE_SERVICE_ROLE_KEY");
+        if (!budgetUrl || !budgetKey) return jsonError("Photo budget is not configured.", 503);
+        const budgetRpc = async (name: string, body: Record<string, unknown>) => {
+          const res = await fetch(`${budgetUrl}/rest/v1/rpc/${name}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", apikey: budgetKey, Authorization: `Bearer ${budgetKey}` },
+            body: JSON.stringify(body)
+          });
+          if (!res.ok) throw new Error("AI budget service unavailable");
+          return res.json();
+        };
+        const budgetId = await budgetRpc("reserve_ai_budget", {
+          p_source: "vercel-photo-engine", p_estimated_usd: 0.75
+        });
+        if (!budgetId) return jsonError("Monthly photo budget reached.", 429);
         let providerResponse: Response;
 
         try {
@@ -454,6 +471,7 @@ const prompt = buildPrompt(
             }
           );
         } catch (error) {
+          await budgetRpc("settle_ai_budget", { p_id: budgetId });
           return jsonError(
             error instanceof Error
               ? `OpenRouter image request failed: ${error.message}`
@@ -462,6 +480,7 @@ const prompt = buildPrompt(
           );
         }
 
+        await budgetRpc(providerResponse.ok ? "settle_ai_budget" : "release_ai_budget", { p_id: budgetId });
         const providerJson = (await providerResponse
           .json()
           .catch(() => null)) as Record<string, any> | null;
