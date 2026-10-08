@@ -35,6 +35,7 @@ import {
 import {
   dataUrlToBlob,
   generatePhotoProviderPreview,
+  enqueuePhotoProviderJob,
   type PhotoProviderPreview,
 } from "@/lib/photo-provider";
 import "./photo-engine.css";
@@ -302,75 +303,12 @@ export function PhotoEngineScreen() {
     request: PhotoGenerationRequest,
     sourceImageDataUrl?: string | null
   ) {
-    patchPreview(key, {
-      request,
-      status: "generating",
-      preview: null,
-      error: null,
-      savedPhotoId: null,
-    });
-
+    patchPreview(key, { request, status: "generating", preview: null, error: null, savedPhotoId: null });
     try {
-      // Server atomically claims queued requests to prevent duplicate charges.
-      const generated = await generatePhotoProviderPreview({
-        userId: session.user.id,
-        request,
-        sourceImageDataUrl,
-      });
-
-      await updatePhotoRequest({
-        userId: session.user.id,
-        requestId: request.id,
-        values: {
-          status: "preparing",
-          provider: generated.provider,
-          provider_model: generated.model,
-          final_prompt: generated.prompt,
-          error_message: null,
-        },
-      });
-
-      // Persist the paid result immediately instead of waiting for Keep.
-      const blob = dataUrlToBlob(generated.dataUrl);
-      const saved = await saveGeneratedPhoto({
-        userId: session.user.id,
-        request,
-        blob,
-        mimeType: generated.mimeType,
-        title: request.mode === "daily_life" ? "Daily life" : "Photo",
-        feature: generated.feature,
-        extraData: {
-          provider: generated.provider,
-          provider_model: generated.model,
-          automatically_saved: true,
-        },
-      });
-      patchPreview(key, {
-        status: "saved",
-        preview: generated,
-        savedPhotoId: saved.item.id,
-        error: null,
-      });
-      window.dispatchEvent(new Event("diario-generated-chat-photo"));
+      await enqueuePhotoProviderJob({ userId: session.user.id, request, sourceImageDataUrl });
+      patchPreview(key, { status: "generating" });
     } catch (nextError) {
-      const message = messageFromError(
-        nextError,
-        "The image provider could not generate this photo."
-      );
-
-      await updatePhotoRequest({
-        userId: session.user.id,
-        requestId: request.id,
-        values: {
-          status: "failed",
-          error_message: message,
-        },
-      }).catch(() => null);
-
-      patchPreview(key, {
-        status: "error",
-        error: message,
-      });
+      patchPreview(key, { status: "error", error: messageFromError(nextError, "Could not queue photo.") });
     }
   }
 
@@ -386,7 +324,7 @@ export function PhotoEngineScreen() {
         () => null
       );
 
-      const count = isDailyLife ? dailyCount : 1;
+      const count = 1;
       const batchId = count > 1 ? crypto.randomUUID() : null;
       const requests: PhotoGenerationRequest[] = [];
 
@@ -895,7 +833,7 @@ export function PhotoEngineScreen() {
               <div className="photo-engine-count-row">
                 <span>How many?</span>
                 <div>
-                  {[1, 2, 3, 4, 5].map((count) => (
+                  {[1].map((count) => (
                     <button
                       key={count}
                       type="button"
@@ -989,12 +927,12 @@ export function PhotoEngineScreen() {
             {creating
               ? "Generating…"
               : isDailyLife
-                ? `Create ${dailyCount} photos`
+                ? "Create photo"
                 : "Create photo"}
           </Button>
 
           <p className="photo-engine-footer-note">
-            Nothing is saved to Gallery until you tap Keep.
+            Photos are saved automatically to Gallery after generation.
           </p>
         </>
       )}
