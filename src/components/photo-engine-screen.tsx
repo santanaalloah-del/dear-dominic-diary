@@ -35,7 +35,6 @@ import {
 } from "@/lib/photo-engine";
 import {
   dataUrlToBlob,
-  generatePhotoProviderPreview,
   enqueuePhotoProviderJob,
   type PhotoProviderPreview,
 } from "@/lib/photo-provider";
@@ -257,6 +256,7 @@ export function PhotoEngineScreen() {
         .from("photo_generation_requests")
         .select("*")
         .eq("user_id", userId)
+        .gte("created_at", new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())
         .order("created_at", { ascending: false })
         .limit(6);
       if (cancelled || !data) return;
@@ -633,7 +633,7 @@ export function PhotoEngineScreen() {
                           ? "waiting"
                           : item.status === "error"
                             ? "generation failed"
-                            : "generating"}
+                            : item.status === "saved" ? "Saved to Gallery" : "generating"}
                       </span>
                     </div>
                   )}
