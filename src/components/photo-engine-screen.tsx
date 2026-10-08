@@ -702,9 +702,11 @@ export function PhotoEngineScreen() {
 
                 <div className="photo-engine-preview-copy">
                   <small>
-                    {previews.length > 1
-                      ? `PHOTO ${index + 1} OF ${previews.length}`
-                      : selectedMode?.label ?? "PHOTO"}
+                    {item.status === "error"
+                      ? "FAILED ATTEMPT · NOT A GENERATED PHOTO"
+                      : previews.length > 1
+                        ? `PHOTO ${index + 1} OF ${previews.length}`
+                        : selectedMode?.label ?? "PHOTO"}
                   </small>
                   <strong>
                     {item.request.subject_type === "both"
