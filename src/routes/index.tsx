@@ -718,9 +718,7 @@ function DiarioApp() {
             <VisualReferencesScreen />
           )}
 
-          <div style={{ display: screen === "photo-engine" ? "contents" : "none" }}>
-            <PhotoEngineScreen />
-          </div>
+          {screen === "photo-engine" ? <PhotoEngineScreen /> : null}
 
           {screen ===
             "settings" && (
