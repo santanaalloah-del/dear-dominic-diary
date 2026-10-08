@@ -463,7 +463,22 @@ const prompt = buildPrompt(
         const budgetId = await budgetRpc("reserve_ai_budget", {
           p_source: "vercel-photo-engine", p_estimated_usd: 0.06
         });
-        if (!budgetId) return jsonError("Monthly photo budget reached.", 429);
+        if (!budgetId) {
+          await fetch(`${budgetUrl}/rest/v1/photo_generation_requests?id=eq.${encodeURIComponent(body.request.id)}&user_id=eq.${encodeURIComponent(body.userId)}&status=eq.generating`, {
+            method: "PATCH",
+            headers: {
+              apikey: budgetKey,
+              Authorization: `Bearer ${budgetKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              status: "failed",
+              error_message: "Monthly photo budget reached. No image was charged.",
+              updated_at: new Date().toISOString(),
+            }),
+          }).catch(() => null);
+          return jsonError("Monthly photo budget reached.", 429);
+        }
         let providerResponse: Response;
 
         try {
