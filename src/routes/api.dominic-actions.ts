@@ -888,7 +888,7 @@ async function interpretActions({
             },
 
             max_tokens:
-              2500,
+              850,
 
             messages: [
               {
