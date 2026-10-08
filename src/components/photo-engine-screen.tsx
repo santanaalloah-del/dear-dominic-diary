@@ -297,13 +297,13 @@ export function PhotoEngineScreen() {
             savedPhotoId: recoveredPhotoId, adjustOpen: false, adjustText: "",
           };
           if (existing < 0) next.push(item);
-          else next[existing] = { ...next[existing], status, savedPhotoId: item.savedPhotoId, error: item.error };
+          else next[existing] = { ...next[existing], request, status, savedPhotoId: item.savedPhotoId, error: item.error };
         }
         return next.slice(-8);
       });
     }
     void refresh();
-    const timer = window.setInterval(() => void refresh(), 5000);
+    const timer = window.setInterval(() => void refresh(), 2000);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, [session?.user?.id]);
 
@@ -674,7 +674,7 @@ export function PhotoEngineScreen() {
                       </span>
                       {item.status !== "error" && (
                         <div style={{ width: "85%", maxWidth: 270, marginTop: 12, textAlign: "center" }}>
-                          <div role="progressbar" aria-label="Photo preparation progress (estimated by stage)" aria-valuenow={photoProgress(item.request, item.status)} aria-valuemin={0} aria-valuemax={100} style={{ height: 7, borderRadius: 99, background: "rgba(105,40,51,.18)", overflow: "hidden" }}>
+                          <div role="progressbar" aria-label="Photo processing stage (live server status)" aria-valuenow={photoProgress(item.request, item.status)} aria-valuemin={0} aria-valuemax={100} style={{ height: 7, borderRadius: 99, background: "rgba(105,40,51,.18)", overflow: "hidden" }}>
                             <div style={{ width: `${photoProgress(item.request, item.status)}%`, height: "100%", borderRadius: 99, background: "#762b3c", transition: "width .4s ease" }} />
                           </div>
                           <small style={{ display: "block", marginTop: 6 }}>
@@ -683,7 +683,7 @@ export function PhotoEngineScreen() {
                           {item.request.status === "queued" && Date.now() - new Date(item.request.created_at).getTime() > 120000 && (
                             <small style={{ display: "block", marginTop: 6 }}>Taking longer than expected. Please do not submit again; check Gallery.</small>
                           )}
-                          <small style={{ display: "block", marginTop: 3, opacity: .7 }}>Estimated stage progress, not a live provider percentage</small>
+                          <small style={{ display: "block", marginTop: 3, opacity: .7 }}>Live server stage, updated every 2 seconds. The image provider does not report a precise percentage.</small>
                         </div>
                       )}
                     </div>
