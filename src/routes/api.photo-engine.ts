@@ -250,7 +250,8 @@ function buildPrompt(
       ? reference.purposes.join(", ")
       : "identity";
 
-    return `Image ${index + (hasSourceImage ? 2 : 1)}: subject=${
+    const isInspiration = reference.subject === "couple" || ["pose", "style"].includes(reference.referenceKind);
+    return `Image ${index + (hasSourceImage ? 2 : 1)}: ROLE=${isInspiration ? "OPTIONAL POSE/COMPOSITION INSPIRATION — NOT THESE PEOPLE'S IDENTITY" : reference.subject === "shared_home" ? "REAL ROOM REFERENCE" : "PERSON IDENTITY"}; subject=${
       reference.subject
     }; purposes=${purposes}; strength=${reference.strength}; current=${
       reference.isCurrent ? "yes" : "no"
@@ -260,14 +261,16 @@ function buildPrompt(
   });
 
   return [
-    "Generate ONE photorealistic personal phone photograph using the attached images as identity references.",
+    "Generate ONE photorealistic personal phone photograph. Attached images have DIFFERENT ROLES: personal identity, optional Pinterest-inspired composition, and real room references.",
     "",
     "ABSOLUTE PRIORITY — IDENTITY FIDELITY",
     subjectDescription(request.subject_type),
-    "The identity references for each named subject are photographs of the SAME person at different times, angles, expressions and styling.",
-    "Use the actual attached images as your strongest visual evidence. Preserve recognizable facial geometry and proportions: face shape, eye shape and spacing, nose structure, lips, jaw, cheekbones, hair texture, skin appearance, body proportions, tattoos, piercings and persistent marks.",
+    "Only Alloah identity references depict Alloah; only Dominic identity references depict Dominic. Those images show each subject at different times, angles, expressions and styling.",
+    "Use identity images of Alloah and Dominic to preserve each person's recognizable facial geometry and proportions: face shape, eyes, nose, lips, jaw, cheekbones, hair, skin, body proportions, tattoos, piercings and persistent marks.",
     "Do NOT invent a merely similar attractive person. Do NOT beautify the face into a generic AI model. Do NOT average the references into a new face.",
-    "If references differ in temporary styling, infer the stable identity shared across them. Hair color, clothing, makeup, jewelry and styling may be historical unless marked current.",
+    "If identity references differ in temporary styling, infer the stable identity shared across them. Hair color, clothing, makeup, jewelry and styling may be historical unless marked current.",
+    "PINTEREST / US / COUPLE INSPIRATION: These are photos of OTHER people, never photographs of Alloah and Dominic together. They only suggest possible poses, candid energy, distance, framing or general mood. You may combine, vary or completely ignore their compositions. NEVER transfer Pinterest faces, bodies, skin, clothes, or exact staging to Alloah or Dominic.",
+    "A scene description and the characters' authentic identity override Pinterest inspirations. The inspiration is not a mandatory template or a demand to reconstruct any reference.",
     hasSourceImage
       ? "Image 1 is an existing generated preview being adjusted. Preserve scene continuity while correcting the person toward the identity references."
       : null,
@@ -292,7 +295,7 @@ buildPhotoContextPrompt(request),
     "Avoid cinematic grading, studio lighting, fashion-editorial posing, fake depth-of-field, plastic skin, excessive symmetry and generic AI glamour.",
     "",
     "REFERENCE MAP",
-    referenceGuide.length ? referenceGuide.join("\n") : "No identity references.",
+    referenceGuide.length ? referenceGuide.join("\n") : "No visual references.",
     "",
     "FINAL CHECK",
     "Identity fidelity matters more than prettiness. The person in the result must remain recognizably the SAME person shown in the identity references.",
