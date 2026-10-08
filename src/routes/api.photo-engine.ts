@@ -7,8 +7,8 @@ import {
 } from "@/lib/photo-variation-plan";
 
 const IMAGE_MODEL = "bytedance-seed/seedream-4.5";
-const MAX_REFERENCES = 14;
-const MAX_REFERENCE_BYTES = 8 * 1024 * 1024;
+const MAX_REFERENCES = 6;
+const MAX_REFERENCE_BYTES = 2 * 1024 * 1024;
 const MAX_SOURCE_DATA_URL = 12 * 1024 * 1024;
 
 type ProviderReference = {
