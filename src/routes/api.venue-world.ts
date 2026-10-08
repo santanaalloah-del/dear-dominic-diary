@@ -853,7 +853,19 @@ export const Route =
                 ...verified,
               });
 
-            const generated =
+            const budgetUrl=envValue("SUPABASE_URL") || import.meta.env.VITE_SUPABASE_URL;
+            const budgetKey=envValue("SUPABASE_SERVICE_ROLE_KEY");
+            if(!budgetUrl||!budgetKey)return jsonError("AI budget is not configured.",503);
+            const rpc=async(name:string,body:Record<string,unknown>)=>{
+              const result=await fetch(`${budgetUrl}/rest/v1/rpc/${name}`,{method:"POST",headers:{"Content-Type":"application/json",apikey:budgetKey,Authorization:`Bearer ${budgetKey}`},body:JSON.stringify(body)});
+              if(!result.ok)throw new Error("AI budget service unavailable");
+              return result.json();
+            };
+            const budgetId=await rpc("reserve_ai_budget",{p_source:"vercel-venue-world",p_estimated_usd:0.05});
+            if(!budgetId)return jsonError("Monthly AI budget reached.",429);
+            let generated:ModelPayload;
+            try {
+              generated =
               await generateVenueWorld({
                 apiKey,
 
@@ -868,6 +880,11 @@ export const Route =
                 dominicPrompt,
               });
 
+              await rpc("settle_ai_budget",{p_id:budgetId});
+            }catch(error){
+              await rpc("settle_ai_budget",{p_id:budgetId});
+              throw error;
+            }
             const items =
               generated.items.map(
                 (
