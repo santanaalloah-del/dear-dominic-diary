@@ -18,7 +18,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { usePrivateDiario } from "@/components/private-diario";
-import { getCurrentDominicState } from "@/lib/dominic-state";
+import { loadDominicState } from "@/lib/dominic-state";
 import { useTimeMood } from "@/lib/time-mood";
 import {
   createPhotoGenerationRequest,
@@ -251,7 +251,7 @@ export function PhotoEngineScreen() {
     batchId,
     batchIndex,
   }: {
-    dominicState: Awaited<ReturnType<typeof getCurrentDominicState>> | null;
+    dominicState: Awaited<ReturnType<typeof loadDominicState>> | null;
     batchId?: string | null;
     batchIndex?: number | null;
   }) {
@@ -373,7 +373,7 @@ export function PhotoEngineScreen() {
     setPreviews([]);
 
     try {
-      const dominicState = await getCurrentDominicState(session.user.id).catch(
+      const dominicState = await loadDominicState(session.user.id).catch(
         () => null
       );
 
