@@ -310,7 +310,10 @@ export function PhotoEngineScreen() {
           if (existing < 0) next.push(item);
           else next[existing] = { ...next[existing], request, status, savedPhotoId: item.savedPhotoId, error: item.error };
         }
-        return next.filter(item => item.status !== "error").slice(-8);
+        const failedIds = new Set(
+          (data as PhotoGenerationRequest[]).filter(request => request.status === "failed").map(request => request.id)
+        );
+        return next.filter(item => item.status !== "error" && !failedIds.has(item.request.id)).slice(-8);
       });
     }
     void refresh();
