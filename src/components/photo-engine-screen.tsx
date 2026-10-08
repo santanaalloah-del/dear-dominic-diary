@@ -413,7 +413,7 @@ export function PhotoEngineScreen() {
 
       setPreviews(initial);
 
-      // Generate sequentially on purpose: Daily Life 3/5/8 should not hammer
+      // Generate sequentially: Daily Life 1–5 must not hammer
       // the provider or race through rate limits.
       for (const item of initial) {
         await generateIntoPreview(item.key, item.request);
