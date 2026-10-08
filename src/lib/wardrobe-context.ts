@@ -43,6 +43,7 @@ export type WardrobePhotoContext = {
     title: string;
     category: string;
     note: string | null;
+    imageUrl: string | null;
   }>;
   updatedAt: string;
 };
@@ -375,7 +376,37 @@ export async function getWardrobePhotoContext({
       category:
         typeof item.data?.category === "string" ? item.data.category : "other",
       note: item.body?.trim() || null,
+      storageBucket: item.data?.storage_bucket,
+      storagePath: item.data?.storage_path,
     }));
+
+  // Clothing photos are saved as original, manually refined cutouts in the
+  // private diario-media bucket. Sign the user's exact selected pieces so the
+  // Photo Engine can show the generator their REAL cut, color and construction.
+  const clothingWithImages = await Promise.all(
+    clothing.map(async (piece) => {
+      let imageUrl: string | null = null;
+      if (
+        piece.storageBucket === "diario-media" &&
+        typeof piece.storagePath === "string" &&
+        piece.storagePath.startsWith(userId + "/wardrobe/")
+      ) {
+        const { data, error: imageError } = await supabase.storage
+          .from("diario-media")
+          .createSignedUrl(piece.storagePath, 60 * 60);
+        if (!imageError && data?.signedUrl) {
+          imageUrl = data.signedUrl;
+        }
+      }
+      return {
+        id: piece.id,
+        title: piece.title,
+        category: piece.category,
+        note: piece.note,
+        imageUrl,
+      };
+    })
+  );
 
   if (!look && !clothing.length) return null;
 
@@ -384,7 +415,7 @@ export async function getWardrobePhotoContext({
     lookId: look?.id ?? null,
     lookTitle: look?.title?.trim() || null,
     lookNote: look?.body?.trim() || null,
-    clothing,
+    clothing: clothingWithImages,
     updatedAt: selection.updatedAt,
   };
 }
