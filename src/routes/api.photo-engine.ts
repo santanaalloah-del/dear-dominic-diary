@@ -347,6 +347,8 @@ export const Route = createFileRoute("/api/photo-engine")({
           }
         }
 
+        if (!body.request?.id) return jsonError("Missing Photo Engine request.", 400);
+
         const openRouterKey = envValue("OPENROUTER_API_KEY");
 
         if (!openRouterKey) {
