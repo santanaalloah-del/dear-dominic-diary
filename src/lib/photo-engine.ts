@@ -867,16 +867,15 @@ export async function getPhotoReferenceBundle({
       ).values()
     );
 
-  // Keep provider payload reasonable.
-  // Primary/current references win.
+  // Keep the full library available for scene-aware selection.
+  // The provider-side selector applies the actual image limit AFTER choosing
+  // the right faces, profiles, tattoos, Pinterest poses and room references.
   const selected =
-    deduped
-      .sort(
-        (a, b) =>
-          scoreReference(b) -
-          scoreReference(a)
-      )
-      .slice(0, 16);
+    deduped.sort(
+      (a, b) =>
+        scoreReference(b) -
+        scoreReference(a)
+    );
 
   return {
     alloah,
