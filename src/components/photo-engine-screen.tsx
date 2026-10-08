@@ -675,10 +675,10 @@ export function PhotoEngineScreen() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => void retryPreview(item)}
+                    onClick={() => void regeneratePreview(item)}
                     disabled={creating}
                   >
-                    <RefreshCw /> Retry
+                    <RefreshCw /> New attempt (may use credits)
                   </Button>
                 )}
 
