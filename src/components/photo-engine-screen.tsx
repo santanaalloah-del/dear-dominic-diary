@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PhotoIdentityFeedback } from "@/components/photo-identity-feedback";
 import {
   Camera,
@@ -220,6 +220,7 @@ export function PhotoEngineScreen() {
   const [connectionResult, setConnectionResult] = useState<string | null>(null);
   const [previews, setPreviews] = useState<PreviewState[]>([]);
   const [showRecentPreviews, setShowRecentPreviews] = useState(false);
+  const activeRequestIds = useRef(new Set<string>());
 
   useEffect(() => {
     const draft = readDraft();
@@ -282,6 +283,14 @@ export function PhotoEngineScreen() {
             .in("data->>generation_request_id", requestIds)
         : { data: [] };
       if (cancelled) return;
+      // Surface a failure from the current session even after the background
+      // worker accepted the dispatch. Older failed attempts stay hidden.
+      for (const failed of (data as PhotoGenerationRequest[]).filter(
+        request => request.status === "failed" && activeRequestIds.current.has(request.id)
+      )) {
+        activeRequestIds.current.delete(failed.id);
+        setError(failed.error_message || "Photo processing failed. No automatic retry was made.");
+      }
       const savedPhotoIds = new Map<string, string>(
         ((existingPhotos ?? []) as Array<{ id: string; data: { generation_request_id?: string } }>).flatMap(
           photo => photo.data?.generation_request_id ? [[photo.data.generation_request_id, photo.id] as [string, string]] : []
@@ -387,6 +396,7 @@ export function PhotoEngineScreen() {
         .eq("status", "queued")
         .then(() => null, () => null);
       patchPreview(key, { status: "error", error: reason });
+      activeRequestIds.current.delete(request.id);
       setError(reason);
       return false;
     }
@@ -422,6 +432,7 @@ export function PhotoEngineScreen() {
 
     setCreating(true);
     setError(null);
+    activeRequestIds.current.clear();
     setPreviews([]);
 
     try {
@@ -451,6 +462,7 @@ export function PhotoEngineScreen() {
           adjustText: "",
           savedPhotoId: null,
         };
+        activeRequestIds.current.add(request.id);
         setPreviews(current => [...current, item]);
         const queued = await generateIntoPreview(item.key, item.request);
         if (!queued) break;
@@ -494,6 +506,7 @@ export function PhotoEngineScreen() {
         adjustmentInstruction: previous.adjustment_instruction,
       });
 
+      activeRequestIds.current.add(nextRequest.id);
       await generateIntoPreview(item.key, nextRequest);
     } catch (nextError) {
       patchPreview(item.key, {
@@ -541,6 +554,7 @@ export function PhotoEngineScreen() {
         adjustText: "",
       });
 
+      activeRequestIds.current.add(nextRequest.id);
       await generateIntoPreview(item.key, nextRequest, item.preview.dataUrl);
     } catch (nextError) {
       patchPreview(item.key, {
@@ -627,6 +641,7 @@ export function PhotoEngineScreen() {
   }
 
   function resetComposer() {
+    activeRequestIds.current.clear();
     setShowRecentPreviews(false);
     setPreviews([]);
     setError(null);
