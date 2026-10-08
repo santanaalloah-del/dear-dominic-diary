@@ -396,7 +396,8 @@ export function VisualReferencesScreen() {
     analysisSubject: IdentitySubject = subject,
     currentLookOverride?: VisualReferenceWithUrl[]
   ) {
-    if (items.length === 0 || analyzingCanon) return;
+    // Pinterest couple photos are inspirations, not an identity to learn.
+    if (analysisSubject === "couple" || items.length === 0 || analyzingCanon) return;
 
     setAnalyzingCanon(true);
     setError(null);
@@ -720,10 +721,12 @@ export function VisualReferencesScreen() {
 
       setReferences(remaining);
 
-      if (remaining.length > 0) {
-        await runCanonAnalysis(remaining, true, subject);
-      } else {
-        await clearCanon(subject);
+      if (subject !== "couple") {
+        if (remaining.length > 0) {
+          await runCanonAnalysis(remaining, true, subject);
+        } else {
+          await clearCanon(subject);
+        }
       }
     } catch (removeError) {
       console.error("Could not remove reference:", removeError);
@@ -883,7 +886,9 @@ export function VisualReferencesScreen() {
             <>
               <section className="current-look-summary">
                 <small>
-                  {analyzingCanon
+                  {subject === "couple"
+                    ? "pose inspiration"
+                    : analyzingCanon
                     ? "learning canon"
                     : canon?.status === "ready"
                       ? "canon learned"
@@ -901,7 +906,9 @@ export function VisualReferencesScreen() {
                 </strong>
 
                 <span>
-                  {analyzingCanon
+                  {subject === "couple"
+                    ? "Optional Pinterest inspiration for poses, angles, framing and feelings. These are other people, not your real faces. No identity analysis is needed."
+                    : analyzingCanon
                     ? "Comparing the whole set and learning which images are best for face, hair, body, tattoos and other details."
                     : canon?.status === "ready"
                       ? canonSummary(canon) ??
@@ -909,7 +916,7 @@ export function VisualReferencesScreen() {
                       : "The photos are saved. Run the Canon Analyzer once so the app can learn the identity from the whole set."}
                 </span>
 
-                <Button
+                {subject !== "couple" && <Button
                   type="button"
                   disabled={analyzingCanon || references.length === 0}
                   onClick={() => void runCanonAnalysis(references, true)}
@@ -920,7 +927,7 @@ export function VisualReferencesScreen() {
                     : canon?.status === "ready"
                       ? "Refresh canon"
                       : "Learn canon"}
-                </Button>
+                </Button>}
               </section>
 
               <div className="reference-grid">
