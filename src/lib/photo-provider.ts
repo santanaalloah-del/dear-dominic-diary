@@ -866,10 +866,10 @@ export async function generatePhotoProviderPreview({
     throw new Error("Your session expired. Please sign in again.");
   }
 
-  // Reserve slots for the REAL current clothing photos, not just their
-  // text titles. Keep 14 max input images total, including home and source.
-  // With both subjects wearing selected outfits, allocate up to two pieces
-  // per person; otherwise allow up to three from the active outfit.
+  // Reserve slots for the REAL chosen wardrobe photos, not just their
+  // text titles. Keep 14 max images total, including the room and source.
+  // Preserve up to three pieces per person so shoes aren't silently omitted.
+  // In a two-person scene, favor the existing chosen pieces of both people.
   const clothingWithPhotos = request.use_current_look
     ? wardrobeContexts.flatMap((context) =>
         context.clothing
@@ -877,17 +877,23 @@ export async function generatePhotoProviderPreview({
           .map((piece) => ({ owner: context.owner, piece }))
       )
     : [];
-  const wardrobePhotos = (wardrobeContexts.length > 1
-    ? clothingWithPhotos.filter(({ owner }) => owner === "alloah").slice(0, 2)
-        .concat(clothingWithPhotos.filter(({ owner }) => owner === "dominic").slice(0, 2))
-    : clothingWithPhotos.slice(0, 3)
-  ).slice(0, 4);
+  const wardrobePhotos = (
+    request.subject_type === "both"
+      ? clothingWithPhotos.filter(({ owner }) => owner === "alloah").slice(0, 3)
+          .concat(clothingWithPhotos.filter(({ owner }) => owner === "dominic").slice(0, 3))
+      : clothingWithPhotos.slice(0, 4)
+  ).slice(0, 5);
 
+  // When clothing is attached, the selected room photo is more useful than a
+  // separate floor-plan image. Keep the floor-plan text in the room canon while
+  // giving the real saved outfit priority within the provider's hard limit.
+  const includeFloorPlan = Boolean(homeCanon) && wardrobePhotos.length === 0;
+  const homeImageSlots = homeCanon ? (includeFloorPlan ? 2 : 1) : 0;
   const selectedReferences = chooseProviderReferences(
     request,
     bundle.selected,
     canons.filter(canon => canon.subject !== "couple"),
-    Math.max(1, MAX_PROVIDER_REFERENCES - (homeCanon ? 2 : 0) - wardrobePhotos.length - (sourceImageDataUrl ? 1 : 0))
+    Math.max(1, MAX_PROVIDER_REFERENCES - homeImageSlots - wardrobePhotos.length - (sourceImageDataUrl ? 1 : 0))
   );
 
   const references = selectedReferences.map(cleanReferencePayload);
@@ -923,6 +929,7 @@ export async function generatePhotoProviderPreview({
       lookType: null,
       isCurrent: true,
     });
+    if (includeFloorPlan) {
     references.push({
       id: "shared-home-floor-plan",
       url: new URL(homeCanon.floorPlanUrl, window.location.origin).toString(),
@@ -935,6 +942,7 @@ export async function generatePhotoProviderPreview({
       lookType: null,
       isCurrent: true,
     });
+    }
   }
 
   const identityReferenceUsage: IdentityReferenceUsage[] =
