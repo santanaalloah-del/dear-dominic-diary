@@ -385,7 +385,16 @@ export const Route = createFileRoute("/api/photo-engine")({
         const resolved = await Promise.all(
           references.map(async (reference) => ({
             reference,
-            dataUrl: await referenceToDataUrl(reference, allowedHosts),
+            dataUrl: body.background === true
+              ? (() => {
+                  try {
+                    const u = new URL(reference.url);
+                    return u.protocol === "https:" && allowedHosts.has(u.host) ? reference.url : null;
+                  } catch {
+                    return null;
+                  }
+                })()
+              : await referenceToDataUrl(reference, allowedHosts),
           }))
         );
 
