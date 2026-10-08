@@ -340,11 +340,14 @@ export const Route = createFileRoute("/api/photo-engine")({
               body: JSON.stringify({ checkConnection: true }),
               signal: AbortSignal.timeout(12000),
             });
-            const answer = (await check.json().catch(() => null)) as { error?: string; ok?: boolean } | null;
-            if (!check.ok || !answer?.ok) {
-              return jsonError("Photo connection HTTP " + check.status + ": " + (answer?.error || "Worker unavailable"), 503);
+            const answer = (await check.json().catch(() => null)) as { error?: string; ok?: boolean; databaseReady?: boolean } | null;
+            if (!check.ok || !answer?.ok || answer.databaseReady !== true) {
+              return jsonError(
+                "Photo connection HTTP " + check.status + ": " + (answer?.error || "Worker did not verify database permissions"),
+                503
+              );
             }
-            return Response.json({ ok: true, message: "Photo worker connection verified. No credits used." });
+            return Response.json({ ok: true, message: "Photo worker and database permissions verified. No credits used." });
           } catch {
             return jsonError("Photo worker connection timed out or could not be reached. No credits used.", 503);
           }
