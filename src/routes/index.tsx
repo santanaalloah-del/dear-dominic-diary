@@ -769,7 +769,21 @@ function HomeScreen({
 }) {
   const { session } = usePrivateDiario();
   const [dominicState, setDominicState] = useState<DominicState | null>(null);
-  const [rioWeather, setRioWeather] = useState<RioWeather | null>(null);
+  const [rioWeather, setRioWeather] = useState<RioWeather | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem("diario-rio-weather-v1");
+      if (!raw) return null;
+      const cached = JSON.parse(raw) as { savedAt?: number; weather?: RioWeather };
+      if (!cached.savedAt || Date.now() - cached.savedAt > 60 * 60_000) return null;
+      if (typeof cached.weather?.temperature !== "number" ||
+          typeof cached.weather?.apparentTemperature !== "number" ||
+          typeof cached.weather?.label !== "string") return null;
+      return cached.weather;
+    } catch {
+      return null;
+    }
+  });
   const [activeHomeRoom, setActiveHomeRoom] = useState("living");
   const [homeKeepsakes, setHomeKeepsakes] = useState<DiarioItem[]>([]);
   const [
@@ -789,7 +803,17 @@ function HomeScreen({
     const refreshWeather = async () => {
       try {
         const weather = await getRioWeather(controller.signal);
-        if (!cancelled) setRioWeather(weather);
+        if (!cancelled) {
+          setRioWeather(weather);
+          try {
+            window.localStorage.setItem("diario-rio-weather-v1", JSON.stringify({
+              savedAt: Date.now(),
+              weather,
+            }));
+          } catch {
+            // Weather still works when local storage is unavailable.
+          }
+        }
       } catch (error) {
         if (!controller.signal.aborted) {
           console.error("Could not load Rio weather:", error);
