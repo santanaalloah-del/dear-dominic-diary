@@ -808,12 +808,20 @@ function HomeScreen({
   }, []);
 
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      setDominicState(null);
+      return;
+    }
     let cancelled = false;
 
     const refresh = async () => {
-      const state = await getCurrentDominicState(session.user.id);
-      if (!cancelled) setDominicState(state);
+      try {
+        const state = await getCurrentDominicState(session.user.id);
+        if (!cancelled && state) setDominicState(state);
+      } catch (error) {
+        // A temporary read error must not remove the location from Home.
+        console.error("Could not refresh Dominic's Home presence:", error);
+      }
     };
 
     void refresh();
@@ -1061,24 +1069,24 @@ function HomeScreen({
           <div className="apartment-home-clock">
             <strong>{time.timeLabel}</strong>
             <small>{time.dateLabel}</small>
-            {rioWeather && (
-              <div className="apartment-home-weather" aria-label={`Rio de Janeiro weather: ${Math.round(rioWeather.temperature)} degrees, ${rioWeather.label}`}>
-                <span>Rio · {Math.round(rioWeather.temperature)}° · {rioWeather.label}</span>
-                <small>feels {Math.round(rioWeather.apparentTemperature)}°</small>
-              </div>
-            )}
+            <div className="apartment-home-weather" aria-label={rioWeather
+              ? `Rio de Janeiro weather: ${Math.round(rioWeather.temperature)} degrees, ${rioWeather.label}`
+              : "Rio de Janeiro weather updating"}>
+              <span>{rioWeather ? `Rio · ${Math.round(rioWeather.temperature)}° · ${rioWeather.label}` : "Rio · weather updating"}</span>
+              {rioWeather && <small>feels {Math.round(rioWeather.apparentTemperature)}°</small>}
+            </div>
           </div>
         </header>
 
-        {dominicState && (
-          <div className="apartment-home-dominic" role="status" aria-live="polite">
-            <span>DOMINIC NOW</span>
-            <strong>{dominicState.activity.replaceAll("_", " ")}</strong>
-            <small>{dominicState.location === "out"
+        <div className="apartment-home-dominic" role="status" aria-live="polite">
+          <span>DOMINIC NOW</span>
+          <strong>{dominicState ? dominicState.activity.replaceAll("_", " ") : "Checking in"}</strong>
+          <small>{dominicState
+            ? (dominicState.location === "out"
               ? "away from the apartment"
-              : rooms.find((room) => room.id === dominicState.location)?.title.toLowerCase() ?? "at home"}</small>
-          </div>
-        )}
+              : rooms.find((room) => room.id === dominicState.location)?.title.toLowerCase() ?? "at home")
+            : "Location updating"}</small>
+        </div>
 
         <button
             type="button"
