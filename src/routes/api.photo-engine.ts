@@ -121,7 +121,7 @@ async function referenceToDataUrl(
 
     const response = await fetch(url, {
       headers: { Accept: "image/*" },
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(12_000),
     });
 
     if (!response.ok) return null;
@@ -467,7 +467,25 @@ const prompt = buildPrompt(
               },
             }),
           });
-          if (!result.ok) return jsonError("Could not queue background photo.", 503);
+          if (!result.ok) {
+            // A rejected dispatch must not leave a request permanently queued.
+            // Only transition an untouched queued request; never overwrite a worker
+            // that has already claimed it, or an image already saved to Gallery.
+            await fetch(`${budgetUrl}/rest/v1/photo_generation_requests?id=eq.${encodeURIComponent(body.request.id)}&user_id=eq.${encodeURIComponent(body.userId)}&status=eq.queued`, {
+              method: "PATCH",
+              headers: {
+                apikey: budgetKey,
+                Authorization: `Bearer ${budgetKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                status: "failed",
+                error_message: "Background photo dispatch failed before generation. No automatic retry was made.",
+                updated_at: new Date().toISOString(),
+              }),
+            }).catch(() => null);
+            return jsonError("Could not queue background photo. No automatic retry was made.", 503);
+          }
           return Response.json({ status: "queued", requestId: body.request.id }, { status: 202 });
         }
         // Atomically claim this request before any paid image call.
