@@ -93,7 +93,7 @@ import { getRioWeather, type RioWeather } from "@/lib/rio-weather";
 
 import { enableDiarioPush, getDiarioPushStatus } from "@/lib/push-notifications";
 import {
-  getCurrentDominicState,
+  loadDominicState,
   setAlloahPresence,
   type DominicState,
 } from "@/lib/dominic-state";
@@ -840,7 +840,7 @@ function HomeScreen({
 
     const refresh = async () => {
       try {
-        const state = await getCurrentDominicState(session.user.id);
+        const state = await loadDominicState(session.user.id);
         if (!cancelled && state) setDominicState(state);
       } catch (error) {
         // A temporary read error must not remove the location from Home.
@@ -1103,7 +1103,9 @@ function HomeScreen({
         </header>
 
         <div className="apartment-home-dominic" role="status" aria-live="polite">
-          <span>DOMINIC NOW</span>
+          <span>{dominicState && Number.isFinite(Date.parse(dominicState.startedAt))
+            && Date.now() - Date.parse(dominicState.startedAt) > 2 * 60 * 60_000
+              ? "DOMINIC · LAST REPORTED" : "DOMINIC NOW"}</span>
           <strong>{dominicState ? dominicState.activity.replaceAll("_", " ") : "Checking in"}</strong>
           <small>{dominicState
             ? (dominicState.location === "out"
@@ -1328,12 +1330,15 @@ useEffect(() => {
   let cancelled = false;
 
   const refreshDominic = async () => {
-    const state =
-      await getCurrentDominicState(
-        session.user.id
-      );
+    let state: DominicState | null = null;
+    try {
+      state = await loadDominicState(session.user.id);
+    } catch (error) {
+      console.warn("Dominic's last known location is temporarily unavailable", error);
+    }
 
-    if (!cancelled) {
+    // Never discard the last valid location during a transient read failure.
+    if (!cancelled && state) {
       setDominicState(state);
     }
   };
