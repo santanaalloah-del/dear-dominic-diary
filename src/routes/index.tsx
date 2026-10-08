@@ -718,7 +718,7 @@ function DiarioApp() {
             <VisualReferencesScreen />
           )}
 
-          {screen === "photo-engine" ? <PhotoEngineScreen /> : null}
+          {screen === "photo-engine" && <PhotoEngineScreen />}
 
           {screen ===
             "settings" && (
