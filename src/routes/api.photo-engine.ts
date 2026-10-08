@@ -442,6 +442,24 @@ const prompt = buildPrompt(
           if (!res.ok) throw new Error("AI budget service unavailable");
           return res.json();
         };
+        // Atomically claim this request before any paid image call.
+        // A repeated POST or a reconnect must not generate a second image.
+        const requestUrl = `${budgetUrl}/rest/v1/photo_generation_requests?id=eq.${encodeURIComponent(body.request.id)}&user_id=eq.${encodeURIComponent(body.userId)}&status=eq.queued&select=id`;
+        const claimResponse = await fetch(requestUrl, {
+          method: "PATCH",
+          headers: {
+            apikey: budgetKey,
+            Authorization: `Bearer ${budgetKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify({ status: "generating", updated_at: new Date().toISOString() }),
+        });
+        if (!claimResponse.ok) return jsonError("Photo request could not be claimed.", 503);
+        const claimed = await claimResponse.json();
+        if (!Array.isArray(claimed) || claimed.length !== 1) {
+          return jsonError("This photo request has already started. Check Gallery before requesting another.", 409);
+        }
         const budgetId = await budgetRpc("reserve_ai_budget", {
           p_source: "vercel-photo-engine", p_estimated_usd: 0.06
         });
