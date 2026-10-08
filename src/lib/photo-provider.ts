@@ -580,49 +580,44 @@ function chooseProviderReferences(
     const alloahGroups = groupsFor("alloah");
     const dominicGroups = groupsFor("dominic");
 
-    // Identity first: two strong face anchors for each person.
+    // A couple photo needs ACTUAL identity evidence for each person.
+    // The canon analyzer may still be pending, so don't depend on anchor IDs.
     takeIds("alloah", alloahGroups.face, 2);
     takeIds("dominic", dominicGroups.face, 2);
-
+    take(
+      (item) => item.reference.subject === "alloah" &&
+        item.reference.reference_purposes?.includes("face") &&
+        item.reference.reference_kind !== "pose",
+      3
+    );
+    take(
+      (item) => item.reference.subject === "dominic" &&
+        item.reference.reference_purposes?.includes("face") &&
+        item.reference.reference_kind !== "pose" &&
+        !item.reference.is_current,
+      3
+    );
+    if (request.use_current_look) {
+      take((item) => item.reference.subject === "alloah" && item.reference.is_current, 1);
+      take((item) => item.reference.subject === "dominic" && item.reference.is_current, 1);
+    }
     if (wantsProfile) {
       takeIds("alloah", alloahGroups.profile, 1);
       takeIds("dominic", dominicGroups.profile, 1);
     }
-
     if (wantsBody) {
       takeIds("alloah", alloahGroups.body, 1);
       takeIds("dominic", dominicGroups.body, 1);
     }
-
     if (wantsTattoos) {
-      const dominicCanon = canonFor("dominic");
-      const regionalTattooIds = tattooRegionAnchorIds(
-        dominicCanon,
-        requestedRegions
-      );
-
-      // Prefer the exact visible body-region evidence. Generic tattoo anchors
-      // are only the fallback when no region-specific anchor exists yet.
-      takeIds("dominic", regionalTattooIds, 2);
+      takeIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), 2);
       takeIds("dominic", dominicGroups.tattoos, 1);
+      take(
+        (item) => item.reference.subject === "dominic" &&
+          item.reference.reference_purposes?.includes("tattoos"),
+        1
+      );
     }
-
-    // Explicit Current Look always beats historical styling when enabled.
-    take(
-      (item) =>
-        item.reference.subject === "alloah" &&
-        item.reference.is_current,
-      1
-    );
-
-    take(
-      (item) =>
-        item.reference.subject === "dominic" &&
-        item.reference.is_current,
-      1
-    );
-
-    // Backwards-compatible fallback while older canons are upgraded.
     takeFallbackAnchors("alloah", 1);
     takeFallbackAnchors("dominic", 1);
   } else {
@@ -677,39 +672,50 @@ function chooseProviderReferences(
     );
   }
 
-  // Pinterest "Us" photos provide optional inspiration, NEVER identity.
-  // Reserve at most two slots, and never require an exact pose or composition.
+  // Pinterest pictures contain strangers, not Alloah/Dominic.
+  // Only use them when a user-provided tag or descriptive title specifically
+  // matches the scene. Never treat generic upload notes as a match.
   if (request.subject_type === "both") {
-    const inspirationWords = requestText(request)
-      .split(/[^a-z]+/)
-      .filter(word => word.length > 3);
-    const matching = pool
-      .filter(item => item.reference.subject === "couple")
-      .map(item => ({
+    const excluded = new Set(["alloah","dominic","photo","couple","scene","image","reference","references","people","natural","style","iphone","flirty","daily","life"]);
+    const words = requestText(request).split(/[^a-z]+/)
+      .filter((word) => word.length > 3 && !excluded.has(word));
+    const inspiration = pool.filter((item) => item.reference.subject === "couple")
+      .map((item) => ({
         item,
-        score: inspirationWords.filter(word =>
-          [
-            item.reference.title ?? "",
-            item.reference.description ?? "",
-            ...(item.reference.tags ?? []),
-          ].join(" ").toLowerCase().includes(word)
+        score: words.filter((word) =>
+          [item.reference.title ?? "", ...(item.reference.tags ?? [])]
+            .join(" ").toLowerCase().includes(word)
         ).length,
       }))
-      .filter(entry => entry.score > 0)
+      .filter((entry) => entry.score > 0)
       .sort((a, b) => b.score - a.score);
-    for (const match of matching.slice(0, 2)) {
-      take(item => item.reference.id === match.item.reference.id, 1);
+    if (inspiration.length && chosen.length < maxReferences - 2) {
+      take((item) => item.reference.id === inspiration[0].item.reference.id, 1);
     }
   }
 
-  // Keep remaining capacity for actual identity anchors. Never fill gaps with
-  // unrelated Pinterest people masquerading as Alloah or Dominic.
-  take(
-    item =>
-      item.reference.subject === "alloah" ||
-      item.reference.subject === "dominic",
-    maxReferences - chosen.length
-  );
+  // Finish a couple scene fairly, alternating the two actual people even when
+  // neither Visual Canon has finished its optional analysis. This is especially
+  // important with large libraries (11 vs 43 identity photos currently).
+  if (request.subject_type === "both") {
+    while (chosen.length < maxReferences) {
+      const before = chosen.length;
+      for (const subject of ["alloah", "dominic"] as const) {
+        take(
+          (item) => item.reference.subject === subject &&
+            item.reference.reference_kind !== "pose" &&
+            item.reference.reference_kind !== "scene",
+          1
+        );
+      }
+      if (before === chosen.length) break;
+    }
+  } else {
+    take(
+      (item) => item.reference.subject === (request.subject_type === "me" ? "alloah" : "dominic"),
+      maxReferences - chosen.length
+    );
+  }
 
   return chosen.slice(0, maxReferences);
 }
@@ -780,6 +786,7 @@ function wardrobeInstruction(
       context.lookNote ? `Look note: ${context.lookNote}.` : null,
       pieces.length ? `Pieces: ${pieces.join(" | ")}.` : null,
       "Treat this as the active outfit. Do not replace it with historical clothing from identity references.",
+      "EXACT CLOTHING PHOTOS TAKE PRECEDENCE OVER GENERIC TEXT: preserve the garment's actual fit, leg width, hem, fabric, color and shape. A baggy or relaxed jean must stay baggy, not skinny or tight. Shoes must remain shoes, not flip-flops. Samba means a low-top sneaker, not sandals.",
       "Only infer visual details that are actually described here; do not invent logos, prints, colors, fabrics, or cuts that are not specified yet.",
     ]
       .filter(Boolean)
@@ -859,14 +866,47 @@ export async function generatePhotoProviderPreview({
     throw new Error("Your session expired. Please sign in again.");
   }
 
+  // Reserve slots for the REAL current clothing photos, not just their
+  // text titles. Keep 14 max input images total, including home and source.
+  // With both subjects wearing selected outfits, allocate up to two pieces
+  // per person; otherwise allow up to three from the active outfit.
+  const clothingWithPhotos = wardrobeContexts.flatMap((context) =>
+    context.clothing
+      .filter((piece) => Boolean(piece.imageUrl))
+      .map((piece) => ({ owner: context.owner, piece }))
+  );
+  const wardrobePhotos = (wardrobeContexts.length > 1
+    ? clothingWithPhotos.filter(({ owner }) => owner === "alloah").slice(0, 2)
+        .concat(clothingWithPhotos.filter(({ owner }) => owner === "dominic").slice(0, 2))
+    : clothingWithPhotos.slice(0, 3)
+  ).slice(0, 4);
+
   const selectedReferences = chooseProviderReferences(
     request,
     bundle.selected,
     canons.filter(canon => canon.subject !== "couple"),
-    Math.max(1, MAX_PROVIDER_REFERENCES - (homeCanon ? 2 : 0) - (sourceImageDataUrl ? 1 : 0))
+    Math.max(1, MAX_PROVIDER_REFERENCES - (homeCanon ? 2 : 0) - wardrobePhotos.length - (sourceImageDataUrl ? 1 : 0))
   );
 
   const references = selectedReferences.map(cleanReferencePayload);
+
+  // Outfit cutouts are visual evidence for clothing ONLY, not faces, bodies or
+  // Pinterest poses. The generator must preserve the real silhouette and sole.
+  for (const { owner, piece } of wardrobePhotos) {
+    if (!piece.imageUrl) continue;
+    references.push({
+      id: "wardrobe-" + piece.id,
+      url: piece.imageUrl,
+      subject: "wardrobe",
+      title: piece.title,
+      description: `EXACT CURRENT ${owner.toUpperCase()} CLOTHING: ${piece.title} (${piece.category}). Copy the real cut, silhouette, width, fabric, color and footwear type visible in this image. Do not change baggy jeans into skinny jeans or sneakers into sandals.${piece.note ? " Details: " + piece.note : ""}`,
+      purposes: ["wardrobe", "clothing", owner, piece.category],
+      strength: "primary",
+      referenceKind: "detail",
+      lookType: null,
+      isCurrent: true,
+    });
+  }
 
   if (homeCanon) {
     references.push({
