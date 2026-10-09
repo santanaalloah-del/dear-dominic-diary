@@ -14,6 +14,10 @@ const ISSUES = [
   { key: "skin_tone", label: "Wrong skin color / undertone" },
   { key: "realism", label: "Looks AI-generated" },
   { key: "pose", label: "Pose / requested action" },
+  { key: "body_placement", label: "Wrong person on top / lap" },
+  { key: "prop_handling", label: "Wrong hand / duplicated object" },
+  { key: "chemistry", label: "Unnatural couple chemistry" },
+  { key: "hair", label: "Wrong hair / hairstyle" },
 ] as const;
 
 type Review = { issues?: string[]; note?: string };
