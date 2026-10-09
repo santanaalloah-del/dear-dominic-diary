@@ -1115,3 +1115,61 @@
   background: var(--wine);
   color: #fff;
 }
+
+/* Real closet categories and per-piece Wearing controls; mobile-first. */
+.wardrobe-category-tabs {
+  display: flex;
+  gap: 7px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 4px 2px 11px;
+  margin: 6px 0 8px;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.wardrobe-category-tabs button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in oklab, var(--wine) 26%, var(--border));
+  background: var(--paper);
+  color: var(--foreground);
+  border-radius: 100px;
+  white-space: nowrap;
+  scroll-snap-align: start;
+  font: 11px/1.3 var(--font-body);
+  cursor: pointer;
+}
+.wardrobe-category-tabs button span {
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+.wardrobe-category-tabs button.active {
+  background: var(--wine);
+  color: #fff;
+  border-color: var(--wine);
+}
+.wardrobe-category-tabs button.active span { color: rgba(255,255,255,.75); }
+.wardrobe-wearing-piece {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+}
+.wardrobe-remove-piece {
+  display: inline-grid;
+  place-items: center;
+  min-width: 35px;
+  min-height: 35px;
+  padding: 7px;
+  border: 1px solid color-mix(in oklab, var(--wine) 25%, var(--border));
+  background: transparent;
+  color: var(--wine);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.wardrobe-remove-piece:disabled { opacity: .5; cursor: wait; }
+.wardrobe-remove-piece:hover, .wardrobe-remove-piece:focus-visible {
+  background: color-mix(in oklab, var(--blush) 35%, var(--paper));
+}
