@@ -376,14 +376,20 @@ export function buildPhotoVariationPlan(
   // Show two recognizable people, not tiny faces in an accidental room-wide
   // shot. An expressly requested full-body / wide photo always wins.
   const intimateCloseUp = request.subject_type === "both" && sceneIntent.affectionate;
-  const naturalCoupleFramings = pools.framings.filter((candidate) =>
-    candidate !== "environmental_wide" && candidate !== "full_body"
-  );
+  // A picture of TWO people is not an outfit lookbook. Neither is a photo
+  // of one person. Full-body and establishing shots are reserved for direct
+  // scene/shot-type requests, not randomized from a camera pool.
+  const casualFramings = ["chest_up", "waist_up", "three_quarter", "medium_wide"];
+  const naturalCoupleFramings = casualFramings;
+  const explicitFullBodyShot = /\b(full.?body|whole.?body|outfit|lookbook|head.?to.?toe)\b/i.test(request.shot_type ?? "");
+  const explicitWideShot = /\b(environment|establishing|wide|room)\b/i.test(request.shot_type ?? "");
+  const requestedShotFraming = sceneIntent.framing ??
+    (explicitFullBodyShot ? "full_body" : explicitWideShot ? "environmental_wide" : null);
   const recentFramings = [
     ...safeStrings(anti.recentFramings).slice(0, 2),
     ...safeStrings(avoid.framings),
   ];
-  const framing = sceneIntent.framing ??
+  const framing = requestedShotFraming ??
     (sceneIntent.pose === "making_coffee_candid"
       ? choose(["waist_up", "three_quarter", "medium_wide", "chest_up"],
           recentFramings, seedBase >>> 6, "waist_up")
@@ -395,9 +401,11 @@ export function buildPhotoVariationPlan(
           recentFramings, seedBase >>> 6, "three_quarter"
         )
       : choose(
-          request.subject_type === "both" && !sceneIntent.faceAway
-            ? naturalCoupleFramings
-            : pools.framings,
+          request.photo_style === "mirror"
+            ? pools.framings
+            : request.photo_style === "selfie"
+              ? pools.framings.filter(value => value !== "environmental_wide" && value !== "full_body")
+              : naturalCoupleFramings,
           recentFramings, seedBase >>> 6, "waist_up"
         ));
 
