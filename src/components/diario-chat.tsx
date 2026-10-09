@@ -4742,6 +4742,8 @@ const inviteToListenTogether = () => {
     scene?: string;
     mood?: string;
     conversationSummary?: string;
+    photoStyle?: "natural_iphone" | "candid" | "mirror" | "selfie";
+    sourceContext?: "chat";
   }
 ) => {
   if (typeof window !== "undefined") {
