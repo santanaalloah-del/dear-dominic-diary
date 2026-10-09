@@ -485,7 +485,12 @@ export const Route = createFileRoute("/api/photo-engine")({
               // Per-user boards are assembled locally from EXACT saved cutouts.
               // Admit ONLY bounded JPEG garment boards, never arbitrary URLs.
               dataUrl = validateDataUrl(reference.url);
-            } else if (body.background === true) {
+            } else if (body.background === true || body.auditOnly === true) {
+              // The free audit must inspect the SAME signed reference URLs as
+              // the real background worker. Avoid downloading/re-encoding
+              // 14 full-resolution private photos on every free check.
+              // These are prepared URLs, not a claim that the image model
+              // has successfully fetched or understood them.
               try {
                 const u = new URL(reference.url);
                 if (
