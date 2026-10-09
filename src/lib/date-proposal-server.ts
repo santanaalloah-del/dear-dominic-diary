@@ -15,6 +15,84 @@ function normalized(value: string | null | undefined) {
   return (value ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+
+/**
+ * A later MUTUALLY AGREED Date should use the SAME original invitation ID.
+ * Be deliberately conservative: an unrelated confirmed outing must never
+ * overwrite a pending idea. No response from an AI alone implies acceptance.
+ */
+export async function confirmExistingDominicDateIdea({
+  userId, confirmed, supabaseUrl, serviceKey,
+}: {
+  userId: string;
+  confirmed: { type: "create_date"; title: string; place: string; plannedFor: string; note?: string };
+  supabaseUrl: string;
+  serviceKey: string;
+}): Promise<{ updated: boolean; id: string | null }> {
+  if (!confirmed.place.trim() || !Number.isFinite(Date.parse(confirmed.plannedFor))) {
+    return { updated: false, id: null };
+  }
+  const headers = {
+    apikey: serviceKey,
+    Authorization: "Bearer " + serviceKey,
+    "Content-Type": "application/json",
+  };
+  const root = supabaseUrl.replace(/\/$/, "") + "/rest/v1/";
+  const query = new URLSearchParams({
+    user_id: "eq." + userId, kind: "eq.date", status: "eq.active",
+    select: "id,title,body,created_at,data", order: "created_at.desc", limit: "50",
+  });
+  const response = await fetch(root + "diario_items?" + query, { headers });
+  if (!response.ok) throw new Error("Could not verify pending Date invitations.");
+  const candidates = await response.json() as Array<{
+    id: string; title: string | null; body: string | null;
+    created_at: string; data: Record<string, unknown> | null;
+  }>;
+  const matching = candidates.filter(item => {
+    const details = item.data;
+    return details?.source === "dominic_chat_invitation" &&
+      details?.flow_state === "idea" &&
+      details?.invitation_pending === true &&
+      Date.now() - Date.parse(item.created_at) >= 0 &&
+      Date.now() - Date.parse(item.created_at) < 14 * 86400_000 &&
+      (normalized(item.title) === normalized(confirmed.title) ||
+        (normalized(String(details?.place ?? "")) !== "" &&
+          normalized(String(details?.place)) === normalized(confirmed.place)));
+  });
+  // Two equally plausible old invitations? Do not guess which one was accepted.
+  if (matching.length !== 1) return { updated: false, id: null };
+  const existing = matching[0];
+  const now = new Date().toISOString();
+  const params = new URLSearchParams({
+    id: "eq." + existing.id, user_id: "eq." + userId,
+    kind: "eq.date", status: "eq.active",
+    "data->>flow_state": "eq.idea",
+  });
+  const updated = await fetch(root + "diario_items?" + params, {
+    method: "PATCH",
+    headers: { ...headers, Prefer: "return=representation" },
+    body: JSON.stringify({
+      title: confirmed.title,
+      body: confirmed.note ?? existing.body,
+      planned_for: new Date(confirmed.plannedFor).toISOString(),
+      data: {
+        ...existing.data,
+        flow_state: "planned",
+        invitation_pending: false,
+        accepted_at: now,
+        place: confirmed.place,
+        time_known: true,
+        time_hint: null,
+      },
+    }),
+  });
+  if (!updated.ok) throw new Error("Could not confirm the existing Date idea.");
+  const rows = await updated.json() as Array<{ id: string }>;
+  return rows.length === 1 && rows[0].id === existing.id
+    ? { updated: true, id: existing.id }
+    : { updated: false, id: null };
+}
+
 export async function persistDominicDateProposal({
   userId, proposal, supabaseUrl, serviceKey,
 }: {

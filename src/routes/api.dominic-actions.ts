@@ -1,7 +1,7 @@
 import {
   createFileRoute,
 } from "@tanstack/react-router";
-import { persistDominicDateProposal } from "@/lib/date-proposal-server";
+import { persistDominicDateProposal, confirmExistingDominicDateIdea } from "@/lib/date-proposal-server";
 
 const DEFAULT_MODEL =
   "google/gemini-3.8-flash";
@@ -1497,18 +1497,31 @@ export const Route =
               // and a linked existing shared-item chat message server-side.
               // The older Chat client only accepts confirmed create_date, so
               // never send an unrecognized "propose_date" down to it.
+              const remainingActions: DominicWorldAction[] = [];
               for (const action of actions) {
-                if (action.type !== "propose_date") continue;
-                await persistDominicDateProposal({
-                  userId: verified.id,
-                  proposal: action,
-                  supabaseUrl,
-                  serviceKey: serviceRoleKey,
-                });
+                if (action.type === "propose_date") {
+                  await persistDominicDateProposal({
+                    userId: verified.id,
+                    proposal: action,
+                    supabaseUrl,
+                    serviceKey: serviceRoleKey,
+                  });
+                  continue;
+                }
+                if (action.type === "create_date") {
+                  // Reuse an exact, unaccepted invitation when a real agreement
+                  // follows; the old Chat client must not create a second Date.
+                  const confirmed = await confirmExistingDominicDateIdea({
+                    userId: verified.id,
+                    confirmed: action,
+                    supabaseUrl,
+                    serviceKey: serviceRoleKey,
+                  });
+                  if (confirmed.updated) continue;
+                }
+                remainingActions.push(action);
               }
-              return Response.json({
-                actions: actions.filter(action => action.type !== "propose_date"),
-              });
+              return Response.json({ actions: remainingActions });
             } catch (
               error
             ) {
