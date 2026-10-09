@@ -438,8 +438,9 @@ export const Route = createFileRoute("/api/photo-engine")({
             reference.referenceKind === "identity"
           ),
         ].filter((reference) => {
-          if (rightNowSeen.has(reference.id)) return false;
-          rightNowSeen.add(reference.id);
+          const key = reference.id ?? reference.url;
+          if (rightNowSeen.has(key)) return false;
+          rightNowSeen.add(key);
           return true;
         });
         const references = (
