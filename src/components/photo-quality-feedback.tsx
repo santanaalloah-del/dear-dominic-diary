@@ -11,6 +11,8 @@ const ISSUES = [
   { key: "connection", label: "Expressions / interaction" },
   { key: "room", label: "Room / furniture" },
   { key: "lighting", label: "Natural lighting" },
+  { key: "skin_tone", label: "Wrong skin color / undertone" },
+  { key: "realism", label: "Looks AI-generated" },
   { key: "pose", label: "Pose / requested action" },
 ] as const;
 
@@ -122,7 +124,7 @@ export function PhotoQualityFeedback({
         rows={2}
         maxLength={800}
         aria-label="Optional photo review note"
-        placeholder="Optional: which tattoo, garment, room detail or expression was wrong?"
+        placeholder="Optional: which face, garment, room or gesture looked wrong?"
         style={{ width: "100%", resize: "vertical", fontSize: 13, padding: 9, background: "#fff8f1", color: "#51212b", border: "1px solid #bc9aa0" }}
       />
       <button
