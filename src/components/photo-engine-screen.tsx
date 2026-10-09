@@ -440,6 +440,20 @@ export function PhotoEngineScreen() {
         custom: {
           requestedFrom: "photo-engine-screen",
           defaultCameraLanguage: "natural imperfect phone photo",
+          // Carry EXACTLY the camera plan shown in the free preflight.
+          // That audit has a different temporary request ID and no persisted
+          // anti-repeat history; copying the plan avoids bait-and-switch.
+          ...(mode === "request" && referenceAudit &&
+              auditSignature === currentAuditSignature ? {
+            photoPreviewPlan: {
+              poseType: referenceAudit.scene.pose,
+              cameraAngle: referenceAudit.scene.cameraAngle,
+              framing: referenceAudit.scene.framing,
+              expression: referenceAudit.scene.expression,
+              lightingType: referenceAudit.scene.lighting,
+              compositionType: referenceAudit.scene.composition,
+            },
+          } : {}),
         },
       },
     });
@@ -721,6 +735,12 @@ export function PhotoEngineScreen() {
         if (!componentActive.current) break;
         const queued = await generateIntoPreview(item.key, item.request);
         if (!queued) break;
+        if (mode === "request") {
+          // A second photo of the same scene requires a NEW free preflight,
+          // allowing a fresh angle while showing it before using credits.
+          setReferenceAudit(null);
+          setAuditSignature(null);
+        }
         if (index < count - 1 && !(await waitForBatchPhoto(request))) break;
       }
     } catch (nextError) {
@@ -755,7 +775,17 @@ export function PhotoEngineScreen() {
         avoidRecentPoses: true,
         avoidRecentLocations: true,
         avoidRecentCompositions: true,
-        contextSnapshot: previous.context_snapshot,
+        contextSnapshot: {
+          ...previous.context_snapshot,
+          custom: {
+            ...(previous.context_snapshot.custom &&
+               typeof previous.context_snapshot.custom === "object" &&
+               !Array.isArray(previous.context_snapshot.custom)
+              ? previous.context_snapshot.custom : {}),
+            // "Try again" is a NEW shot, not a rerun of the old frozen angle.
+            photoPreviewPlan: null,
+          },
+        },
         parentRequestId: previous.id,
         batchId: previous.batch_id,
         batchIndex: previous.batch_index,
