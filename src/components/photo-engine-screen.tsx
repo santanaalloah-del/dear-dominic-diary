@@ -223,10 +223,15 @@ export function PhotoEngineScreen() {
   const [checkingConnection, setCheckingConnection] = useState(false);
   const [checkingReferences, setCheckingReferences] = useState(false);
   const [referenceAudit, setReferenceAudit] = useState<PhotoReferenceAudit | null>(null);
+  const [auditSignature, setAuditSignature] = useState<string | null>(null);
   const [auditError, setAuditError] = useState<string | null>(null);
   const [connectionResult, setConnectionResult] = useState<string | null>(null);
   const [previews, setPreviews] = useState<PreviewState[]>([]);
   const [showRecentPreviews, setShowRecentPreviews] = useState(false);
+  const currentAuditSignature = JSON.stringify([
+    mode, subjectType, scene, mood, photoStyle, closeness, useCurrentLook,
+    conversationSummary, sourceContextOverride, memoryId, time.mood
+  ]);
   const activeRequestIds = useRef(new Set<string>());
   const savedPhotoUrlCache = useRef(new Map<string, { url: string; validUntil: number }>());
   const componentActive = useRef(true);
@@ -492,6 +497,7 @@ export function PhotoEngineScreen() {
     setCheckingReferences(true);
     setAuditError(null);
     setReferenceAudit(null);
+    const checkedSignature = currentAuditSignature;
     try {
       // Use a temporary in-memory request: no database request, budget
       // reservation, Edge worker dispatch or OpenRouter call can happen.
@@ -542,6 +548,7 @@ export function PhotoEngineScreen() {
       const report = await auditPhotoProviderReferences({ userId: session.user.id, request });
       if (!componentActive.current) return;
       setReferenceAudit(report);
+      setAuditSignature(checkedSignature);
     } catch (error) {
       setAuditError(messageFromError(error, "Could not check photo references. No credits used."));
     } finally {
@@ -1210,11 +1217,14 @@ export function PhotoEngineScreen() {
             {checkingReferences ? "Checking real references…" : "Check photo references (free)"}
           </Button>
           {auditError && <p className="photo-engine-error" role="alert">{auditError}</p>}
-          {referenceAudit && (
+          {referenceAudit && auditSignature !== currentAuditSignature && (
+            <p className="photo-engine-footer-note" role="status">Photo settings changed since the last free reference check. Check again to see the updated selection.</p>
+          )}
+          {referenceAudit && auditSignature === currentAuditSignature && (
             <section className="photo-engine-block" role="status" aria-label="Zero credit photo audit results">
               <div className="photo-engine-block-heading">
                 <small>FREE PHOTO PREFLIGHT · NO IMAGE GENERATED</small>
-                <strong>{referenceAudit.referenceCount} / 14 usable images</strong>
+                <strong>{referenceAudit.referenceCount} / 14 prepared references</strong>
               </div>
               {Object.entries(referenceAudit.people).map(([person, detail]) => (
                 <p key={person} style={{ margin: 0, fontSize: 12 }}>
@@ -1249,6 +1259,17 @@ export function PhotoEngineScreen() {
               {referenceAudit.warnings.map((warning, index) => (
                 <p key={index} style={{ margin: 0, fontSize: 12 }} role="note">⚠ {warning}</p>
               ))}
+              <details style={{ fontSize: 12 }}>
+                <summary style={{ cursor: "pointer" }}>Which exact references were selected?</summary>
+                <ul style={{ margin: "8px 0", paddingLeft: 18 }}>
+                  {referenceAudit.referenceRoles.map((reference, index) => (
+                    <li key={index}>
+                      <strong>{reference.subject.replaceAll("_", " ")}:</strong>{" "}
+                      {reference.title || "Untitled reference"}
+                    </li>
+                  ))}
+                </ul>
+              </details>
               <small>These are references prepared for this scene. Signed private-storage links are passed to the generator, so the check cannot guarantee the provider will fetch every image or reproduce it faithfully. No image generation credits used.</small>
             </section>
           )}
