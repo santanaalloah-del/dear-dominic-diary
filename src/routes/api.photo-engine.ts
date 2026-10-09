@@ -278,6 +278,10 @@ function buildPrompt(
     "If identity references differ in temporary styling, infer the stable identity shared across them. Hair color, clothing, makeup, jewelry and styling may be historical unless marked current.",
     "PINTEREST / US / COUPLE INSPIRATION: These are photos of OTHER people, never photographs of Alloah and Dominic together. They only suggest possible poses, candid energy, distance, framing or general mood. You may combine, vary or completely ignore their compositions. NEVER transfer Pinterest faces, bodies, skin, clothes, or exact staging to Alloah or Dominic.",
     "A scene description and the characters' authentic identity override Pinterest inspirations. The inspiration is not a mandatory template or a demand to reconstruct any reference.",
+    "EXPLICIT SCENE OVERRIDES VARIATION: First fulfill WHO is doing WHAT, WHERE, and the described relative body positions. Never substitute a different pose for the requested action. Do not invent coats, sleeves, gloves or layers to hide anatomy. Clothing worn on an arm must connect to the same person's selected garment at the shoulder.",
+    "HANDS AND OBJECTS: Show a small named prop only once and in a physically coherent grip; do not duplicate, cross, or deform it. Prioritize accurate people, arms and hands over decorative prop details.",
+    "NATURAL CONNECTION: For an affectionate interaction, show believable attention between partners instead of vacant eyes or forced symmetrical poses.",
+    "CANONICAL ROOM GEOMETRY: Preserve the actual location and orientation of the sofa relative to walls, windows, doors and major furniture from the attached room photo. Never move furniture to improve composition. Vary only the plausible phone-camera position.",
     "WARDROBE VISUAL CANON: Wardrobe reference images are photos of the EXACT SAVED CLOTHING PIECES, not photos of a person. When visible in this scene, reproduce each selected garment's silhouette, fit, construction, fabric and color. Do not replace wide/baggy jeans with slim or skinny jeans. Do not replace Adidas Samba-style sneakers with slides, sandals or flip-flops. The clothing reference's shape overrides the model's generic clothing assumptions, while the identity photos govern the real faces and bodies.",
     "FRAMING FOR TWO PEOPLE: Unless explicitly requesting a rear view or extremely wide establishing shot, show recognizable faces for BOTH people at a size that makes their identity evaluable. Preserve the scene and room but do not let the entire apartment dominate the image.",
     hasSourceImage
@@ -302,6 +306,7 @@ buildPhotoContextPrompt(request),
     "The result should look like a real personal photo someone actually took or sent in chat.",
     "Use natural skin texture, ordinary exposure, plausible phone optics, believable anatomy and perspective.",
     "Avoid cinematic grading, studio lighting, fashion-editorial posing, fake depth-of-field, plastic skin, excessive symmetry and generic AI glamour.",
+    "LIGHTING MUST MATCH THE ROOM AND TIME: dark indoor evenings need soft available household light, believable shadows and natural skin tones, not daytime windows, harsh flash or theatrical spotlight unless asked.",
     "",
     "REFERENCE MAP",
     referenceGuide.length ? referenceGuide.join("\n") : "No visual references.",
@@ -488,6 +493,35 @@ const prompt = buildPrompt(
           })),
         ];
 
+        // Store the refs that actually reached the paid image provider, not
+        // every ID in the reference library. This lets Gallery feedback work.
+        const identityReferenceUsage = attachedReferences
+          .filter(({ reference }) =>
+            (reference.subject === "alloah" || reference.subject === "dominic") &&
+            reference.referenceKind === "identity"
+          )
+          .map(({ reference }) => ({
+            id: reference.id,
+            subject: reference.subject,
+            purposes: reference.purposes ?? [],
+            strength: reference.strength,
+            referenceKind: reference.referenceKind,
+            isCurrent: reference.isCurrent,
+          }));
+        const photoEvidenceSummary = {
+          identityReferenceUsage,
+          identityFeedbackVersion: 1,
+          selectionVersion: 2,
+          referenceCount: inputReferences.length,
+          identityCount: identityReferenceUsage.length,
+          wardrobeCount: attachedReferences.filter(({ reference }) => reference.subject === "wardrobe").length,
+          homeCount: attachedReferences.filter(({ reference }) => reference.subject === "shared_home").length,
+          tattooReferenceCount: attachedReferences.filter(({ reference }) =>
+            reference.subject === "dominic" && reference.purposes?.includes("tattoos")
+          ).length,
+          canonSubjects: canons.filter((canon) => canon.subject !== "couple").map((canon) => canon.subject),
+        };
+
         if (!inputReferences.length) {
           return jsonError(
             "No usable identity reference images reached OpenRouter.",
@@ -530,6 +564,7 @@ const prompt = buildPrompt(
                 lightingType: variationPlan.lightingType,
                 compositionType: variationPlan.compositionType,
                 locationCategory: body.request.context_snapshot?.location ?? null,
+                featureData: photoEvidenceSummary,
               },
             }),
           });
