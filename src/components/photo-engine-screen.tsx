@@ -1286,7 +1286,7 @@ export function PhotoEngineScreen() {
                 <label className="photo-engine-switch-row">
                   <span>
                     <strong>Use Current Look</strong>
-                    <small>hair, nails, clothes and temporary details</small>
+                    <small>saved hair changes, nails, clothes and temporary details</small>
                   </span>
                   <input
                     type="checkbox"
@@ -1328,7 +1328,10 @@ export function PhotoEngineScreen() {
                   <strong>{person === "alloah" ? "Alloah" : "Dominic"}:</strong>{" "}
                   {detail.faceReferences} face refs
                   {detail.faceCanonAnchors > 0 ? ` · ${detail.faceCanonAnchors} verified face anchors` : ""}
-                  {" · "}{detail.currentHairReferences} current hair refs
+                  {" · "}{detail.identityHairReferences} identity hair refs
+                  {detail.currentHairReferences > 0
+                    ? " · " + detail.currentHairReferences + " saved hair-change refs"
+                    : ""}
                   {person === "dominic" ? ` · ${detail.tattooReferences} mapped tattoo refs` : ""}
                 </p>
               ))}
@@ -1364,6 +1367,9 @@ export function PhotoEngineScreen() {
               {wardrobePreviewNote && (
                 <p style={{ margin: 0, fontSize: 12 }} role="note">⚠ {wardrobePreviewNote}</p>
               )}
+              <p style={{ margin: 0, fontSize: 12 }}>
+                Saved Identity photos define the default hair. Current Look Hair is only needed when you record a change.
+              </p>
               <p style={{ margin: 0, fontSize: 12 }}>
                 Real room images: {referenceAudit.homeReferences} · Visual Canon:{" "}
                 {referenceAudit.canonSubjects.length ? referenceAudit.canonSubjects.join(", ") : "not yet analyzed"}
