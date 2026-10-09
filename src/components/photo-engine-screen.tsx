@@ -1389,6 +1389,14 @@ export function PhotoEngineScreen() {
                 {referenceAudit.scene.framing.replaceAll("_", " ")} ·{" "}
                 {referenceAudit.scene.lighting.replaceAll("_", " ")}
               </p>
+              {Boolean(referenceAudit.scene.actionNotes?.length) && (
+                <div style={{ display: "grid", gap: 4, fontSize: 12 }}>
+                  <strong>Understood action (free)</strong>
+                  {referenceAudit.scene.actionNotes?.map((note, index) => (
+                    <p key={index} style={{ margin: 0 }}>{note}</p>
+                  ))}
+                </div>
+              )}
               {referenceAudit.warnings.map((warning, index) => (
                 <p key={index} style={{ margin: 0, fontSize: 12 }} role="note">⚠ {warning}</p>
               ))}
