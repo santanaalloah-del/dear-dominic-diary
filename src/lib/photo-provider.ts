@@ -978,8 +978,8 @@ function wardrobeInstruction(
       context.lookNote ? `Look note: ${context.lookNote}.` : null,
       pieces.length ? `Pieces: ${pieces.join(" | ")}.` : null,
       "Treat this as the active outfit. Do not replace it with historical clothing from identity references.",
-      "EXACT CLOTHING PHOTOS TAKE PRECEDENCE OVER GENERIC TEXT: preserve the garment's actual fit, leg width, hem, fabric, color and shape. A baggy or relaxed jean must stay baggy, not skinny or tight. Shoes must remain shoes, not flip-flops. Samba means a low-top sneaker, not sandals.",
-      "Only infer visual details that are actually described here; do not invent logos, prints, colors, fabrics, or cuts that are not specified yet.",
+      "THE EXACT SAVED GARMENT IMAGES ARE THE AUTHORITY, EVEN WHEN TITLES ARE GENERIC. For tops, copy the visible actual print or lettering, color, placement and size FROM THE TOP'S PHOTO. Never erase a real print just because the garment is named 'babytee' or 'white t-shirt'. Never add an unrelated symbol, invented patch, slogan or logo to a garment that appears blank in its photo.",
+      "For trousers, preserve the actual baggy/slim fit, hem, fabric and color. For shoes, preserve model, colors and footwear shape; Sambas are sneakers, not sandals. Prioritize the visible garments within the selected crop. If tiny lettering is illegible at reference resolution, don't fabricate different words. A closer crop may naturally hide shoes; never zoom out solely to display every garment.",
     ]
       .filter(Boolean)
       .join(" ");
