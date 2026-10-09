@@ -9,7 +9,6 @@ const MAX_ACTIONS = 2;
 
 type ActionType =
   | "create_date"
-  | "propose_date"
   | "create_letter"
   | "create_memory"
   | "create_place"
@@ -24,13 +23,6 @@ type DominicWorldAction =
       title: string;
       place: string;
       plannedFor: string;
-      note?: string;
-    }
-  | {
-      type: "propose_date";
-      title: string;
-      place?: string;
-      plannedFor?: string;
       note?: string;
     }
   | {
@@ -134,7 +126,6 @@ const ACTION_ITEM_SCHEMA = {
 
       enum: [
         "create_date",
-        "propose_date",
         "create_letter",
         "create_memory",
         "create_place",
@@ -561,20 +552,6 @@ const title =
 if (!title) {
   return null;
 }
-  if (type === "propose_date") {
-    // This is an invitation/Date Idea, NEVER an agreed booking. A proposal
-    // can be specific about the activity while the exact venue/time remain
-    // open; the dates UI handles the later confirmation.
-    const place = cleanString(raw.place);
-    const plannedFor = cleanString(raw.plannedFor);
-    return {
-      type,
-      title,
-      place: place ?? undefined,
-      plannedFor: plannedFor && validDate(plannedFor) ? plannedFor : undefined,
-      note: cleanString(raw.note) ?? undefined,
-    };
-  }
   if (
     type ===
     "create_date"
@@ -953,23 +930,14 @@ Do not create an action merely because:
 
 Allowed actions:
 
-propose_date
-
-Use when Dominic ACTUALLY invites Alloah to a specific type of outing or suggests taking her somewhere, but Alloah has NOT clearly accepted a concrete shared plan.
-- Create a DATE IDEA for the Dates tab, not a booked / mutually agreed Date.
-- Exact address, venue and hour can be unknown. The title must name a real suggested outing/activity; "go out sometime" by itself is too vague.
-- Examples: "I'll take you out for coffee tonight, wanna come?" or "We should go get ramen on Saturday" count as proposals even if venue/time are not settled.
-- The invitation must come from Dominic's words, never only from Alloah's question or a generic hypothetical. Do not manufacture a commitment.
-- Keep place null when genuinely unknown. Only fill plannedFor if the suggested calendar day or specific time is explicit and safely resolvable; otherwise null. Preserve casual "tonight", "Saturday" or unknown-hour hints in note.
-- NEVER mark invited/accepted/visited/booked based on a proposal. Reuse or refine nearby existing ideas instead of creating duplicates.
-
 create_date
 
-Use only when BOTH Alloah and Dominic clearly agree on a concrete shared future Date with a usable place/activity and a resolvable calendar date/time. An unaccepted invitation does NOT qualify.
-- If the calendar day is known but the clock time is not, do not invent a clock hour. Leave the item an idea until time/confirmation is settled.
-- If the actual outing is accepted and specific, use the planned form and let the Dates experience handle its lifecycle.
-- If nearby commitments already contain the same Date, do not create it again.
+Use only for a concrete shared future plan with:
+- a usable place;
+- and a specific enough date or date/time.
+
 Resolve relative language such as "tomorrow" using the current São Paulo/Rio time supplied below.
+
 plannedFor must be a valid ISO date-time.
 
 create_letter
