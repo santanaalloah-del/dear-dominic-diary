@@ -13,7 +13,10 @@ export type CurrentGarment = {
   imageUrl: string | null;
 };
 
-async function openPrivateGarment(url: string): Promise<HTMLImageElement> {
+async function openPrivateGarment(url: string): Promise<{
+  image: HTMLImageElement;
+  release: () => void;
+}> {
   const response = await fetch(url, {
     credentials: "omit",
     signal: AbortSignal.timeout(12000),
@@ -34,11 +37,10 @@ async function openPrivateGarment(url: string): Promise<HTMLImageElement> {
     if (!image.naturalWidth || !image.naturalHeight) {
       throw new Error("Empty outfit image");
     }
-    // The decoded image can still be drawn after the local blob URL is revoked.
-    // Avoid cloning full-resolution PNGs into large intermediate data URLs.
-    return image;
-  } finally {
+    return { image, release: () => URL.revokeObjectURL(blobUrl) };
+  } catch (error) {
     URL.revokeObjectURL(blobUrl);
+    throw error;
   }
 }
 
@@ -53,7 +55,6 @@ export async function makeCurrentlyWearingBoard(
   if (!items.length) return null;
 
   // Never synthesize garment details: only arrange the real selected images.
-  const images = await Promise.all(items.map((garment) => openPrivateGarment(garment.imageUrl)));
   const columns = items.length === 1 ? 1 : 2;
   const rows = Math.ceil(items.length / columns);
   const cellWidth = 540;
@@ -75,7 +76,10 @@ export async function makeCurrentlyWearingBoard(
   ctx.fillText("EXACT GARMENT IMAGES • CLOTHING ONLY • NOT A PERSON REFERENCE", margin, 82);
   for (let index = 0; index < items.length; index += 1) {
     const garment = items[index];
-    const image = images[index];
+    // Draw each cutout before revoking its blob URL. This works on Safari
+    // and avoids holding six full-resolution decoded images simultaneously.
+    const loaded = await openPrivateGarment(garment.imageUrl);
+    const image = loaded.image;
     const col = index % columns;
     const row = Math.floor(index / columns);
     const x = margin + col * cellWidth;
@@ -89,13 +93,17 @@ export async function makeCurrentlyWearingBoard(
     const scale = Math.min(targetWidth / image.naturalWidth, targetHeight / image.naturalHeight);
     const width = image.naturalWidth * scale;
     const height = image.naturalHeight * scale;
-    ctx.drawImage(
-      image,
-      x + ((cellWidth - 16) - width) / 2,
-      y + 16 + (targetHeight - height) / 2,
-      width,
-      height
-    );
+    try {
+      ctx.drawImage(
+        image,
+        x + ((cellWidth - 16) - width) / 2,
+        y + 16 + (targetHeight - height) / 2,
+        width,
+        height
+      );
+    } finally {
+      loaded.release();
+    }
     ctx.fillStyle = "#33282b";
     ctx.font = "bold 20px Arial, sans-serif";
     const label = (garment.category + ": " + garment.title).slice(0, 41);
