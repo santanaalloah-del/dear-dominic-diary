@@ -53,6 +53,7 @@ type PhotoEngineDraft = {
   scene?: string;
   mood?: string;
   photoStyle?: PhotoStyle;
+  spontaneousIdeaId?: string;
   conversationSummary?: string;
   sourceContext?: PhotoSourceContext;
   memoryId?: string;
@@ -225,6 +226,7 @@ export function PhotoEngineScreen() {
   const [useCurrentLook, setUseCurrentLook] = useState(true);
   const [dailyCount, setDailyCount] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [conversationSummary, setConversationSummary] = useState("");
+  const [spontaneousIdeaId, setSpontaneousIdeaId] = useState<string | null>(null);
   const [sourceContextOverride, setSourceContextOverride] =
     useState<PhotoSourceContext | null>(null);
   const [memoryId, setMemoryId] = useState<string | null>(null);
@@ -261,6 +263,7 @@ export function PhotoEngineScreen() {
     if (draft.mode) setMode(draft.mode);
     if (draft.subjectType) setSubjectType(draft.subjectType);
     if (draft.photoStyle) setPhotoStyle(draft.photoStyle);
+    if (draft.spontaneousIdeaId) setSpontaneousIdeaId(draft.spontaneousIdeaId);
     if (draft.scene) setScene(draft.scene);
     if (draft.mood) setMood(draft.mood);
     if (draft.conversationSummary) {
@@ -441,7 +444,8 @@ export function PhotoEngineScreen() {
           : null,
         conversationSummary: conversationSummary.trim() || null,
         custom: {
-          requestedFrom: "photo-engine-screen",
+          requestedFrom: spontaneousIdeaId ? "dominic-spontaneous-initiative" : "photo-engine-screen",
+          ...(spontaneousIdeaId ? { spontaneousPhotoIdeaId: spontaneousIdeaId, initiatedBy: "dominic" } : {}),
           defaultCameraLanguage: "natural imperfect phone photo",
           // Carry EXACTLY the camera plan shown in the free preflight.
           // That audit has a different temporary request ID and no persisted
