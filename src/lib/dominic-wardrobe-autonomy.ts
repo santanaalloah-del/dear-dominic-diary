@@ -27,11 +27,43 @@ type AutonomyMarker = {
 
 const db = supabase as any;
 
-const DRESSING_ACTIVITIES =
-  new Set([
-    "getting_dressed",
-    "getting_ready",
-  ]);
+const DRESSING_ACTIVITIES = new Set(["getting_dressed", "getting_ready"]);
+
+const SKIP_DAILY_CHANGE = new Set([
+  "sleeping", "napping", "showering", "driving", "traveling",
+  "performing", "rehearsing", "recording", "at_the_studio",
+  "working", "with_friends", "leaving_home",
+]);
+
+function rioDateParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const part = (type: string) => parts.find(row => row.type === type)?.value ?? "";
+  return { day: part("year") + "-" + part("month") + "-" + part("day"), hour: Number(part("hour")) };
+}
+
+export function shouldDominicConsiderOutfitChange({
+  state, lastChangeAt, now = new Date(),
+}: {
+  state: Pick<DominicState, "activity" | "location">;
+  lastChangeAt: string | null;
+  now?: Date;
+}) {
+  const { day, hour } = rioDateParts(now);
+  const lastDay = lastChangeAt && Number.isFinite(Date.parse(lastChangeAt))
+    ? rioDateParts(new Date(lastChangeAt)).day : null;
+  if (lastDay === day) return false;
+  if (DRESSING_ACTIVITIES.has(state.activity)) return true;
+  // Simulate a *single* ordinary daily getting-ready decision after waking,
+  // even when the world loop skipped the short dressing activity. The first
+  // eligible at-home sync for the day is enough; do not force a change while
+  // asleep, out, actively performing, driving or working.
+  return hour >= 8 && hour <= 21 &&
+    state.location !== "out" && !SKIP_DAILY_CHANGE.has(state.activity);
+}
 
 function stableHash(
   value: string
@@ -534,14 +566,6 @@ export async function syncDominicWardrobeAutonomy({
   userId: string;
   state: DominicState;
 }) {
-  if (
-    !DRESSING_ACTIVITIES.has(
-      state.activity
-    )
-  ) {
-    return;
-  }
-
   const settings =
     await loadSettings(
       userId
@@ -553,13 +577,10 @@ export async function syncDominicWardrobeAutonomy({
       null
     );
 
-  if (
-    marker
-      ?.stateStartedAt ===
-    state.startedAt
-  ) {
-    return;
-  }
+  if (!shouldDominicConsiderOutfitChange({
+    state,
+    lastChangeAt: marker?.changedAt ?? null,
+  })) return;
 
   const seed =
     stableHash(
@@ -653,11 +674,15 @@ export async function syncDominicWardrobeAutonomy({
     return;
   }
 
-  const clothingIds =
-    buildIndependentPieces(
-      clothing,
-      seed
-    );
+  // A daily change should normally result in a DIFFERENT actual outfit.
+  // Never invent missing garments to force variety; cycle deterministic,
+  // compatible saved choices instead of retaining yesterday's exact set.
+  let clothingIds = buildIndependentPieces(clothing, seed);
+  for (let offset = 1; offset <= Math.min(12, clothing.length); offset += 1) {
+    const oldIds = [...(current?.clothingIds ?? [])].sort().join("|");
+    if (clothingIds.length && [...clothingIds].sort().join("|") !== oldIds) break;
+    clothingIds = buildIndependentPieces(clothing, seed + offset);
+  }
 
   const selection =
     await setWearingClothing({
