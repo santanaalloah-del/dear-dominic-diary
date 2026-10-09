@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getWearingSelection } from "@/lib/wardrobe-context";
+import { makeCurrentlyWearingBoard } from "@/lib/photo-wardrobe-reference-board";
 import {
   identityFeedbackBoost,
   type IdentityReferenceUsage,
@@ -899,37 +900,65 @@ export async function generatePhotoProviderPreview({
     }
   }
 
-  // When clothing is attached, the selected room photo is more useful than a
-  // separate floor-plan image. Keep the floor-plan text in the room canon while
-  // giving the real saved outfit priority within the provider's hard limit.
-  const includeFloorPlan = Boolean(homeCanon) && wardrobePhotos.length === 0;
+  // One locally-rendered clothing board PER PERSON carries every Currently
+  // Wearing cutout (top, bottoms, shoes) using only two model image slots.
+  // No image model or paid API is used to assemble these neutral boards.
+  const ownersWithClothing = owners.filter((owner) =>
+    clothingWithPhotos.some((item) => item.owner === owner)
+  );
+  const boardResults = await Promise.all(ownersWithClothing.map(async (owner) => {
+    const pieces = clothingWithPhotos.filter((item) => item.owner === owner).map((item) => item.piece);
+    try {
+      const boardUrl = await makeCurrentlyWearingBoard(owner, pieces);
+      return boardUrl ? { owner, pieces, boardUrl } : null;
+    } catch (error) {
+      console.warn("Could not prepare a private wardrobe board; using individual cutouts:", error);
+      return null;
+    }
+  }));
+  // Browser canvas failures must not silently drop outfit evidence.
+  const useBoards = ownersWithClothing.length > 0 && boardResults.every(Boolean);
+  const clothingReferences: ProviderReferencePayload[] = useBoards
+    ? boardResults.filter((item): item is NonNullable<typeof item> => item !== null)
+        .map(({ owner, pieces, boardUrl }) => ({
+          id: "wardrobe-board-" + owner,
+          url: boardUrl,
+          subject: "wardrobe",
+          title: owner.toUpperCase() + " — Currently Wearing",
+          description: "EXACT CURRENTLY WORN " + owner.toUpperCase() +
+            " CLOTHING BOARD. Each labeled panel is a separate REAL cutout, not invented styling. " +
+            pieces.map((piece) => piece.category + ": " + piece.title).join(" | ") +
+            ". Only match the panel to its proper category and owner. Preserve fit and footwear type. NEVER copy any face or body from this board.",
+          purposes: ["wardrobe", "clothing", owner, "currently_wearing_board"],
+          strength: "primary",
+          referenceKind: "detail",
+          lookType: null,
+          isCurrent: true,
+        }))
+    : wardrobePhotos.filter(({ piece }) => Boolean(piece.imageUrl)).map(({ owner, piece }) => ({
+        id: "wardrobe-" + piece.id,
+        url: piece.imageUrl!,
+        subject: "wardrobe",
+        title: piece.title,
+        description: `EXACT CURRENTLY WORN ${owner.toUpperCase()} CLOTHING: ${piece.title} (${piece.category}). Copy the real cut, silhouette, width, fabric, color and footwear type visible in this image. Do not change baggy jeans into skinny jeans or sneakers into sandals.${piece.note ? " Details: " + piece.note : ""}`,
+        purposes: ["wardrobe", "clothing", owner, piece.category],
+        strength: "primary",
+        referenceKind: "detail",
+        lookType: null,
+        isCurrent: true,
+      }));
+
+  const includeFloorPlan = Boolean(homeCanon) && clothingReferences.length === 0;
   const homeImageSlots = homeCanon ? (includeFloorPlan ? 2 : 1) : 0;
   const selectedReferences = chooseProviderReferences(
     request,
     bundle.selected,
     canons.filter(canon => canon.subject !== "couple"),
-    Math.max(1, MAX_PROVIDER_REFERENCES - homeImageSlots - wardrobePhotos.length - (sourceImageDataUrl ? 1 : 0))
+    Math.max(1, MAX_PROVIDER_REFERENCES - homeImageSlots - clothingReferences.length - (sourceImageDataUrl ? 1 : 0))
   );
 
-  const references = selectedReferences.map(cleanReferencePayload);
-
-  // Outfit cutouts are visual evidence for clothing ONLY, not faces, bodies or
-  // Pinterest poses. The generator must preserve the real silhouette and sole.
-  for (const { owner, piece } of wardrobePhotos) {
-    if (!piece.imageUrl) continue;
-    references.push({
-      id: "wardrobe-" + piece.id,
-      url: piece.imageUrl,
-      subject: "wardrobe",
-      title: piece.title,
-      description: `EXACT CURRENTLY WORN ${owner.toUpperCase()} CLOTHING: ${piece.title} (${piece.category}). Copy the real cut, silhouette, width, fabric, color and footwear type visible in this image. Do not change baggy jeans into skinny jeans or sneakers into sandals.${piece.note ? " Details: " + piece.note : ""}`,
-      purposes: ["wardrobe", "clothing", owner, piece.category],
-      strength: "primary",
-      referenceKind: "detail",
-      lookType: null,
-      isCurrent: true,
-    });
-  }
+  const references: ProviderReferencePayload[] = selectedReferences.map(cleanReferencePayload);
+  references.push(...clothingReferences);
 
   if (homeCanon) {
     references.push({
