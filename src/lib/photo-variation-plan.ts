@@ -388,11 +388,20 @@ export function buildPhotoVariationPlan(
   // A picture of TWO people is not an outfit lookbook. Neither is a photo
   // of one person. Full-body and establishing shots are reserved for direct
   // scene/shot-type requests, not randomized from a camera pool.
-  const casualFramings = ["chest_up", "waist_up", "three_quarter", "medium_wide"];
+  const casualFramings = ["head_and_shoulders", "chest_up", "waist_up", "three_quarter"];
   const naturalCoupleFramings = casualFramings;
   const explicitFullBodyShot = /\b(full.?body|whole.?body|outfit|lookbook|head.?to.?toe)\b/i.test(request.shot_type ?? "");
   const explicitWideShot = /\b(environment|establishing|wide|room)\b/i.test(request.shot_type ?? "");
-  const requestedShotFraming = sceneIntent.framing ??
+  const requestedOverride = safeObject(context.custom).framingOverride;
+  const approvedFramings = new Set([
+    "close_up", "head_and_shoulders", "chest_up", "waist_up",
+    "three_quarter", "full_body", "environmental_wide",
+  ]);
+  const manualFraming = typeof requestedOverride === "string" &&
+    approvedFramings.has(requestedOverride) ? requestedOverride : null;
+  // A user-selected crop wins over random composition and persists from
+  // the free audit into the paid request.
+  const requestedShotFraming = manualFraming ?? sceneIntent.framing ??
     (explicitFullBodyShot ? "full_body" : explicitWideShot ? "environmental_wide" : null);
   const recentFramings = [
     ...safeStrings(anti.recentFramings).slice(0, 2),
@@ -408,8 +417,8 @@ export function buildPhotoVariationPlan(
     : intimateCloseUp
       ? choose(
           sceneIntent.pose === "reclining_on_partner"
-            ? ["three_quarter", "medium_wide", "waist_up", "chest_up"]
-            : ["chest_up", "waist_up", "three_quarter", "medium_wide"],
+            ? ["waist_up", "chest_up", "three_quarter"]
+            : ["chest_up", "waist_up", "head_and_shoulders", "three_quarter"],
           recentFramings, seedBase >>> 6, "three_quarter"
         )
       : choose(
