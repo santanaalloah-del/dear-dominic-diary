@@ -513,11 +513,65 @@ function requestNeedsTattoos(request: PhotoGenerationRequest) {
   ].some((term) => text.includes(term));
 }
 
+type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose";
+
+function photoSceneFamily(scene: string | null | undefined): string | null {
+  const text = (scene ?? "").toLowerCase();
+  if (/sofa|sofá|couch|living room|sala de estar/.test(text)) return "living";
+  if (/bedroom|bed|quarto|cama/.test(text)) return "bedroom";
+  if (/mirror|espelho/.test(text)) return "mirror";
+  if (/kitchen|cozinha/.test(text)) return "kitchen";
+  if (/street|walking|rua|caminhando/.test(text)) return "outside";
+  if (/selfie/.test(text)) return "selfie";
+  return null;
+}
+
+async function getMatchingQualityIssues(
+  userId: string,
+  request: PhotoGenerationRequest
+): Promise<Set<PhotoQualityIssue>> {
+  const scene = photoSceneFamily(request.scene);
+  if (!scene) return new Set();
+  // Read feedback from actual SAVED photos only. No model call or analysis.
+  const { data, error } = await (supabase as any)
+    .from("photo_generation_requests")
+    .select("subject_type,scene,context_snapshot")
+    .eq("user_id", userId)
+    .eq("subject_type", request.subject_type)
+    .eq("status", "completed")
+    .order("created_at", { ascending: false })
+    .limit(16);
+  if (error) {
+    console.warn("Could not read free photo-quality feedback:", error);
+    return new Set();
+  }
+  const allowed = new Set<PhotoQualityIssue>([
+    "face_alloah", "face_dominic", "tattoos", "wardrobe", "anatomy",
+    "connection", "room", "lighting", "pose"
+  ]);
+  const issues = new Set<PhotoQualityIssue>();
+  for (const row of (data ?? []) as Array<{
+    scene?: string | null;
+    context_snapshot?: Record<string, unknown> | null;
+  }>) {
+    if (photoSceneFamily(row.scene) !== scene) continue;
+    const review = row.context_snapshot?.photo_quality_review;
+    if (!review || typeof review !== "object" || Array.isArray(review)) continue;
+    const rejected = (review as { issues?: unknown }).issues;
+    if (!Array.isArray(rejected)) continue;
+    for (const issue of rejected) {
+      if (allowed.has(issue as PhotoQualityIssue)) issues.add(issue as PhotoQualityIssue);
+    }
+  }
+  return issues;
+}
+
 function chooseProviderReferences(
   request: PhotoGenerationRequest,
   selected: Awaited<ReturnType<typeof getPhotoReferenceBundle>>["selected"],
   canons: VisualCanonRow[],
-  maxReferences = MAX_PROVIDER_REFERENCES
+  maxReferences = MAX_PROVIDER_REFERENCES,
+  qualityIssues: Set<PhotoQualityIssue> = new Set()
 ) {
   const requestedIds = new Set(request.reference_ids ?? []);
   const pool = selected
@@ -639,7 +693,7 @@ function chooseProviderReferences(
     ensureIdentity("alloah", 2);
     ensureIdentity("dominic", 2);
     if (wantsTattoos || requestedRegions.length)
-      takeOrderedIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), 2);
+      takeOrderedIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), qualityIssues.has("tattoos") ? 3 : 2);
     takeOrderedIds("dominic", groupsFor("dominic").tattoos, 1);
     if (request.use_current_look) {
       take((item) => item.reference.subject === "dominic" &&
@@ -655,8 +709,10 @@ function chooseProviderReferences(
       takeOrderedIds("dominic", groupsFor("dominic").profile, 1);
       takeOrderedIds("alloah", groupsFor("alloah").profile, 1);
     }
-    ensureIdentity("alloah", 3);
-    ensureIdentity("dominic", 3);
+    // A recent negative review of a similar scene allocates ONE extra real
+    // identity slot. The feedback never turns generated images into references.
+    ensureIdentity("alloah", qualityIssues.has("face_alloah") ? 4 : 3);
+    ensureIdentity("dominic", qualityIssues.has("face_dominic") ? 4 : 3);
     takeFallbackAnchors("alloah", 1);
     takeFallbackAnchors("dominic", 1);
   } else {
@@ -665,14 +721,14 @@ function chooseProviderReferences(
     ensureIdentity(subject, 3);
     if (subject === "dominic") {
       if (wantsTattoos || requestedRegions.length)
-        takeOrderedIds(subject, tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), 3);
+        takeOrderedIds(subject, tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), qualityIssues.has("tattoos") ? 4 : 3);
       takeOrderedIds(subject, groups.tattoos, 2);
     }
     if (wantsBody) takeOrderedIds(subject, groups.body, 1);
     if (wantsProfile) takeOrderedIds(subject, groups.profile, 1);
     if (request.use_current_look)
       take((item) => item.reference.subject === subject && item.reference.is_current, 1);
-    ensureIdentity(subject, 4);
+    ensureIdentity(subject, qualityIssues.has(subject === "alloah" ? "face_alloah" : "face_dominic") ? 5 : 4);
     takeFallbackAnchors(subject, 2);
     take((item) => item.reference.subject === subject && identityUseful(item), 2);
   }
@@ -853,7 +909,7 @@ export async function generatePhotoProviderPreview({
   background = false,
   auditOnly = false,
 }: GeneratePreviewInput): Promise<PhotoProviderPreview | PhotoReferenceAudit> {
-  const [{ data: sessionData }, bundle, canons, wardrobeContexts, homeCanon] =
+  const [{ data: sessionData }, bundle, canons, wardrobeContexts, homeCanon, qualityIssues] =
     await Promise.all([
       supabase.auth.getSession(),
       getPhotoReferenceBundle({
@@ -870,6 +926,7 @@ export async function generatePhotoProviderPreview({
         owners: wardrobeOwnersForRequest(request.subject_type),
       }),
       homeCanonContext(userId, request),
+      getMatchingQualityIssues(userId, request),
     ]);
 
   const accessToken = sessionData.session?.access_token;
@@ -981,7 +1038,8 @@ export async function generatePhotoProviderPreview({
     request,
     bundle.selected,
     canons.filter(canon => canon.subject !== "couple"),
-    Math.max(1, MAX_PROVIDER_REFERENCES - homeImageSlots - clothingReferences.length - (sourceImageDataUrl ? 1 : 0))
+    Math.max(1, MAX_PROVIDER_REFERENCES - homeImageSlots - clothingReferences.length - (sourceImageDataUrl ? 1 : 0)),
+    qualityIssues
   );
 
   const references: ProviderReferencePayload[] = selectedReferences.map(cleanReferencePayload);
