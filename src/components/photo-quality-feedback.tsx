@@ -6,8 +6,12 @@ const ISSUES = [
   { key: "face_alloah", label: "Alloah's face" },
   { key: "face_dominic", label: "Dominic's face" },
   { key: "tattoos", label: "Tattoos / placement" },
+  { key: "unwanted_tattoos", label: "Invented tattoos on Alloah" },
   { key: "ink_on_fabric", label: "Tattoo copied onto clothes" },
-  { key: "wardrobe", label: "Clothes / shoes" },
+  { key: "wardrobe", label: "Clothing print / fit" },
+  { key: "footwear", label: "Mismatched or duplicated shoes" },
+  { key: "accessories", label: "Invented jewelry / accessories" },
+  { key: "watermark", label: "Fake caption / watermark" },
   { key: "framing", label: "Too wide / wrong camera crop" },
   { key: "anatomy", label: "Hands / anatomy" },
   { key: "connection", label: "Expressions / interaction" },
@@ -38,6 +42,8 @@ export function PhotoQualityFeedback({
     item.key !== "face_dominic" || request.subject_type !== "me"
   ).filter((item) =>
     item.key !== "tattoos" || request.subject_type !== "me"
+  ).filter((item) =>
+    item.key !== "unwanted_tattoos" || request.subject_type !== "dominic"
   );
   const [issues, setIssues] = useState<string[]>(
     Array.isArray(initial.issues) ? initial.issues : []
