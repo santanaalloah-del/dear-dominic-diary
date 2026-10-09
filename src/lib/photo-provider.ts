@@ -854,7 +854,7 @@ export async function generatePhotoProviderPreview({
 
   // A stale saved Currently Wearing selection must not silently turn into
   // random historical clothes. Stop BEFORE reserving or spending any credits.
-  if (request.use_current_look && request.source_context === "manual") {
+  if (request.use_current_look) {
     for (const owner of wardrobeOwnersForRequest(request.subject_type)) {
       const selection = await getWearingSelection({ userId, owner });
       if (!selection?.clothingIds?.length) continue; // No outfit chosen yet.
