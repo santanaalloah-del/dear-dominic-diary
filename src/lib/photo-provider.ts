@@ -566,7 +566,7 @@ function requestNeedsTattoos(request: PhotoGenerationRequest) {
   ].some((term) => sceneContainsTerm(text, term));
 }
 
-type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism" | "hair" | "body_placement" | "prop_handling" | "chemistry";
+type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism" | "framing" | "hair" | "body_placement" | "prop_handling" | "chemistry";
 
 function photoSceneFamily(scene: string | null | undefined): string | null {
   const text = (scene ?? "").toLowerCase();
@@ -601,7 +601,7 @@ async function getMatchingQualityIssues(
   const allowed = new Set<PhotoQualityIssue>([
     "face_alloah", "face_dominic", "tattoos", "wardrobe", "anatomy",
     "connection", "room", "lighting", "pose", "skin_tone", "realism",
-    "hair", "body_placement", "prop_handling", "chemistry"
+    "framing", "hair", "body_placement", "prop_handling", "chemistry"
   ]);
   const issues = new Set<PhotoQualityIssue>();
   for (const row of (data ?? []) as Array<{
@@ -631,12 +631,13 @@ function photoQualityCorrectionInstruction(issues: Set<PhotoQualityIssue>): stri
     issues.has("face_dominic") ? "Preserve Dominic's real facial geometry from his identity photos over inspiration or styling." : null,
     issues.has("skin_tone") ? "Preserve each person's complexion and undertone from real identity photos, without borrowing skin color from inspiration or room references." : null,
     issues.has("realism") ? "Avoid AI-looking glamour: use handheld phone perspective, realistic skin texture, natural asymmetry and relaxed expressions." : null,
+    issues.has("framing") ? "The last image was framed too wide. Honor the SELECTED shot plan's actual crop, usually chest/waist-up or three-quarter; do not zoom out to show shoes, full outfits or a staged room-wide couple portrait unless explicitly requested." : null,
     issues.has("hair") ? "Keep the hairstyle from the saved Identity photos by default. Override only from an explicitly registered, active Current Look Hair change." : null,
     issues.has("body_placement") ? "Honor the explicit relative positions of both people, including lap, above/below and direction of the embrace; never swap them." : null,
     issues.has("prop_handling") ? "Show the stated prop only once; attach it to a plausible real hand and preserve any explicitly named holder." : null,
     issues.has("chemistry") ? "Show unforced, mutually attentive interaction and credible touch without vacant stares or artificial symmetry." : null,
     issues.has("tattoos") ? "Respect the attached real tattoo anchors; do not invent, mirror, relocate or erase a visible permanent tattoo." : null,
-    issues.has("wardrobe") ? "Match every selected real garment's cut, color, fit, trousers and footwear from the Currently Wearing images." : null,
+    issues.has("wardrobe") ? "Match the EXACT printed tops, visible wording, cuts, fit and footwear in Currently Wearing photos; never invent or erase a visible shirt graphic." : null,
     issues.has("anatomy") ? "Check hand and limb counts, plausible grips and physically correct contact between bodies." : null,
     issues.has("connection") ? "Avoid staged couple posing: keep believable eye lines, facial muscles and casual touch." : null,
     issues.has("room") ? "Match the canonical room photo and furniture orientation; do not invent a different home." : null,
