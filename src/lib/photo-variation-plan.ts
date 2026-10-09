@@ -315,7 +315,7 @@ export function buildPhotoVariationPlan(
   // The user's explicit action overrides the randomized anti-repeat pose.
   // Otherwise a request to lie down can turn into standing/reaching/sitting.
   const sceneText = (request.scene ?? "").toLowerCase();
-  const explicitPose = /\b(lying|laying|laid|reclining|reclined|deitad[oa]s?|deitados|deitadas)\b/.test(sceneText)
+  const explicitPose = /\b(lying|laying|laid|reclining|reclined|deitad[oa]s?|deitados|deitadas)\b/.test(sceneText) || (/\b(on top of|em cima d[eo]|cuddling on|cuddling in|deitados? no|deitadas? no)\b/.test(sceneText) && /\b(sofa|sofa bed|sofa|couch|sofá)\b/.test(sceneText))
     ? "lying_relaxed"
     : /\b(walking|walk together|andando|caminhando|passeando)\b/.test(sceneText)
       ? "walking_together"
@@ -345,12 +345,16 @@ export function buildPhotoVariationPlan(
     "waist_up"
   );
 
-  const expression = choose(
-    expressionPool(request.mode, request.mood),
-    safeStrings(anti.recentExpressions),
-    seedBase >>> 9,
-    "neutral_soft"
-  );
+  const isTogether = request.subject_type === "both";
+  const affection = /cudd|hug|embrac|kiss|lying together|laying together|snuggl|abraç|beij|carinh|conchinha|romantic|flirty|intimate/.test([sceneText, request.mood ?? ""].join(" ").toLowerCase());
+  const expression = isTogether && affection
+    ? choose(["soft_attentive_glance_at_partner", "gentle_smile_at_partner", "natural_mid_laugh_together"], safeStrings(anti.recentExpressions), seedBase >>> 9, "soft_attentive_glance_at_partner")
+    : choose(
+        expressionPool(request.mode, request.mood),
+        safeStrings(anti.recentExpressions),
+        seedBase >>> 9,
+        "neutral_soft"
+      );
 
   // Indoor night scenes must never randomly receive daytime/streetlight or
   // harsh flash unless the user explicitly asks for flash.
@@ -400,6 +404,6 @@ export function photoVariationInstruction(
     `Lighting: ${humanize(plan.lightingType)}.`,
     `Composition: ${humanize(plan.compositionType)}.`,
     "Treat these as natural photographic directions, not rigid studio posing.",
-    "Identity fidelity, the user's explicitly requested body positions and interactions, and the real apartment lighting always OVERRIDE any shot variation. If a suggested pose conflicts with the scene, ignore the suggestion.",
+    "Identity fidelity, the user's explicitly requested body positions and interactions, and the real apartment lighting always OVERRIDE any shot variation. Never change who is lying on whom, swap a hand, or invent an unrelated gesture. Keep both people engaged with each other, not gazing vacantly into space unless specifically requested.",
   ].join(" ");
 }
