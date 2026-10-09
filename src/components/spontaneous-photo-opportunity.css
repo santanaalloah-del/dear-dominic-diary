@@ -1,199 +1,125 @@
-.spontaneous-photo-opportunity {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-  margin: 8px 12px;
-  padding: 10px 11px;
-  border: 1px solid color-mix(in oklab, var(--wine) 27%, var(--border));
-  background: color-mix(in oklab, var(--blush) 13%, var(--paper));
+/* Photo suggestions live among the scrolling chat messages, never above the composer. */
+.spontaneous-photo-chat-message {
+  align-self: flex-start;
+  width: fit-content;
+  max-width: min(86%, 340px);
+  margin: 8px 14px 12px;
 }
-
-.spontaneous-photo-opportunity-icon {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid color-mix(in oklab, var(--wine) 28%, var(--border));
-  border-radius: 50%;
-  color: var(--wine);
-  background: var(--paper);
+.spontaneous-photo-chat-bubble {
+  padding: 11px 12px 10px;
+  border: 1px solid color-mix(in oklab, var(--wine) 13%, var(--border));
+  border-radius: 17px 17px 17px 5px;
+  background: color-mix(in oklab, var(--paper) 93%, var(--blush));
+  box-shadow: 0 1px 6px rgb(56 20 29 / 5%);
+  color: var(--foreground);
 }
-
-.spontaneous-photo-opportunity-copy {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
+.spontaneous-photo-chat-bubble > p:first-child {
+  margin: 0 0 8px;
+  font: 13px/1.5 var(--font-body);
+  overflow-wrap: anywhere;
 }
-
-.spontaneous-photo-opportunity-copy small {
-  color: var(--wine);
-  font: 8px var(--font-body);
-  letter-spacing: 0.11em;
-}
-
-.spontaneous-photo-opportunity-copy strong {
-  font: 14px var(--font-display);
-  font-weight: 500;
-}
-
-.spontaneous-photo-opportunity-copy span {
-  overflow: hidden;
-  color: var(--muted-foreground);
-  font: 9px var(--font-body);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.spontaneous-photo-opportunity-actions {
+.spontaneous-photo-chat-subtitle {
   display: flex;
   align-items: center;
   gap: 5px;
-}
-
-.spontaneous-photo-opportunity-actions button {
-  cursor: pointer;
-}
-
-.spontaneous-photo-dismiss {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  background: transparent;
   color: var(--muted-foreground);
+  font: 10px/1.35 var(--font-body);
 }
-
-.spontaneous-photo-open {
-  min-height: 30px;
-  padding: 6px 9px;
-  border: 1px solid var(--wine);
-  background: var(--wine);
-  color: var(--paper);
-  font: 9px var(--font-body);
-  white-space: nowrap;
-}
-
-.spontaneous-photo-opportunity-actions button:disabled {
-  opacity: 0.55;
-  cursor: wait;
-}
-
-.spontaneous-photo-opportunity > p {
-  grid-column: 2 / -1;
-  margin: -4px 0 0;
-  color: var(--muted-foreground);
-  font: 8px/1.35 var(--font-body);
-}
-
-@media (max-width: 520px) {
-  .spontaneous-photo-opportunity {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .spontaneous-photo-opportunity-actions {
-    grid-column: 2;
-    justify-content: flex-start;
-  }
-
-  .spontaneous-photo-opportunity > p {
-    grid-column: 2;
-  }
-}
-
-
-.spontaneous-photo-details,
-.spontaneous-photo-tools,
-.spontaneous-photo-saved,
-.spontaneous-photo-settings {
-  grid-column: 1 / -1;
-  min-width: 0;
-}
-.spontaneous-photo-details {
-  padding: 7px 0 0;
-  border-top: 1px solid color-mix(in oklab, var(--wine) 14%, var(--border));
-}
-.spontaneous-photo-details p {
-  margin: 0 0 8px;
-  color: var(--foreground);
-  font: 11px/1.5 var(--font-body);
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.spontaneous-photo-secondary, .spontaneous-photo-tools {
+.spontaneous-photo-chat-actions {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px;
+  margin-top: 10px;
 }
-.spontaneous-photo-secondary button,
-.spontaneous-photo-tools button,
+.spontaneous-photo-chat-actions button,
 .spontaneous-photo-saved-item button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  min-height: 30px;
-  padding: 5px 8px;
-  color: var(--wine);
-  border: 1px solid color-mix(in oklab, var(--wine) 24%, var(--border));
-  border-radius: 4px;
+  padding: 6px 9px;
+  min-height: 31px;
+  border: 1px solid color-mix(in oklab, var(--wine) 30%, var(--border));
+  border-radius: 8px;
   background: transparent;
-  font: 10px var(--font-body);
+  color: var(--wine);
+  font: 11px/1.3 var(--font-body);
   cursor: pointer;
 }
-.spontaneous-photo-secondary button:disabled,
-.spontaneous-photo-tools button:disabled,
+.spontaneous-photo-chat-actions button:first-child {
+  background: var(--wine);
+  color: var(--paper);
+  border-color: var(--wine);
+}
+.spontaneous-photo-chat-actions button:disabled,
 .spontaneous-photo-saved-item button:disabled {
-  opacity: .55;
+  opacity: 0.55;
   cursor: wait;
 }
-.spontaneous-photo-saved, .spontaneous-photo-settings {
-  display: grid;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid color-mix(in oklab, var(--wine) 16%, var(--border));
-  border-radius: 5px;
-  background: var(--paper);
+.spontaneous-photo-chat-bubble [role="alert"],
+.spontaneous-photo-preferences-panel [role="alert"] {
+  color: var(--wine);
+  font: 11px/1.4 var(--font-body);
 }
-.spontaneous-photo-saved-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.spontaneous-photo-preferences-panel,
+.spontaneous-photo-settings,
+.spontaneous-photo-saved {
+  display: grid;
+  gap: 10px;
   min-width: 0;
 }
-.spontaneous-photo-saved-item span {
-  flex: 1;
-  font: 11px/1.4 var(--font-body);
-  overflow-wrap: anywhere;
-}
-.spontaneous-photo-saved-item span small {
-  display: block;
-  color: var(--muted-foreground);
+.spontaneous-photo-settings {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
 }
 .spontaneous-photo-settings label {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 7px;
-  font: 11px/1.4 var(--font-body);
+  gap: 8px;
+  color: var(--foreground);
+  font: 12px/1.45 var(--font-body);
 }
-.spontaneous-photo-settings input {
-  accent-color: var(--wine);
-}
+.spontaneous-photo-settings input { accent-color: var(--wine); }
 .spontaneous-photo-settings select {
+  padding: 6px 8px;
   max-width: 100%;
-  padding: 5px 6px;
   background: var(--paper);
   color: var(--foreground);
   border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.spontaneous-photo-saved {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--paper);
+}
+.spontaneous-photo-saved > strong {
+  font: 13px/1.3 var(--font-body);
+}
+.spontaneous-photo-saved-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.spontaneous-photo-saved-item > span {
+  min-width: 110px;
+  flex: 1;
+  overflow-wrap: anywhere;
+  font: 11px/1.4 var(--font-body);
+}
+.spontaneous-photo-saved-item > span small {
+  display: block;
+  color: var(--muted-foreground);
+}
+.spontaneous-photo-settings-note {
+  color: var(--muted-foreground);
+  font: 10px/1.45 var(--font-body);
 }
 @media (max-width: 520px) {
-  .spontaneous-photo-details,
-  .spontaneous-photo-tools,
-  .spontaneous-photo-saved,
-  .spontaneous-photo-settings {
-    grid-column: 1 / -1;
-  }
+  .spontaneous-photo-chat-message { max-width: 89%; margin-inline: 9px; }
 }
