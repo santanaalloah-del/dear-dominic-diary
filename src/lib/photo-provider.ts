@@ -342,7 +342,10 @@ function tattooRegionsFromProfile(
 function requestedTattooRegions(
   request: PhotoGenerationRequest
 ): TattooRegion[] {
-  const text = requestText(request);
+  // Skin exposure must be inferred from the PHOTO itself. Earlier chat
+  // summaries about tattoos, other outfits, or shirtless references must NOT
+  // pretend the currently selected shirt is transparent.
+  const text = visualExposureText(request);
   const regions = new Set<TattooRegion>();
 
   // Fixed phrases only; do not match "arm" in "warm", or "hand" within another word.
@@ -505,6 +508,13 @@ function requestText(request: PhotoGenerationRequest) {
     .toLowerCase();
 }
 
+function visualExposureText(request: PhotoGenerationRequest) {
+  return [request.scene, request.shot_type, request.adjustment_instruction]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+}
+
 function sceneContainsTerm(text: string, term: string): boolean {
   const clean = (value: string) => value.toLowerCase()
     .replace(/[^a-z0-9À-ÿ]+/g, " ").trim();
@@ -547,7 +557,7 @@ function requestNeedsBody(request: PhotoGenerationRequest) {
 }
 
 function requestNeedsTattoos(request: PhotoGenerationRequest) {
-  const text = requestText(request);
+  const text = visualExposureText(request);
 
   return [
     "tattoo",
@@ -945,7 +955,7 @@ function tattooRegionInstruction(
 
   return [
     "DOMINIC TATTOO REGION MATCHING:",
-    "Use the attached tattoo references that correspond to the body regions visible in this scene. Preserve placement and side; do not mirror, move, merge, or invent tattoos.",
+    "SKIN ONLY: The mapped tattoos are embedded in Dominic's actual skin, at their anchored anatomical regions. Apply a tattoo ONLY to exposed skin that naturally belongs to that region; a tattoo hidden by a T-shirt, jeans or sleeve must remain invisible. Never copy or project tattoo symbols from a skin/identity photo onto any garment's fabric, pattern, logo, chest print, shoe, wall or other surface. Cloth is opaque, not a transparent tattoo canvas. Preserve correct side; do not mirror, relocate, invent or duplicate ink.",
     details.length ? details.join(" | ") : null,
   ]
     .filter(Boolean)
