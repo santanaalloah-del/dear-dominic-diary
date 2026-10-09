@@ -31,21 +31,12 @@ async function openPrivateGarment(url: string): Promise<HTMLImageElement> {
       image.onerror = () => reject(new Error("Could not decode a wardrobe image"));
       image.src = blobUrl;
     });
-    // Draw the image before releasing the local object URL.
-    const detached = document.createElement("canvas");
-    detached.width = image.naturalWidth;
-    detached.height = image.naturalHeight;
-    const ctx = detached.getContext("2d");
-    if (!ctx || !detached.width || !detached.height) throw new Error("Empty outfit image");
-    ctx.drawImage(image, 0, 0);
-    const safeImage = new Image();
-    const safeUrl = detached.toDataURL("image/png");
-    await new Promise<void>((resolve, reject) => {
-      safeImage.onload = () => resolve();
-      safeImage.onerror = () => reject(new Error("Could not prepare a wardrobe image"));
-      safeImage.src = safeUrl;
-    });
-    return safeImage;
+    if (!image.naturalWidth || !image.naturalHeight) {
+      throw new Error("Empty outfit image");
+    }
+    // The decoded image can still be drawn after the local blob URL is revoked.
+    // Avoid cloning full-resolution PNGs into large intermediate data URLs.
+    return image;
   } finally {
     URL.revokeObjectURL(blobUrl);
   }
