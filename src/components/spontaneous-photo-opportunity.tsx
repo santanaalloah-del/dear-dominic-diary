@@ -19,6 +19,8 @@ type PhotoDraft = {
   subjectType: "dominic" | "both";
   scene: string;
   mood: string;
+  photoStyle: "natural_iphone" | "candid" | "mirror" | "selfie";
+  sourceContext: "chat";
   conversationSummary?: string;
 };
 
@@ -131,6 +133,8 @@ export function SpontaneousPhotoOpportunity({
         subjectType: idea.subjectType,
         scene: idea.scene,
         mood: idea.mood,
+        photoStyle: idea.photoStyle,
+        sourceContext: "chat",
         conversationSummary: idea.conversationSummary ?? conversationSummary,
       });
     } catch {
