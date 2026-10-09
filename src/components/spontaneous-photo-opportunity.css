@@ -123,3 +123,10 @@
 @media (max-width: 520px) {
   .spontaneous-photo-chat-message { max-width: 89%; margin-inline: 9px; }
 }
+
+/* The extra privacy/frequency controls must remain reachable on phones. */
+.chat-settings-sheet {
+  max-height: min(89dvh, 850px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
