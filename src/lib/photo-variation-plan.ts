@@ -312,7 +312,19 @@ export function buildPhotoVariationPlan(
 
   const pools = stylePools(request.photo_style);
 
-  const poseType = choose(
+  // The user's explicit action overrides the randomized anti-repeat pose.
+  // Otherwise a request to lie down can turn into standing/reaching/sitting.
+  const sceneText = (request.scene ?? "").toLowerCase();
+  const explicitPose = /\b(lying|laying|laid|reclining|reclined|deitad[oa]s?|deitados|deitadas)\b/.test(sceneText)
+    ? "lying_relaxed"
+    : /\b(walking|walk together|andando|caminhando|passeando)\b/.test(sceneText)
+      ? "walking_together"
+      : /\b(sitting|seated|sentad[oa]s?)\b/.test(sceneText)
+        ? "relaxed_seated"
+        : /\b(standing|em pé|de pé)\b/.test(sceneText)
+          ? "standing"
+          : null;
+  const poseType = explicitPose ?? choose(
     pools.poses,
     safeStrings(avoid.poses),
     seedBase,
@@ -340,12 +352,20 @@ export function buildPhotoVariationPlan(
     "neutral_soft"
   );
 
-  const lightingType = choose(
-    lightingPool(request.photo_style, context),
-    safeStrings(anti.recentLightingTypes),
-    seedBase >>> 12,
-    "window_daylight"
+  // Indoor night scenes must never randomly receive daytime/streetlight or
+  // harsh flash unless the user explicitly asks for flash.
+  const night = /night|late/.test(String(context.timeOfDay ?? "").toLowerCase());
+  const indoor = /living|bedroom|kitchen|bathroom|home|apartment|sofa|couch|room|quarto|sala|sofá|casa/.test(
+    [String(context.location ?? ""), sceneText].join(" ").toLowerCase()
   );
+  const lightingType = night && indoor && request.photo_style !== "flash"
+    ? choose(["warm_lamp", "low_light_phone", "soft_room_lighting"], safeStrings(anti.recentLightingTypes), seedBase >>> 12, "warm_lamp")
+    : choose(
+        lightingPool(request.photo_style, context),
+        safeStrings(anti.recentLightingTypes),
+        seedBase >>> 12,
+        "window_daylight"
+      );
 
   const compositionType = choose(
     pools.compositions,
@@ -380,6 +400,6 @@ export function photoVariationInstruction(
     `Lighting: ${humanize(plan.lightingType)}.`,
     `Composition: ${humanize(plan.compositionType)}.`,
     "Treat these as natural photographic directions, not rigid studio posing.",
-    "Identity fidelity and explicit user scene instructions still have higher priority.",
+    "Identity fidelity, the user's explicitly requested body positions and interactions, and the real apartment lighting always OVERRIDE any shot variation. If a suggested pose conflicts with the scene, ignore the suggestion.",
   ].join(" ");
 }
