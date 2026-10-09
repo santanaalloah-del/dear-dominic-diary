@@ -64,7 +64,7 @@ const currentLookTypes: {
   label: string;
   note: string;
 }[] = [
-  { id: "hair", label: "Hair", note: "current cut, color and styling" },
+  { id: "hair", label: "Hair", note: "optional: only record a haircut, color or styling change; saved Identity photos define the default" },
   { id: "nails", label: "Nails", note: "the nails you have right now" },
   { id: "makeup", label: "Makeup", note: "current makeup details" },
   { id: "jewelry", label: "Jewelry", note: "rings, necklace and earrings" },
@@ -987,6 +987,13 @@ export function VisualReferencesScreen() {
                 {activeLookType?.label}
               </h2>
               <p>{activeLookType?.note}</p>
+              {currentLookType === "hair" && (
+                <p>
+                  {currentLookReferences.length > 0
+                    ? "Your registered hair change overrides hair only. Identity photos still define your face."
+                    : "No hair change recorded. Your saved Identity photos already define your hair — nothing else is required."}
+                </p>
+              )}
             </div>
 
             {currentLookType === "makeup" && (
