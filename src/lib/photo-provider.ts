@@ -578,7 +578,7 @@ function requestNeedsTattoos(request: PhotoGenerationRequest) {
   ].some((term) => sceneContainsTerm(text, term));
 }
 
-type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism" | "framing" | "hair" | "body_placement" | "prop_handling" | "chemistry";
+type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "ink_on_fabric" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism" | "framing" | "hair" | "body_placement" | "prop_handling" | "chemistry";
 
 function photoSceneFamily(scene: string | null | undefined): string | null {
   const text = (scene ?? "").toLowerCase();
@@ -611,7 +611,7 @@ async function getMatchingQualityIssues(
     return new Set();
   }
   const allowed = new Set<PhotoQualityIssue>([
-    "face_alloah", "face_dominic", "tattoos", "wardrobe", "anatomy",
+    "face_alloah", "face_dominic", "tattoos", "ink_on_fabric", "wardrobe", "anatomy",
     "connection", "room", "lighting", "pose", "skin_tone", "realism",
     "framing", "hair", "body_placement", "prop_handling", "chemistry"
   ]);
@@ -648,7 +648,8 @@ function photoQualityCorrectionInstruction(issues: Set<PhotoQualityIssue>): stri
     issues.has("body_placement") ? "Honor the explicit relative positions of both people, including lap, above/below and direction of the embrace; never swap them." : null,
     issues.has("prop_handling") ? "Show the stated prop only once; attach it to a plausible real hand and preserve any explicitly named holder." : null,
     issues.has("chemistry") ? "Show unforced, mutually attentive interaction and credible touch without vacant stares or artificial symmetry." : null,
-    issues.has("tattoos") ? "Respect the attached real tattoo anchors; do not invent, mirror, relocate or erase a visible permanent tattoo." : null,
+    issues.has("tattoos") ? "Respect real tattoos on exposed skin only; do not invent, mirror, relocate or erase a visible permanent tattoo." : null,
+    issues.has("ink_on_fabric") ? "Earlier image incorrectly copied tattoos onto fabric. This time the saved clothing board alone defines any print or logo. Never draw tattoos on T-shirts, jeans, footwear or accessories, even when the tattoo source image shows elaborate symbols." : null,
     issues.has("wardrobe") ? "Match the EXACT printed tops, visible wording, cuts, fit and footwear in Currently Wearing photos; never invent or erase a visible shirt graphic." : null,
     issues.has("anatomy") ? "Check hand and limb counts, plausible grips and physically correct contact between bodies." : null,
     issues.has("connection") ? "Avoid staged couple posing: keep believable eye lines, facial muscles and casual touch." : null,
