@@ -398,6 +398,9 @@ export function VisualReferencesScreen() {
   ) {
     // Pinterest couple photos are inspirations, not an identity to learn.
     if (analysisSubject === "couple" || items.length === 0 || analyzingCanon) return;
+    // Canon analysis calls a paid OpenRouter vision model. Require an
+    // explicit confirmation even when the button is clicked by mistake.
+    if (!window.confirm("Canon Analyzer uses OpenRouter AI credits to analyze your private reference photos. Continue?")) return;
 
     setAnalyzingCanon(true);
     setError(null);
@@ -501,9 +504,8 @@ export function VisualReferencesScreen() {
       const mergedReferences = [...createdItems, ...references];
       setReferences(mergedReferences);
 
-      if (subject !== "couple") {
-        void runCanonAnalysis(mergedReferences);
-      }
+      // Saving references is free. Never silently start paid AI canon
+      // analysis after an upload; the user can choose Learn canon.
     } catch (uploadError) {
       console.error("Could not upload references:", uploadError);
       setError(
@@ -628,22 +630,8 @@ export function VisualReferencesScreen() {
         setMakeupMode("reference");
       }
 
-      const allSubjectReferences = await getVisualReferences({
-        userId: session.user.id,
-        subject: currentLookSubject as VisualReferenceSubject,
-      });
-
-      const identityReferences = allSubjectReferences.filter(
-        (item) => item.reference.reference_kind !== "current_look"
-      );
-
-      if (identityReferences.length > 0) {
-        void runCanonAnalysis(
-          identityReferences,
-          true,
-          currentLookSubject
-        );
-      }
+      // Current Look is effective immediately from its saved real photos.
+      // No paid canon refresh on upload.
     } catch (uploadError) {
       console.error("Could not update current look:", uploadError);
       setError(
@@ -721,13 +709,11 @@ export function VisualReferencesScreen() {
 
       setReferences(remaining);
 
-      if (subject !== "couple") {
-        if (remaining.length > 0) {
-          await runCanonAnalysis(remaining, true, subject);
-        } else {
-          await clearCanon(subject);
-        }
+      if (subject !== "couple" && remaining.length === 0) {
+        await clearCanon(subject);
       }
+      // With remaining identity photos, keep the previously learned
+      // canon until the user explicitly elects to refresh it.
     } catch (removeError) {
       console.error("Could not remove reference:", removeError);
       setError(
@@ -761,25 +747,8 @@ export function VisualReferencesScreen() {
         )
       );
 
-      const allSubjectReferences = await getVisualReferences({
-        userId: session.user.id,
-        subject: currentLookSubject as VisualReferenceSubject,
-      });
-
-      const identityReferences = allSubjectReferences.filter(
-        (current) =>
-          current.reference.reference_kind !== "current_look"
-      );
-
-      if (identityReferences.length > 0) {
-        await runCanonAnalysis(
-          identityReferences,
-          true,
-          currentLookSubject
-        );
-      } else {
-        await clearCanon(currentLookSubject);
-      }
+      // Removing a temporary hair/makeup image must never trigger
+      // an expensive re-analysis or erase permanent facial identity.
     } catch (removeError) {
       console.error("Could not remove current look reference:", removeError);
       setError(
@@ -913,7 +882,7 @@ export function VisualReferencesScreen() {
                     : canon?.status === "ready"
                       ? canonSummary(canon) ??
                         "The identity canon has been learned from these references."
-                      : "The photos are saved. Run the Canon Analyzer once so the app can learn the identity from the whole set."}
+                      : "Your saved photos are already used as identity references. The optional Canon Analyzer can learn extra details, but uses OpenRouter credits."}
                 </span>
 
                 {subject !== "couple" && <Button
@@ -925,8 +894,8 @@ export function VisualReferencesScreen() {
                   {analyzingCanon
                     ? "Analyzing..."
                     : canon?.status === "ready"
-                      ? "Refresh canon"
-                      : "Learn canon"}
+                      ? "Refresh canon (uses AI credits)"
+                      : "Learn canon (uses AI credits)"}
                 </Button>}
               </section>
 
