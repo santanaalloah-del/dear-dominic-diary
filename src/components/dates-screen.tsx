@@ -1395,16 +1395,16 @@ export function DatesExperienceScreen({
         : ""
     );
 
+    const tentativeWhen = isPendingDominicInvitation(date) &&
+      typeof date.data?.proposed_for === "string"
+      ? date.data.proposed_for : date.planned_for;
+
     setEditDay(
-      dateDayInputValue(
-        date.planned_for
-      )
+      dateDayInputValue(tentativeWhen)
     );
 
     setEditTime(
-      dateClockInputValue(
-        date
-      )
+      dateClockInputValue({ ...date, planned_for: tentativeWhen })
     );
 
     setEditNote(
@@ -2367,9 +2367,14 @@ export function DatesExperienceScreen({
           </small>
 
           <span>
-            {dateDisplay(
-              selectedDate
-            )}
+            {isPendingDominicInvitation(selectedDate) &&
+            typeof selectedDate.data?.proposed_for === "string"
+              ? "Tentative · " + new Date(selectedDate.data.proposed_for).toLocaleString("en-US", {
+                  timeZone: "America/Sao_Paulo",
+                  dateStyle: "medium",
+                  timeStyle: selectedDate.data?.proposed_time_known === true ? "short" : undefined,
+                })
+              : dateDisplay(selectedDate)}
           </span>
         </div>
 
