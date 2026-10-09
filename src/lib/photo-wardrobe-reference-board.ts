@@ -57,15 +57,25 @@ export async function makeCurrentlyWearingBoard(
   // a user's actual Currently Wearing shoes, trousers or accessories.
   if (items.length > 6) throw new Error("A wardrobe board may contain at most six garments");
 
-  // Never synthesize garment details: only arrange the real selected images.
+  // Never synthesize garment details: only arrange real selected images.
+  // Common 3-piece outfits previously wasted an entire fourth quadrant and
+  // shrank the printed shirt. Give the upper-body garment a larger panel while
+  // still preserving pants AND shoes on the same free local canvas.
+  const mainTop = items.length === 3 ? items.find(item => item.category === "top") : null;
+  const orderedItems = mainTop
+    ? [mainTop, ...items.filter(item => item.id !== mainTop.id)]
+    : items;
+  const heroLayout = Boolean(mainTop);
   const columns = items.length === 1 ? 1 : 2;
   const rows = Math.ceil(items.length / columns);
   const cellWidth = 540;
   const cellHeight = 620;
+  const heroWidth = 720;
+  const sideWidth = 500;
   const margin = 35;
   const headerHeight = 100;
   const canvas = document.createElement("canvas");
-  canvas.width = columns * cellWidth + margin * 2;
+  canvas.width = (heroLayout ? heroWidth + sideWidth : columns * cellWidth) + margin * 2;
   canvas.height = rows * cellHeight + margin * 2 + headerHeight;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
@@ -77,29 +87,39 @@ export async function makeCurrentlyWearingBoard(
   ctx.fillText(owner === "alloah" ? "ALLOAH — CURRENTLY WEARING" : "DOMINIC — CURRENTLY WEARING", margin, 54);
   ctx.font = "18px Arial, sans-serif";
   ctx.fillText("EXACT GARMENT IMAGES • CLOTHING ONLY • NOT A PERSON REFERENCE", margin, 82);
-  for (let index = 0; index < items.length; index += 1) {
-    const garment = items[index];
+  for (let index = 0; index < orderedItems.length; index += 1) {
+    const garment = orderedItems[index];
     // Draw each cutout before revoking its blob URL. This works on Safari
     // and avoids holding six full-resolution decoded images simultaneously.
     const loaded = await openPrivateGarment(garment.imageUrl);
     const image = loaded.image;
     const col = index % columns;
     const row = Math.floor(index / columns);
-    const x = margin + col * cellWidth;
-    const y = headerHeight + margin + row * cellHeight;
+    const x = heroLayout
+      ? margin + (index === 0 ? 0 : heroWidth)
+      : margin + col * cellWidth;
+    const y = heroLayout
+      ? headerHeight + margin + (index === 0 ? 0 : (index - 1) * cellHeight)
+      : headerHeight + margin + row * cellHeight;
+    const panelWidth = heroLayout
+      ? (index === 0 ? heroWidth : sideWidth) - 16
+      : cellWidth - 16;
+    const panelHeight = heroLayout && index === 0
+      ? cellHeight * 2 - 15
+      : cellHeight - 15;
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(x, y, cellWidth - 16, cellHeight - 15);
+    ctx.fillRect(x, y, panelWidth, panelHeight);
     ctx.strokeStyle = "#d2c2bc";
-    ctx.strokeRect(x, y, cellWidth - 16, cellHeight - 15);
-    const targetWidth = cellWidth - 60;
-    const targetHeight = cellHeight - 115;
+    ctx.strokeRect(x, y, panelWidth, panelHeight);
+    const targetWidth = panelWidth - 44;
+    const targetHeight = panelHeight - 115;
     const scale = Math.min(targetWidth / image.naturalWidth, targetHeight / image.naturalHeight);
     const width = image.naturalWidth * scale;
     const height = image.naturalHeight * scale;
     try {
       ctx.drawImage(
         image,
-        x + ((cellWidth - 16) - width) / 2,
+        x + (panelWidth - width) / 2,
         y + 16 + (targetHeight - height) / 2,
         width,
         height
@@ -110,7 +130,7 @@ export async function makeCurrentlyWearingBoard(
     ctx.fillStyle = "#33282b";
     ctx.font = "bold 20px Arial, sans-serif";
     const label = (garment.category + ": " + garment.title).slice(0, 41);
-    ctx.fillText(label, x + 22, y + cellHeight - 42);
+    ctx.fillText(label, x + 22, y + panelHeight - 42);
   }
   // Keep private Vercel request bodies small, even when there are multiple
   // outfit boards. OpenRouter is never used to create these composites.
