@@ -89,10 +89,12 @@ export function SpontaneousPhotoOpportunity({
       if (document.visibilityState === "visible") void refresh();
     };
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("diario-spontaneous-photo-preferences-changed", onVisible);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("diario-spontaneous-photo-preferences-changed", onVisible);
     };
   }, [userId, displayMode, dominicState?.startedAt, dominicState?.activity, dominicState?.location]);
 
@@ -117,6 +119,7 @@ export function SpontaneousPhotoOpportunity({
       setSettings(next);
       if (!next.enabled) setOpportunity(null);
       setError(null);
+      window.dispatchEvent(new Event("diario-spontaneous-photo-preferences-changed"));
     } catch {
       setError("Could not save photo preferences. Try again.");
     } finally {
