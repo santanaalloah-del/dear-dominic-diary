@@ -1,9 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DominicState } from "@/lib/dominic-state";
+import { resolveDominicPresence, type DominicState } from "@/lib/dominic-state";
 
 export type SpontaneousPhotoOpportunity = {
   id: string;
-  status: "pending" | "accepted" | "dismissed";
+  status: "pending" | "accepted" | "dismissed" | "saved";
+  subjectType: "dominic" | "both";
+  photoStyle: "natural_iphone" | "candid" | "mirror" | "selfie";
+  note: string;
   createdAt: string;
   expiresAt: string;
   stateStartedAt: string;
@@ -14,12 +17,18 @@ export type SpontaneousPhotoOpportunity = {
   conversationSummary: string | null;
 };
 
-type SpontaneousPhotoState = {
+export type SpontaneousPhotoState = {
   enabled: boolean;
+  frequency: "rare" | "balanced" | "often";
+  includeCouple: boolean;
+  useLocationContext: boolean;
   pending: SpontaneousPhotoOpportunity | null;
+  savedIdeas: SpontaneousPhotoOpportunity[];
   lastEvaluatedStateStartedAt: string | null;
   cooldownUntil: string | null;
   lastDecisionAt: string | null;
+  dayKey: string | null;
+  offersToday: number;
 };
 
 type SettingsRow = {
@@ -31,6 +40,11 @@ const SETTINGS_KEY = "spontaneous_photo_state";
 const OPPORTUNITY_LIFETIME_MS = 90 * 60 * 1000;
 const ACCEPT_COOLDOWN_MS = 4 * 60 * 60 * 1000;
 const DISMISS_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+const DAY_LIMIT = { rare: 1, balanced: 2, often: 4 } as const;
+const CHECK_INTERVAL_MS = { rare: 12 * 60 * 60 * 1000, balanced: 5 * 60 * 60 * 1000, often: 2 * 60 * 60 * 1000 } as const;
+function rioDayKey(now = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
 
 const PRIVATE_ACTIVITIES = new Set([
   "sleeping",
@@ -82,7 +96,13 @@ function safeString(value: unknown) {
 function defaultState(): SpontaneousPhotoState {
   return {
     enabled: true,
+    frequency: "balanced",
+    includeCouple: true,
+    useLocationContext: true,
     pending: null,
+    savedIdeas: [],
+    dayKey: null,
+    offersToday: 0,
     lastEvaluatedStateStartedAt: null,
     cooldownUntil: null,
     lastDecisionAt: null,
@@ -96,7 +116,7 @@ function parseOpportunity(value: unknown): SpontaneousPhotoOpportunity | null {
     typeof raw.id !== "string" ||
     (raw.status !== "pending" &&
       raw.status !== "accepted" &&
-      raw.status !== "dismissed") ||
+      raw.status !== "dismissed" && raw.status !== "saved") ||
     typeof raw.createdAt !== "string" ||
     typeof raw.expiresAt !== "string" ||
     typeof raw.stateStartedAt !== "string" ||
@@ -111,6 +131,10 @@ function parseOpportunity(value: unknown): SpontaneousPhotoOpportunity | null {
   return {
     id: raw.id,
     status: raw.status,
+    subjectType: raw.subjectType === "both" ? "both" : "dominic",
+    photoStyle: ["natural_iphone", "candid", "mirror", "selfie"].includes(String(raw.photoStyle))
+      ? raw.photoStyle as SpontaneousPhotoOpportunity["photoStyle"] : "natural_iphone",
+    note: typeof raw.note === "string" ? raw.note.slice(0, 240) : "He noticed a moment worth keeping.",
     createdAt: raw.createdAt,
     expiresAt: raw.expiresAt,
     stateStartedAt: raw.stateStartedAt,
@@ -131,7 +155,17 @@ function parseState(value: unknown): SpontaneousPhotoState {
 
   return {
     enabled: typeof raw.enabled === "boolean" ? raw.enabled : fallback.enabled,
+    frequency: raw.frequency === "rare" || raw.frequency === "often" ? raw.frequency : "balanced",
+    includeCouple: raw.includeCouple !== false,
+    useLocationContext: raw.useLocationContext !== false,
     pending: parseOpportunity(raw.pending),
+    savedIdeas: Array.isArray(raw.savedIdeas) ? raw.savedIdeas
+      .map(parseOpportunity)
+      .filter((item): item is SpontaneousPhotoOpportunity => Boolean(item))
+      .filter((item) => item.status === "saved").slice(-20) : [],
+    dayKey: typeof raw.dayKey === "string" ? raw.dayKey : null,
+    offersToday: typeof raw.offersToday === "number" && Number.isFinite(raw.offersToday)
+      ? Math.max(0, Math.floor(raw.offersToday)) : 0,
     lastEvaluatedStateStartedAt:
       typeof raw.lastEvaluatedStateStartedAt === "string"
         ? raw.lastEvaluatedStateStartedAt
