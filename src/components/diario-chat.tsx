@@ -5452,7 +5452,10 @@ const recentConversationForPhoto = () =>
   />
 ) : (
   <MessageContent className="diario-message-content messenger-bubble">
-    <MessageResponse>
+    {/* Each Chat message already arrives complete. Static Markdown avoids
+        transient block segmentation on iPhone while retaining italics,
+        actions and paragraph formatting inside ONE chat bubble. */}
+    <MessageResponse mode="static" isAnimating={false}>
       {message.content}
     </MessageResponse>
   </MessageContent>

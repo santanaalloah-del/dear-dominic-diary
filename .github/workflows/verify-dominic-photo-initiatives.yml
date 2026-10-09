@@ -36,5 +36,7 @@ jobs:
         run: bun test tests/proactive-delivery.test.ts
       - name: Check currently wearing awareness without paid AI calls
         run: bun test tests/alloah-wearing-awareness.test.ts
+      - name: Verify complete Chat bubble renders without streaming fragmentation
+        run: bun test tests/chat-static-response.test.ts
       - name: Build
         run: bun run build
