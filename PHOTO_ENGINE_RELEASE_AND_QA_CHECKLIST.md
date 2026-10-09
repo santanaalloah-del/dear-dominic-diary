@@ -162,3 +162,20 @@ Remaining VALIDATION/IMPLEMENTATION (do not overclaim):
 2. Verify the outfit changes on real app reload and the header / Photo Engine uses the latest Currently Wearing; preserve user manual clothes for the remainder of the day, and never create new visual items. **Current daily sync depends on client Chat/home state load; background wardrobe decisions while app CLOSED are NOT yet proven or implemented in Supabase life-loop.** Do not claim true offline autonomy until actual service-side integration exists.
 3. Proactive-brain runs on Supabase but previous evidence shows no successful autonomous message sends; dates proposed directly from an off-screen initiative still need durable Date-object linkage. Respect existing AI budget and user opt-in; do not increase spend or generate unsolicited photos.
 4. Production was still on `e77fe44` when this work began; main was `8e89c33`, feature branch later. On next release, inspect actual production alias + main and feature head, CI and latest preview, and NEVER roll back Photo Engine and Little Moments work.
+
+
+## 2026-10-09 — Wardrobe PNG + Wearing category regression
+
+The user observed that automatic PNG background cleanup often doesn't work; when tapping Wear on a new top/bottom/shoe, older photos remain marked Wearing and the Photo Engine may use both. The Wearing screen had only a global Clear, no per-piece X. The Closet needed navigable category tabs (top / bottom / shoes / etc).
+
+Fixes in feature branch:
+- `src/lib/wardrobe-selection.ts`: shared deterministic, testable selection model. Tops, bottoms, shoes, dresses, outerwear and bags have one active item per slot; dress replaces top+bottom and vice versa. Multiple deliberately chosen accessories may remain. Last-selected item wins for previously accumulated duplicate arrays.
+- `src/components/wardrobe-screen.tsx`: the actual Wear handler re-reads latest saved selection and replaces the same category, rather than append blindly. Wearing now has an accessible remove (X) on EACH item, preserving the other pieces; original Clear still exists. Closet now has horizontally scrollable category tabs with item counts for All, Tops, Bottoms, Shoes, Outerwear, Dresses, Bags, Accessories and Other; filters actual inventory without deleting images.
+- `src/lib/wardrobe-context.ts`: DB save normalizes category collisions, saved Looks are normalized when applied, and Photo Engine reads only one active real piece per slot even from legacy selections with multiple shoes.
+- `src/components/wardrobe-wearing.css`: mobile category tabs and 35px single-item X buttons.
+- Automatic PNG cleanup remains LOCAL and FREE. It now recognizes PNGs that already contain meaningful alpha transparency and relaxes excessive borderline restrictions for simple product-photo backdrops. Original saved image is not overwritten until the user reviews and explicitly accepts the preview. White/cream clothing on white backgrounds and complex backgrounds may still need manual Refine cutout; NEVER call this AI segmentation or promise it works for all backgrounds.
+- `tests/wardrobe-selection.test.ts` verifies shoe replacement, clothing independence, dress conflicts, individual X removal, legacy duplicate normalization, and accessories. CI workflow now executes that test plus pre-existing dates/daily outfits tests and full build.
+
+Important follow-ups: visually test automatic cutout on user's real problem garment, including iOS browser, BEFORE claiming PNG removal fully solved; inspect whether foreground cloth was preserved and Photo Engine gets correct chosen outfit board after clothing swaps. Never alter stored original garment image programmatically. Daily Dominic wardrobe chooser must not overwrite a manual selection on the same São Paulo local day; its latest function now respects `current.updatedAt`. Confirm browser re-open and Supabase persisted settings after deploy.
+
+Always compare latest Vercel READY production SHA and alias with the CURRENT GitHub branch head and CI; never publish an older cached preview.
