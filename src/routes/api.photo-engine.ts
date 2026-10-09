@@ -327,11 +327,15 @@ function buildPrompt(
     cameraOperator,
     "THE CHOSEN CROP IS A HARD BOUNDARY: a waist-up image must NOT become a head-to-toe portrait to show shoes or the whole kitchen. If the chosen crop omits shoes or tattoos, that is correct. Subjects do NOT both stand symmetrically smiling with props at the camera unless the user expressly requested a posed picture.",
     "STRICT SKIN / FABRIC SEPARATION: Tattoos, face marks and piercings belong to the PERSON'S BODY only, and only on skin actually exposed in the finished image. The Current Wearing T-shirt is OPAQUE fabric: chest and back tattoos covered by it are INVISIBLE, not transferred to its front as a decorative motif. A snake, symbol, cross, tattoo lettering or other ink from a skin reference must NEVER appear as a new print on a plain saved shirt. Exposed arm, face, neck or hand tattoos retain their actual anchored positions. Clothing prints come EXCLUSIVELY from saved Wardrobe garment cutouts, not skin reference images.",
-    "EXACT WARDROBE: the ACTUAL saved garment photographs control cut, print, logos, visible lettering and color, not generic clothing titles or historical identity outfits. Alloah's print must not disappear; Dominic must not gain a random decorative shirt emblem. If reference lettering is illegible, avoid fabricating different words.",
+    "EXACT WARDROBE: ACTUAL saved garment photographs control cut, print, logos, visible lettering and color, not titles or historical portraits. Keep Alloah's actual large shirt lettering exactly where it is on her saved top whenever it is visible, and keep Dominic's correct shirt graphic. NEVER silently erase the real printed sentence. If tiny letters cannot be read, never invent other words.",
+    "ONE MATCHING PAIR OF SHOES PER PERSON: Each person wears exactly their own two matched shoes, same saved style and color on both feet. Do not swap Alloah's shoes with Dominic's, put differently colored shoes on one person, duplicate sneakers, create extra feet, or center shoes as the main photo subject. A tight crop can exclude footwear completely.",
+    "DO NOT INVENT TATTOOS OR ACCESSORIES: Alloah has no registered tattoos in her current visual canon; never place Dominic's tattoo patterns on her or invent skin markings. Historical identity references may show jewelry that is not Currently Wearing. Do not copy old necklaces, rings, bracelets or other accessories unless they are explicitly saved as current.",
+    "NO TEXT OVERLAY: Never add a title, signature, fake source, artist credit, website, date, timestamp, watermark, decorative lettering or caption onto the photo. A REAL saved garment's printed graphic or text is the ONLY allowed exception; keep that fabric print accurate.",
     "EXACT HOME LIGHT: reproduce the actual attached room's light and ordinary handheld phone exposure. No lifted shadowless HDR, perfect beauty fill, professional softboxes, artificial window glow or cinematic grading.",
     "",
-    "IDENTITY FIDELITY",
+    "IDENTITY FIDELITY FOR EACH PERSON — Alloah's face is as important as Dominic's",
     subjectDescription(request.subject_type),
+    "Protect Alloah's distinct recognizable face from her real saved identity photo anchors. Never substitute a different woman's eyes, nose, lips, cheekbones or face shape to improve fashion, setting or pose. Keep Dominic recognizable too; accurate identity of both outweighs glamour.",
     "Only Alloah identity references depict Alloah; only Dominic identity references depict Dominic. Those images show each subject at different times, angles, expressions and styling.",
     "Use identity images of Alloah and Dominic to preserve each person's recognizable facial geometry and proportions: face shape, eyes, nose, lips, jaw, cheekbones, hair, skin, body proportions, tattoos, piercings and persistent marks.",
     "Do NOT invent a merely similar attractive person. Do NOT beautify the face into a generic AI model. Do NOT average the references into a new face.",
@@ -342,7 +346,7 @@ function buildPrompt(
     "EXPLICIT SCENE OVERRIDES VARIATION: First fulfill WHO is doing WHAT, WHERE, and the described relative body positions. Never substitute a different pose for the requested action. Do not invent coats, sleeves, gloves or layers to hide anatomy. Clothing worn on an arm must connect to the same person's selected garment at the shoulder.",
     "HANDS AND OBJECTS: Show a small named prop only once and in a physically coherent grip; do not duplicate, cross, or deform it. Prioritize accurate people, arms and hands over decorative prop details.",
     "NATURAL CONNECTION: For an affectionate interaction, show believable attention between partners instead of vacant eyes or forced symmetrical poses.",
-    "CANONICAL ROOM GEOMETRY: When supplied, real room PHOTO and matching FLOOR PLAN are the same home's FIXED spatial evidence, not interchangeable scene ideas. Preserve walls, windows, furniture locations, visible materials and circulation; change only the photographer's position.",
+    "ACTUAL HOME PHOTO IS THE ONLY ROOM REFERENCE: The selected photograph of the real room, not a floor plan, controls the exact sofa design and location, wall and window arrangement, spacing, materials and furnishings. Never invent or move the sofa to make a pose easier. A physically impossible camera angle must change, not the room.",
     roomRule,
     "CAMERA VARIETY WITHOUT REDECORATION: A side view, diagonal view, doorway angle or close crop is allowed and desirable when consistent with the selected camera plan. Do not fall back to the same centered, face-on couple portrait. Different angles reveal different parts of the SAME room; do not generate a new room behind the couple.",
     "WARDROBE VISUAL CANON: Wardrobe references contain the real Currently Wearing garment cutouts. A wardrobe board may show separate labeled panels for each person: top, bottom, outerwear and shoes. Interpret each panel as its own exact garment; NEVER as a person. Apply pieces to the correct owner, preserving silhouette, fit, construction, fabric and color. Do not replace wide/baggy jeans with slim jeans, or sneakers with sandals. Even if shoes or trousers are partly out of frame, NEVER invent a contradictory outfit. The real face references govern identity.",
@@ -468,7 +472,12 @@ export const Route = createFileRoute("/api/photo-engine")({
           typeof body.request.context_snapshot.custom === "object" &&
           (body.request.context_snapshot.custom as Record<string, unknown>).requestedFrom === "dominic-right-now";
 
-        const requestedReferences = body.references ?? [];
+        // The selected ROOM PHOTO is the only home image. Never forward an
+        // old floor-plan reference, even for previously saved requests.
+        const requestedReferences = (body.references ?? []).filter((reference) =>
+          !(reference.subject === "shared_home" &&
+            reference.purposes?.includes("floor_plan"))
+        );
         // Dominic's right-now chat photos historically truncated at six
         // references BEFORE Current Wearing boards were appended. That silently
         // discarded his selected clothes. Reserve identity, CURRENT hair,
@@ -487,10 +496,6 @@ export const Route = createFileRoute("/api/photo-engine")({
           reference.subject === "shared_home" &&
           reference.referenceKind === "scene" &&
           reference.purposes?.includes("environment")
-        ).slice(0, 1);
-        const rightNowLayout = requestedReferences.filter((reference) =>
-          reference.subject === "shared_home" &&
-          reference.purposes?.includes("floor_plan")
         ).slice(0, 1);
         const rightNowLook = requestedReferences.filter((reference) =>
           rightNowSubjects.includes(reference.subject) &&
@@ -531,7 +536,6 @@ export const Route = createFileRoute("/api/photo-engine")({
           ...rightNowFaces,
           ...rightNowClothing,
           ...rightNowRoom,
-          ...rightNowLayout,
           ...rightNowLook,
           ...rightNowTattooDetails,
           ...rightNowSubjects.flatMap((subject) => faceEvidenceFor(subject)),
