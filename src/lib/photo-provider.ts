@@ -575,7 +575,7 @@ function requestNeedsTattoos(request: PhotoGenerationRequest) {
   ].some((term) => sceneContainsTerm(text, term));
 }
 
-type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "ink_on_fabric" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism" | "framing" | "hair" | "body_placement" | "prop_handling" | "chemistry";
+type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "unwanted_tattoos" | "ink_on_fabric" | "wardrobe" | "footwear" | "accessories" | "watermark" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism" | "framing" | "hair" | "body_placement" | "prop_handling" | "chemistry";
 
 function photoSceneFamily(scene: string | null | undefined): string | null {
   const text = (scene ?? "").toLowerCase();
@@ -610,7 +610,8 @@ async function getMatchingQualityIssues(
   const allowed = new Set<PhotoQualityIssue>([
     "face_alloah", "face_dominic", "tattoos", "ink_on_fabric", "wardrobe", "anatomy",
     "connection", "room", "lighting", "pose", "skin_tone", "realism",
-    "framing", "hair", "body_placement", "prop_handling", "chemistry"
+    "framing", "hair", "body_placement", "prop_handling", "chemistry",
+    "unwanted_tattoos", "footwear", "accessories", "watermark"
   ]);
   const issues = new Set<PhotoQualityIssue>();
   for (const row of (data ?? []) as Array<{
@@ -646,6 +647,10 @@ function photoQualityCorrectionInstruction(issues: Set<PhotoQualityIssue>): stri
     issues.has("prop_handling") ? "Show the stated prop only once; attach it to a plausible real hand and preserve any explicitly named holder." : null,
     issues.has("chemistry") ? "Show unforced, mutually attentive interaction and credible touch without vacant stares or artificial symmetry." : null,
     issues.has("tattoos") ? "Respect real tattoos on exposed skin only; do not invent, mirror, relocate or erase a visible permanent tattoo." : null,
+    issues.has("unwanted_tattoos") ? "Alloah must remain free of invented tattoos; never copy Dominic's body tattoos onto her. Only a separately saved and verified Alloah tattoo would allow one." : null,
+    issues.has("footwear") ? "Each person wears one matching pair of their own saved shoes, with the same color and model on both feet. Never duplicate, mix shoe colors or swap shoes between subjects. Cropped-out shoes are perfectly fine." : null,
+    issues.has("accessories") ? "Never transfer jewelry or other accessories from old portrait identity references into the current scene unless expressly saved in Current Look." : null,
+    issues.has("watermark") ? "No overlaid title, invented credit line, source URL, date, timestamp, website, song name, watermark, decorative typography or other fake writing anywhere in the photograph. Real words printed on current clothing are the sole exception." : null,
     issues.has("ink_on_fabric") ? "Earlier image incorrectly copied tattoos onto fabric. This time the saved clothing board alone defines any print or logo. Never draw tattoos on T-shirts, jeans, footwear or accessories, even when the tattoo source image shows elaborate symbols." : null,
     issues.has("wardrobe") ? "Match the EXACT printed tops, visible wording, cuts, fit and footwear in Currently Wearing photos; never invent or erase a visible shirt graphic." : null,
     issues.has("anatomy") ? "Check hand and limb counts, plausible grips and physically correct contact between bodies." : null,
@@ -838,8 +843,8 @@ function chooseProviderReferences(
 
     // Wide frames need bodies and garments, close frames need recognizable
     // faces. Explicit full-body instruction remains authoritative.
-    ensureIdentity("alloah", isFullBodyScene ? 2 :
-      qualityIssues.has("face_alloah") || qualityIssues.has("skin_tone") ? 4 : 3);
+    ensureIdentity("alloah", qualityIssues.has("face_alloah") ? 5 :
+      isFullBodyScene ? 2 : qualityIssues.has("skin_tone") ? 4 : 3);
     ensureIdentity("dominic", isFullBodyScene ? 2 :
       qualityIssues.has("face_dominic") || qualityIssues.has("skin_tone") ? 4 : 3);
     takeFallbackAnchors("alloah", 1);
