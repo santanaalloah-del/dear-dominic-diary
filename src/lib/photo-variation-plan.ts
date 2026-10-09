@@ -355,11 +355,20 @@ export function buildPhotoVariationPlan(
     "doorway_perspective",
     "eye_level",
   ];
-  const naturalAngles = request.subject_type === "both" &&
-    sceneIntent.room === "living" && request.photo_style !== "selfie" &&
-    request.photo_style !== "mirror"
-      ? couchAnglePool
-      : pools.cameraAngles;
+  const kitchenAngles = [
+    "from_counter_side",
+    "casual_kitchen_doorway",
+    "over_shoulder_at_counter",
+    "handheld_side_angle",
+    "diagonal_from_kitchen",
+    "eye_level",
+  ];
+  const nonSelfieCouple = request.subject_type === "both" &&
+    request.photo_style !== "selfie" && request.photo_style !== "mirror";
+  const naturalAngles = nonSelfieCouple && sceneIntent.room === "living"
+    ? couchAnglePool
+    : nonSelfieCouple && sceneIntent.room === "kitchen"
+      ? kitchenAngles : pools.cameraAngles;
   const cameraAngle = sceneIntent.cameraAngle ?? choose(
     naturalAngles, recentAngles, seedBase >>> 3, "eye_level"
   );
@@ -375,7 +384,10 @@ export function buildPhotoVariationPlan(
     ...safeStrings(avoid.framings),
   ];
   const framing = sceneIntent.framing ??
-    (intimateCloseUp
+    (sceneIntent.pose === "making_coffee_candid"
+      ? choose(["waist_up", "three_quarter", "medium_wide", "chest_up"],
+          recentFramings, seedBase >>> 6, "waist_up")
+    : intimateCloseUp
       ? choose(
           sceneIntent.pose === "reclining_on_partner"
             ? ["three_quarter", "medium_wide", "waist_up", "chest_up"]
@@ -401,7 +413,12 @@ export function buildPhotoVariationPlan(
   const expression = sceneIntent.faceAway
     ? "natural_turned_away"
     : sceneIntent.expression ??
-      (isTogether && affection
+      (sceneIntent.pose === "making_coffee_candid"
+        ? choose(["naturally_focused_on_activity", "quiet_glance_at_partner",
+                  "mid_conversation_while_working", "looking_down_at_coffee"],
+                 safeStrings(anti.recentExpressions), seedBase >>> 9,
+                 "naturally_focused_on_activity")
+      : isTogether && affection
         ? choose(coupleExpressions, safeStrings(anti.recentExpressions),
             seedBase >>> 9, "mid_conversation_unposed")
         : choose(
