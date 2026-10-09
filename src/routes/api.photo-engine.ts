@@ -57,6 +57,7 @@ type BodyShape = {
   sourceImageDataUrl?: string | null;
   background?: boolean;
   checkConnection?: boolean;
+  auditOnly?: boolean;
 };
 
 function envValue(name: string) {
@@ -371,7 +372,7 @@ export const Route = createFileRoute("/api/photo-engine")({
 
         const openRouterKey = envValue("OPENROUTER_API_KEY");
 
-        if (!openRouterKey) {
+        if (!openRouterKey && body.auditOnly !== true) {
           return jsonError(
             "OPENROUTER_API_KEY is not configured on the server yet.",
             503
@@ -548,6 +549,90 @@ const prompt = buildPrompt(
             "No usable identity reference images reached OpenRouter.",
             400
           );
+        }
+
+        // Strictly read-only audit. Authenticate and resolve EXACTLY the same
+        // image references as generation, then return roles/counts WITHOUT
+        // claiming the request, reserving budget or calling OpenRouter.
+        if (body.auditOnly === true) {
+          const people: Record<string, { faceReferences: number; currentHairReferences: number; tattooReferences: number }> = {};
+          const outfits: Record<string, { imageCount: number; items: string[] }> = {};
+          const warnings: string[] = [];
+          const referenceIds = new Set(attachedReferences.map(({ reference }) => reference.id));
+          for (const person of requiredPeople) {
+            const photos = attachedReferences.filter(({ reference }) => reference.subject === person);
+            people[person] = {
+              faceReferences: photos.filter(({ reference }) =>
+                reference.referenceKind === "identity" && reference.purposes?.includes("face")
+              ).length,
+              currentHairReferences: photos.filter(({ reference }) =>
+                reference.isCurrent && reference.purposes?.includes("hair")
+              ).length,
+              tattooReferences: photos.filter(({ reference }) =>
+                reference.purposes?.includes("tattoos")
+              ).length,
+            };
+            if (people[person].faceReferences < 2) {
+              warnings.push(person + " has fewer than two usable face images.");
+            }
+            const wardrobe = attachedReferences.filter(({ reference }) =>
+              reference.subject === "wardrobe" && reference.purposes?.includes(person)
+            );
+            outfits[person] = {
+              imageCount: wardrobe.length,
+              items: wardrobe.map(({ reference }) => reference.title || "Clothing"),
+            };
+            if (body.request.use_current_look && wardrobe.length === 0) {
+              warnings.push(person + " has no Currently Wearing visual reference. Select an outfit in Wardrobe.");
+            }
+          }
+          const tattooRegions: string[] = [];
+          for (const canon of canons.filter((item) => item.subject === "dominic")) {
+            const regions = Array.isArray(canon.profile.tattoo_regions) ? canon.profile.tattoo_regions : [];
+            for (const region of regions) {
+              if (!region || typeof region !== "object") continue;
+              const row = region as { region?: unknown; anchor_ids?: unknown };
+              if (typeof row.region === "string" && Array.isArray(row.anchor_ids) &&
+                  row.anchor_ids.some((id) => typeof id === "string" && referenceIds.has(id))) {
+                tattooRegions.push(row.region);
+              }
+            }
+          }
+          const requestedCount = references.length + (sourceDataUrl ? 1 : 0);
+          if (attachedReferences.length < references.length) {
+            warnings.push((references.length - attachedReferences.length) + " references could not be loaded. Unavailable images are not sent to the generator.");
+          }
+          if (!attachedReferences.some(({ reference }) =>
+              reference.subject === "shared_home" && reference.purposes?.includes("environment"))) {
+            const scene = [body.request.scene || "", String(body.request.context_snapshot?.location || "")].join(" ").toLowerCase();
+            if (/home|apartment|living|bedroom|kitchen|sofa|couch|house|casa|sala|sofá|quarto/.test(scene)) {
+              warnings.push("No actual room image could be loaded for this home scene.");
+            }
+          }
+          return Response.json({
+            auditOnly: true,
+            noCreditsUsed: true,
+            referenceCount: inputReferences.length,
+            people,
+            outfits,
+            homeReferences: attachedReferences.filter(({ reference }) =>
+              reference.subject === "shared_home").length,
+            canonSubjects: canons.filter((canon) => canon.subject !== "couple").map((canon) => canon.subject),
+            tattooRegions,
+            warnings,
+            scene: {
+              pose: variationPlan.poseType,
+              framing: variationPlan.framing,
+              lighting: variationPlan.lightingType,
+              expression: variationPlan.expression,
+            },
+            referenceRoles: attachedReferences.map(({ reference }) => ({
+              subject: reference.subject,
+              title: reference.title,
+              purposes: reference.purposes ?? [],
+            })),
+            requestedCount,
+          });
         }
 
         // Protect expensive manual photos with the same server-side monthly ledger.
