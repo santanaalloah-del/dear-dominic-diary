@@ -6,6 +6,7 @@ const ISSUES = [
   { key: "face_alloah", label: "Alloah's face" },
   { key: "face_dominic", label: "Dominic's face" },
   { key: "tattoos", label: "Tattoos / placement" },
+  { key: "ink_on_fabric", label: "Tattoo copied onto clothes" },
   { key: "wardrobe", label: "Clothes / shoes" },
   { key: "framing", label: "Too wide / wrong camera crop" },
   { key: "anatomy", label: "Hands / anatomy" },
