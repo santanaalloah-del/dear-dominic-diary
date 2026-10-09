@@ -440,9 +440,22 @@ export async function evaluateSpontaneousPhotoOpportunity({
   const together = Boolean(presence?.togetherNow);
   const subjectType: "dominic" | "both" = together &&
     deterministicPercent(evaluationKey + "|couple") < 45 ? "both" : "dominic";
+  // When Dominic is alone and suggests a photo he supposedly took and sent
+  // himself, do not invent an invisible photographer standing in the room.
+  // Quiet solo moments use his handheld front camera; outfit changes may be
+  // photographed through an actual mirror. Shared moments remain candid.
+  const quietSoloActivities = new Set([
+    "relaxing", "idle", "watching_something", "listening_to_music",
+    "waking_up", "scrolling", "on_the_phone", "coming_home",
+  ]);
   const styleChoices: SpontaneousPhotoOpportunity["photoStyle"][] =
-    dominicState.activity === "getting_ready" ? ["mirror", "natural_iphone", "candid"]
-    : ["natural_iphone", "candid", "selfie"];
+    subjectType === "dominic" && dominicState.activity === "getting_ready"
+      ? ["mirror", "selfie"]
+      : subjectType === "dominic" && quietSoloActivities.has(dominicState.activity)
+        ? ["selfie"]
+        : subjectType === "dominic"
+          ? ["selfie", "natural_iphone"]
+          : ["natural_iphone", "candid", "selfie"];
   const index = deterministicPercent(evaluationKey + "|style|" + (force ? crypto.randomUUID() : ""));
   const photoStyle = styleChoices[index % styleChoices.length];
   const sceneBase = sceneForState(dominicState);
@@ -464,8 +477,15 @@ export async function evaluateSpontaneousPhotoOpportunity({
     ? "Alloah and Dominic really are together now. A relaxed candid photo of them during Dominic's current activity (" +
       dominicState.activity.replaceAll("_", " ") + "). " + variation +
       (realPlace ? " Keep the actual physical layout of " + realPlace + "." : " Only use the known actual location.")
-    : sceneBase + " " + variation +
-      (realPlace ? " Keep the actual physical layout of " + realPlace + "." : "");
+    : photoStyle === "selfie"
+      ? "Dominic TAKES THIS PHOTO HIMSELF, holding his own phone in one hand. A close, imperfect front-camera selfie showing his real face and the upper part of his exact Currently Wearing shirt. " +
+        "He is " + dominicState.activity.replaceAll("_", " ") + (realPlace ? " in " + realPlace : "") +
+        ". Relaxed, unstaged and naturally slightly cropped; not a head-to-toe pose, no invisible second photographer. " +
+        (dominicState.detail?.trim() ? "Actual moment: " + dominicState.detail.trim() + ". " : "") +
+        "Preserve the real room in the background, exact wardrobe print and existing light."
+      : sceneBase + " " + variation +
+        " Camera must be physically plausible if he is alone: a phone propped nearby on a timer or a genuine first-person shot, never an unexplained photographer posing him. " +
+        (realPlace ? " Keep the actual physical layout of " + realPlace + "." : "");
   const note = subjectType === "both"
     ? "He wanted to remember a small moment together."
     : "He thought this little part of his day was worth showing you.";
@@ -483,7 +503,7 @@ export async function evaluateSpontaneousPhotoOpportunity({
     sourceActivity: dominicState.activity,
     sourceLocation: current.useLocationContext ? dominicState.location : "private",
     scene: current.useLocationContext ? scene :
-      "Dominic taking an imperfect, everyday photo of himself in a plausible current moment. Do not invent Alloah's presence or a specific address.",
+      "Dominic taking a relaxed, close handheld selfie of himself in a plausible ordinary moment. Do not invent Alloah's presence, an unseen photographer or a specific address.",
     mood: dominicState.mood ?? "everyday",
     conversationSummary: cleanedConversation,
   };
