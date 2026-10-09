@@ -19,6 +19,7 @@ import { ConnectedObjectDetailScreen } from "@/components/connected-object-detai
 import {
   addClothingToLook,
   createClothing,
+  updateClothing,
   createLook,
   deleteClothing,
   getLookClothingIds,
@@ -122,27 +123,30 @@ function defaultPieceLayout(item: DiarioItem, z: number): LookLayoutItem {
   };
 }
 
-async function imageElementFromFile(file: File): Promise<HTMLImageElement> {
+async function imageElementFromFile(file: File): Promise<{
+  image: HTMLImageElement;
+  release: () => void;
+}> {
   const url = URL.createObjectURL(file);
-
   try {
     const image = new Image();
-
     await new Promise<void>((resolve, reject) => {
       image.onload = () => resolve();
-      image.onerror = () =>
-        reject(new Error("The clothing image could not be opened."));
+      image.onerror = () => reject(new Error("The clothing image could not be opened."));
       image.src = url;
     });
-
-    return image;
-  } finally {
+    if (!image.naturalWidth || !image.naturalHeight) throw new Error("Empty clothing image");
+    // Keep blob URL alive until Safari has actually drawn it to canvas.
+    return { image, release: () => URL.revokeObjectURL(url) };
+  } catch (error) {
     URL.revokeObjectURL(url);
+    throw error;
   }
 }
 
 async function autoCutoutClothing(file: File): Promise<File> {
-  const image = await imageElementFromFile(file);
+  const loaded = await imageElementFromFile(file);
+  const image = loaded.image;
   const maxSide = 1400;
   const scale = Math.min(
     1,
@@ -160,10 +164,15 @@ async function autoCutoutClothing(file: File): Promise<File> {
   });
 
   if (!context) {
+    loaded.release();
     throw new Error("The cutout tool is not available in this browser.");
   }
 
-  context.drawImage(image, 0, 0, width, height);
+  try {
+    context.drawImage(image, 0, 0, width, height);
+  } finally {
+    loaded.release();
+  }
 
   const pixels = context.getImageData(0, 0, width, height);
   const data = pixels.data;
@@ -198,8 +207,8 @@ async function autoCutoutClothing(file: File): Promise<File> {
     sample(width - 2, y);
   }
 
-  if (!samples.length) {
-    return file;
+  if (samples.length < 24) {
+    throw new Error("The photo may already have transparent edges. Keep the original or use Refine cutout.");
   }
 
   const median = (channel: 0 | 1 | 2) => {
@@ -210,11 +219,37 @@ async function autoCutoutClothing(file: File): Promise<File> {
     return values[Math.floor(values.length / 2)];
   };
 
-  const background = [
-    median(0),
-    median(1),
-    median(2),
-  ];
+  const background = [median(0), median(1), median(2)];
+
+  // This is a SIMPLE background-colour remover, NOT subject segmentation.
+  // Cluttered backdrops and light clothes against white are dangerous.
+  // Reject those cases instead of secretly cutting holes in real garments.
+  const rgbDistance = (red: number, green: number, blue: number) =>
+    Math.hypot(red - background[0], green - background[1], blue - background[2]);
+  const edgeUniformity = samples.filter(([r, g, b]) =>
+    rgbDistance(r, g, b) <= 43
+  ).length / samples.length;
+  if (edgeUniformity < 0.87) {
+    throw new Error("Background is not uniform enough for safe automatic cleanup. The original photo was kept; try Crop photo or Refine cutout.");
+  }
+
+  let foregroundEvidence = 0;
+  let centerSamples = 0;
+  for (let row = 0; row <= 6; row += 1) {
+    for (let column = 0; column <= 6; column += 1) {
+      const x = Math.min(width - 1, Math.floor(width * (0.2 + column * 0.1)));
+      const y = Math.min(height - 1, Math.floor(height * (0.18 + row * 0.1)));
+      const offset = (y * width + x) * 4;
+      if (data[offset + 3] < 100) continue;
+      centerSamples += 1;
+      if (rgbDistance(data[offset], data[offset + 1], data[offset + 2]) > 72) {
+        foregroundEvidence += 1;
+      }
+    }
+  }
+  if (!centerSamples || foregroundEvidence < Math.ceil(centerSamples * 0.18)) {
+    throw new Error("The clothing is too close to the background color for a safe automatic cutout. Original photo preserved.");
+  }
 
   const distanceAt = (point: number) => {
     const offset = point * 4;
@@ -231,8 +266,9 @@ async function autoCutoutClothing(file: File): Promise<File> {
    * The old cutout removed every similar colour in the whole image, which
    * could eat cream shirts, pale shoes and other parts of the garment.
    */
-  const threshold = 54;
-  const feather = 34;
+  // Prefer imperfect leftover background over missing actual fabric.
+  const threshold = 36;
+  const feather = 20;
   const maxDistance = threshold + feather;
   const total = width * height;
   const visited = new Uint8Array(total);
@@ -276,24 +312,24 @@ async function autoCutoutClothing(file: File): Promise<File> {
     if (y < height - 1) pushIfBackground(point + width);
   }
 
+  let erased = 0;
   for (let point = 0; point < total; point += 1) {
     if (!visited[point]) continue;
-
     const offset = point * 4;
     const distance = distanceAt(point);
-
     if (distance <= threshold) {
       data[offset + 3] = 0;
+      erased += 1;
     } else {
       data[offset + 3] = Math.min(
         data[offset + 3],
-        Math.round(
-          255 * ((distance - threshold) / feather)
-        )
+        Math.round(255 * ((distance - threshold) / feather))
       );
     }
   }
-
+  if (erased < total * 0.035 || erased > total * 0.78) {
+    throw new Error("Automatic cleanup could not separate this background safely. Keep the original and refine manually.");
+  }
   context.putImageData(pixels, 0, 0);
 
   const blob = await new Promise<Blob>((resolve, reject) => {
@@ -907,6 +943,13 @@ export function WardrobeExperienceScreen() {
 
   const [addingClothing, setAddingClothing] =
     useState(false);
+  const [editingClothingId, setEditingClothingId] = useState<string | null>(null);
+  const [savingClothing, setSavingClothing] = useState(false);
+  const [deletingClothingId, setDeletingClothingId] = useState<string | null>(null);
+  const wardrobeClosetRef = useRef<HTMLElement | null>(null);
+  const cutoutRunId = useRef(0);
+  const [cutoutCandidateFile, setCutoutCandidateFile] = useState<File | null>(null);
+  const [cutoutCandidateUrl, setCutoutCandidateUrl] = useState<string | null>(null);
 
   const [addingLook, setAddingLook] =
     useState(false);
@@ -1045,6 +1088,16 @@ export function WardrobeExperienceScreen() {
       active = false;
     };
   }, [session.user.id]);
+
+  useEffect(() => {
+    if (!cutoutCandidateFile) {
+      setCutoutCandidateUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(cutoutCandidateFile);
+    setCutoutCandidateUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [cutoutCandidateFile]);
 
   useEffect(() => {
     if (!clothingImageFile) {
@@ -1223,56 +1276,143 @@ export function WardrobeExperienceScreen() {
     };
   }, [session.user.id]);
 
-  const saveClothing = async () => {
-    if (!clothingName.trim()) return;
 
+  const resetClothingEditor = () => {
+    // Called after a successful awaited save while savingClothing is true;
+    // buttons themselves are disabled during saving.
+    cutoutRunId.current += 1; // Ignore stale asynchronous browser cutout jobs.
+    setAddingClothing(false);
+    setEditingClothingId(null);
+    setClothingName("");
+    setClothingCategory("top");
+    setClothingNote("");
+    setClothingOriginalFile(null);
+    setClothingImageFile(null);
+    setClothingCutoutMode("original");
+    setCutoutCandidateFile(null);
+    setManualCutoutOpen(false);
+    setCropEditorOpen(false);
+    setCutoutBusy(false);
+  };
+
+  const revealClothingEditor = () => {
+    // On iOS, simply rendering a form at the top is not enough if the user
+    // pressed Edit on a card far below a crowded closet.
+    window.requestAnimationFrame(() =>
+      wardrobeClosetRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
+  };
+
+  const beginAddClothing = () => {
+    if (savingClothing || deletingClothingId) return;
+    resetClothingEditor();
     setWardrobeError(null);
+    setAddingClothing(true);
+    setWardrobeView("closet");
+    revealClothingEditor();
+  };
 
+  const beginEditClothing = (item: DiarioItem) => {
+    if (savingClothing || deletingClothingId) return;
+    resetClothingEditor();
+    setWardrobeError(null);
+    setSelectedWardrobeObjectId(null);
+    setWardrobeOwner(item.owner === "dominic" ? "dominic" : "mine");
+    setEditingClothingId(item.id);
+    setClothingName(item.title ?? "");
+    setClothingCategory(typeof item.data?.category === "string" ? item.data.category : "other");
+    setClothingNote(item.body ?? "");
+    setAddingClothing(true);
+    setWardrobeView("closet");
+    revealClothingEditor();
+  };
+
+  const removeClothingItem = async (item: DiarioItem) => {
+    if (savingClothing || deletingClothingId) return;
+    if (!window.confirm(`Delete "${item.title ?? "this clothing"}" permanently? It will also be removed from saved looks and Currently Wearing.`)) return;
+    setDeletingClothingId(item.id);
+    setWardrobeError(null);
+    const owner: WardrobeOwner = item.owner === "dominic" ? "dominic" : "alloah";
     try {
-      const storagePath =
-        clothingImageFile
-          ? await uploadDiarioItemImage({
-              userId: session.user.id,
-              file: clothingImageFile,
-              folder: "wardrobe",
-            })
-          : null;
-
-      const savedItem =
-        await createClothing({
+      const currentWearing = await getWearingSelection({ userId: session.user.id, owner });
+      // Always read the actual saved outfit; local state can be stale.
+      if (currentWearing?.clothingIds.includes(item.id)) {
+        await setWearingClothing({
           userId: session.user.id,
-          owner: dbOwner,
-          title: clothingName,
-          category: clothingCategory,
-          note: clothingNote,
-          storagePath,
-          cutoutMode: clothingCutoutMode,
+          owner,
+          clothingIds: currentWearing.clothingIds.filter((id) => id !== item.id),
         });
-
-      setWardrobeItems(
-        (currentItems) => [
-          savedItem,
-          ...currentItems,
-        ]
+      }
+      await deleteClothing({ userId: session.user.id, clothingId: item.id });
+      setWardrobeItems((items) => items.filter((saved) => saved.id !== item.id));
+      setLookClothingByLookId((current) =>
+        Object.fromEntries(Object.entries(current).map(([lookId, ids]) => [
+          lookId, ids.filter((id) => id !== item.id)
+        ]))
       );
+      setBuilderLayout((layout) => layout.filter((piece) => piece.clothingId !== item.id));
+      if (editingClothingId === item.id) resetClothingEditor();
+      setSelectedWardrobeObjectId(null);
+      await refreshOwnerWearing(owner);
+    } catch (error) {
+      console.error("Could not delete clothing:", error);
+      setWardrobeError("The clothing item could not be deleted. Check the saved outfit and try again.");
+      try { await refreshOwnerWearing(owner); } catch {}
+    } finally {
+      setDeletingClothingId(null);
+    }
+  };
 
-      setClothingName("");
-      setClothingCategory("top");
-      setClothingNote("");
-      setClothingOriginalFile(null);
-      setClothingImageFile(null);
-      setClothingCutoutMode("original");
-      setManualCutoutOpen(false);
-      setAddingClothing(false);
-    } catch (saveError) {
-      console.error(
-        "Could not save clothing:",
-        saveError
+  const saveClothing = async () => {
+    if (!clothingName.trim() || savingClothing || cutoutBusy) return;
+    setSavingClothing(true);
+    setWardrobeError(null);
+    try {
+      const storagePath = clothingImageFile
+        ? await uploadDiarioItemImage({
+            userId: session.user.id,
+            file: clothingImageFile,
+            folder: "wardrobe",
+          })
+        : null;
+      const existing = editingClothingId
+        ? wardrobeItems.find((item) => item.id === editingClothingId)
+        : null;
+      const itemOwner: WardrobeOwner = existing
+        ? (existing.owner === "dominic" ? "dominic" : "alloah")
+        : dbOwner;
+      const savedItem = editingClothingId
+        ? await updateClothing({
+            userId: session.user.id,
+            clothingId: editingClothingId,
+            owner: itemOwner,
+            title: clothingName,
+            category: clothingCategory,
+            note: clothingNote,
+            // No replacement upload means no modifications to image metadata.
+            storagePath: storagePath ?? undefined,
+            cutoutMode: clothingCutoutMode,
+          })
+        : await createClothing({
+            userId: session.user.id,
+            owner: itemOwner,
+            title: clothingName,
+            category: clothingCategory,
+            note: clothingNote,
+            storagePath,
+            cutoutMode: clothingCutoutMode,
+          });
+      setWardrobeItems((items) =>
+        editingClothingId
+          ? items.map((item) => item.id === savedItem.id ? savedItem : item)
+          : [savedItem, ...items]
       );
-
-      setWardrobeError(
-        "The clothing item could not be saved."
-      );
+      resetClothingEditor();
+    } catch (error) {
+      console.error("Could not save clothing:", error);
+      setWardrobeError("The clothing item could not be saved. Your editing fields are still here; try again.");
+    } finally {
+      setSavingClothing(false);
     }
   };
 
@@ -1564,47 +1704,23 @@ export function WardrobeExperienceScreen() {
           onOpenRelated={setSelectedWardrobeObjectId}
           onBack={() => setSelectedWardrobeObjectId(null)}
         />
+        {wardrobeError && (
+          <p className="wardrobe-management-error" role="alert">{wardrobeError}</p>
+        )}
         {selectedClothing && (
-          <button
-            type="button"
-            className="wardrobe-delete-clothing"
-            onClick={async () => {
-              if (!window.confirm(`Delete "${selectedClothing.title ?? "this clothing"}"? This cannot be undone.`)) return;
-              setWardrobeError(null);
-              try {
-                const owner = selectedClothing.owner === "dominic" ? "dominic" : "alloah";
-                const currentWearing = wearingByOwner[owner];
-                if (currentWearing?.clothingIds.includes(selectedClothing.id)) {
-                  await setWearingClothing({
-                    userId: session.user.id,
-                    owner,
-                    clothingIds: currentWearing.clothingIds.filter((id) => id !== selectedClothing.id),
-                  });
-                }
-                await deleteClothing({
-                  userId: session.user.id,
-                  clothingId: selectedClothing.id,
-                });
-                setWardrobeItems((items) => items.filter((item) => item.id !== selectedClothing.id));
-                setLookClothingByLookId((current) =>
-                  Object.fromEntries(
-                    Object.entries(current).map(([lookId, ids]) => [
-                      lookId,
-                      ids.filter((id) => id !== selectedClothing.id),
-                    ])
-                  )
-                );
-                setBuilderLayout((layout) => layout.filter((piece) => piece.clothingId !== selectedClothing.id));
-                setSelectedWardrobeObjectId(null);
-                await refreshOwnerWearing(owner);
-              } catch (error) {
-                console.error("Could not delete clothing:", error);
-                setWardrobeError("The clothing item could not be deleted.");
-              }
-            }}
-          >
-            Delete clothing
-          </button>
+          <div className="wardrobe-detail-actions">
+            <button type="button" onClick={() => beginEditClothing(selectedClothing)}>
+              Edit clothing
+            </button>
+            <button
+              type="button"
+              className="wardrobe-delete-clothing"
+              disabled={Boolean(deletingClothingId)}
+              onClick={() => void removeClothingItem(selectedClothing)}
+            >
+              {deletingClothingId === selectedClothing.id ? "Deleting…" : "Delete clothing"}
+            </button>
+          </div>
         )}
       </div>
     );
@@ -1642,9 +1758,10 @@ export function WardrobeExperienceScreen() {
               ? "active"
               : ""
           }
-          onClick={() =>
-            setWardrobeOwner("mine")
-          }
+          onClick={() => {
+            resetClothingEditor();
+            setWardrobeOwner("mine");
+          }}
         >
           Mine
         </button>
@@ -1660,9 +1777,10 @@ export function WardrobeExperienceScreen() {
               ? "active"
               : ""
           }
-          onClick={() =>
-            setWardrobeOwner("dominic")
-          }
+          onClick={() => {
+            resetClothingEditor();
+            setWardrobeOwner("dominic");
+          }}
         >
           Dominic
         </button>
@@ -2318,7 +2436,7 @@ export function WardrobeExperienceScreen() {
           )}
         </section>
       ) : wardrobeView === "closet" ? (
-        <section className="wardrobe-closet">
+        <section className="wardrobe-closet" ref={wardrobeClosetRef}>
           <header>
             <div>
               <span>closet</span>
@@ -2339,6 +2457,21 @@ export function WardrobeExperienceScreen() {
             </small>
           </header>
 
+          <div className="wardrobe-closet-toolbar">
+            {addingClothing ? (
+              <button type="button" className="wardrobe-add-button" disabled={savingClothing}
+                onClick={resetClothingEditor}>× Close editor</button>
+            ) : (
+              <button type="button" className="wardrobe-add-button" onClick={beginAddClothing}>
+                ＋ Add clothing
+              </button>
+            )}
+          </div>
+
+          {wardrobeError && (
+            <p className="wardrobe-management-error" role="alert">{wardrobeError}</p>
+          )}
+
           {addingClothing ? (
             <div className="wardrobe-empty">
               <small>
@@ -2346,14 +2479,20 @@ export function WardrobeExperienceScreen() {
               </small>
 
               <h2>
-                Add clothing
+                {editingClothingId ? "Edit clothing" : "Add clothing"}
               </h2>
+              {editingClothingId && (
+                <p className="wardrobe-edit-note">
+                  Change the name, category or note without losing its saved looks or Currently Wearing selection.
+                  Choose another photo only if you want to replace the existing image.
+                </p>
+              )}
 
               <label className="wardrobe-image-picker">
                 <span>
-                  {clothingPreviewUrl ? (
+                  {clothingPreviewUrl || (editingClothingId && mediaByItemId[editingClothingId]) ? (
                     <img
-                      src={clothingPreviewUrl}
+                      src={clothingPreviewUrl || mediaByItemId[editingClothingId]!}
                       alt="Clothing preview"
                     />
                   ) : (
@@ -2376,127 +2515,109 @@ export function WardrobeExperienceScreen() {
                     const file =
                       event.target.files?.[0] ??
                       null;
+                    if (!file) return;
 
+                    // Never silently replace a real garment photo with a
+                    // lossy cutout. The original always wins by default.
+                    cutoutRunId.current += 1;
                     setClothingOriginalFile(file);
                     setClothingImageFile(file);
                     setClothingCutoutMode("original");
+                    setCutoutCandidateFile(null);
                     setManualCutoutOpen(false);
-
-                    if (!file) {
-                      return;
-                    }
-
-                    setCutoutBusy(true);
+                    setCropEditorOpen(false);
                     setWardrobeError(null);
-
-                    void autoCutoutClothing(
-                      file
-                    )
-                      .then((cutout) => {
-                        setClothingImageFile(
-                          cutout
-                        );
-                        setClothingCutoutMode(
-                          "auto"
-                        );
-                      })
-                      .catch((cutoutError) => {
-                        console.error(
-                          "Could not make automatic clothing cutout:",
-                          cutoutError
-                        );
-
-                        setWardrobeError(
-                          "Auto cutout missed this one. The original is safe — use Refine cutout to fix it by hand."
-                        );
-                      })
-                      .finally(() =>
-                        setCutoutBusy(
-                          false
-                        )
-                      );
                   }}
                 />
               </label>
 
               {clothingOriginalFile && (
-                <div className="wardrobe-cutout-tools">
-                  <button
-                    type="button"
-                    disabled={cutoutBusy}
-                    onClick={async () => {
-                      setCutoutBusy(true);
-                      setWardrobeError(null);
+                <>
+                  <p className="wardrobe-edit-note">
+                    Your original photo is safe. Automatic cleanup is optional and works only on
+                    a plain contrasting background. It is not AI segmentation and cannot
+                    accurately remove a complicated background.
+                  </p>
+                  <div className="wardrobe-cutout-tools">
+                    <button
+                      type="button"
+                      disabled={cutoutBusy || savingClothing}
+                      onClick={async () => {
+                        const runId = ++cutoutRunId.current;
+                        setCutoutBusy(true);
+                        setCutoutCandidateFile(null);
+                        setWardrobeError(null);
+                        try {
+                          const candidate = await autoCutoutClothing(clothingOriginalFile);
+                          if (runId === cutoutRunId.current) {
+                            setCutoutCandidateFile(candidate);
+                          }
+                        } catch (error) {
+                          console.info("Conservative background cleanup unavailable:", error);
+                          if (runId === cutoutRunId.current) {
+                            setWardrobeError(
+                              error instanceof Error ? error.message : "Could not clean this background safely. Original photo preserved."
+                            );
+                          }
+                        } finally {
+                          if (runId === cutoutRunId.current) setCutoutBusy(false);
+                        }
+                      }}
+                    >
+                      <Scissors size={14} />
+                      {cutoutBusy ? "Checking background…" : "Try background cleanup"}
+                    </button>
 
-                      try {
-                        const cutout =
-                          await autoCutoutClothing(
-                            clothingOriginalFile
-                          );
-
-                        setClothingImageFile(
-                          cutout
-                        );
-                        setClothingCutoutMode(
-                          "auto"
-                        );
-                      } catch (cutoutError) {
-                        console.error(
-                          "Could not cut out clothing:",
-                          cutoutError
-                        );
-
-                        setWardrobeError(
-                          "The automatic cutout could not be made. You can still keep the original photo."
-                        );
-                      } finally {
+                    <button
+                      type="button"
+                      disabled={savingClothing}
+                      onClick={() => {
+                        cutoutRunId.current += 1;
                         setCutoutBusy(false);
-                      }
-                    }}
-                  >
-                    <Scissors size={14} />
-                    {cutoutBusy
-                      ? "Cutting…"
-                      : "Run auto again"}
-                  </button>
+                        setClothingImageFile(clothingOriginalFile);
+                        setClothingCutoutMode("original");
+                        setCutoutCandidateFile(null);
+                        setManualCutoutOpen(false);
+                      }}
+                    >Use original</button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setClothingImageFile(
-                        clothingOriginalFile
-                      );
-                      setClothingCutoutMode(
-                        "original"
-                      );
-                      setManualCutoutOpen(
-                        false
-                      );
-                    }}
-                  >
-                    Use original
-                  </button>
+                    <button type="button" disabled={cutoutBusy || savingClothing}
+                      onClick={() => setCropEditorOpen(true)}>
+                      <Scissors size={14} /> Crop photo
+                    </button>
+                    <button type="button" disabled={cutoutBusy || savingClothing}
+                      onClick={() => setManualCutoutOpen(true)}>
+                      <Scissors size={14} /> Refine cutout
+                    </button>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setCropEditorOpen(true)}
-                  >
-                    <Scissors size={14} />
-                    Crop photo
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setManualCutoutOpen(
-                        true
-                      )
-                    }
-                  >
-                    <Scissors size={14} />
-                    Refine cutout
-                  </button>
-                </div>
+                  {cutoutCandidateFile && cutoutCandidateUrl && (
+                    <section className="wardrobe-cutout-review" aria-label="Review optional background cleanup">
+                      <strong>Review before applying</strong>
+                      <p>Compare carefully: if the fabric, soles or edges are missing, keep the original.</p>
+                      <div className="wardrobe-cutout-review-grid">
+                        <figure>
+                          <img src={clothingPreviewUrl || ""} alt="Current original clothing photo" />
+                          <figcaption>Current photo</figcaption>
+                        </figure>
+                        <figure>
+                          <img src={cutoutCandidateUrl} alt="Proposed automatic background removal" />
+                          <figcaption>Proposed cleanup</figcaption>
+                        </figure>
+                      </div>
+                      <div className="wardrobe-cutout-review-actions">
+                        <button type="button" onClick={() => {
+                          setClothingImageFile(cutoutCandidateFile);
+                          setClothingCutoutMode("auto");
+                          setCutoutCandidateFile(null);
+                        }}>Use this cutout</button>
+                        <button type="button" onClick={() => setCutoutCandidateFile(null)}>
+                          Reject cutout
+                        </button>
+                      </div>
+                    </section>
+                  )}
+                </>
               )}
 
               {cropEditorOpen && clothingOriginalFile && (
@@ -2507,18 +2628,10 @@ export function WardrobeExperienceScreen() {
                     setClothingOriginalFile(cropped);
                     setClothingImageFile(cropped);
                     setClothingCutoutMode("original");
+                    setCutoutCandidateFile(null);
+                    cutoutRunId.current += 1;
                     setCropEditorOpen(false);
-                    setCutoutBusy(true);
-                    void autoCutoutClothing(cropped)
-                      .then((cutout) => {
-                        setClothingImageFile(cutout);
-                        setClothingCutoutMode("auto");
-                      })
-                      .catch((error) => {
-                        console.error("Could not cut cropped clothing:", error);
-                        setWardrobeError("The crop is saved, but automatic cutout could not finish.");
-                      })
-                      .finally(() => setCutoutBusy(false));
+                    // Cropping must NEVER secretly trigger another cutout.
                   }}
                 />
               )}
@@ -2545,6 +2658,7 @@ export function WardrobeExperienceScreen() {
                       setClothingCutoutMode(
                         "manual"
                       );
+                      setCutoutCandidateFile(null);
                       setManualCutoutOpen(
                         false
                       );
@@ -2611,35 +2725,17 @@ export function WardrobeExperienceScreen() {
               />
 
               <div className="diary-editor-actions">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAddingClothing(
-                      false
-                    );
-                    setClothingName("");
-                    setClothingCategory(
-                      "top"
-                    );
-                    setClothingNote("");
-                    setClothingOriginalFile(null);
-                    setClothingImageFile(null);
-                    setClothingCutoutMode("original");
-                    setManualCutoutOpen(false);
-                  }}
-                >
+                <button type="button" onClick={resetClothingEditor} disabled={savingClothing}>
                   Cancel
                 </button>
 
                 <button
                   type="button"
                   className="wardrobe-add-button"
-                  disabled={
-                    !clothingName.trim()
-                  }
+                  disabled={!clothingName.trim() || savingClothing || cutoutBusy}
                   onClick={saveClothing}
                 >
-                  Save clothing
+                  {savingClothing ? "Saving…" : editingClothingId ? "Save changes" : "Save clothing"}
                 </button>
               </div>
             </div>
@@ -2669,18 +2765,7 @@ export function WardrobeExperienceScreen() {
                 here over time.
               </p>
 
-              <button
-                type="button"
-                className="wardrobe-add-button"
-                onClick={() =>
-                  setAddingClothing(true)
-                }
-              >
-                <span aria-hidden="true">
-                  ＋
-                </span>
-                Add clothing
-              </button>
+              {/* Add Clothing remains at the top of the closet. */}
             </div>
           ) : (
             <>
@@ -2781,17 +2866,19 @@ export function WardrobeExperienceScreen() {
                           )}
                         </button>
 
-                        <button
-  type="button"
-  className="letter-connected-button"
-  onClick={() =>
-    setSelectedWardrobeObjectId(
-      item.id
-    )
-  }
->
-  View connections
-</button>
+                        <div className="wardrobe-card-management">
+                          <button type="button" disabled={Boolean(deletingClothingId) || savingClothing}
+                            onClick={() => beginEditClothing(item)}>Edit</button>
+                          <button type="button" className="danger"
+                            disabled={Boolean(deletingClothingId) || savingClothing}
+                            onClick={() => void removeClothingItem(item)}>
+                            {deletingClothingId === item.id ? "Deleting…" : "Delete"}
+                          </button>
+                        </div>
+                        <button type="button" className="letter-connected-button"
+                          onClick={() => setSelectedWardrobeObjectId(item.id)}>
+                          View connections
+                        </button>
                         
                       </article>
                     );
@@ -2799,18 +2886,7 @@ export function WardrobeExperienceScreen() {
                 )}
               </div>
 
-              <button
-                type="button"
-                className="wardrobe-add-button"
-                onClick={() =>
-                  setAddingClothing(true)
-                }
-              >
-                <span aria-hidden="true">
-                  ＋
-                </span>
-                Add clothing
-              </button>
+              {/* Add Clothing remains at the top of the closet. */}
             </>
           )}
         </section>

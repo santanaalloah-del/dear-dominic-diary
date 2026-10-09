@@ -1559,6 +1559,70 @@ export async function createClothing({
   return data as DiarioItem;
 }
 
+/**
+ * Edit a saved garment without changing its ID, owner, look links or Wearing.
+ * Existing image/storage metadata stays untouched unless a replacement image
+ * was deliberately selected. Never delete the old source photo on rename.
+ */
+export async function updateClothing({
+  userId,
+  clothingId,
+  owner,
+  title,
+  category,
+  note,
+  storagePath,
+  cutoutMode,
+}: CreateClothingInput & { clothingId: string }): Promise<DiarioItem> {
+  const cleanTitle = title.trim();
+  if (!cleanTitle) throw new Error("Clothing needs a name.");
+
+  const { data: original, error: loadError } = await diarioSupabase
+    .from("diario_items")
+    .select("id,data")
+    .eq("id", clothingId)
+    .eq("user_id", userId)
+    .eq("owner", owner)
+    .eq("kind", "clothing")
+    .eq("status", "active")
+    .maybeSingle();
+  if (loadError) throw loadError;
+  if (!original) throw new Error("This clothing item is no longer available.");
+
+  const currentData = original.data &&
+    typeof original.data === "object" &&
+    !Array.isArray(original.data)
+      ? original.data as Record<string, unknown>
+      : {};
+  const nextData: Record<string, unknown> = {
+    ...currentData,
+    category: category.trim() || "other",
+  };
+  if (storagePath) {
+    nextData.storage_bucket = "diario-media";
+    nextData.storage_path = storagePath;
+    nextData.cutout_mode = cutoutMode ?? "original";
+  }
+
+  const { data: updated, error } = await diarioSupabase
+    .from("diario_items")
+    .update({
+      title: cleanTitle,
+      body: note?.trim() || null,
+      data: nextData,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", clothingId)
+    .eq("user_id", userId)
+    .eq("owner", owner)
+    .eq("kind", "clothing")
+    .eq("status", "active")
+    .select("*")
+    .single();
+  if (error) throw error;
+  return updated as DiarioItem;
+}
+
 export async function getLooks(
   userId: string
 ): Promise<DiarioItem[]> {
