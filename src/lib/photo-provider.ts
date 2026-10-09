@@ -59,7 +59,7 @@ export type PhotoReferenceAudit = {
   auditOnly: true;
   noCreditsUsed: true;
   referenceCount: number;
-  people: Record<string, { faceReferences: number; currentHairReferences: number; tattooReferences: number }>;
+  people: Record<string, { faceReferences: number; faceCanonAnchors: number; currentHairReferences: number; tattooReferences: number }>;
   outfits: Record<string, { imageCount: number; items: string[] }>;
   homeReferences: number;
   canonSubjects: string[];
