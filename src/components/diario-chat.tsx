@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SpontaneousPhotoOpportunity } from "@/components/spontaneous-photo-opportunity";
+import { SpontaneousPhotoOpportunity, SpontaneousPhotoPreferencesPanel } from "@/components/spontaneous-photo-opportunity";
 import { DateModeChatBridge } from "@/components/date-mode-chat-bridge";
 import "@/components/date-mode-chat-context.css";
 import "@/components/diario-chat-world.css";
@@ -5035,12 +5035,10 @@ const recentConversationForPhoto = () =>
             </SheetTrigger>
 
             <ChatAppearanceSheet
-              preferences={
-                preferences
-              }
-              onChange={
-                setPreferences
-              }
+              preferences={preferences}
+              onChange={setPreferences}
+              userId={session.user.id}
+              onOpenPhoto={openPhotoEngine}
             />
           </Sheet>
 
@@ -5482,6 +5480,12 @@ const recentConversationForPhoto = () =>
               </Popover>
             ))
           )}
+          <SpontaneousPhotoOpportunity
+            userId={session.user.id}
+            dominicState={dominicState}
+            conversationSummary={recentConversationForPhoto()}
+            onOpenPhoto={openPhotoEngine}
+          />
           {sending && (
             <Message from="assistant" className="diario-message messenger-message typing-message">
               <MessageContent className="diario-message-content messenger-bubble">
@@ -5533,13 +5537,7 @@ const recentConversationForPhoto = () =>
 )}
         {voiceNotice && <div className={`voice-transcription-status ${voiceStatus}`}>{voiceNotice}</div>}
 
-        <SpontaneousPhotoOpportunity
-  userId={session.user.id}
-  dominicState={dominicState}
-  conversationSummary={recentConversationForPhoto()}
-  onOpenPhoto={openPhotoEngine}
-/>
-        
+
         <PromptInput onSubmit={handleSubmit} className="live-composer messenger-composer">
         <PromptInputTextarea
   placeholder="Message Dominic…"
@@ -6779,9 +6777,22 @@ function ChatProfileSheet({
 function ChatAppearanceSheet({
   preferences,
   onChange,
+  userId,
+  onOpenPhoto,
 }: {
   preferences: ChatPreferences;
   onChange: (value: ChatPreferences) => void;
+  userId: string;
+  onOpenPhoto: (draft: {
+    mode?: "request";
+    subjectType?: "dominic" | "both";
+    scene?: string;
+    mood?: string;
+    photoStyle?: "natural_iphone" | "candid" | "mirror" | "selfie";
+    sourceContext?: "chat";
+    spontaneousIdeaId?: string;
+    conversationSummary?: string;
+  }) => void;
 }) {
   function patch(next: Partial<ChatPreferences>) {
     onChange({ ...preferences, ...next });
@@ -6823,6 +6834,10 @@ function ChatAppearanceSheet({
         <label><span><strong>Adapt to time of day</strong><small>chat darkens with the rest of Diário</small></span><Switch checked={preferences.adaptToTime} onCheckedChange={(checked) => patch({ adaptToTime: checked })} /></label>
         <label><span><strong>Show timestamps</strong><small>time + read state</small></span><Switch checked={preferences.showTimestamps} onCheckedChange={(checked) => patch({ showTimestamps: checked })} /></label>
         <label><span><strong>Show Dominic's avatar</strong><small>beside his messages</small></span><Switch checked={preferences.showDominicAvatar} onCheckedChange={(checked) => patch({ showDominicAvatar: checked })} /></label>
+      </section>
+      <section className="settings-section">
+        <div className="settings-row-title"><strong>Dominic's photo ideas</strong><small>private preferences and saved ideas</small></div>
+        <SpontaneousPhotoPreferencesPanel userId={userId} onOpenPhoto={onOpenPhoto} />
       </section>
     </SheetContent>
   );
