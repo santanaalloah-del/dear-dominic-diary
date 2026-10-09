@@ -1012,33 +1012,57 @@ export async function generatePhotoProviderPreview({
     }
   }
 
-  // One locally-rendered clothing board PER PERSON carries every Currently
-  // Wearing cutout (top, bottoms, shoes) using only two model image slots.
-  // No image model or paid API is used to assemble these neutral boards.
+  // One free, local garment board can hold six ACTUAL clothing cutouts.
+  // Split long outfits into additional boards instead of silently cropping
+  // off the last currently-worn items (particularly trousers and shoes).
   const ownersWithClothing = owners.filter((owner) =>
     clothingWithPhotos.some((item) => item.owner === owner)
   );
-  const boardResults = await Promise.all(ownersWithClothing.map(async (owner) => {
-    const pieces = clothingWithPhotos.filter((item) => item.owner === owner).map((item) => item.piece);
+  const batches = ownersWithClothing.flatMap((owner) => {
+    const pieces = clothingWithPhotos.filter((item) => item.owner === owner)
+      .map((item) => item.piece);
+    const result: Array<{ owner: WardrobeOwner; pieces: typeof pieces; part: number }> = [];
+    for (let index = 0; index < pieces.length; index += 6) {
+      result.push({ owner, pieces: pieces.slice(index, index + 6), part: Math.floor(index / 6) + 1 });
+    }
+    return result;
+  });
+  // Four boards still leave 9-10 image slots for both faces, current hair,
+  // tattoos and a physical room. More cannot be represented faithfully.
+  if (batches.length > 4) {
+    throw new Error(
+      "Currently Wearing has too many clothing pieces to show accurately. " +
+      "Select a smaller outfit in Wardrobe. No credits used."
+    );
+  }
+  const boardResults = await Promise.all(batches.map(async ({ owner, pieces, part }) => {
     try {
       const boardUrl = await makeCurrentlyWearingBoard(owner, pieces);
-      return boardUrl ? { owner, pieces, boardUrl } : null;
+      return boardUrl ? { owner, pieces, part, boardUrl } : null;
     } catch (error) {
-      console.warn("Could not prepare a private wardrobe board; using individual cutouts:", error);
+      console.warn("Could not prepare exact Currently Wearing garment photos:", error);
       return null;
     }
   }));
-  // Browser canvas failures must not silently drop outfit evidence.
-  const useBoards = ownersWithClothing.length > 0 && boardResults.every(Boolean);
+  const useBoards = batches.length > 0 && boardResults.every(Boolean);
+  // Without the canvas board, a small outfit can still be transmitted in full
+  // using individual signed cutouts. Never silently drop the pants or shoes.
+  if (!useBoards && clothingWithPhotos.length > 5) {
+    throw new Error(
+      "Could not assemble all Currently Wearing photos on this device. " +
+      "Try again or reduce the number of selected pieces. No credits used."
+    );
+  }
   const clothingReferences: ProviderReferencePayload[] = useBoards
     ? boardResults.filter((item): item is NonNullable<typeof item> => item !== null)
-        .map(({ owner, pieces, boardUrl }) => ({
-          id: "wardrobe-board-" + owner,
+        .map(({ owner, pieces, part, boardUrl }) => ({
+          id: "wardrobe-board-" + owner + "-" + part,
           url: boardUrl,
           subject: "wardrobe",
-          title: owner.toUpperCase() + " — Currently Wearing",
+          title: owner.toUpperCase() + " Currently Wearing: " +
+            pieces.map((piece) => piece.title).join(" / ").slice(0, 180),
           description: "EXACT CURRENTLY WORN " + owner.toUpperCase() +
-            " CLOTHING BOARD. Each labeled panel is a separate REAL cutout, not invented styling. " +
+            " CLOTHING BOARD " + part + ". Each labeled panel is a separate REAL cutout, not invented styling. " +
             pieces.map((piece) => piece.category + ": " + piece.title).join(" | ") +
             ". Only match the panel to its proper category and owner. Preserve fit and footwear type. NEVER copy any face or body from this board.",
           purposes: ["wardrobe", "clothing", owner, "currently_wearing_board"],
@@ -1047,7 +1071,7 @@ export async function generatePhotoProviderPreview({
           lookType: null,
           isCurrent: true,
         }))
-    : wardrobePhotos.filter(({ piece }) => Boolean(piece.imageUrl)).map(({ owner, piece }) => ({
+    : clothingWithPhotos.map(({ owner, piece }) => ({
         id: "wardrobe-" + piece.id,
         url: piece.imageUrl!,
         subject: "wardrobe",
