@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getWearingSelection } from "@/lib/wardrobe-context";
 import {
   identityFeedbackBoost,
   type IdentityReferenceUsage,
@@ -342,7 +343,11 @@ function requestedTattooRegions(
     regions.add("left_leg");
     regions.add("right_leg");
   }
-
+  // Hand and arm tattoos matter in actions such as holding, hugging, or sharing.
+  if (has("joint", "cigarette", "cigarro", "smoking", "holding", "sharing", "cuddling", "cuddle", "hugging", "hug", "embracing", "abraç")) {
+    regions.add("left_hand"); regions.add("right_hand");
+    regions.add("left_arm"); regions.add("right_arm");
+  }
   return Array.from(regions);
 }
 
@@ -353,10 +358,11 @@ function tattooRegionAnchorIds(
   if (!canon || !requestedRegions.length) return [];
 
   const requested = new Set(requestedRegions);
-
-  return tattooRegionsFromProfile(canon.profile ?? {}).flatMap((entry) =>
-    requested.has(entry.region) ? entry.anchorIds : []
-  );
+  const order: TattooRegion[] = ["left_hand", "right_hand", "left_arm", "right_arm", "face", "neck", "chest", "abdomen", "back", "left_leg", "right_leg", "other"];
+  const entries = tattooRegionsFromProfile(canon.profile ?? {});
+  return Array.from(new Set(order.flatMap((region) =>
+    requested.has(region) ? entries.filter((entry) => entry.region === region).flatMap((entry) => entry.anchorIds) : []
+  )));
 }
 
 function canonSubjectsForRequest(
@@ -382,7 +388,7 @@ async function getReadyCanons({
       "subject,status,profile,reference_ids,analysis_version,last_analyzed_at"
     )
     .eq("user_id", userId)
-    .eq("status", "ready")
+    .in("status", ["ready", "error"])
     .in("subject", subjects);
 
   if (error) {
@@ -390,7 +396,15 @@ async function getReadyCanons({
     return [];
   }
 
-  return (data ?? []) as VisualCanonRow[];
+  // Preserve the previous valid analysis if a later AI parse failed. Do not
+  // change its error status or spend credits on automatic re-analysis.
+  return ((data ?? []) as VisualCanonRow[]).filter((canon) => {
+    if (canon.status === "ready") return true;
+    const anchors = anchorGroupsFromProfile(canon.profile ?? {});
+    return canon.status === "error" && canon.analysis_version > 0 &&
+      (anchors.face.length > 0 || anchors.tattoos.length > 0) &&
+      (canon.profile?.subject === canon.subject || !canon.profile?.subject);
+  });
 }
 
 function canonPayload(canons: VisualCanonRow[]): VisualCanonPayload[] {
@@ -557,6 +571,28 @@ function chooseProviderReferences(
     );
   };
 
+  const takeOrderedIds = (subject: VisualCanonRow["subject"], ids: string[], count: number) => {
+    for (const id of ids) {
+      if (count <= 0 || chosen.length >= maxReferences) break;
+      const previous = chosen.length;
+      take((item) => item.reference.subject === subject && item.reference.id === id, 1);
+      if (chosen.length > previous) count -= 1;
+    }
+  };
+
+  const ensureIdentity = (subject: "alloah" | "dominic", minimum: number) => {
+    const countIdentity = () => chosen.filter((item) =>
+      item.reference.subject === subject && item.reference.reference_kind === "identity"
+    ).length;
+    if (countIdentity() >= minimum) return;
+    takeOrderedIds(subject, groupsFor(subject).face, minimum - countIdentity());
+    if (countIdentity() < minimum) take((item) =>
+      item.reference.subject === subject &&
+      item.reference.reference_kind === "identity" &&
+      (item.reference.reference_purposes ?? []).includes("face"),
+      minimum - countIdentity());
+  };
+
   const takeFallbackAnchors = (
     subject: VisualCanonRow["subject"],
     count: number
@@ -577,103 +613,47 @@ function chooseProviderReferences(
   const requestedRegions = requestedTattooRegions(request);
 
   if (request.subject_type === "both") {
-    const alloahGroups = groupsFor("alloah");
-    const dominicGroups = groupsFor("dominic");
-
-    // A couple photo needs ACTUAL identity evidence for each person.
-    // The canon analyzer may still be pending, so don't depend on anchor IDs.
-    takeIds("alloah", alloahGroups.face, 2);
-    takeIds("dominic", dominicGroups.face, 2);
-    take(
-      (item) => item.reference.subject === "alloah" &&
-        item.reference.reference_purposes?.includes("face") &&
-        item.reference.reference_kind !== "pose",
-      3
-    );
-    take(
-      (item) => item.reference.subject === "dominic" &&
-        item.reference.reference_purposes?.includes("face") &&
-        item.reference.reference_kind !== "pose" &&
-        !item.reference.is_current,
-      3
-    );
+    // Never exhaust reference slots on six generic portraits before tattoo
+    // anchors are reached. Balance both genuine identities first.
+    ensureIdentity("alloah", 2);
+    ensureIdentity("dominic", 2);
+    if (wantsTattoos || requestedRegions.length)
+      takeOrderedIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), 2);
+    takeOrderedIds("dominic", groupsFor("dominic").tattoos, 1);
     if (request.use_current_look) {
-      take((item) => item.reference.subject === "alloah" && item.reference.is_current, 1);
-      take((item) => item.reference.subject === "dominic" && item.reference.is_current, 1);
-    }
-    if (wantsProfile) {
-      takeIds("alloah", alloahGroups.profile, 1);
-      takeIds("dominic", dominicGroups.profile, 1);
+      take((item) => item.reference.subject === "dominic" &&
+        item.reference.reference_kind === "current_look" && item.reference.is_current, 1);
+      take((item) => item.reference.subject === "alloah" &&
+        item.reference.reference_kind === "current_look" && item.reference.is_current, 1);
     }
     if (wantsBody) {
-      takeIds("alloah", alloahGroups.body, 1);
-      takeIds("dominic", dominicGroups.body, 1);
+      takeOrderedIds("dominic", groupsFor("dominic").body, 1);
+      takeOrderedIds("alloah", groupsFor("alloah").body, 1);
     }
-    if (wantsTattoos) {
-      takeIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), 2);
-      takeIds("dominic", dominicGroups.tattoos, 1);
+    if (wantsProfile) {
+      takeOrderedIds("dominic", groupsFor("dominic").profile, 1);
+      takeOrderedIds("alloah", groupsFor("alloah").profile, 1);
     }
-    // Tattoo markings are part of Dominic's permanent identity, even when
-    // the user didn't explicitly say the word "tattoo". The visual canon
-    // analyzer may be unavailable, so use a real tagged tattoo reference.
-    take(
-      (item) => item.reference.subject === "dominic" &&
-        item.reference.reference_kind === "identity" &&
-        item.reference.reference_purposes?.includes("tattoos"),
-      1
-    );
+    ensureIdentity("alloah", 3);
+    ensureIdentity("dominic", 3);
     takeFallbackAnchors("alloah", 1);
     takeFallbackAnchors("dominic", 1);
   } else {
-    const subject =
-      request.subject_type === "me" ? "alloah" : "dominic";
-
+    const subject = request.subject_type === "me" ? "alloah" : "dominic";
     const groups = groupsFor(subject);
-
-    // The face is always the identity backbone.
-    takeIds(subject, groups.face, 4);
-
-    if (wantsProfile) {
-      takeIds(subject, groups.profile, 2);
-    }
-
-    if (wantsBody) {
-      takeIds(subject, groups.body, 2);
-    }
-
-    if (subject === "dominic" && wantsTattoos) {
-      const dominicCanon = canonFor("dominic");
-      const regionalTattooIds = tattooRegionAnchorIds(
-        dominicCanon,
-        requestedRegions
-      );
-
-      takeIds(subject, regionalTattooIds, 3);
-      takeIds(subject, groups.tattoos, 2);
-    }
-
-    // Even when the prompt does not explicitly mention tattoos, Dominic gets
-    // one tattoo anchor if there is room because his marks are identity-critical.
+    ensureIdentity(subject, 3);
     if (subject === "dominic") {
-      takeIds(subject, groups.tattoos, 1);
+      if (wantsTattoos || requestedRegions.length)
+        takeOrderedIds(subject, tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), 3);
+      takeOrderedIds(subject, groups.tattoos, 2);
     }
-
-    // Current hair/makeup/etc. is a temporary override, never the identity base.
-    take(
-      (item) =>
-        item.reference.subject === subject &&
-        item.reference.is_current,
-      2
-    );
-
-    // Backwards-compatible fallbacks for incomplete/older canon profiles.
-    takeFallbackAnchors(subject, 3);
-
-    take(
-      (item) =>
-        item.reference.subject === subject && identityUseful(item),
-      3
-    );
+    if (wantsBody) takeOrderedIds(subject, groups.body, 1);
+    if (wantsProfile) takeOrderedIds(subject, groups.profile, 1);
+    if (request.use_current_look)
+      take((item) => item.reference.subject === subject && item.reference.is_current, 1);
+    ensureIdentity(subject, 4);
+    takeFallbackAnchors(subject, 2);
+    take((item) => item.reference.subject === subject && identityUseful(item), 2);
   }
 
   // Pinterest pictures contain strangers, not Alloah/Dominic.
@@ -870,6 +850,21 @@ export async function generatePhotoProviderPreview({
     throw new Error("Your session expired. Please sign in again.");
   }
 
+  // A stale saved Currently Wearing selection must not silently turn into
+  // random historical clothes. Stop BEFORE reserving or spending any credits.
+  if (request.use_current_look && request.source_context === "manual") {
+    for (const owner of wardrobeOwnersForRequest(request.subject_type)) {
+      const selection = await getWearingSelection({ userId, owner });
+      if (!selection?.clothingIds?.length) continue; // No outfit chosen yet.
+      const context = wardrobeContexts.find((item) => item.owner === owner);
+      if (!context || context.clothing.length !== selection.clothingIds.length ||
+          context.clothing.some((item) => !item.imageUrl)) {
+        const label = owner === "alloah" ? "Alloah" : "Dominic";
+        throw new Error(label + "'s Currently Wearing outfit is incomplete or has missing images. Re-select the saved pieces in Wardrobe before generating. No credits used.");
+      }
+    }
+  }
+
   // Reserve image slots according to what the camera can actually see:
   // faces/skin/tattoos dominate sofa close-ups; full-body and outfit scenes
   // use the real wardrobe cutouts, including pants and footwear when relevant.
@@ -883,19 +878,26 @@ export async function generatePhotoProviderPreview({
     : [];
   const sceneDescription = [request.scene ?? "", request.shot_type ?? "", request.photo_style ?? ""].join(" ").toLowerCase();
   const wideOutfitScene = /full.body|full body|standing|walking|outfit|mirror|street|feet|foot|shoes|sneakers|boots|calça|pants|jeans|shoes|tenis|tênis|pé|pernas/.test(sceneDescription);
-  const wardrobePhotos = (
-    request.subject_type === "both"
-      ? wideOutfitScene
-        ? clothingWithPhotos.filter(({ owner }) => owner === "alloah").slice(0, 2)
-            .concat(clothingWithPhotos.filter(({ owner }) => owner === "dominic").slice(0, 3))
-        : clothingWithPhotos
-            .filter(({ piece }) => piece.category === "top" || piece.category === "outerwear" || piece.category === "dress")
-            .sort((a, b) => (a.owner === "alloah" ? 0 : 1) - (b.owner === "alloah" ? 0 : 1))
-            .slice(0, 2)
-      : wideOutfitScene
-        ? clothingWithPhotos.slice(0, 4)
-        : clothingWithPhotos.filter(({ piece }) => piece.category === "top" || piece.category === "outerwear" || piece.category === "dress").slice(0, 2)
-  ).slice(0, 5);
+  // The stored wardrobe context contains ONLY exact Currently Wearing IDs.
+  // Fill one photo per person first. For close sofa selfies, show their real
+  // tops; for full body/mirror scenes, preserve bottoms and shoes too.
+  const allowed = wideOutfitScene
+    ? ["top", "outerwear", "dress", "bottom", "shoes"]
+    : ["top", "outerwear", "dress"];
+  const relevant = clothingWithPhotos.filter(({ piece }) => allowed.includes(piece.category));
+  const weight = (category: string) =>
+    ({ top: 0, outerwear: 1, dress: 2, bottom: 3, shoes: 4 } as Record<string, number>)[category] ?? 9;
+  const owners = wardrobeOwnersForRequest(request.subject_type);
+  const byPerson = owners.map((owner) => relevant.filter((item) => item.owner === owner)
+    .sort((a, b) => weight(a.piece.category) - weight(b.piece.category)));
+  const wardrobePhotos: typeof clothingWithPhotos = [];
+  const maxPieces = wideOutfitScene ? (owners.length > 1 ? 5 : 4) : (owners.length > 1 ? 2 : 2);
+  for (let index = 0; wardrobePhotos.length < maxPieces &&
+    byPerson.some((items) => index < items.length); index += 1) {
+    for (const items of byPerson) {
+      if (items[index] && wardrobePhotos.length < maxPieces) wardrobePhotos.push(items[index]);
+    }
+  }
 
   // When clothing is attached, the selected room photo is more useful than a
   // separate floor-plan image. Keep the floor-plan text in the room canon while
@@ -920,7 +922,7 @@ export async function generatePhotoProviderPreview({
       url: piece.imageUrl,
       subject: "wardrobe",
       title: piece.title,
-      description: `EXACT CURRENT ${owner.toUpperCase()} CLOTHING: ${piece.title} (${piece.category}). Copy the real cut, silhouette, width, fabric, color and footwear type visible in this image. Do not change baggy jeans into skinny jeans or sneakers into sandals.${piece.note ? " Details: " + piece.note : ""}`,
+      description: `EXACT CURRENTLY WORN ${owner.toUpperCase()} CLOTHING: ${piece.title} (${piece.category}). Copy the real cut, silhouette, width, fabric, color and footwear type visible in this image. Do not change baggy jeans into skinny jeans or sneakers into sandals.${piece.note ? " Details: " + piece.note : ""}`,
       purposes: ["wardrobe", "clothing", owner, piece.category],
       strength: "primary",
       referenceKind: "detail",
