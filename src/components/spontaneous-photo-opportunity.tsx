@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, Camera, ChevronDown, RefreshCw, Settings2, X } from "lucide-react";
+import { Bookmark, Camera, X } from "lucide-react";
 import type { DominicState } from "@/lib/dominic-state";
 import {
   dismissSpontaneousPhotoOpportunity,
@@ -39,16 +39,16 @@ export function SpontaneousPhotoOpportunity({
   dominicState,
   conversationSummary,
   onOpenPhoto,
+  displayMode = "message",
 }: {
   userId: string;
   dominicState: DominicState | null;
   conversationSummary: string;
   onOpenPhoto: (draft: PhotoDraft) => void;
+  displayMode?: "message" | "preferences";
 }) {
   const [settings, setSettings] = useState<SpontaneousPhotoState | null>(null);
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [savedOpen, setSavedOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const refreshing = useRef(false);
@@ -59,7 +59,9 @@ export function SpontaneousPhotoOpportunity({
       if (refreshing.current) return;
       refreshing.current = true;
       try {
-        const next = dominicState
+        // Preferences are loaded passively. Only the chat message surface
+        // can evaluate an actual spontaneous moment.
+        const next = displayMode === "message" && dominicState
           ? await evaluateSpontaneousPhotoOpportunity({
               userId, dominicState, conversationSummary,
             })
@@ -92,7 +94,7 @@ export function SpontaneousPhotoOpportunity({
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [userId, dominicState?.startedAt, dominicState?.activity, dominicState?.location]);
+  }, [userId, displayMode, dominicState?.startedAt, dominicState?.activity, dominicState?.location]);
 
   async function reload() {
     const next = await getSpontaneousPhotoState(userId);
@@ -152,7 +154,6 @@ export function SpontaneousPhotoOpportunity({
     try {
       await saveSpontaneousPhotoIdea(userId, idea);
       await reload();
-      setSavedOpen(true);
     } catch {
       setError("Could not save the idea. Try again.");
     } finally {
@@ -186,111 +187,20 @@ export function SpontaneousPhotoOpportunity({
     }
   }
 
-  async function anotherIdea() {
-    if (busy || !dominicState) return;
-    setBusy(true);
-    try {
-      const next = await evaluateSpontaneousPhotoOpportunity({
-        userId, dominicState, conversationSummary, force: true,
-      });
-      await reload();
-      setOpportunity(next);
-      setError(null);
-    } catch {
-      setError("Couldn't think of another moment just yet.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const savedIdeas = settings?.savedIdeas ?? [];
-  return (
-    <aside className="spontaneous-photo-opportunity" aria-label="Dominic photo ideas">
-      <div className="spontaneous-photo-opportunity-icon" aria-hidden="true">
-        <Camera size={18} strokeWidth={1.4} />
-      </div>
 
-      <div className="spontaneous-photo-opportunity-copy">
-        <small>DOMINIC · LITTLE MOMENTS</small>
-        <strong>{opportunity ? opportunity.note : "Some moments are worth keeping."}</strong>
-        <span>
-          {opportunity
-            ? activityLabel(opportunity.sourceActivity) + " · " +
-              (opportunity.subjectType === "both" ? "us" : "him") + " · " +
-              activityLabel(opportunity.sourceLocation)
-            : "Natural photo ideas, never automatic paid photos."}
-        </span>
-      </div>
-
-      <div className="spontaneous-photo-opportunity-actions">
-        <button type="button" className="spontaneous-photo-dismiss"
-          onClick={() => setSettingsOpen(value => !value)}
-          aria-label="Photo idea settings" aria-expanded={settingsOpen}>
-          <Settings2 size={16} />
-        </button>
-        {opportunity && (
-          <>
-            <button type="button" className="spontaneous-photo-dismiss"
-              onClick={() => void dismiss()} disabled={busy}
-              aria-label="Not now" title="Not now"><X size={16} /></button>
-            <button type="button" className="spontaneous-photo-open"
-              onClick={() => void review(opportunity)} disabled={busy}>
-              Review photo
-            </button>
-          </>
-        )}
-      </div>
-
-      {opportunity && (
-        <div className="spontaneous-photo-details">
-          <p>{opportunity.scene}</p>
-          <div className="spontaneous-photo-secondary">
-            <button type="button" onClick={() => void save(opportunity)} disabled={busy}>
-              <Bookmark size={13} /> Save for later
-            </button>
-            <button type="button" onClick={() => void anotherIdea()} disabled={busy}>
-              <RefreshCw size={13} /> Another idea
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="spontaneous-photo-tools">
-        <button type="button" onClick={() => setSavedOpen(value => !value)}
-          aria-expanded={savedOpen}>
-          <Bookmark size={13} /> Saved ideas ({savedIdeas.length})
-          <ChevronDown size={12} />
-        </button>
-        {settings?.enabled && !opportunity && dominicState && (
-          <button type="button" onClick={() => void anotherIdea()} disabled={busy}>
-            <RefreshCw size={13} /> Suggest a moment (free)
-          </button>
-        )}
-      </div>
-
-      {savedOpen && (
-        <div className="spontaneous-photo-saved">
-          {savedIdeas.length ? [...savedIdeas].reverse().map(idea => (
-            <div className="spontaneous-photo-saved-item" key={idea.id}>
-              <span>{idea.note} <small>{activityLabel(idea.sourceActivity)}</small></span>
-              <button type="button" disabled={busy} onClick={() => void review(idea)}>Review</button>
-              <button type="button" disabled={busy} onClick={() => void remove(idea)}
-                aria-label="Remove saved idea"><X size={13} /></button>
-            </div>
-          )) : <small>Nothing saved yet.</small>}
-        </div>
-      )}
-
-      {settingsOpen && (
+  if (displayMode === "preferences") {
+    return (
+      <div className="spontaneous-photo-preferences-panel">
         <div className="spontaneous-photo-settings">
           <label>
-            <input type="checkbox" checked={settings?.enabled ?? true} disabled={busy}
+            <input type="checkbox" checked={settings?.enabled ?? true} disabled={busy || !settings}
               onChange={event => void choosePreferences({ enabled: event.target.checked })} />
-            Dominic may suggest photos
+            Dominic may suggest photos in chat
           </label>
           <label>
             Frequency
-            <select value={settings?.frequency ?? "balanced"} disabled={busy}
+            <select value={settings?.frequency ?? "balanced"} disabled={busy || !settings}
               onChange={event => void choosePreferences({
                 frequency: event.target.value as SpontaneousPhotoState["frequency"],
               })}>
@@ -300,36 +210,98 @@ export function SpontaneousPhotoOpportunity({
             </select>
           </label>
           <label>
-            <input type="checkbox" checked={settings?.includeCouple ?? true} disabled={busy}
+            <input type="checkbox" checked={settings?.includeCouple ?? true} disabled={busy || !settings}
               onChange={event => void choosePreferences({ includeCouple: event.target.checked })} />
-            Include us when we are actually together
+            Include us only when we are actually together
           </label>
           <label>
-            <input type="checkbox" checked={settings?.useLocationContext ?? true} disabled={busy}
+            <input type="checkbox" checked={settings?.useLocationContext ?? true} disabled={busy || !settings}
               onChange={event => void choosePreferences({ useLocationContext: event.target.checked })} />
-            Use saved location and daily-life context
+            Use saved locations and daily-life context
           </label>
           <label>
-            <input type="checkbox" checked={settings?.backgroundSuggestions ?? false} disabled={busy}
+            <input type="checkbox" checked={settings?.backgroundSuggestions ?? false} disabled={busy || !settings}
               onChange={event => void choosePreferences({ backgroundSuggestions: event.target.checked })} />
-            Suggest a moment even while the app is closed (daily background check)
+            Look for moments while the app is closed
           </label>
           <label>
             <input type="checkbox" checked={settings?.notifyOffApp ?? false}
-              disabled={busy || !(settings?.backgroundSuggestions ?? false)}
+              disabled={busy || !settings || !settings.backgroundSuggestions}
               onChange={event => void choosePreferences({ notifyOffApp: event.target.checked })} />
-            Notify me of a background idea (only if I opt in)
+            Notify me about a background idea (opt-in)
           </label>
         </div>
-      )}
+        <div className="spontaneous-photo-saved">
+          <strong>Saved photo ideas ({savedIdeas.length})</strong>
+          {savedIdeas.length ? [...savedIdeas].reverse().map(idea => (
+            <div className="spontaneous-photo-saved-item" key={idea.id}>
+              <span>{idea.note} <small>{activityLabel(idea.sourceActivity)}</small></span>
+              <button type="button" disabled={busy} onClick={() => void review(idea)}>Review</button>
+              <button type="button" disabled={busy} onClick={() => void remove(idea)}
+                aria-label="Remove saved idea"><X size={13} /></button>
+            </div>
+          )) : <small>Nothing saved yet.</small>}
+        </div>
+        <small className="spontaneous-photo-settings-note">
+          Photo ideas are free. A real photo is generated only when you separately approve Create photo in Photo Engine.
+        </small>
+        {error && <p role="alert">{error}</p>}
+      </div>
+    );
+  }
 
-      <p>
-        Ideas appear during daily life and when you return to Chat. Optional
-        background checks require your permission. Review opens Photo Engine's
-        free reference check; only you can approve a paid generation. Generated
-        photos are saved to Gallery and connected chat moments.
-      </p>
-      {error && <p role="alert">{error}</p>}
-    </aside>
+  // Never show a permanent dashboard in Chat. Only a real pending initiative
+  // becomes a temporary message within the scrolling conversation.
+  if (!opportunity) return null;
+
+  const realActivity = activityLabel(opportunity.sourceActivity);
+  const messageText = opportunity.subjectType === "both"
+    ? "just thought about taking a picture of us like this. kinda want to keep this moment."
+    : opportunity.sourceActivity === "relaxing" || opportunity.sourceActivity === "idle"
+      ? "just chilling here. kinda felt like sending you a picture."
+      : opportunity.sourceActivity === "making_coffee" || opportunity.sourceActivity === "cooking"
+        ? "in the middle of " + realActivity + ". thought you might like a picture."
+        : "was " + realActivity + " and thought about sending you a little picture.";
+
+  return (
+    <div className="spontaneous-photo-chat-message" aria-label="Dominic photo idea">
+      <div className="spontaneous-photo-chat-bubble">
+        <p>{messageText}</p>
+        <span className="spontaneous-photo-chat-subtitle">
+          <Camera size={13} aria-hidden="true" /> Photo idea · nothing generated yet
+        </span>
+        <div className="spontaneous-photo-chat-actions">
+          <button type="button" onClick={() => void review(opportunity)} disabled={busy}>
+            See the idea
+          </button>
+          <button type="button" onClick={() => void save(opportunity)} disabled={busy}>
+            <Bookmark size={13} aria-hidden="true" /> Save
+          </button>
+          <button type="button" onClick={() => void dismiss()} disabled={busy}>
+            Not now
+          </button>
+        </div>
+        {error && <p role="alert">{error}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Chat appearance settings owns controls without taking space in the composer. */
+export function SpontaneousPhotoPreferencesPanel({
+  userId,
+  onOpenPhoto,
+}: {
+  userId: string;
+  onOpenPhoto: (draft: PhotoDraft) => void;
+}) {
+  return (
+    <SpontaneousPhotoOpportunity
+      userId={userId}
+      dominicState={null}
+      conversationSummary=""
+      onOpenPhoto={onOpenPhoto}
+      displayMode="preferences"
+    />
   );
 }
