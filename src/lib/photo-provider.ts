@@ -63,6 +63,8 @@ export type PhotoReferenceAudit = {
   outfits: Record<string, { imageCount: number; items: string[] }>;
   homeReferences: number;
   canonSubjects: string[];
+  tattooRegions: string[];
+  requestedCount: number;
   warnings: string[];
   scene: { pose: string; framing: string; lighting: string; expression: string };
   referenceRoles: Array<{ subject: string; title: string | null; purposes: string[] }>;
