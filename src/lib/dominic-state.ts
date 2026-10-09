@@ -240,7 +240,7 @@ export async function loadDominicState(
                 new Date(startedAt).getTime() + 20 * 60 * 1000
               ).toISOString();
 
-      return {
+      const current: DominicState = {
         activity,
         location,
         detail: typeof raw.detail === "string" ? raw.detail : undefined,
@@ -249,6 +249,12 @@ export async function loadDominicState(
         nextChangeAt,
         source: "event",
       };
+      // The chat uses loadDominicState rather than getCurrentDominicState,
+      // so its previous wardrobe hook never fired. Keep clothing in sync
+      // before Chat reads the Currently Wearing label.
+      await syncDominicWardrobeAutonomy({ userId, state: current })
+        .catch(error => console.error("Dominic daily outfit sync:", error));
+      return current;
     }
   }
 
@@ -278,6 +284,10 @@ export async function loadDominicState(
       | DominicState
       | undefined;
 
+  if (saved) {
+    await syncDominicWardrobeAutonomy({ userId, state: saved })
+      .catch(error => console.error("Dominic daily outfit sync:", error));
+  }
   return saved ?? null;
 }
 
