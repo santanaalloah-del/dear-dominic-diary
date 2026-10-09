@@ -103,8 +103,8 @@ export function analyzePhotoScene(
 
   // Resolve relative bodies and object ownership from a SHORT everyday prompt.
   // No paid LLM call is needed; keep the exact scene as the authority.
-  const alloahAboveDominic = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:on top of|straddling|sitting on)\s+(?:dominic|him)\b/.test(text);
-  const dominicAboveAlloah = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:on top of|straddling|sitting on)\s+(?:alloah|her|me)\b/.test(text);
+  const alloahAboveDominic = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:on top of|straddling)\s+(?:dominic|him)\b/.test(text);
+  const dominicAboveAlloah = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:on top of|straddling)\s+(?:alloah|her|me)\b/.test(text);
   const alloahOnLap = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:on|in|sitting on)\s+(?:dominic'?s|his)\s+lap\b/.test(text);
   const dominicOnLap = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:on|in|sitting on)\s+(?:alloah'?s|her|my)\s+lap\b/.test(text);
   const explicitBodyPlacement = alloahAboveDominic || dominicAboveAlloah || alloahOnLap || dominicOnLap;
