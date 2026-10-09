@@ -189,23 +189,12 @@ async function loadSettings(userId: string): Promise<SettingsRow | null> {
 }
 
 async function saveState(userId: string, state: SpontaneousPhotoState) {
-  const current = await loadSettings(userId);
-  const currentData =
-    current?.data && typeof current.data === "object" ? current.data : {};
-
-  const { error } = await (supabase as any)
-    .from("diario_settings")
-    .upsert(
-      {
-        user_id: userId,
-        data: {
-          ...currentData,
-          [SETTINGS_KEY]: state,
-        },
-      },
-      { onConflict: "user_id" }
-    );
-
+  // Atomic JSONB merge: never overwrite unrelated diary settings.
+  // The SQL function checks auth.uid and respects table RLS.
+  const { error } = await (supabase as any).rpc("upsert_spontaneous_photo_state", {
+    p_user_id: userId,
+    p_state: state,
+  });
   if (error) throw error;
 }
 
