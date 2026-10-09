@@ -63,11 +63,12 @@ export type PhotoReferenceAudit = {
   people: Record<string, { faceReferences: number; faceCanonAnchors: number; identityHairReferences: number; currentHairReferences: number; tattooReferences: number }>;
   outfits: Record<string, { imageCount: number; garmentCount: number; items: string[] }>;
   homeReferences: number;
+  layoutReferences: number;
   canonSubjects: string[];
   tattooRegions: string[];
   requestedCount: number;
   warnings: string[];
-  scene: { pose: string; framing: string; lighting: string; expression: string; room: string | null; outdoors: boolean; timeKey: string | null; actionNotes?: string[] };
+  scene: { pose: string; cameraAngle: string; framing: string; lighting: string; expression: string; room: string | null; outdoors: boolean; timeKey: string | null; actionNotes?: string[] };
   referenceRoles: Array<{ subject: string; title: string | null; purposes: string[] }>;
 };
 
@@ -211,12 +212,19 @@ async function homeCanonContext(userId: string, request: PhotoGenerationRequest)
   const timeKey = intent.timeKey ?? closestHomeTimeKey();
   const { data: objects } = await (supabase as any)
     .from("home_objects")
-    .select("name,object_type,room,metadata")
+    .select("name,object_type,room,position_description,metadata")
     .eq("user_id", userId)
     .eq("room", room)
-    .eq("is_active", true);
+    .is("removed_at", null);
 
-  const objectList = (objects ?? []).map((item: any) => item.name || item.object_type).filter(Boolean);
+  // If furniture positions have been saved, pass the actual placements;
+  // names alone cannot tell an image model where furniture should stand.
+  const objectList = (objects ?? []).map((item: any) => {
+    const label = item.name || item.object_type;
+    const position = typeof item.position_description === "string"
+      ? item.position_description.trim().slice(0, 220) : "";
+    return position ? label + " — " + position : label;
+  }).filter(Boolean);
 
   return {
     room,
@@ -229,7 +237,10 @@ async function homeCanonContext(userId: string, request: PhotoGenerationRequest)
       `Current room: ${room}. The attached ${room} reference at ${timeKey} is the PRIMARY visual canon for this room: preserve its actual furniture, decor, materials, colors, windows, spatial identity and time-of-day lighting.`,
       homeLightingInstruction(timeKey),
       "Time-of-day lighting is a hard physical constraint, not a stylistic suggestion. Never introduce sunlight or a bright daytime exterior into a nighttime reference.",
-      "The apartment floor plan is a secondary structural reference for room boundaries and circulation.",
+      "The attached apartment floor plan is a SECOND REQUIRED structural reference: read it together with the real room photograph. Preserve wall layout, walking circulation, furniture placement and camera sightlines; it is not a decorative image.",
+      room === "living"
+        ? "LIVING ROOM SOFA PLACEMENT: The actual sofa is freestanding / away from the wall, NOT pushed flush against a wall. Keep its real spacing and orientation relative to the other furniture from the room photo and floor plan. Do not reposition it to create a generic staged interior."
+        : null,
       objectList.length ? `Persisted room objects: ${objectList.join(" | ")}.` : null,
       "Vary pose, framing and camera angle naturally, but keep the environment recognizably the same canonical apartment. Never replace it with a generic bedroom, living room, kitchen or bathroom.",
     ].filter(Boolean).join(" "),
@@ -1154,8 +1165,11 @@ export async function generatePhotoProviderPreview({
         isCurrent: true,
       }));
 
-  const includeFloorPlan = Boolean(homeCanon) && clothingReferences.length === 0;
-  const homeImageSlots = homeCanon ? (includeFloorPlan ? 2 : 1) : 0;
+  // The room photo provides appearance/lighting; the floor plan provides
+  // structure. Both are essential EVEN WHEN Currently Wearing boards exist.
+  // Give the pair two guaranteed slots under the same 14-image ceiling.
+  const includeFloorPlan = Boolean(homeCanon);
+  const homeImageSlots = homeCanon ? 2 : 0;
   const selectedReferences = chooseProviderReferences(
     request,
     bundle.selected,
@@ -1186,8 +1200,8 @@ export async function generatePhotoProviderPreview({
       url: new URL(homeCanon.floorPlanUrl, window.location.origin).toString(),
       subject: "shared_home",
       title: "Shared apartment floor plan",
-      description: "Secondary structural reference for the shared apartment.",
-      purposes: ["architecture", "layout"],
+      description: "REQUIRED FLOOR PLAN: keep the original room boundaries, circulation, sofa location and orientation. Use jointly with the actual room photo; this is architecture only, never decoration, faces or clothing.",
+      purposes: ["architecture", "layout", "floor_plan"],
       strength: "supporting",
       referenceKind: "scene",
       lookType: null,
