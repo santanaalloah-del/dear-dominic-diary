@@ -248,13 +248,32 @@ function buildPrompt(
   variationPlan: PhotoVariationPlan
 ) {
   const interaction = analyzePhotoScene(request.scene, request.photo_style, request.subject_type);
+  // Identity photos define the default hair until the user saves a change.
+  const peopleInPhoto = request.subject_type === "both"
+    ? ["alloah", "dominic"]
+    : [request.subject_type === "me" ? "alloah" : "dominic"];
+  const hairRules = peopleInPhoto.map((subject) => {
+    const updatedHair = references.some((reference) =>
+      reference.subject === subject &&
+      reference.referenceKind === "current_look" &&
+      reference.lookType === "hair" && reference.isCurrent
+    );
+    const name = subject === "alloah" ? "Alloah" : "Dominic";
+    return updatedHair
+      ? name + ": An explicitly saved Current Look Hair photograph documents a new hairstyle or color. Copy HAIR ONLY from it; the identity photographs still define the face and permanent features."
+      : name + ": Use the hairstyle and hair color already visible in the saved Identity photographs. Do not require a separate hair photo or invent a new haircut or color.";
+  });
   const referenceGuide = references.map((reference, index) => {
     const purposes = reference.purposes?.length
       ? reference.purposes.join(", ")
       : "identity";
 
     const isInspiration = reference.subject === "couple" || ["pose", "style"].includes(reference.referenceKind);
-    const role = reference.subject === "wardrobe"
+    const role = reference.referenceKind === "current_look"
+      ? reference.lookType === "hair"
+        ? "CURRENT HAIR CHANGE — HAIR ONLY, NOT FACIAL IDENTITY"
+        : "TEMPORARY CURRENT-LOOK DETAIL — NOT FACIAL IDENTITY"
+      : reference.subject === "wardrobe"
       ? "EXACT CURRENT CLOTHING IMAGE — CLOTHES ONLY, NEVER FACE IDENTITY"
       : isInspiration
         ? "OPTIONAL POSE/COMPOSITION INSPIRATION — NOT THESE PEOPLE'S IDENTITY"
@@ -278,7 +297,8 @@ function buildPrompt(
     "Only Alloah identity references depict Alloah; only Dominic identity references depict Dominic. Those images show each subject at different times, angles, expressions and styling.",
     "Use identity images of Alloah and Dominic to preserve each person's recognizable facial geometry and proportions: face shape, eyes, nose, lips, jaw, cheekbones, hair, skin, body proportions, tattoos, piercings and persistent marks.",
     "Do NOT invent a merely similar attractive person. Do NOT beautify the face into a generic AI model. Do NOT average the references into a new face.",
-    "If identity references differ in temporary styling, infer the stable identity shared across them. Hair color, clothing, makeup, jewelry and styling may be historical unless marked current.",
+    "If identity references vary in styling, infer the stable identity. Hair from Identity references is the default; only an explicitly saved current Hair photo represents a change. Makeup, clothing, jewelry and accessories can be temporary.",
+    "HAIR DEFAULT AND CHANGES: " + hairRules.join(" "),
     "PINTEREST / US / COUPLE INSPIRATION: These are photos of OTHER people, never photographs of Alloah and Dominic together. They only suggest possible poses, candid energy, distance, framing or general mood. You may combine, vary or completely ignore their compositions. NEVER transfer Pinterest faces, bodies, skin, clothes, or exact staging to Alloah or Dominic.",
     "A scene description and the characters' authentic identity override Pinterest inspirations. The inspiration is not a mandatory template or a demand to reconstruct any reference.",
     "EXPLICIT SCENE OVERRIDES VARIATION: First fulfill WHO is doing WHAT, WHERE, and the described relative body positions. Never substitute a different pose for the requested action. Do not invent coats, sleeves, gloves or layers to hide anatomy. Clothing worn on an arm must connect to the same person's selected garment at the shoulder.",
@@ -670,7 +690,7 @@ const prompt = buildPrompt(
         // image references as generation, then return roles/counts WITHOUT
         // claiming the request, reserving budget or calling OpenRouter.
         if (body.auditOnly === true) {
-          const people: Record<string, { faceReferences: number; faceCanonAnchors: number; currentHairReferences: number; tattooReferences: number }> = {};
+          const people: Record<string, { faceReferences: number; faceCanonAnchors: number; identityHairReferences: number; currentHairReferences: number; tattooReferences: number }> = {};
           const outfits: Record<string, { imageCount: number; garmentCount: number; items: string[] }> = {};
           const warnings: string[] = [];
           const referenceIds = new Set(attachedReferences.map(({ reference }) => reference.id));
@@ -703,8 +723,16 @@ const prompt = buildPrompt(
               faceCanonAnchors: photos.filter(({ reference }) =>
                 reference.referenceKind === "identity" && realFaceAnchors.has(reference.id)
               ).length,
+              identityHairReferences: photos.filter(({ reference }) =>
+                reference.referenceKind === "identity" &&
+                reference.purposes?.includes("hair") &&
+                reference.purposes?.includes("face") &&
+                (!realTattooAnchors.has(reference.id) || realFaceAnchors.has(reference.id))
+              ).length,
+              // Optional Hair entry records a change, not the baseline.
               currentHairReferences: photos.filter(({ reference }) =>
-                reference.isCurrent && reference.purposes?.includes("hair")
+                reference.referenceKind === "current_look" &&
+                reference.lookType === "hair" && reference.isCurrent
               ).length,
               // Count only location-specific canon references. Generic
               // tagging of all Dominic uploads as tattoos is not evidence.
@@ -727,9 +755,8 @@ const prompt = buildPrompt(
               }, 0),
               items: wardrobe.map(({ reference }) => reference.title || "Clothing"),
             };
-            if (!canons.some((canon) => canon.subject === person)) {
-              warnings.push(person + " Visual Canon is pending. Saved identity photos and past reference ratings are used instead.");
-            }
+            // Identity photographs are usable with or without an optional
+            // paid learned Canon; never treat missing analysis as a fault.
             if (body.request.use_current_look && wardrobe.length === 0) {
               warnings.push(person + " has no Currently Wearing visual reference. Select an outfit in Wardrobe.");
             }
@@ -759,12 +786,6 @@ const prompt = buildPrompt(
           const timeKey = homeImage?.purposes?.find((purpose) =>
             ["0200", "0700", "1100", "1740", "1830", "1910", "2100"].includes(purpose)
           ) ?? sceneIntent.timeKey;
-          for (const person of requiredPeople) {
-            if (body.request.use_current_look && !sceneIntent.faceAway &&
-                people[person]?.currentHairReferences === 0) {
-              warnings.push(person + " has no saved current hair photo. Historical identity hair may differ; add a Hair photo in References > Current Look if the hairstyle matters.");
-            }
-          }
           if (sceneIntent.propOwnershipAmbiguous) {
             warnings.push("The scene shares one object but does not specify who holds it at the instant of the photo. The generator will choose one natural holder; name the holder only if it matters.");
           }
