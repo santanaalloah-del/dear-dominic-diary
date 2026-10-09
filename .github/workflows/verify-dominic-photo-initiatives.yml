@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - dominic-spontaneous-photo-initiative-controls-20261009
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
