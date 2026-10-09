@@ -391,11 +391,19 @@ export function buildPhotoVariationPlan(
 
   const isTogether = request.subject_type === "both";
   const affection = /cudd|hug|embrac|kiss|lying together|laying together|snuggl|abraç|beij|carinh|conchinha|romantic|flirty|intimate/.test([sceneText, request.mood ?? ""].join(" ").toLowerCase());
+  // An affectionate interaction need not turn into two posed smiles.
+  const coupleExpressions = sceneIntent.pose === "reclining_on_partner"
+    ? ["resting_together_unposed", "quiet_look_at_partner",
+       "soft_half_smile", "mid_conversation_unposed"]
+    : ["mid_conversation_unposed", "soft_attentive_glance_at_partner",
+       "gentle_smile_at_partner", "natural_mid_laugh_together",
+       "looking_down_at_partner"];
   const expression = sceneIntent.faceAway
     ? "natural_turned_away"
     : sceneIntent.expression ??
       (isTogether && affection
-        ? choose(["soft_attentive_glance_at_partner", "gentle_smile_at_partner", "natural_mid_laugh_together"], safeStrings(anti.recentExpressions), seedBase >>> 9, "soft_attentive_glance_at_partner")
+        ? choose(coupleExpressions, safeStrings(anti.recentExpressions),
+            seedBase >>> 9, "mid_conversation_unposed")
         : choose(
             expressionPool(request.mode, request.mood),
             safeStrings(anti.recentExpressions),
@@ -405,7 +413,13 @@ export function buildPhotoVariationPlan(
 
   // Explicit "morning in the kitchen" overrides Dominic's current NIGHT
   // status. Likewise, a street walk stays outside even if he was last home.
-  const statedTime = sceneIntent.timeKey;
+  const actualRoomKey = safeObject(context.custom).homeTimeKey;
+  const homeTimeKey = typeof actualRoomKey === "string" &&
+    ["0200", "0700", "1100", "1740", "1830", "1910", "2100"].includes(actualRoomKey)
+      ? actualRoomKey : null;
+  // The home photo is chosen by the real local clock or an explicitly
+  // requested time; match its illumination instead of a generic mood.
+  const statedTime = sceneIntent.timeKey ?? homeTimeKey;
   const night = statedTime
     ? statedTime === "0200" || statedTime === "2100" || statedTime === "1910"
     : /night|late/.test(String(context.timeOfDay ?? "").toLowerCase());
@@ -415,8 +429,18 @@ export function buildPhotoVariationPlan(
       [String(context.location ?? ""), sceneText].join(" ").toLowerCase()
     )
   );
+  const homeLightChoices = homeTimeKey
+    ? homeTimeKey === "0200" || homeTimeKey === "2100" || homeTimeKey === "1910"
+      ? ["warm_lamp", "low_light_phone", "soft_room_lighting"]
+      : homeTimeKey === "1740" || homeTimeKey === "1830"
+        ? ["soft_room_lighting", "warm_lamp"]
+        : ["window_daylight", "soft_room_lighting"]
+    : null;
   const lightingType = request.photo_style === "flash"
     ? "direct_phone_flash"
+    : homeLightChoices
+      ? choose(homeLightChoices, safeStrings(anti.recentLightingTypes),
+          seedBase >>> 12, homeLightChoices[0])
     : statedTime && (statedTime === "0700" || statedTime === "1100")
       ? choose(indoors ? ["window_daylight", "soft_room_lighting"] : ["outdoor_daylight", "window_daylight"],
           safeStrings(anti.recentLightingTypes), seedBase >>> 12, "window_daylight")
