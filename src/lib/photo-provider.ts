@@ -817,7 +817,8 @@ function chooseProviderReferences(
 
 function tattooRegionInstruction(
   request: PhotoGenerationRequest,
-  canons: VisualCanonRow[]
+  canons: VisualCanonRow[],
+  availableReferenceIds: Set<string>
 ) {
   if (
     request.subject_type !== "dominic" &&
