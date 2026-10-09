@@ -60,7 +60,7 @@ export type PhotoReferenceAudit = {
   auditOnly: true;
   noCreditsUsed: true;
   referenceCount: number;
-  people: Record<string, { faceReferences: number; faceCanonAnchors: number; currentHairReferences: number; tattooReferences: number }>;
+  people: Record<string, { faceReferences: number; faceCanonAnchors: number; identityHairReferences: number; currentHairReferences: number; tattooReferences: number }>;
   outfits: Record<string, { imageCount: number; garmentCount: number; items: string[] }>;
   homeReferences: number;
   canonSubjects: string[];
@@ -620,7 +620,7 @@ function photoQualityCorrectionInstruction(issues: Set<PhotoQualityIssue>): stri
     issues.has("face_dominic") ? "Preserve Dominic's real facial geometry from his identity photos over inspiration or styling." : null,
     issues.has("skin_tone") ? "Preserve each person's complexion and undertone from real identity photos, without borrowing skin color from inspiration or room references." : null,
     issues.has("realism") ? "Avoid AI-looking glamour: use handheld phone perspective, realistic skin texture, natural asymmetry and relaxed expressions." : null,
-    issues.has("hair") ? "Preserve the current hairstyle when a Current Look hair image is attached. Do not infer that an old portrait shows today\'s haircut or color." : null,
+    issues.has("hair") ? "Keep the hairstyle from the saved Identity photos by default. Override only from an explicitly registered, active Current Look Hair change." : null,
     issues.has("body_placement") ? "Honor the explicit relative positions of both people, including lap, above/below and direction of the embrace; never swap them." : null,
     issues.has("prop_handling") ? "Show the stated prop only once; attach it to a plausible real hand and preserve any explicitly named holder." : null,
     issues.has("chemistry") ? "Show unforced, mutually attentive interaction and credible touch without vacant stares or artificial symmetry." : null,
@@ -781,9 +781,9 @@ function chooseProviderReferences(
     ensureIdentity("dominic", 2);
 
     if (request.use_current_look) {
-      // Hair is temporary: a historical face reference cannot establish the
-      // hairstyle currently worn. Only separately uploaded Current Look evidence
-      // qualifies; do not pretend an old picture is "current".
+      // Hair in Identity photos is the default. Only a separately saved and
+      // active Hair current-look image indicates that the person changed hair.
+      // Never require a new photo when no such change was recorded.
       for (const subject of ["alloah", "dominic"] as const) {
         take((item) => item.reference.subject === subject &&
           item.reference.reference_kind === "current_look" &&
