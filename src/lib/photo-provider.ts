@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { analyzePhotoScene, type PhotoTimeKey } from "@/lib/photo-scene-intent";
+import { tattooSceneText, visibleTattooRegions } from "@/lib/photo-tattoo-boundaries";
 import { getWearingSelection } from "@/lib/wardrobe-context";
 import { makeCurrentlyWearingBoard } from "@/lib/photo-wardrobe-reference-board";
 import {
@@ -340,7 +341,8 @@ function tattooRegionsFromProfile(
 }
 
 function requestedTattooRegions(
-  request: PhotoGenerationRequest
+  request: PhotoGenerationRequest,
+  hasCurrentTop = false
 ): TattooRegion[] {
   // Skin exposure must be inferred from the PHOTO itself. Earlier chat
   // summaries about tattoos, other outfits, or shirtless references must NOT
@@ -402,7 +404,10 @@ function requestedTattooRegions(
       regions.add("neck");
     }
   }
-  return Array.from(regions);
+  return visibleTattooRegions(Array.from(regions), {
+    hasTop: hasCurrentTop,
+    scene: text,
+  });
 }
 
 function tattooRegionAnchorIds(
@@ -509,10 +514,7 @@ function requestText(request: PhotoGenerationRequest) {
 }
 
 function visualExposureText(request: PhotoGenerationRequest) {
-  return [request.scene, request.shot_type, request.adjustment_instruction]
-    .filter((value): value is string => typeof value === "string")
-    .join(" ")
-    .toLowerCase();
+  return tattooSceneText(request);
 }
 
 function sceneContainsTerm(text: string, term: string): boolean {
@@ -664,7 +666,8 @@ function chooseProviderReferences(
   selected: Awaited<ReturnType<typeof getPhotoReferenceBundle>>["selected"],
   canons: VisualCanonRow[],
   maxReferences = MAX_PROVIDER_REFERENCES,
-  qualityIssues: Set<PhotoQualityIssue> = new Set()
+  qualityIssues: Set<PhotoQualityIssue> = new Set(),
+  hasCurrentDominicTop = false
 ) {
   const requestedIds = new Set(request.reference_ids ?? []);
   const pool = selected
@@ -794,7 +797,7 @@ function chooseProviderReferences(
   const isFullBodyScene = sceneIntent.framing === "full_body";
   const wantsBody = requestNeedsBody(request);
   const wantsTattoos = requestNeedsTattoos(request);
-  const requestedRegions = requestedTattooRegions(request);
+  const requestedRegions = requestedTattooRegions(request, hasCurrentDominicTop);
 
   if (request.subject_type === "both") {
     // Two true faces per person always come first. Preserve room and wardrobe
@@ -924,7 +927,8 @@ function chooseProviderReferences(
 function tattooRegionInstruction(
   request: PhotoGenerationRequest,
   canons: VisualCanonRow[],
-  availableReferenceIds: Set<string>
+  availableReferenceIds: Set<string>,
+  hasCurrentDominicTop = false
 ) {
   if (
     request.subject_type !== "dominic" &&
@@ -933,7 +937,7 @@ function tattooRegionInstruction(
     return null;
   }
 
-  const regions = requestedTattooRegions(request);
+  const regions = requestedTattooRegions(request, hasCurrentDominicTop);
   if (!regions.length) return null;
 
   const canon = canons.find((item) => item.subject === "dominic");
@@ -1181,12 +1185,18 @@ export async function generatePhotoProviderPreview({
   // Give the pair two guaranteed slots under the same 14-image ceiling.
   const includeFloorPlan = Boolean(homeCanon);
   const homeImageSlots = homeCanon ? 2 : 0;
+  const hasCurrentDominicTop = request.use_current_look &&
+    wardrobeContexts.some((context) =>
+      context.owner === "dominic" &&
+      context.clothing.some((piece) => piece.category === "top" && Boolean(piece.imageUrl))
+    );
   const selectedReferences = chooseProviderReferences(
     request,
     bundle.selected,
     canons.filter(canon => canon.subject !== "couple"),
     Math.max(1, MAX_PROVIDER_REFERENCES - homeImageSlots - clothingReferences.length - (sourceImageDataUrl ? 1 : 0)),
-    qualityIssues
+    qualityIssues,
+    hasCurrentDominicTop
   );
 
   const references: ProviderReferencePayload[] = selectedReferences.map(cleanReferencePayload);
@@ -1267,7 +1277,11 @@ export async function generatePhotoProviderPreview({
         adjustment_instruction: [
           request.adjustment_instruction,
           currentOverrideInstruction(request, canons),
-          tattooRegionInstruction(request, canons, new Set(selectedReferences.map((item) => item.reference.id))),
+          tattooRegionInstruction(
+            request, canons,
+            new Set(selectedReferences.map((item) => item.reference.id)),
+            hasCurrentDominicTop
+          ),
           wardrobeInstruction(request, wardrobeContexts),
           homeCanon?.instruction ?? null,
           photoQualityCorrectionInstruction(qualityIssues),
