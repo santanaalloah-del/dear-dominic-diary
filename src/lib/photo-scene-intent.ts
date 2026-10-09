@@ -108,6 +108,10 @@ export function analyzePhotoScene(
   const alloahOnLap = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:on|in|sitting on)\s+(?:dominic'?s|his)\s+lap\b/.test(text);
   const dominicOnLap = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:on|in|sitting on)\s+(?:alloah'?s|her|my)\s+lap\b/.test(text);
   const explicitBodyPlacement = alloahAboveDominic || dominicAboveAlloah || alloahOnLap || dominicOnLap;
+  // "Making coffee" is an actual activity, not a random standing/reaching
+  // pose. It must not become a staged couple holding props for the camera.
+  const coffeeBeingMade = room === "kitchen" &&
+    /\b(making|brewing|preparing|pouring|fazendo|preparando|passando)\s+(?:(?:some|a|the|um|uma|o)\s+)?(coffee|cafe)\b/.test(text);
   const lyingWords = /\b(lying|laying|reclining|reclined|sprawled|deitado|deitada|deitados|deitadas|recostado|recostada)\b/.test(text);
   const explicitUpright = /\b(straddling|sitting|seated|sit on top|sat on top|sentada|sentado|montada|no colo)\b/.test(text);
   // "cuddling on the couch, Alloah on top of Dominic" means reclining
@@ -121,6 +125,9 @@ export function analyzePhotoScene(
   const namedHolder = /\b(?:alloah|dominic|i|he|she)\s+(?:(?:am|is)\s+)?(?:holding|holds|passing|passes|carrying|carries)\s+(?:(?:a|the|one)\s+)?(?:joint|cigarette|phone|drink|cup|bottle)\b/.test(text);
   const propOwnershipAmbiguous = namedProp && sharedProp && !namedHolder;
   const actionNotes = [
+    coffeeBeingMade
+      ? "REAL COFFEE-MAKING ACTION: Capture a genuine mid-task beat at the real kitchen counter, hands working with plausible coffee equipment and body orientation toward the activity. NOT a symmetrical couple posing with coffee props; do not have both people displaying a pot or mug for the camera. Keep available surfaces and equipment consistent with the supplied actual kitchen photo. Never invent unnecessary props."
+      : null,
     alloahReclinedOnDominic
       ? "Alloah is LYING DOWN lengthwise ON TOP OF Dominic on the couch; both bodies are reclining along the seat cushions, torso to torso in a horizontal cuddle. Dominic is underneath. NOT sitting upright, NOT straddling, NOT perched on the couch arm or back. Preserve correct limbs and believable weight."
       : alloahAboveDominic ? "Alloah is physically on top of Dominic in the explicitly requested pose. Keep their relative positions and avoid moving either person to the couch arm or back." : null,
@@ -145,6 +152,7 @@ export function analyzePhotoScene(
   else if (/\b(sitting|seated|senta|sentado|sentada|sentados|sentadas)\b/.test(text)) pose = "relaxed_seated";
   else if (/\b(standing|stand together|em pe|de pe)\b/.test(text)) pose = "standing_relaxed";
   else if (/\b(piggyback|carrying|carregando|no colo)\b/.test(text)) pose = "carrying_partner";
+  else if (coffeeBeingMade && !selfie) pose = "making_coffee_candid";
   else if (/\b(cooking|baking|cozinhando|preparing dinner|preparing breakfast|fazendo comida)\b/.test(text)) pose = "cooking_together";
   else if (/\b(dancing|dancando|danca)\b/.test(text)) pose = "dancing_together";
   else if (/\b(reading|lendo|leitura)\b/.test(text)) pose = "reading_relaxed";
