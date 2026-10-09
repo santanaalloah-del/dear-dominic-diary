@@ -102,3 +102,98 @@
     grid-column: 2;
   }
 }
+
+
+.spontaneous-photo-details,
+.spontaneous-photo-tools,
+.spontaneous-photo-saved,
+.spontaneous-photo-settings {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.spontaneous-photo-details {
+  padding: 7px 0 0;
+  border-top: 1px solid color-mix(in oklab, var(--wine) 14%, var(--border));
+}
+.spontaneous-photo-details p {
+  margin: 0 0 8px;
+  color: var(--foreground);
+  font: 11px/1.5 var(--font-body);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.spontaneous-photo-secondary, .spontaneous-photo-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.spontaneous-photo-secondary button,
+.spontaneous-photo-tools button,
+.spontaneous-photo-saved-item button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 5px 8px;
+  color: var(--wine);
+  border: 1px solid color-mix(in oklab, var(--wine) 24%, var(--border));
+  border-radius: 4px;
+  background: transparent;
+  font: 10px var(--font-body);
+  cursor: pointer;
+}
+.spontaneous-photo-secondary button:disabled,
+.spontaneous-photo-tools button:disabled,
+.spontaneous-photo-saved-item button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+.spontaneous-photo-saved, .spontaneous-photo-settings {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid color-mix(in oklab, var(--wine) 16%, var(--border));
+  border-radius: 5px;
+  background: var(--paper);
+}
+.spontaneous-photo-saved-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.spontaneous-photo-saved-item span {
+  flex: 1;
+  font: 11px/1.4 var(--font-body);
+  overflow-wrap: anywhere;
+}
+.spontaneous-photo-saved-item span small {
+  display: block;
+  color: var(--muted-foreground);
+}
+.spontaneous-photo-settings label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  font: 11px/1.4 var(--font-body);
+}
+.spontaneous-photo-settings input {
+  accent-color: var(--wine);
+}
+.spontaneous-photo-settings select {
+  max-width: 100%;
+  padding: 5px 6px;
+  background: var(--paper);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+@media (max-width: 520px) {
+  .spontaneous-photo-details,
+  .spontaneous-photo-tools,
+  .spontaneous-photo-saved,
+  .spontaneous-photo-settings {
+    grid-column: 1 / -1;
+  }
+}
