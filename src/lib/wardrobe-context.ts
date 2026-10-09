@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type WardrobeOwner = "alloah" | "dominic";
 
+import { normalizeWearingIds } from "@/lib/wardrobe-selection";
+
 export const WARDROBE_WEARING_CHANGED_EVENT =
   "diario:wardrobe-wearing-changed";
 
@@ -217,7 +219,7 @@ async function validateClothingIds({
 
   const { data, error } = await (supabase as any)
     .from("diario_items")
-    .select("id")
+    .select("id,data")
     .eq("user_id", userId)
     .eq("owner", owner)
     .eq("kind", "clothing")
@@ -232,7 +234,12 @@ async function validateClothingIds({
       .filter((id: unknown): id is string => typeof id === "string")
   );
 
-  return uniqueIds.filter((id) => valid.has(id));
+  const allowedIds = uniqueIds.filter(id => valid.has(id));
+  return normalizeWearingIds(allowedIds, (data ?? []).map(
+    (item: { id: string; data?: { category?: string } }) => ({
+      id: item.id, category: item.data?.category,
+    })
+  ));
 }
 
 export async function getWearingSelection({
@@ -256,7 +263,8 @@ export async function setWearingLook({
   lookId: string;
 }): Promise<WearingSelection> {
   await getActiveLook({ userId, owner, lookId });
-  const clothingIds = await getLookClothingIds({ userId, lookId });
+  const requestedIds = await getLookClothingIds({ userId, lookId });
+  const clothingIds = await validateClothingIds({ userId, owner, clothingIds: requestedIds });
 
   const selection: WearingSelection = {
     lookId,
@@ -358,7 +366,11 @@ export async function getWardrobePhotoContext({
 
   const clothingById = new Map(clothingRows.map((item) => [item.id, item]));
 
-  const clothing = selection.clothingIds
+  // Legacy saved selections may contain multiple tops or mixed pairs of
+  // shoes. Pass one real garment per active slot to the Photo Engine.
+  const photoClothingIds = normalizeWearingIds(selection.clothingIds,
+    clothingRows.map(row => ({id: row.id, category: typeof row.data?.category === "string" ? row.data.category : "other"})));
+  const clothing = photoClothingIds
     .map((id) => clothingById.get(id) ?? null)
     .filter(
       (
