@@ -19,6 +19,9 @@ export type PhotoSceneIntent = {
   selfie: boolean;
   faceAway: boolean;
   affectionate: boolean;
+  actionNotes: string[];
+  explicitBodyPlacement: boolean;
+  propOwnershipAmbiguous: boolean;
 };
 
 function normalize(text: string | null | undefined): string {
@@ -97,6 +100,27 @@ export function analyzePhotoScene(
   const eyesClosed = /\b(eyes closed|sleeping|asleep|dormindo|olhos fechados|cochilando)\b/.test(text);
   const lookingAtCamera = /\b(looking at the camera|facing the camera|both faces visible|faces clearly visible|looking into the camera|olhando para camera|rostos visiveis)\b/.test(text);
 
+
+  // Resolve relative bodies and object ownership from a SHORT everyday prompt.
+  // No paid LLM call is needed; keep the exact scene as the authority.
+  const alloahAboveDominic = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:on top of|straddling|sitting on)\s+(?:dominic|him)\b/.test(text);
+  const dominicAboveAlloah = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:on top of|straddling|sitting on)\s+(?:alloah|her|me)\b/.test(text);
+  const alloahOnLap = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:on|in|sitting on)\s+(?:dominic'?s|his)\s+lap\b/.test(text);
+  const dominicOnLap = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:on|in|sitting on)\s+(?:alloah'?s|her|my)\s+lap\b/.test(text);
+  const explicitBodyPlacement = alloahAboveDominic || dominicAboveAlloah || alloahOnLap || dominicOnLap;
+  const sharedProp = /\b(?:sharing|share|passing|pass)\s+(?:(?:a|the|one)\s+)?(?:joint|cigarette|phone|drink|cup|bottle)\b/.test(text);
+  const namedProp = /\b(joint|cigarette|phone|drink|cup|bottle)\b/.test(text);
+  const namedHolder = /\b(?:alloah|dominic|i|he|she)\s+(?:(?:am|is)\s+)?(?:holding|holds|passing|passes|carrying|carries)\s+(?:(?:a|the|one)\s+)?(?:joint|cigarette|phone|drink|cup|bottle)\b/.test(text);
+  const propOwnershipAmbiguous = namedProp && sharedProp && !namedHolder;
+  const actionNotes = [
+    alloahAboveDominic ? "Alloah is physically above Dominic in the requested close pose. Preserve who is on top; Dominic stays underneath. Keep their arms and legs attached to the correct person." : null,
+    dominicAboveAlloah ? "Dominic is physically above Alloah in the requested close pose. Preserve who is on top; Alloah stays underneath. Keep their arms and legs attached to the correct person." : null,
+    alloahOnLap ? "Alloah is seated on Dominic's lap. Do not reverse their seats or substitute two people sitting side by side." : null,
+    dominicOnLap ? "Dominic is seated on Alloah's lap. Do not reverse their seats or substitute two people sitting side by side." : null,
+    sharedProp ? "They are SHARING one real object during the moment. Depict only one physical object, passed or held by one believable hand at a time; do not duplicate it or invent extra fingers." : null,
+    namedHolder ? "Preserve the explicitly named person holding or passing the object; do not silently transfer ownership." : null,
+  ].filter((note): note is string => Boolean(note));
+
   // A real posture or action beats photographic randomness. Priority matters:
   // "lying on the sofa kissing" is still lying; "walking holding hands"
   // remains walking instead of an unrelated reaching pose.
@@ -104,6 +128,7 @@ export function analyzePhotoScene(
   if (/\b(sleeping|asleep|dormindo|cochilando|napping)\b/.test(text)) pose = "sleeping_relaxed";
   else if (/\b(lying|laying|reclining|reclined|sprawled|deitado|deitada|deitados|deitadas|recostado|recostada)\b/.test(text)) pose = "lying_relaxed";
   else if (/\b(walking|strolling|walking together|andando|caminhando|passeando|passeio a pe)\b/.test(text)) pose = "walking_together";
+  else if (explicitBodyPlacement) pose = "cuddling_close";
   else if (/\b(sitting|seated|senta|sentado|sentada|sentados|sentadas)\b/.test(text)) pose = "relaxed_seated";
   else if (/\b(standing|stand together|em pe|de pe)\b/.test(text)) pose = "standing_relaxed";
   else if (/\b(piggyback|carrying|carregando|no colo)\b/.test(text)) pose = "carrying_partner";
@@ -135,5 +160,6 @@ export function analyzePhotoScene(
     cameraAngle: selfie ? (mirrorSelfie ? "mirror_eye_level" : "phone_eye_level") : null,
     composition: selfie ? (mirrorSelfie ? "mirror_reflection" : "centered_casual") : null,
     expression, selfie, faceAway, affectionate,
+    actionNotes, explicitBodyPlacement, propOwnershipAmbiguous,
   };
 }
