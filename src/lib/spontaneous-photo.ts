@@ -325,7 +325,7 @@ export async function setSpontaneousPhotoPreferences(userId: string, values: Par
 >) {
   const current = await getSpontaneousPhotoState(userId);
   const next: SpontaneousPhotoState = { ...current, ...values };
-  if (!next.enabled) next.pending = null;
+  if (!next.enabled || (values.useLocationContext === false && current.useLocationContext)) next.pending = null;
   await saveState(userId, next);
   return next;
 }
@@ -355,7 +355,9 @@ export async function markSpontaneousPhotoIdeaReviewed(userId: string, idea: Spo
   await saveState(userId, {
     ...current,
     pending: current.pending?.id === idea.id ? null : current.pending,
-    savedIdeas: current.savedIdeas.filter(item => item.id !== idea.id),
+    // Reviewing is free. Keep saved ideas until the user explicitly removes
+    // them, so abandoning Photo Engine never destroys a favorite moment.
+    savedIdeas: current.savedIdeas,
     cooldownUntil: new Date(Date.now() + ACCEPT_COOLDOWN_MS).toISOString(),
     lastDecisionAt: new Date().toISOString(),
   });
@@ -381,6 +383,9 @@ export async function evaluateSpontaneousPhotoOpportunity({
 
   if (
     current.pending?.status === "pending" &&
+    current.pending.stateStartedAt === dominicState.startedAt &&
+    current.pending.sourceActivity === dominicState.activity &&
+    current.pending.sourceLocation === (current.useLocationContext ? dominicState.location : "private") &&
     new Date(current.pending.expiresAt).getTime() > now
   ) {
     return current.pending;
@@ -433,7 +438,8 @@ export async function evaluateSpontaneousPhotoOpportunity({
 
   // Couple scenes only when real presence data confirms being together.
   // Otherwise Dominic may send HIS own photo, not invent Alloah at his side.
-  const presence = current.includeCouple ? await resolveDominicPresence(userId).catch(() => null) : null;
+  const presence = current.includeCouple && current.useLocationContext
+    ? await resolveDominicPresence(userId).catch(() => null) : null;
   const together = Boolean(presence?.togetherNow);
   const subjectType: "dominic" | "both" = together &&
     deterministicPercent(evaluationKey + "|couple") < 45 ? "both" : "dominic";
@@ -462,7 +468,7 @@ export async function evaluateSpontaneousPhotoOpportunity({
     expiresAt: new Date(now + OPPORTUNITY_LIFETIME_MS).toISOString(),
     stateStartedAt: dominicState.startedAt,
     sourceActivity: dominicState.activity,
-    sourceLocation: dominicState.location,
+    sourceLocation: current.useLocationContext ? dominicState.location : "private",
     scene: current.useLocationContext ? scene :
       "Dominic taking an imperfect, everyday photo of himself in a plausible current moment. Do not invent Alloah's presence or a specific address.",
     mood: dominicState.mood ?? "everyday",
