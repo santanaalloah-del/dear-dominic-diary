@@ -302,14 +302,11 @@ export function buildPhotoVariationPlan(
   const avoid = safeObject(anti.avoid);
   const context = safeObject(request.context_snapshot);
 
-  // An explicitly described Request should keep its main camera plan
-  // across the free preflight and a later paid request. Surprise/Daily Life
-  // continue varying by job ID, so the app does not become repetitive.
-  const manualSeed = request.mode === "request" && request.scene?.trim()
-    ? request.scene.trim().toLowerCase()
-    : request.id;
+  // A given request keeps the SAME camera plan for free preflight and paid
+  // generation (its ID is unchanged). A NEW request, even with the SAME short
+  // scene text, is allowed a genuinely different angle and crop.
   const seedBase = hashString(
-    [manualSeed, request.mode ?? "", request.photo_style ?? "",
+    [request.id, request.mode ?? "", request.photo_style ?? "",
       request.scene ?? "", request.subject_type ?? ""].join("|")
   );
 
@@ -324,8 +321,25 @@ export function buildPhotoVariationPlan(
   const poseType = sceneIntent.pose ?? choose(
     pools.poses, safeStrings(avoid.poses), seedBase, "relaxed_seated"
   );
+  const recentAngles = [
+    ...safeStrings(anti.recentCameraAngles).slice(0, 3),
+    ...safeStrings(avoid.cameraAngles),
+  ];
+  const couchAnglePool = [
+    "diagonal_from_room",
+    "from_sofa_side",
+    "slightly_above_sofa",
+    "from_couch_arm",
+    "doorway_perspective",
+    "eye_level",
+  ];
+  const naturalAngles = request.subject_type === "both" &&
+    sceneIntent.room === "living" && request.photo_style !== "selfie" &&
+    request.photo_style !== "mirror"
+      ? couchAnglePool
+      : pools.cameraAngles;
   const cameraAngle = sceneIntent.cameraAngle ?? choose(
-    pools.cameraAngles, safeStrings(avoid.cameraAngles), seedBase >>> 3, "eye_level"
+    naturalAngles, recentAngles, seedBase >>> 3, "eye_level"
   );
 
   // Show two recognizable people, not tiny faces in an accidental room-wide
@@ -334,14 +348,23 @@ export function buildPhotoVariationPlan(
   const naturalCoupleFramings = pools.framings.filter((candidate) =>
     candidate !== "environmental_wide" && candidate !== "full_body"
   );
+  const recentFramings = [
+    ...safeStrings(anti.recentFramings).slice(0, 2),
+    ...safeStrings(avoid.framings),
+  ];
   const framing = sceneIntent.framing ??
     (intimateCloseUp
-      ? choose(["chest_up", "waist_up", "three_quarter"], safeStrings(avoid.framings), seedBase >>> 6, "waist_up")
+      ? choose(
+          sceneIntent.pose === "reclining_on_partner"
+            ? ["three_quarter", "medium_wide", "waist_up", "chest_up"]
+            : ["chest_up", "waist_up", "three_quarter", "medium_wide"],
+          recentFramings, seedBase >>> 6, "three_quarter"
+        )
       : choose(
           request.subject_type === "both" && !sceneIntent.faceAway
             ? naturalCoupleFramings
             : pools.framings,
-          safeStrings(avoid.framings), seedBase >>> 6, "waist_up"
+          recentFramings, seedBase >>> 6, "waist_up"
         ));
 
   const isTogether = request.subject_type === "both";
@@ -389,8 +412,12 @@ export function buildPhotoVariationPlan(
                 safeStrings(anti.recentLightingTypes), seedBase >>> 12, "window_daylight"
               );
 
+  const recentCompositions = [
+    ...safeStrings(anti.recentCompositions).slice(0, 3),
+    ...safeStrings(avoid.compositions),
+  ];
   const compositionType = sceneIntent.composition ?? choose(
-    pools.compositions, safeStrings(avoid.compositions), seedBase >>> 15, "off_center"
+    pools.compositions, recentCompositions, seedBase >>> 15, "off_center"
   );
 
   return {
@@ -418,6 +445,8 @@ export function photoVariationInstruction(
     `Expression: ${humanize(plan.expression)}.`,
     `Lighting: ${humanize(plan.lightingType)}.`,
     `Composition: ${humanize(plan.compositionType)}.`,
+    "Take the photograph from the SELECTED camera position, not automatically from the same frontal sofa angle. The perspective and crop may change naturally between photos; physically move the imagined phone camera, never the furniture, people, or requested action.",
+    "A medium-wide or angled view may omit minor tattoos, shoes or background details when they are out of frame. Preserve whatever IS visible faithfully; do not zoom out simply to fit every feature.",
     "Treat these as natural photographic directions, not rigid studio posing.",
     "Identity fidelity and the user's explicit action, room and time ALWAYS override variation. Keep attention true to the moment: toward the phone in a selfie, toward each other in an embrace, eyes closed while sleeping, and toward the activity in a candid photograph. Never swap body positions, hands or props.",
   ].join(" ");
