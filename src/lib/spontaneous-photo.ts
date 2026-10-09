@@ -449,10 +449,26 @@ export async function evaluateSpontaneousPhotoOpportunity({
   const index = deterministicPercent(evaluationKey + "|style|" + (force ? crypto.randomUUID() : ""));
   const photoStyle = styleChoices[index % styleChoices.length];
   const sceneBase = sceneForState(dominicState);
+  const places: Record<string, string> = {
+    living: "the actual living room",
+    kitchen: "the actual kitchen",
+    bedroom: "the actual bedroom",
+    bathroom: "the actual bathroom",
+  };
+  const realPlace = places[dominicState.location] ?? null;
+  const details = [
+    "An unposed in-between instant, with slightly imperfect phone framing.",
+    "A casual diagonal candid, catching the activity in progress, not a posed portrait.",
+    "A quiet close perspective on the everyday activity, without inventing new actions.",
+    "A naturally off-center shot from a plausible different vantage point.",
+  ];
+  const variation = details[index % details.length];
   const scene = subjectType === "both"
-    ? "Alloah and Dominic together in their actual current moment, an unposed candid phone photo. " +
-       sceneBase.replace(/Dominic\s+(sending|taking|casually taking|casually sending)/i, "Dominic")
-    : sceneBase;
+    ? "Alloah and Dominic really are together now. A relaxed candid photo of them during Dominic's current activity (" +
+      dominicState.activity.replaceAll("_", " ") + "). " + variation +
+      (realPlace ? " Keep the actual physical layout of " + realPlace + "." : " Only use the known actual location.")
+    : sceneBase + " " + variation +
+      (realPlace ? " Keep the actual physical layout of " + realPlace + "." : "");
   const note = subjectType === "both"
     ? "He wanted to remember a small moment together."
     : "He thought this little part of his day was worth showing you.";
