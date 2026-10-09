@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTimeMood } from "@/lib/time-mood";
 import {
   createPhotoGenerationRequest,
+  getAntiRepetitionSnapshot,
   linkPhotoToItem,
   saveGeneratedPhoto,
   updatePhotoRequest,
@@ -533,7 +534,12 @@ export function PhotoEngineScreen() {
     try {
       // Use a temporary in-memory request: no database request, budget
       // reservation, Edge worker dispatch or OpenRouter call can happen.
-      const current = await loadDominicState(session.user.id).catch(() => null);
+      // Read the same real saved camera history that paid requests use.
+      // This is only a Supabase SELECT: no model call, generation or credits.
+      const [current, antiRepeat] = await Promise.all([
+        loadDominicState(session.user.id).catch(() => null),
+        getAntiRepetitionSnapshot({ userId: session.user.id }),
+      ]);
       const now = new Date().toISOString();
       const sourceContext = sourceContextOverride ?? modeSource(mode);
       const request: PhotoGenerationRequest = {
@@ -565,7 +571,7 @@ export function PhotoEngineScreen() {
           conversationSummary: conversationSummary.trim() || null,
           localTime: now,
         },
-        anti_repeat_snapshot: {},
+        anti_repeat_snapshot: { ...antiRepeat },
         reference_ids: [],
         adjustment_instruction: null,
         provider: null,
