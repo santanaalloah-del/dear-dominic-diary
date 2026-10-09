@@ -555,7 +555,7 @@ function requestNeedsTattoos(request: PhotoGenerationRequest) {
   ].some((term) => sceneContainsTerm(text, term));
 }
 
-type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose";
+type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism";
 
 function photoSceneFamily(scene: string | null | undefined): string | null {
   const text = (scene ?? "").toLowerCase();
@@ -589,7 +589,7 @@ async function getMatchingQualityIssues(
   }
   const allowed = new Set<PhotoQualityIssue>([
     "face_alloah", "face_dominic", "tattoos", "wardrobe", "anatomy",
-    "connection", "room", "lighting", "pose"
+    "connection", "room", "lighting", "pose", "skin_tone", "realism"
   ]);
   const issues = new Set<PhotoQualityIssue>();
   for (const row of (data ?? []) as Array<{
@@ -606,6 +606,30 @@ async function getMatchingQualityIssues(
     }
   }
   return issues;
+}
+
+/**
+ * Free, scene-matched lessons from previously SAVED user-reviewed photos.
+ * Never triggers a model call, a rerun, or a second charged generation.
+ */
+function photoQualityCorrectionInstruction(issues: Set<PhotoQualityIssue>): string | null {
+  if (!issues.size) return null;
+  const guidance = [
+    issues.has("face_alloah") ? "Preserve Alloah's real facial geometry from her identity photos; do not substitute a generic similar-looking face." : null,
+    issues.has("face_dominic") ? "Preserve Dominic's real facial geometry from his identity photos over inspiration or styling." : null,
+    issues.has("skin_tone") ? "Preserve each person's complexion and undertone from real identity photos, without borrowing skin color from inspiration or room references." : null,
+    issues.has("realism") ? "Avoid AI-looking glamour: use handheld phone perspective, realistic skin texture, natural asymmetry and relaxed expressions." : null,
+    issues.has("tattoos") ? "Respect the attached real tattoo anchors; do not invent, mirror, relocate or erase a visible permanent tattoo." : null,
+    issues.has("wardrobe") ? "Match every selected real garment's cut, color, fit, trousers and footwear from the Currently Wearing images." : null,
+    issues.has("anatomy") ? "Check hand and limb counts, plausible grips and physically correct contact between bodies." : null,
+    issues.has("connection") ? "Avoid staged couple posing: keep believable eye lines, facial muscles and casual touch." : null,
+    issues.has("room") ? "Match the canonical room photo and furniture orientation; do not invent a different home." : null,
+    issues.has("lighting") ? "Match the scene's true local light, time of day and plausible phone exposure; no dramatic grading." : null,
+    issues.has("pose") ? "Fulfill the explicitly requested action and body positions before any optional variation." : null,
+  ].filter((item): item is string => Boolean(item));
+  return guidance.length
+    ? "FREE QUALITY FEEDBACK FROM EARLIER SAVED PHOTOS OF A SIMILAR SCENE (the current request still wins): " + guidance.join(" ")
+    : null;
 }
 
 function chooseProviderReferences(
@@ -771,8 +795,8 @@ function chooseProviderReferences(
     }
     // A recent negative review of a similar scene allocates ONE extra real
     // identity slot. The feedback never turns generated images into references.
-    ensureIdentity("alloah", qualityIssues.has("face_alloah") ? 4 : 3);
-    ensureIdentity("dominic", qualityIssues.has("face_dominic") ? 4 : 3);
+    ensureIdentity("alloah", qualityIssues.has("face_alloah") || qualityIssues.has("skin_tone") ? 4 : 3);
+    ensureIdentity("dominic", qualityIssues.has("face_dominic") || qualityIssues.has("skin_tone") ? 4 : 3);
     takeFallbackAnchors("alloah", 1);
     takeFallbackAnchors("dominic", 1);
   } else {
@@ -788,7 +812,7 @@ function chooseProviderReferences(
     if (wantsProfile) takeOrderedIds(subject, groups.profile, 1);
     if (request.use_current_look)
       take((item) => item.reference.subject === subject && item.reference.is_current, 1);
-    ensureIdentity(subject, qualityIssues.has(subject === "alloah" ? "face_alloah" : "face_dominic") ? 5 : 4);
+    ensureIdentity(subject, qualityIssues.has(subject === "alloah" ? "face_alloah" : "face_dominic") || qualityIssues.has("skin_tone") ? 5 : 4);
     takeFallbackAnchors(subject, 2);
     take((item) => item.reference.subject === subject && identityUseful(item), 2);
   }
@@ -1181,6 +1205,7 @@ export async function generatePhotoProviderPreview({
           tattooRegionInstruction(request, canons, new Set(selectedReferences.map((item) => item.reference.id))),
           wardrobeInstruction(request, wardrobeContexts),
           homeCanon?.instruction ?? null,
+          photoQualityCorrectionInstruction(qualityIssues),
         ]
           .filter((value): value is string => Boolean(value))
           .join(" ") || null,
