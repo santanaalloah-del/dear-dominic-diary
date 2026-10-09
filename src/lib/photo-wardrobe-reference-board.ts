@@ -51,8 +51,11 @@ export async function makeCurrentlyWearingBoard(
   if (typeof document === "undefined") return null;
   const items = garments.filter((garment): garment is CurrentGarment & { imageUrl: string } =>
     Boolean(garment.imageUrl)
-  ).slice(0, 6);
+  );
   if (!items.length) return null;
+  // The caller divides outfits into chunks of six. Never silently crop off
+  // a user's actual Currently Wearing shoes, trousers or accessories.
+  if (items.length > 6) throw new Error("A wardrobe board may contain at most six garments");
 
   // Never synthesize garment details: only arrange the real selected images.
   const columns = items.length === 1 ? 1 : 2;
