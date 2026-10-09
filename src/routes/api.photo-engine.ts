@@ -417,52 +417,71 @@ export const Route = createFileRoute("/api/photo-engine")({
         const rightNowSubjects = body.request.subject_type === "both"
           ? ["alloah", "dominic"]
           : [body.request.subject_type === "me" ? "alloah" : "dominic"];
-        const rightNowLook = requestedReferences.filter((reference) =>
-          rightNowSubjects.includes(reference.subject) &&
-          reference.referenceKind === "current_look" && reference.isCurrent
-        ).slice(0, 2);
+        // First reserve genuine faces, ALL selected garments, and the actual
+        // canonical room. Old selection added optional face photos first and
+        // could truncate a shoe board or room before reaching the provider.
         const rightNowClothing = requestedReferences.filter((reference) =>
           reference.subject === "wardrobe" &&
           rightNowSubjects.some((subject) => reference.purposes?.includes(subject))
-        ).slice(0, 4);
+        );
         const rightNowRoom = requestedReferences.filter((reference) =>
           reference.subject === "shared_home" &&
           reference.referenceKind === "scene" &&
           reference.purposes?.includes("environment")
         ).slice(0, 1);
-        // Keep two true faces PER person and reserve room/clothing slots before
-        // accepting any optional extra face photos. A full outfit must not
-        // push the actual apartment out of the reference budget.
-        const rightNowCapacity = Math.min(12, referenceLimit);
-        const facePerPerson = Math.max(2, Math.min(3, Math.floor(
-          (rightNowCapacity - rightNowLook.length - rightNowClothing.length - rightNowRoom.length) /
-          rightNowSubjects.length
-        )));
+        const rightNowLook = requestedReferences.filter((reference) =>
+          rightNowSubjects.includes(reference.subject) &&
+          reference.referenceKind === "current_look" && reference.isCurrent
+        ).slice(0, 2);
+
+        // Prefer real FACE evidence; tattoo-only detail photos are NOT portraits.
+        const faceEvidenceFor = (subject: string) => {
+          const identity = requestedReferences.filter((reference) =>
+            reference.subject === subject &&
+            reference.referenceKind === "identity"
+          );
+          const facePhotos = identity.filter((reference) =>
+            reference.purposes?.includes("face")
+          );
+          const seen = new Set<string>();
+          return [...facePhotos, ...identity].filter((reference) => {
+            const key = reference.id ?? reference.url;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        };
         const rightNowFaces = rightNowSubjects.flatMap((subject) =>
-          requestedReferences.filter((reference) =>
-            reference.subject === subject && reference.referenceKind === "identity"
-          ).slice(0, facePerPerson)
+          faceEvidenceFor(subject).slice(0, 2)
+        );
+        const rightNowTattooDetails = requestedReferences.filter((reference) =>
+          reference.subject === "dominic" &&
+          reference.referenceKind === "identity" &&
+          reference.purposes?.includes("tattoos")
         );
         const rightNowPriority = [
-          ...rightNowFaces, ...rightNowLook, ...rightNowClothing, ...rightNowRoom
-        ];
-        const rightNowSeen = new Set<string>();
-        const rightNowBalanced = [
-          ...rightNowPriority,
+          ...rightNowFaces,
+          ...rightNowClothing,
+          ...rightNowRoom,
+          ...rightNowLook,
+          ...rightNowTattooDetails,
+          ...rightNowSubjects.flatMap((subject) => faceEvidenceFor(subject)),
           ...requestedReferences.filter((reference) =>
             rightNowSubjects.includes(reference.subject) &&
             reference.referenceKind === "identity"
           ),
-        ].filter((reference) => {
+        ];
+        const rightNowSeen = new Set<string>();
+        const rightNowBalanced = rightNowPriority.filter((reference) => {
           const key = reference.id ?? reference.url;
           if (rightNowSeen.has(key)) return false;
           rightNowSeen.add(key);
           return true;
         });
+        // The selected Seedream 4.5 supports up to 14 references, including
+        // one source image for Adjust mode. Do not impose a second 12-slot cap.
         const references = (
-          isRightNow
-            ? rightNowBalanced.slice(0, Math.min(12, referenceLimit))
-            : requestedReferences
+          isRightNow ? rightNowBalanced : requestedReferences
         ).slice(0, referenceLimit);
 
         const canons = Array.isArray(body.canons)
