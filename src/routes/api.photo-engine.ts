@@ -282,12 +282,27 @@ function buildPrompt(
             ? "REQUIRED ARCHITECTURAL FLOOR PLAN — GEOMETRY ONLY, NOT DECOR OR LIGHT"
             : "REQUIRED ACTUAL ROOM PHOTO — FURNITURE, POSITION AND LIGHT"
           : "PERSON IDENTITY";
+    // Give the model a short image-role index. Long repeated descriptions
+    // overwhelmed the actual short scene (20K+ characters in one real job).
+    const fullNote = reference.description ?? "";
+    const objectsAt = fullNote.indexOf("Persisted room objects:");
+    const shortNote = reference.subject === "shared_home"
+      ? reference.purposes?.includes("floor_plan")
+        ? "Exact architectural boundaries, furniture arrangement and circulation."
+        : fullNote.slice(0, 750) + (objectsAt >= 0 ? " " + fullNote.slice(objectsAt, objectsAt + 480) : "")
+      : reference.subject === "wardrobe"
+        ? fullNote.slice(0, 320)
+        : reference.referenceKind === "current_look"
+          ? "Only the explicitly saved current styling detail; never replace face identity."
+          : reference.subject === "couple"
+            ? "Other people's pose/composition only; never copy their identity."
+            : "Identity evidence. Preserve the correct subject's face and real features.";
     return `Image ${index + (hasSourceImage ? 2 : 1)}: ROLE=${role}; subject=${
       reference.subject
     }; purposes=${purposes}; strength=${reference.strength}; current=${
       reference.isCurrent ? "yes" : "no"
     }${reference.lookType ? `; current-look type=${reference.lookType}` : ""}${
-      reference.description ? `; note=${reference.description}` : ""
+      shortNote ? `; note=${shortNote}` : ""
     }`;
   });
 
