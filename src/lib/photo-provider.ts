@@ -835,6 +835,12 @@ function currentOverrideInstruction(
   return instructions.length ? instructions.join(" ") : null;
 }
 
+export function generatePhotoProviderPreview(
+  input: GeneratePreviewInput & { auditOnly: true }
+): Promise<PhotoReferenceAudit>;
+export function generatePhotoProviderPreview(
+  input: GeneratePreviewInput & { auditOnly?: false }
+): Promise<PhotoProviderPreview>;
 export async function generatePhotoProviderPreview({
   userId,
   request,
@@ -1108,7 +1114,7 @@ export function dataUrlToBlob(dataUrl: string): Blob {
 }
 
 /** Enqueues one paid photo; the Supabase worker saves it directly to Gallery. */
-export async function enqueuePhotoProviderJob(input: Omit<GeneratePreviewInput, "background">): Promise<{ status: "queued"; requestId: string }> {
+export async function enqueuePhotoProviderJob(input: Omit<GeneratePreviewInput, "background" | "auditOnly">): Promise<{ status: "queued"; requestId: string }> {
   const result = await generatePhotoProviderPreview({ ...input, background: true });
   if ((result as any).status !== "queued") throw new Error("Photo job was not accepted.");
   return result as unknown as { status: "queued"; requestId: string };
