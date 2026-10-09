@@ -21,6 +21,7 @@ type PhotoDraft = {
   mood: string;
   photoStyle: "natural_iphone" | "candid" | "mirror" | "selfie";
   sourceContext: "chat";
+  spontaneousIdeaId: string;
   conversationSummary?: string;
 };
 
@@ -135,6 +136,7 @@ export function SpontaneousPhotoOpportunity({
         mood: idea.mood,
         photoStyle: idea.photoStyle,
         sourceContext: "chat",
+        spontaneousIdeaId: idea.id,
         conversationSummary: idea.conversationSummary ?? conversationSummary,
       });
     } catch {
