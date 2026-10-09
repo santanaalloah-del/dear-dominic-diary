@@ -60,7 +60,7 @@ export type PhotoReferenceAudit = {
   noCreditsUsed: true;
   referenceCount: number;
   people: Record<string, { faceReferences: number; faceCanonAnchors: number; currentHairReferences: number; tattooReferences: number }>;
-  outfits: Record<string, { imageCount: number; items: string[] }>;
+  outfits: Record<string, { imageCount: number; garmentCount: number; items: string[] }>;
   homeReferences: number;
   canonSubjects: string[];
   tattooRegions: string[];
@@ -1051,7 +1051,7 @@ export async function generatePhotoProviderPreview({
             " CLOTHING BOARD " + part + ". Each labeled panel is a separate REAL cutout, not invented styling. " +
             pieces.map((piece) => piece.category + ": " + piece.title).join(" | ") +
             ". Only match the panel to its proper category and owner. Preserve fit and footwear type. NEVER copy any face or body from this board.",
-          purposes: ["wardrobe", "clothing", owner, "currently_wearing_board"],
+          purposes: ["wardrobe", "clothing", owner, "currently_wearing_board", "garment_count:" + pieces.length],
           strength: "primary",
           referenceKind: "detail",
           lookType: null,
