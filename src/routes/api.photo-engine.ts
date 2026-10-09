@@ -401,11 +401,6 @@ export const Route = createFileRoute("/api/photo-engine")({
         const rightNowSubjects = body.request.subject_type === "both"
           ? ["alloah", "dominic"]
           : [body.request.subject_type === "me" ? "alloah" : "dominic"];
-        const rightNowFaces = rightNowSubjects.flatMap((subject) =>
-          requestedReferences.filter((reference) =>
-            reference.subject === subject && reference.referenceKind === "identity"
-          ).slice(0, 3)
-        );
         const rightNowLook = requestedReferences.filter((reference) =>
           rightNowSubjects.includes(reference.subject) &&
           reference.referenceKind === "current_look" && reference.isCurrent
@@ -419,6 +414,19 @@ export const Route = createFileRoute("/api/photo-engine")({
           reference.referenceKind === "scene" &&
           reference.purposes?.includes("environment")
         ).slice(0, 1);
+        // Keep two true faces PER person and reserve room/clothing slots before
+        // accepting any optional extra face photos. A full outfit must not
+        // push the actual apartment out of the reference budget.
+        const rightNowCapacity = Math.min(12, referenceLimit);
+        const facePerPerson = Math.max(2, Math.min(3, Math.floor(
+          (rightNowCapacity - rightNowLook.length - rightNowClothing.length - rightNowRoom.length) /
+          rightNowSubjects.length
+        )));
+        const rightNowFaces = rightNowSubjects.flatMap((subject) =>
+          requestedReferences.filter((reference) =>
+            reference.subject === subject && reference.referenceKind === "identity"
+          ).slice(0, facePerPerson)
+        );
         const rightNowPriority = [
           ...rightNowFaces, ...rightNowLook, ...rightNowClothing, ...rightNowRoom
         ];
