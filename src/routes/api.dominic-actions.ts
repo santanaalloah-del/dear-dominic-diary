@@ -1,6 +1,7 @@
 import {
   createFileRoute,
 } from "@tanstack/react-router";
+import { persistDominicDateProposal } from "@/lib/date-proposal-server";
 
 const DEFAULT_MODEL =
   "google/gemini-3.8-flash";
@@ -9,6 +10,7 @@ const MAX_ACTIONS = 2;
 
 type ActionType =
   | "create_date"
+  | "propose_date"
   | "create_letter"
   | "create_memory"
   | "create_place"
@@ -23,6 +25,13 @@ type DominicWorldAction =
       title: string;
       place: string;
       plannedFor: string;
+      note?: string;
+    }
+  | {
+      type: "propose_date";
+      title: string;
+      place?: string;
+      plannedFor?: string;
       note?: string;
     }
   | {
@@ -126,6 +135,7 @@ const ACTION_ITEM_SCHEMA = {
 
       enum: [
         "create_date",
+        "propose_date",
         "create_letter",
         "create_memory",
         "create_place",
@@ -552,6 +562,18 @@ const title =
 if (!title) {
   return null;
 }
+  if (type === "propose_date") {
+    return {
+      type,
+      title,
+      place: cleanString(raw.place) ?? undefined,
+      plannedFor: (() => {
+        const value = cleanString(raw.plannedFor);
+        return value && validDate(value) ? value : undefined;
+      })(),
+      note: cleanString(raw.note) ?? undefined,
+    };
+  }
   if (
     type ===
     "create_date"
@@ -930,15 +952,23 @@ Do not create an action merely because:
 
 Allowed actions:
 
+propose_date
+
+Use when Dominic makes a real, personally motivated invitation for a specific type of outing or Date, but Alloah has not yet mutually agreed on its place and schedule.
+- Persist the invitation as a Date IDEA; do not pretend it was accepted, booked, scheduled or visited.
+- A suggested place or activity is enough (e.g. asking her out for coffee, a movie, a walk or dinner). The exact venue and hour may remain unknown.
+- This must be Dominic's actual invitation, NOT merely Alloah asking "want to go out?", a vague wish ("somewhere someday"), a hypothetical or empty flirting.
+- title: what he genuinely invited her to; place null if unknown; plannedFor a valid ISO string ONLY when suggested day/time was actually explicit; note a concise faithful description of what he offered, including unscheduled daypart hints if needed.
+- Do not repeatedly recreate invitations already represented in nearby commitments.
+
 create_date
 
-Use only for a concrete shared future plan with:
-- a usable place;
-- and a specific enough date or date/time.
-
-Resolve relative language such as "tomorrow" using the current São Paulo/Rio time supplied below.
-
-plannedFor must be a valid ISO date-time.
+Use ONLY for an actually mutually agreed shared plan with a usable place AND a precise-enough agreed date/time, not a proposal.
+- Do not invent her consent, a venue, a clock time, or a booking.
+- If any key element remains unsettled, use propose_date for a real invitation instead.
+- Resolve "tomorrow" with the real São Paulo/Rio local time below.
+- plannedFor must be valid ISO date-time.
+- Avoid duplicating an existing Date.
 
 create_letter
 
@@ -1463,8 +1493,21 @@ export const Route =
                 await rpc("release_ai_budget", { p_id: budgetId });
                 throw error;
               }
+              // A genuine unconfirmed invitation is stored as a Date IDEA
+              // and a linked existing shared-item chat message server-side.
+              // The older Chat client only accepts confirmed create_date, so
+              // never send an unrecognized "propose_date" down to it.
+              for (const action of actions) {
+                if (action.type !== "propose_date") continue;
+                await persistDominicDateProposal({
+                  userId: verified.id,
+                  proposal: action,
+                  supabaseUrl,
+                  serviceKey: serviceRoleKey,
+                });
+              }
               return Response.json({
-                actions,
+                actions: actions.filter(action => action.type !== "propose_date"),
               });
             } catch (
               error
