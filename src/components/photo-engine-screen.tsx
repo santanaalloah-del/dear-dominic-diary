@@ -1252,7 +1252,7 @@ export function PhotoEngineScreen() {
                 </p>
               )}
               <p style={{ margin: 0, fontSize: 12 }}>
-                Camera plan: {referenceAudit.scene.pose.replaceAll("_", " ")} ·{" "}
+                Example camera plan (final variation may differ): {referenceAudit.scene.pose.replaceAll("_", " ")} ·{" "}
                 {referenceAudit.scene.framing.replaceAll("_", " ")} ·{" "}
                 {referenceAudit.scene.lighting.replaceAll("_", " ")}
               </p>
