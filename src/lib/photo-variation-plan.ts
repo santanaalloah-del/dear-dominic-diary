@@ -497,20 +497,47 @@ function humanize(value: string) {
   return value.replaceAll("_", " ");
 }
 
+/**
+ * The camera plan is a real composition constraint, NOT a styling adjective.
+ * A clothing board includes shoes, but the model must NOT zoom out to show
+ * them in a close or waist-up photograph. Full body is an intentional choice.
+ */
+export function photoFramingBoundary(framing: string): string {
+  switch (framing) {
+    case "close_up":
+      return "TIGHT CLOSE-UP: only faces, hair, neck and edges of shoulders in view; legs, waists, shoes and most of the room are OFF FRAME. Faces dominate the actual pixels.";
+    case "head_and_shoulders":
+      return "HEAD-AND-SHOULDERS CROP: show heads and shoulders only; NO waist, legs, shoes or full outfits.";
+    case "chest_up":
+      return "CHEST-UP CROP: frame from heads to upper chest; everything below the chest is outside the picture.";
+    case "waist_up":
+      return "WAIST-UP CROP: frame from head to near the waist. Include hands or an activity prop if plausible; CUT OFF trousers below the hips and ALL footwear.";
+    case "three_quarter":
+      return "THREE-QUARTER CROP: frame from head to roughly mid-thigh or knees, with natural cut edges. Do not show shoes or an entire head-to-toe outfit.";
+    case "medium_wide":
+      return "MEDIUM-WIDE CROP: show two people and enough real environment to orient the moment, but normally crop near the knees; do not pull back to a symmetrical floor-to-ceiling full-body portrait.";
+    case "full_body":
+      return "INTENTIONAL FULL-BODY CROP: show head-to-toe outfits because the user explicitly requested or selected it; preserve exact footwear and pants.";
+    case "environmental_wide":
+      return "INTENTIONAL ESTABLISHING SHOT: show the wider setting because it was requested; keep human subjects recognizable, never a generic catalog pose.";
+    default:
+      return "Natural medium crop around the meaningful interaction, with an imperfect camera edge. Do not default to full body.";
+  }
+}
+
 export function photoVariationInstruction(
   plan: PhotoVariationPlan
 ) {
   return [
-    "SHOT VARIATION PLAN:",
-    `Pose direction: ${humanize(plan.poseType)}.`,
-    `Camera angle: ${humanize(plan.cameraAngle)}.`,
-    `Framing: ${humanize(plan.framing)}.`,
+    "BINDING SHOT PLAN — this describes the FINAL PIXELS, not suggestions:",
+    `Action / pose: ${humanize(plan.poseType)}.`,
+    `Camera viewpoint: ${humanize(plan.cameraAngle)}.`,
+    `Selected crop: ${humanize(plan.framing)}. ${photoFramingBoundary(plan.framing)}`,
     `Expression: ${humanize(plan.expression)}.`,
-    `Lighting: ${humanize(plan.lightingType)}.`,
+    `Room-matched light: ${humanize(plan.lightingType)}.`,
     `Composition: ${humanize(plan.compositionType)}.`,
-    "Take the photograph from the SELECTED camera position, not automatically from the same frontal sofa angle. The perspective and crop may change naturally between photos; physically move the imagined phone camera, never the furniture, people, or requested action.",
-    "A medium-wide or angled view may omit minor tattoos, shoes or background details when they are out of frame. Preserve whatever IS visible faithfully; do not zoom out simply to fit every feature.",
-    "Treat these as natural photographic directions, not rigid studio posing.",
-    "Identity fidelity and the user's explicit action, room and time ALWAYS override variation. Keep attention true to the moment: toward the phone in a selfie, toward each other in an embrace, eyes closed while sleeping, and toward the activity in a candid photograph. Never swap body positions, hands or props.",
+    "A casual photographer can change their own phone position and accidentally crop a sleeve, shoe, tattoo, arm or background. They CANNOT move real furniture, replace real clothes or change the requested activity.",
+    "Do not step back to fit wardrobe-board shoes or every tattoo, or to recreate a complete catalog view of the reference room. Those are REFERENCE IMAGES, not the intended final crop.",
+    "For candid shots the actors are occupied with each other or the activity, not performing for the camera. An explicitly requested selfie, mirror shot, full-body shot or posed portrait still wins.",
   ].join(" ");
 }
