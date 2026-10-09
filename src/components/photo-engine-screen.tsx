@@ -52,6 +52,7 @@ type PhotoEngineDraft = {
   subjectType?: PhotoSubject;
   scene?: string;
   mood?: string;
+  photoStyle?: PhotoStyle;
   conversationSummary?: string;
   sourceContext?: PhotoSourceContext;
   memoryId?: string;
@@ -259,6 +260,7 @@ export function PhotoEngineScreen() {
 
     if (draft.mode) setMode(draft.mode);
     if (draft.subjectType) setSubjectType(draft.subjectType);
+    if (draft.photoStyle) setPhotoStyle(draft.photoStyle);
     if (draft.scene) setScene(draft.scene);
     if (draft.mood) setMood(draft.mood);
     if (draft.conversationSummary) {
