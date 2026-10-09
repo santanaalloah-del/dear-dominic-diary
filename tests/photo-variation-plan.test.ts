@@ -70,6 +70,30 @@ describe("natural iPhone framing and candid scenes", () => {
     }
   });
 
+  test("ordinary couple couch photography avoids wide, full-body and shoe-centered crops", () => {
+    for (let i = 0; i < 40; i++) {
+      const plan = planned("couch-natural-" + i,
+        "Alloah and Dominic lying together on the couch in their living room, laughing at something on his phone.");
+      expect(["head_and_shoulders", "chest_up", "waist_up", "three_quarter"]).toContain(plan.framing);
+      expect(plan.framing).not.toBe("medium_wide");
+      expect(plan.framing).not.toBe("full_body");
+    }
+  });
+
+  test("manual framing changes the actual plan, not only the camera UI", () => {
+    const source = {
+      id: "user-camera", mode: "request", photo_style: "natural_iphone",
+      subject_type: "both", scene: "Alloah and Dominic resting on the couch",
+      shot_type: null, anti_repeat_snapshot: {},
+    };
+    for (const value of ["close_up", "chest_up", "waist_up", "full_body"]) {
+      const plan = buildPhotoVariationPlan({
+        ...source, context_snapshot: { custom: { framingOverride: value } },
+      });
+      expect(plan.framing).toBe(value);
+    }
+  });
+
   test("explicit full-body clothing shot still wins", () => {
     expect(planned("outfit", "Us walking in the kitchen", "both", "full-body-outfit").framing)
       .toBe("full_body");
