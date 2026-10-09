@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { chatCalendarDayKey, chatDayHeading } from "@/lib/chat-day-heading";
+import { firstVisibleChatTimestamp } from "@/lib/chat-visible-day";
 import { SpontaneousPhotoOpportunity, SpontaneousPhotoPreferencesPanel } from "@/components/spontaneous-photo-opportunity";
 import { DateModeChatBridge } from "@/components/date-mode-chat-bridge";
 import "@/components/date-mode-chat-context.css";
@@ -975,6 +976,7 @@ onOpen: (
     setMessageActionTarget(null);
   };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [visibleChatTimestamp, setVisibleChatTimestamp] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
@@ -1421,6 +1423,56 @@ useEffect(() => {
 
   scrollToLatestMessage();
 }, [loading, messages.length, sending, scrollToLatestMessage]);
+
+useEffect(() => {
+  if (loading || messages.length === 0) {
+    setVisibleChatTimestamp(null);
+    return;
+  }
+  // The message history alone scrolls. Its day markers remain in normal
+  // document flow; a SINGLE independent date chip follows the first
+  // visible message without sticky separators piling up on iOS Safari.
+  const scroller = chatSurfaceRef.current?.querySelector<HTMLElement>(".messenger-messages");
+  if (!scroller) return;
+  let frame = 0;
+  let settleTimer = 0;
+  const update = () => {
+    frame = 0;
+    const bounds = scroller.getBoundingClientRect();
+    const messageNodes = scroller.querySelectorAll<HTMLElement>("[data-chat-date-timestamp]");
+    const items = Array.from(messageNodes, (node) => {
+      const rect = node.getBoundingClientRect();
+      return {
+        timestamp: node.dataset.chatDateTimestamp ?? "",
+        top: rect.top,
+        bottom: rect.bottom,
+      };
+    });
+    const first = firstVisibleChatTimestamp(items, bounds.top, bounds.bottom);
+    if (first) setVisibleChatTimestamp(previous => previous === first ? previous : first);
+  };
+  const schedule = () => {
+    if (frame) return;
+    frame = window.requestAnimationFrame(update);
+  };
+  scroller.addEventListener("scroll", schedule, { passive: true });
+  scroller.addEventListener("load", schedule, true);
+  window.addEventListener("resize", schedule);
+  window.addEventListener("focus", schedule);
+  document.addEventListener("visibilitychange", schedule);
+  schedule();
+  // StickToBottom can move after images have measured and after hydration.
+  settleTimer = window.setTimeout(schedule, 550);
+  return () => {
+    scroller.removeEventListener("scroll", schedule);
+    scroller.removeEventListener("load", schedule, true);
+    window.removeEventListener("resize", schedule);
+    window.removeEventListener("focus", schedule);
+    document.removeEventListener("visibilitychange", schedule);
+    window.clearTimeout(settleTimer);
+    if (frame) window.cancelAnimationFrame(frame);
+  };
+}, [loading, messages.length]);
 
 useEffect(() => {
   let cancelled = false;
@@ -5167,6 +5219,11 @@ const recentConversationForPhoto = () =>
   </section>
 )}
 
+      {!loading && messages.length > 0 && (
+        <div className="chat-floating-date" role="status" aria-label="Day of the first visible message">
+          <span>{chatDayHeading(visibleChatTimestamp ?? messages[0].createdAt)}</span>
+        </div>
+      )}
       <Conversation className="live-conversation messenger-conversation">
         <ConversationContent className="live-messages messenger-messages">
           {loading ? (
@@ -5183,7 +5240,7 @@ const recentConversationForPhoto = () =>
             messages.map((message, index) => (
               <Fragment key={message.id}>
                 {(index === 0 || chatCalendarDayKey(messages[index - 1].createdAt) !== chatCalendarDayKey(message.createdAt)) && (
-                  <div className="messenger-day-divider messenger-day-divider-sticky" role="separator" aria-label={chatDayHeading(message.createdAt)}>
+                  <div className="messenger-day-divider messenger-day-divider-regular" role="separator" aria-label={chatDayHeading(message.createdAt)}>
                     <span>{chatDayHeading(message.createdAt)}</span>
                   </div>
                 )}
@@ -5195,6 +5252,7 @@ const recentConversationForPhoto = () =>
               <Message
                 from={message.role}
                 id={`chat-message-${message.id}`}
+                data-chat-date-timestamp={message.createdAt}
                 tabIndex={0}
                 aria-label={`${message.role === "assistant" ? "Dominic" : preferredName} message. Open message actions`}
                 aria-haspopup="dialog"
