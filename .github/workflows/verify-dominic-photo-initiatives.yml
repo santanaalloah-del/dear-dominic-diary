@@ -34,5 +34,7 @@ jobs:
         run: bun test tests/date-invitation-consent.test.ts
       - name: Proactive Chat idempotency without paid model requests
         run: bun test tests/proactive-delivery.test.ts
+      - name: Check currently wearing awareness without paid AI calls
+        run: bun test tests/alloah-wearing-awareness.test.ts
       - name: Build
         run: bun run build
