@@ -179,6 +179,23 @@ async function autoCutoutClothing(file: File): Promise<File> {
   const pixels = context.getImageData(0, 0, width, height);
   const data = pixels.data;
 
+  // Transparent PNGs should not fail the automatic tool simply because their
+  // border pixels have already been cut away.
+  let transparent = 0;
+  let gridCount = 0;
+  for (let gy = 0; gy < 20; gy++) {
+    for (let gx = 0; gx < 20; gx++) {
+      const x = Math.floor((gx + 0.5) * width / 20);
+      const y = Math.floor((gy + 0.5) * height / 20);
+      const alpha = data[(Math.min(height - 1, y) * width + Math.min(width - 1, x)) * 4 + 3];
+      if (alpha < 30) transparent++;
+      gridCount++;
+    }
+  }
+  if (file.type === "image/png" && transparent > gridCount * 0.08) {
+    return file; // Already has a substantially transparent background.
+  }
+
   const samples: Array<[number, number, number]> = [];
   const steps = 24;
 
@@ -209,8 +226,8 @@ async function autoCutoutClothing(file: File): Promise<File> {
     sample(width - 2, y);
   }
 
-  if (samples.length < 24) {
-    throw new Error("The photo may already have transparent edges. Keep the original or use Refine cutout.");
+  if (samples.length < 12) {
+    throw new Error("There are too few opaque border pixels to identify a background. Your PNG may already be transparent; use Refine cutout for the leftovers.");
   }
 
   const median = (channel: 0 | 1 | 2) => {
@@ -229,10 +246,14 @@ async function autoCutoutClothing(file: File): Promise<File> {
   const rgbDistance = (red: number, green: number, blue: number) =>
     Math.hypot(red - background[0], green - background[1], blue - background[2]);
   const edgeUniformity = samples.filter(([r, g, b]) =>
-    rgbDistance(r, g, b) <= 43
+    rgbDistance(r, g, b) <= 48
   ).length / samples.length;
-  if (edgeUniformity < 0.87) {
-    throw new Error("Background is not uniform enough for safe automatic cleanup. The original photo was kept; try Crop photo or Refine cutout.");
+  // The former 87% border requirement rejected even ordinary product
+  // photos where the shoe or T-shirt slightly touches the image boundary.
+  // A 75% matching border is sufficient for a guarded connected-background
+  // pass; more complex scenes still need manual refinement.
+  if (edgeUniformity < 0.75) {
+    throw new Error("The background has too many different colors for safe automatic cleanup. Use Crop photo or Refine cutout; your original is untouched.");
   }
 
   let foregroundEvidence = 0;
@@ -244,13 +265,13 @@ async function autoCutoutClothing(file: File): Promise<File> {
       const offset = (y * width + x) * 4;
       if (data[offset + 3] < 100) continue;
       centerSamples += 1;
-      if (rgbDistance(data[offset], data[offset + 1], data[offset + 2]) > 72) {
+      if (rgbDistance(data[offset], data[offset + 1], data[offset + 2]) > 58) {
         foregroundEvidence += 1;
       }
     }
   }
-  if (!centerSamples || foregroundEvidence < Math.ceil(centerSamples * 0.18)) {
-    throw new Error("The clothing is too close to the background color for a safe automatic cutout. Original photo preserved.");
+  if (!centerSamples || foregroundEvidence < Math.ceil(centerSamples * 0.10)) {
+    throw new Error("The clothing and background are too similar in color to separate without damaging the fabric. Use Refine cutout; the original is safe.");
   }
 
   const distanceAt = (point: number) => {
@@ -269,8 +290,8 @@ async function autoCutoutClothing(file: File): Promise<File> {
    * could eat cream shirts, pale shoes and other parts of the garment.
    */
   // Prefer imperfect leftover background over missing actual fabric.
-  const threshold = 36;
-  const feather = 20;
+  const threshold = 32;
+  const feather = 21;
   const maxDistance = threshold + feather;
   const total = width * height;
   const visited = new Uint8Array(total);
@@ -329,8 +350,8 @@ async function autoCutoutClothing(file: File): Promise<File> {
       );
     }
   }
-  if (erased < total * 0.035 || erased > total * 0.78) {
-    throw new Error("Automatic cleanup could not separate this background safely. Keep the original and refine manually.");
+  if (erased < total * 0.015 || erased > total * 0.78) {
+    throw new Error("Automatic cleanup did not find a reliably removable background. No original image was altered; try Crop photo or Refine cutout.");
   }
   context.putImageData(pixels, 0, 0);
 
@@ -2576,9 +2597,9 @@ export function WardrobeExperienceScreen() {
               {clothingOriginalFile && (
                 <>
                   <p className="wardrobe-edit-note">
-                    Your original photo is safe. Automatic cleanup is optional and works only on
-                    a plain contrasting background. It is not AI segmentation and cannot
-                    accurately remove a complicated background.
+                    Your original photo stays safe. Automatic PNG cleanup now supports more
+                    ordinary solid-background photos, but it isn't AI segmentation:
+                    complex backgrounds or white fabric on white can still need Refine cutout.
                   </p>
                   <div className="wardrobe-cutout-tools">
                     <button
@@ -2607,7 +2628,7 @@ export function WardrobeExperienceScreen() {
                       }}
                     >
                       <Scissors size={14} />
-                      {cutoutBusy ? "Checking background…" : "Try background cleanup"}
+                      {cutoutBusy ? "Removing background…" : "Auto clean PNG"}
                     </button>
 
                     <button
