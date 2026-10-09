@@ -358,11 +358,12 @@ function tattooRegionAnchorIds(
 ) {
   if (!canon || !requestedRegions.length) return [];
 
-  const requested = new Set(requestedRegions);
-  const order: TattooRegion[] = ["left_hand", "right_hand", "left_arm", "right_arm", "face", "neck", "chest", "abdomen", "back", "left_leg", "right_leg", "other"];
   const entries = tattooRegionsFromProfile(canon.profile ?? {});
-  return Array.from(new Set(order.flatMap((region) =>
-    requested.has(region) ? entries.filter((entry) => entry.region === region).flatMap((entry) => entry.anchorIds) : []
+  // requestedRegions is already prioritized by the explicit description:
+  // shirtless => chest/abdomen first; hugging/holding => hands/arms first.
+  // Never push all hand images ahead of a specifically requested chest tattoo.
+  return Array.from(new Set(requestedRegions.flatMap((region) =>
+    entries.filter((entry) => entry.region === region).flatMap((entry) => entry.anchorIds)
   )));
 }
 
