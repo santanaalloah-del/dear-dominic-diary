@@ -1219,8 +1219,10 @@ export function PhotoEngineScreen() {
               {Object.entries(referenceAudit.people).map(([person, detail]) => (
                 <p key={person} style={{ margin: 0, fontSize: 12 }}>
                   <strong>{person === "alloah" ? "Alloah" : "Dominic"}:</strong>{" "}
-                  {detail.faceReferences} face refs · {detail.currentHairReferences} current hair refs
-                  {person === "dominic" ? ` · ${detail.tattooReferences} tattoo-tagged refs` : ""}
+                  {detail.faceReferences} face refs
+                  {detail.faceCanonAnchors > 0 ? ` · ${detail.faceCanonAnchors} verified face anchors` : ""}
+                  {" · "}{detail.currentHairReferences} current hair refs
+                  {person === "dominic" ? ` · ${detail.tattooReferences} mapped tattoo refs` : ""}
                 </p>
               ))}
               {Object.entries(referenceAudit.outfits).map(([person, detail]) => (
