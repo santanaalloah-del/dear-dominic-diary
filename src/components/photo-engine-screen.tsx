@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PhotoIdentityFeedback } from "@/components/photo-identity-feedback";
+import { PhotoQualityFeedback } from "@/components/photo-quality-feedback";
 import {
   Camera,
   Check,
@@ -68,6 +69,8 @@ type PreviewState = {
   adjustOpen: boolean;
   adjustText: string;
   savedPhotoId: string | null;
+  savedImageUrl?: string | null;
+  savedFeatureData?: Record<string, unknown> | null;
 };
 
 /** Milestone estimate, not provider-reported completion. Never pretend to know image render progress. */
@@ -221,6 +224,7 @@ export function PhotoEngineScreen() {
   const [previews, setPreviews] = useState<PreviewState[]>([]);
   const [showRecentPreviews, setShowRecentPreviews] = useState(false);
   const activeRequestIds = useRef(new Set<string>());
+  const savedPhotoUrlCache = useRef(new Map<string, { url: string; validUntil: number }>());
   const componentActive = useRef(true);
 
   useEffect(() => {
@@ -297,24 +301,67 @@ export function PhotoEngineScreen() {
         activeRequestIds.current.delete(failed.id);
         setError(failed.error_message || "Photo processing failed. No automatic retry was made.");
       }
-      const savedPhotoIds = new Map<string, string>(
-        ((existingPhotos ?? []) as Array<{ id: string; data: { generation_request_id?: string } }>).flatMap(
-          photo => photo.data?.generation_request_id ? [[photo.data.generation_request_id, photo.id] as [string, string]] : []
-        )
+      type StoredPhoto = {
+        id: string;
+        data: { generation_request_id?: string; storage_path?: string; storage_bucket?: string };
+      };
+      const photoByRequest = new Map<string, StoredPhoto>();
+      for (const photo of (existingPhotos ?? []) as StoredPhoto[]) {
+        if (photo.data?.generation_request_id) photoByRequest.set(photo.data.generation_request_id, photo);
+      }
+
+      // Background-generated photos are already in private Gallery storage.
+      // Recover their signed image URLs for the Photo Engine instead of
+      // showing "Saved to Gallery" forever with an empty preview.
+      const urls = new Map<string, string>();
+      await Promise.all([...photoByRequest.entries()].map(async ([requestId, photo]) => {
+        if (photo.data.storage_bucket !== "diario-media" ||
+            !photo.data.storage_path?.startsWith(userId + "/generated/")) return;
+        const cache = savedPhotoUrlCache.current.get(photo.id);
+        if (cache && cache.validUntil > Date.now()) {
+          urls.set(requestId, cache.url);
+          return;
+        }
+        const { data: signed, error: signedError } = await supabase.storage
+          .from("diario-media").createSignedUrl(photo.data.storage_path, 3600);
+        if (!signedError && signed?.signedUrl) {
+          urls.set(requestId, signed.signedUrl);
+          savedPhotoUrlCache.current.set(photo.id, {
+            url: signed.signedUrl,
+            validUntil: Date.now() + 55 * 60 * 1000,
+          });
+        }
+      }));
+      const { data: features } = requestIds.length
+        ? await (supabase as any)
+            .from("photo_generation_features")
+            .select("request_id,feature_data")
+            .eq("user_id", userId)
+            .in("request_id", requestIds)
+        : { data: [] };
+      const featuresByRequest = new Map<string, Record<string, unknown>>(
+        ((features ?? []) as Array<{ request_id: string; feature_data: Record<string, unknown> | null }>)
+          .filter((item) => item.request_id && item.feature_data)
+          .map((item) => [item.request_id, item.feature_data as Record<string, unknown>])
       );
+      if (cancelled) return;
       setPreviews(previous => {
         const next = [...previous];
         for (const request of (data as PhotoGenerationRequest[]).filter(request => request.status !== "failed")) {
           const existing = next.findIndex(item => item.request.id === request.id);
-          const recoveredPhotoId = request.photo_item_id ?? savedPhotoIds.get(request.id) ?? null;
+          const recoveredPhotoId = request.photo_item_id ?? photoByRequest.get(request.id)?.id ?? null;
           const status: PreviewState["status"] = recoveredPhotoId ? "saved" : request.status === "failed" ? "error" : request.status === "completed" ? "error" : "generating";
           const item = {
             key: request.id, request, status, preview: null,
             error: request.status === "failed" ? request.error_message : request.status === "completed" && !recoveredPhotoId ? "Photo marked completed but missing from Gallery. Check storage before regenerating." : null,
             savedPhotoId: recoveredPhotoId, adjustOpen: false, adjustText: "",
+            savedImageUrl: urls.get(request.id) ?? null,
+            savedFeatureData: featuresByRequest.get(request.id) ?? null,
           };
           if (existing < 0) next.push(item);
-          else next[existing] = { ...next[existing], request, status, savedPhotoId: item.savedPhotoId, error: item.error };
+          else next[existing] = { ...next[existing], request, status, savedPhotoId: item.savedPhotoId, error: item.error,
+            savedImageUrl: item.savedImageUrl ?? next[existing].savedImageUrl,
+            savedFeatureData: item.savedFeatureData ?? next[existing].savedFeatureData };
         }
         const failedIds = new Set(
           (data as PhotoGenerationRequest[]).filter(request => request.status === "failed").map(request => request.id)
@@ -736,9 +783,9 @@ export function PhotoEngineScreen() {
             {previews.map((item, index) => (
               <article className="photo-engine-preview-card" key={item.key}>
                 <div className="photo-engine-preview-media">
-                  {item.preview ? (
+                  {item.preview || item.savedImageUrl ? (
                     <img
-                      src={item.preview.dataUrl}
+                      src={item.preview?.dataUrl ?? item.savedImageUrl ?? ""}
                       alt={`Generated Photo Engine preview ${index + 1}`}
                     />
                   ) : (
@@ -814,14 +861,21 @@ export function PhotoEngineScreen() {
                   </Button>
                 )}
 
-                {item.preview &&
-  (item.status === "ready" || item.status === "saved") && (
-    <PhotoIdentityFeedback
-      userId={session.user.id}
-      request={item.request}
-      preview={item.preview}
-    />
-  )}
+                {(item.preview || item.savedFeatureData) &&
+                  (item.status === "ready" || item.status === "saved") && (
+                    <PhotoIdentityFeedback
+                      userId={session.user.id}
+                      request={item.request}
+                      preview={item.preview}
+                      featureData={item.savedFeatureData}
+                    />
+                  )}
+                {item.status === "saved" && (
+                  <PhotoQualityFeedback
+                    userId={session.user.id}
+                    request={item.request}
+                  />
+                )}
                 
                 {(item.status === "ready" || item.status === "saved") && (
                   <div className="photo-engine-preview-actions">
