@@ -7,6 +7,8 @@ import {
   type DiarioItem,
 } from "@/lib/diario-world";
 
+import { isPendingDominicInvitation, pendingInvitationHasAgreedDetails } from "@/lib/date-invitation-guard";
+
 const db =
   supabase as any;
 
@@ -465,19 +467,12 @@ export async function updateDateDetails({
       current
     );
 
-  let nextState =
-    currentState;
-
-  if (
-    currentState ===
-      "idea" ||
-    currentState ===
-      "planned"
-  ) {
-    nextState =
-      plannedFor
-        ? "planned"
-        : "idea";
+  const pendingDominicInvitation = isPendingDominicInvitation(current);
+  let nextState = currentState;
+  if (pendingDominicInvitation) {
+    nextState = "idea"; // editing a proposal does not imply Alloah accepted
+  } else if (currentState === "idea" || currentState === "planned") {
+    nextState = plannedFor ? "planned" : "idea";
   }
 
   const finalTitle =
@@ -509,8 +504,7 @@ export async function updateDateDetails({
           null,
 
         planned_for:
-          plannedFor ??
-          null,
+          pendingDominicInvitation ? null : (plannedFor ?? null),
 
         data: {
           ...(
@@ -533,11 +527,13 @@ export async function updateDateDetails({
           flow_state:
             nextState,
 
+          ...(pendingDominicInvitation ? {
+            proposed_for: plannedFor ?? null,
+            proposed_time_known: Boolean(plannedFor && timeKnown),
+          } : {}),
+
           time_known:
-            Boolean(
-              plannedFor &&
-              timeKnown
-            ),
+            pendingDominicInvitation ? false : Boolean(plannedFor && timeKnown),
 
           time_hint:
             cleanString(
@@ -570,6 +566,41 @@ export async function updateDateDetails({
   return data as DiarioItem;
 }
 
+/**
+ * A user-initiated confirmation updates the SAME Date record after an
+ * actual mutual agreement on place, day and exact time. No new Date or
+ * reservation is created. The connected chat card retains its original ID.
+ */
+export async function confirmAgreedDominicDate({
+  userId, dateId,
+}: { userId: string; dateId: string }): Promise<DiarioItem> {
+  const current = await getDateItem({ userId, dateId });
+  if (!pendingInvitationHasAgreedDetails(current)) {
+    throw new Error("First agree on a place, day and exact time, then confirm.");
+  }
+  const now = new Date().toISOString();
+  const { data: rows, error } = await db.from("diario_items")
+    .update({
+      owner: "shared",
+      planned_for: String(current.data!.proposed_for),
+      data: {
+        ...current.data,
+        flow_state: "planned",
+        invitation_pending: false,
+        requires_user_action: false,
+        accepted_at: now,
+        confirmed_by: "alloah",
+        time_known: true,
+      },
+    })
+    .eq("user_id", userId).eq("id", dateId).eq("kind", "date")
+    .eq("status", "active").eq("updated_at", current.updated_at).select("*");
+  if (error) throw error;
+  if (!rows || rows.length !== 1)
+    throw new Error("This invitation changed while confirming it. Reopen and retry.");
+  return rows[0] as DiarioItem;
+}
+
 export async function startDate({
   userId,
   dateId,
@@ -582,6 +613,10 @@ export async function startDate({
       userId,
       dateId,
     });
+
+  if (isPendingDominicInvitation(current)) {
+    throw new Error("An unaccepted invitation cannot start Date Mode.");
+  }
 
   const now =
     new Date()

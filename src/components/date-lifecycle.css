@@ -63,3 +63,17 @@
   font-size: 0.75rem;
   line-height: 1.45;
 }
+
+/* A proposal is NOT a confirmed Date. Readable on both day and night themes. */
+.date-flow-invitation-consent {
+  display: grid; gap: 9px; margin-bottom: 16px; padding: 15px;
+  border: 1px solid #a6787f; border-radius: 8px;
+  background: #f5e7d8; color: #57222b;
+}
+.date-flow-invitation-consent :is(strong,p) {
+  color: #57222b !important; -webkit-text-fill-color: #57222b !important;
+}
+.date-flow-invitation-consent p { margin: 0; font-size: 12px; line-height: 1.5; }
+.date-flow-invitation-consent .date-flow-actions { flex-wrap: wrap; }
+.date-flow-invitation-consent button { min-height: 42px; }
+.date-flow-invitation-consent button:disabled { opacity: .55; cursor: not-allowed; }

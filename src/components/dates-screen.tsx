@@ -51,6 +51,7 @@ import {
 
 import {
   createContextualDate,
+  confirmAgreedDominicDate,
   createMemoryFromDate,
   finishDate,
   getDateCandidateItems,
@@ -65,6 +66,8 @@ import {
   type DateFlowState,
   type DateLookRole,
 } from "@/lib/date-flow";
+
+import { isPendingDominicInvitation, pendingInvitationHasAgreedDetails } from "@/lib/date-invitation-guard";
 
 import {
   closeOtherLiveDateExperiences,
@@ -1531,6 +1534,26 @@ export function DatesExperienceScreen({
     }
   }
 
+  async function confirmDominicInvitation() {
+    if (!selectedDate || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await confirmAgreedDominicDate({
+        userId: session.user.id,
+        dateId: selectedDate.id,
+      });
+      replaceDate(updated);
+      setEditing(false);
+      setView("upcoming");
+    } catch (error) {
+      console.error("Could not confirm Dominic's Date invitation:", error);
+      setError(error instanceof Error ? error.message : "Could not confirm the Date.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function beginDate(
     allowEarly =
       false
@@ -2113,6 +2136,26 @@ export function DatesExperienceScreen({
     The plan
   </h2>
 
+  {isPendingDominicInvitation(selectedDate) && (
+    <div className="date-flow-invitation-consent" role="status">
+      <strong>Dominic's invitation · not agreed yet</strong>
+      <p>This is his idea, not a confirmed or booked Date. When you have both
+        agreed on the place, day and exact time, add those details and confirm.
+        Your original Chat invitation remains linked.</p>
+      {!editing && (
+        <div className="date-flow-actions">
+          <button type="button" className="date-flow-secondary"
+            onClick={() => beginEditing(selectedDate)}>Add agreed details</button>
+          <button type="button" className="date-flow-primary"
+            disabled={saving || !pendingInvitationHasAgreedDetails(selectedDate)}
+            onClick={() => void confirmDominicInvitation()}>
+            Confirm our agreed plan
+          </button>
+        </div>
+      )}
+    </div>
+  )}
+
   {editing ? (
     <>
       <div className="date-flow-field">
@@ -2381,10 +2424,8 @@ export function DatesExperienceScreen({
           Choose Place
         </button>
 
-        {(state ===
-          "idea" ||
-          state ===
-            "planned") && (
+        {(state === "idea" || state === "planned") &&
+          !isPendingDominicInvitation(selectedDate) && (
           <>
             {state ===
               "planned" && (
