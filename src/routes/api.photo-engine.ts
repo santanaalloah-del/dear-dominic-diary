@@ -282,7 +282,7 @@ function buildPrompt(
     "HANDS AND OBJECTS: Show a small named prop only once and in a physically coherent grip; do not duplicate, cross, or deform it. Prioritize accurate people, arms and hands over decorative prop details.",
     "NATURAL CONNECTION: For an affectionate interaction, show believable attention between partners instead of vacant eyes or forced symmetrical poses.",
     "CANONICAL ROOM GEOMETRY: Preserve the actual location and orientation of the sofa relative to walls, windows, doors and major furniture from the attached room photo. Never move furniture to improve composition. Vary only the plausible phone-camera position.",
-    "WARDROBE VISUAL CANON: Wardrobe reference images are photos of the EXACT SAVED CLOTHING PIECES, not photos of a person. When visible in this scene, reproduce each selected garment's silhouette, fit, construction, fabric and color. Do not replace wide/baggy jeans with slim or skinny jeans. Do not replace Adidas Samba-style sneakers with slides, sandals or flip-flops. The clothing reference's shape overrides the model's generic clothing assumptions, while the identity photos govern the real faces and bodies.",
+    "WARDROBE VISUAL CANON: Wardrobe references contain the real Currently Wearing garment cutouts. A wardrobe board may show separate labeled panels for each person: top, bottom, outerwear and shoes. Interpret each panel as its own exact garment; NEVER as a person. Apply pieces to the correct owner, preserving silhouette, fit, construction, fabric and color. Do not replace wide/baggy jeans with slim jeans, or sneakers with sandals. Even if shoes or trousers are partly out of frame, NEVER invent a contradictory outfit. The real face references govern identity.",
     "FRAMING FOR TWO PEOPLE: Unless explicitly requesting a rear view or extremely wide establishing shot, show recognizable faces for BOTH people at a size that makes their identity evaluable. Preserve the scene and room but do not let the entire apartment dominate the image.",
     hasSourceImage
       ? "Image 1 is an existing generated preview being adjusted. Preserve scene continuity while correcting the person toward the identity references."
@@ -437,7 +437,15 @@ export const Route = createFileRoute("/api/photo-engine")({
             // OpenRouter, preserving full resolution without large JSON bodies.
             // App-hosted room references are converted here, because the worker
             // intentionally does not fetch arbitrary external hostnames.
-            if (body.background === true) {
+            if (
+              reference.subject === "wardrobe" &&
+              reference.url.startsWith("data:image/jpeg;base64,") &&
+              reference.url.length <= MAX_REFERENCE_BYTES * 4 / 3
+            ) {
+              // Per-user boards are assembled locally from EXACT saved cutouts.
+              // Admit ONLY bounded JPEG garment boards, never arbitrary URLs.
+              dataUrl = validateDataUrl(reference.url);
+            } else if (body.background === true) {
               try {
                 const u = new URL(reference.url);
                 if (
@@ -495,6 +503,19 @@ const prompt = buildPrompt(
 
         // Store the refs that actually reached the paid image provider, not
         // every ID in the reference library. This lets Gallery feedback work.
+        // Avoid paid generations with missing identities; a successful room
+        // or outfit image alone is not evidence of the real person's face.
+        const requiredPeople = body.request.subject_type === "both"
+          ? ["alloah", "dominic"]
+          : [body.request.subject_type === "me" ? "alloah" : "dominic"];
+        for (const subject of requiredPeople) {
+          if (!attachedReferences.some(({ reference }) =>
+            reference.subject === subject && reference.referenceKind === "identity"
+          )) {
+            return jsonError("Missing usable " + subject + " identity images. Check private reference access before generating. No credits used.", 400);
+          }
+        }
+
         const identityReferenceUsage = attachedReferences
           .filter(({ reference }) =>
             (reference.subject === "alloah" || reference.subject === "dominic") &&
