@@ -343,7 +343,9 @@ export function buildPhotoVariationPlan(
   // Passive solo moments are not "hands busy", posed fashion sitting, or
   // activities invented just to make a more photogenic picture.
   const quietSoloMoment = request.subject_type !== "both" &&
-    /\b(relaxing|relaxed|lounging|chilling|resting|doing nothing special|taking it easy|doing nothing|watching something|just hanging out)\b/i.test(sceneText);
+    /\b(relaxing|relaxed|lounging|chilling|resting|doing nothing special|taking it easy|doing nothing|watching something|just hanging out)\b/i.test(sceneText) &&
+    (!sceneIntent.pose || sceneIntent.pose === "relaxed_seated" ||
+     sceneIntent.pose === "relaxed_phone_selfie");
   const poseType = quietSoloMoment &&
     (!sceneIntent.pose || sceneIntent.pose === "relaxed_seated")
     ? (request.photo_style === "selfie" ? "relaxed_phone_selfie" : "lounging_unposed")
