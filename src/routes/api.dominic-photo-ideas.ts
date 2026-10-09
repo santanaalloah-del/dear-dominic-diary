@@ -154,7 +154,7 @@ export const Route = createFileRoute("/api/dominic-photo-ideas")({
               dayKey: today,
               offersToday: count + 1,
             };
-            const { error: updateError } = await supabaseAdmin.rpc(
+            const { error: updateError } = await (supabaseAdmin as any).rpc(
               "upsert_spontaneous_photo_state",
               { p_user_id: row.user_id, p_state: nextState }
             );
