@@ -17552,3 +17552,70 @@ html[data-diario-time-theme="continuous"] .statusbar {
   -webkit-text-fill-color:#9a686b !important;
   opacity:.72 !important;
 }
+
+
+/* Wardrobe night-safe readable ink: paper surfaces must never inherit pale page text. */
+/* Preserve the vintage cream/wine aesthetic while maintaining readable
+   labels in both day and night themes (including iOS -webkit-text-fill). */
+.wardrobe-live .wardrobe-current-summary {
+  background: #f5e7d8 !important;
+  border-color: rgba(87,34,43,.24) !important;
+  color: #57222b !important;
+}
+.wardrobe-live .wardrobe-current-summary small {
+  color: #76434b !important;
+  -webkit-text-fill-color: #76434b !important;
+  opacity: 1 !important;
+}
+.wardrobe-live .wardrobe-current-summary strong {
+  color: #57222b !important;
+  -webkit-text-fill-color: #57222b !important;
+  opacity: 1 !important;
+}
+.wardrobe-live .wardrobe-current-summary > span,
+.wardrobe-live .wardrobe-current-summary > span svg {
+  color: #6b2d36 !important;
+  -webkit-text-fill-color: #6b2d36 !important;
+  opacity: 1 !important;
+}
+/* Inactive category pills are cream with wine text; active pills are wine
+   with ivory text, including their item counts. */
+.wardrobe-live .wardrobe-closet .wardrobe-category-tabs button:not(.active) {
+  background: #f9eee1 !important;
+  border-color: #95626b !important;
+  color: #57222b !important;
+  -webkit-text-fill-color: #57222b !important;
+  opacity: 1 !important;
+}
+.wardrobe-live .wardrobe-closet .wardrobe-category-tabs button:not(.active) span {
+  color: #70414a !important;
+  -webkit-text-fill-color: #70414a !important;
+  opacity: 1 !important;
+}
+.wardrobe-live .wardrobe-closet .wardrobe-category-tabs button.active {
+  background: #6d1b27 !important;
+  border-color: #6d1b27 !important;
+  color: #fff1e3 !important;
+  -webkit-text-fill-color: #fff1e3 !important;
+  opacity: 1 !important;
+}
+.wardrobe-live .wardrobe-closet .wardrobe-category-tabs button.active span {
+  color: #fff1e3 !important;
+  -webkit-text-fill-color: #fff1e3 !important;
+  opacity: 1 !important;
+}
+.wardrobe-live .wardrobe-closet .wardrobe-category-tabs button:focus-visible {
+  outline: 2px solid #6d1b27;
+  outline-offset: 3px;
+}
+/* The page title inherits the surrounding (time-aware) page foreground,
+   unlike paper card labels which intentionally remain dark year-round. */
+.wardrobe-live .screen-intro h1 {
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+}
+.wardrobe-live .screen-intro .intro-copy,
+.wardrobe-live .screen-intro .eyebrow {
+  color: var(--text-soft) !important;
+  -webkit-text-fill-color: var(--text-soft) !important;
+}

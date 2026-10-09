@@ -28,5 +28,7 @@ jobs:
         run: bun test tests/chat-day-heading.test.ts
       - name: Check single date chip follows first visible chat message
         run: bun test tests/chat-visible-day.test.ts
+      - name: Wardrobe contrast regression checks (no external services)
+        run: bun test tests/wardrobe-contrast.test.ts
       - name: Build
         run: bun run build
