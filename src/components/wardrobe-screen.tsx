@@ -43,6 +43,8 @@ import {
   type WardrobeOwner,
 } from "@/lib/wardrobe-context";
 
+import { WARDROBE_CATEGORIES, normalizeWearingIds, toggleWearingPiece, removeWearingPiece } from "@/lib/wardrobe-selection";
+
 import "./wardrobe-wearing.css";
 
 type WardrobeOwnerView = "mine" | "dominic";
@@ -923,6 +925,7 @@ export function WardrobeExperienceScreen() {
 
   const [wardrobeView, setWardrobeView] =
     useState<WardrobeView>("closet");
+  const [closetCategory, setClosetCategory] = useState("all");
 
   const [wardrobeItems, setWardrobeItems] =
     useState<DiarioItem[]>([]);
@@ -1191,9 +1194,17 @@ export function WardrobeExperienceScreen() {
   }, [savedLooks, session.user.id]);
 
   const visibleItems =
-    wardrobeItems.filter(
-      (item) => item.owner === dbOwner
-    );
+    wardrobeItems.filter((item) => item.owner === dbOwner);
+  const slotCatalog = visibleItems.map(item => ({
+    id: item.id,
+    category: typeof item.data?.category === "string" ? item.data.category : "other",
+  }));
+  const selectedWearingIds = normalizeWearingIds(wearingByOwner[dbOwner]?.clothingIds ?? [], slotCatalog);
+  const closetItems = closetCategory === "all"
+    ? visibleItems
+    : visibleItems.filter(item =>
+        (typeof item.data?.category === "string" ? item.data.category : "other") === closetCategory
+      );
 
   const visibleLooks =
     savedLooks.filter(
@@ -1204,9 +1215,7 @@ export function WardrobeExperienceScreen() {
     wearingByOwner[dbOwner];
 
   const wearingItems =
-    visibleItems.filter((item) =>
-      wearing?.clothingIds.includes(item.id)
-    );
+    visibleItems.filter(item => selectedWearingIds.includes(item.id));
 
   const wearingLook =
     wearing?.lookId
@@ -1630,15 +1639,10 @@ export function WardrobeExperienceScreen() {
     setWardrobeError(null);
 
     try {
-      const currentIds =
-        wearing?.clothingIds ?? [];
-
-      const nextIds =
-        currentIds.includes(item.id)
-          ? currentIds.filter(
-              (id) => id !== item.id
-            )
-          : [...currentIds, item.id];
+      // Use the most recent database selection, not a stale local array.
+      // Selecting another top / bottom / pair of shoes REPLACES that slot.
+      const persisted = await getWearingSelection({ userId: session.user.id, owner: dbOwner });
+      const nextIds = toggleWearingPiece(persisted?.clothingIds ?? [], item.id, slotCatalog);
 
       const selection =
         await setWearingClothing({
@@ -1660,6 +1664,26 @@ export function WardrobeExperienceScreen() {
       setWardrobeError(
         "The current outfit could not be updated."
       );
+    } finally {
+      setUpdatingWearing(false);
+    }
+  };
+
+  const removeWearingItem = async (itemId: string) => {
+    if (updatingWearing) return;
+    setUpdatingWearing(true);
+    setWardrobeError(null);
+    try {
+      const persisted = await getWearingSelection({ userId: session.user.id, owner: dbOwner });
+      const nextIds = removeWearingPiece(persisted?.clothingIds ?? [], itemId, slotCatalog);
+      const selection = await setWearingClothing({
+        userId: session.user.id, owner: dbOwner, clothingIds: nextIds,
+      });
+      setWearingByOwner(current => ({ ...current, [dbOwner]: selection }));
+    } catch (error) {
+      console.error("Could not remove one Wearing item:", error);
+      setWardrobeError("That piece could not be removed from Wearing.");
+      await refreshOwnerWearing(dbOwner).catch(() => undefined);
     } finally {
       setUpdatingWearing(false);
     }
@@ -2387,12 +2411,7 @@ export function WardrobeExperienceScreen() {
                           : "other";
 
                       return (
-                        <article
-                          key={
-                            item.id
-                          }
-                          className="wardrobe-wearing-piece"
-                        >
+                        <article key={item.id} className="wardrobe-wearing-piece">
                           {mediaByItemId[item.id] ? (
                             <img
                               className="wardrobe-wearing-thumb"
@@ -2414,12 +2433,18 @@ export function WardrobeExperienceScreen() {
                                 "Untitled"}
                             </strong>
 
-                            <small>
-                              {
-                                category
-                              }
-                            </small>
+                            <small>{category}</small>
                           </span>
+                          <button
+                            type="button"
+                            className="wardrobe-remove-piece"
+                            title="Remove this piece from Wearing"
+                            aria-label={`Remove ${item.title ?? category} from Wearing`}
+                            disabled={updatingWearing}
+                            onClick={() => void removeWearingItem(item.id)}
+                          >
+                            <X size={15} />
+                          </button>
                         </article>
                       );
                     }
@@ -2456,6 +2481,23 @@ export function WardrobeExperienceScreen() {
                 : "items"}
             </small>
           </header>
+
+          <nav className="wardrobe-category-tabs" aria-label="Clothing categories">
+            {WARDROBE_CATEGORIES.map(category => {
+              const count = category.id === "all" ? visibleItems.length :
+                visibleItems.filter(item =>
+                  (typeof item.data?.category === "string" ? item.data.category : "other") === category.id
+                ).length;
+              return (
+                <button key={category.id} type="button"
+                  className={closetCategory === category.id ? "active" : ""}
+                  aria-pressed={closetCategory === category.id}
+                  onClick={() => setClosetCategory(category.id)}>
+                  {category.label}<span>{count}</span>
+                </button>
+              );
+            })}
+          </nav>
 
           <div className="wardrobe-closet-toolbar">
             {addingClothing ? (
@@ -2739,7 +2781,7 @@ export function WardrobeExperienceScreen() {
                 </button>
               </div>
             </div>
-          ) : visibleItems.length ===
+          ) : closetItems.length ===
             0 ? (
             <div className="wardrobe-empty">
               <div
@@ -2757,7 +2799,7 @@ export function WardrobeExperienceScreen() {
               </small>
 
               <h2>
-                No clothes added yet.
+                {visibleItems.length ? "No items in this category." : "No clothes added yet."}
               </h2>
 
               <p>
@@ -2770,7 +2812,7 @@ export function WardrobeExperienceScreen() {
           ) : (
             <>
               <div className="wardrobe-item-grid">
-                {visibleItems.map(
+                {closetItems.map(
                   (item) => {
                     const category =
                       typeof item.data
@@ -2781,11 +2823,7 @@ export function WardrobeExperienceScreen() {
                         : "other";
 
                     const isWearing =
-                      Boolean(
-                        wearing?.clothingIds.includes(
-                          item.id
-                        )
-                      );
+                      selectedWearingIds.includes(item.id);
 
                     return (
                       <article
