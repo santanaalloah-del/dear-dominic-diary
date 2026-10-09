@@ -1232,8 +1232,14 @@ export async function generatePhotoProviderPreview({
     ...(request.context_snapshot ?? {}),
     ...(sceneLocation ? { location: sceneLocation } : {}),
     ...(explicitlyDescribed ? { activity: null, dominicState: null } : {}),
+    custom: {
+      ...(request.context_snapshot?.custom ?? {}),
+      // Match the actual selected home photo's lighting period. Do not guess
+      // a café, outdoor sun or sunset inside the user's real apartment.
+      ...(homeCanon ? { homeTimeKey: homeCanon.timeKey } : {}),
+    },
   };
-  const promptRequest = explicitlyDescribed
+  const promptRequest = (explicitlyDescribed || homeCanon)
     ? { ...request, context_snapshot: cleanedContext }
     : request;
 
