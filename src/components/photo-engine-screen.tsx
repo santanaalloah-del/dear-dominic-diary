@@ -1371,7 +1371,7 @@ export function PhotoEngineScreen() {
                 Saved Identity photos define the default hair. Current Look Hair is only needed when you record a change.
               </p>
               <p style={{ margin: 0, fontSize: 12 }}>
-                Real room images: {referenceAudit.homeReferences} · Visual Canon:{" "}
+                Real room images: {referenceAudit.homeReferences} · Real floor plans: {referenceAudit.layoutReferences} · Visual Canon:{" "}
                 {referenceAudit.canonSubjects.length ? referenceAudit.canonSubjects.join(", ") : "not yet analyzed"}
               </p>
               {referenceAudit.tattooRegions.length > 0 && (
@@ -1391,7 +1391,8 @@ export function PhotoEngineScreen() {
                 </p>
               )}
               <p style={{ margin: 0, fontSize: 12 }}>
-                Example camera plan (final variation may differ): {referenceAudit.scene.pose.replaceAll("_", " ")} ·{" "}
+                Camera plan for this photo: {referenceAudit.scene.pose.replaceAll("_", " ")} ·{" "}
+                {referenceAudit.scene.cameraAngle.replaceAll("_", " ")} ·{" "}
                 {referenceAudit.scene.framing.replaceAll("_", " ")} ·{" "}
                 {referenceAudit.scene.lighting.replaceAll("_", " ")}
               </p>
