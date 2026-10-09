@@ -106,7 +106,7 @@ export function SpontaneousPhotoOpportunity({
 
   async function choosePreferences(
     values: Partial<Pick<SpontaneousPhotoState,
-      "enabled" | "frequency" | "includeCouple" | "useLocationContext">>
+      "enabled" | "frequency" | "includeCouple" | "useLocationContext" | "backgroundSuggestions" | "notifyOffApp">>
   ) {
     if (busy) return;
     setBusy(true);
@@ -309,13 +309,25 @@ export function SpontaneousPhotoOpportunity({
               onChange={event => void choosePreferences({ useLocationContext: event.target.checked })} />
             Use saved location and daily-life context
           </label>
+          <label>
+            <input type="checkbox" checked={settings?.backgroundSuggestions ?? false} disabled={busy}
+              onChange={event => void choosePreferences({ backgroundSuggestions: event.target.checked })} />
+            Suggest a moment even while the app is closed (daily background check)
+          </label>
+          <label>
+            <input type="checkbox" checked={settings?.notifyOffApp ?? false}
+              disabled={busy || !(settings?.backgroundSuggestions ?? false)}
+              onChange={event => void choosePreferences({ notifyOffApp: event.target.checked })} />
+            Notify me of a background idea (only if I opt in)
+          </label>
         </div>
       )}
 
       <p>
-        Ideas appear during daily life and when you return to Chat.
-        Review opens Photo Engine's free reference check; only you can approve
-        a paid generation. Generated photos are saved to Gallery.
+        Ideas appear during daily life and when you return to Chat. Optional
+        background checks require your permission. Review opens Photo Engine's
+        free reference check; only you can approve a paid generation. Generated
+        photos are saved to Gallery and connected chat moments.
       </p>
       {error && <p role="alert">{error}</p>}
     </aside>
