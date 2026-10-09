@@ -239,6 +239,56 @@ function canonBlock(canons: VisualCanonPayload[]) {
   ].join("\n\n");
 }
 
+/**
+ * User-requested camera behavior overrides the random anti-repeat pool.
+ * In particular, a casual mirror selfie must not become "looking away"
+ * or an empty-room establishing shot just because Photo Language is
+ * "Natural iPhone" instead of the optional "Mirror" preset.
+ *
+ * This plan is used by BOTH the free audit and the actual generator.
+ */
+function respectRequestedCamera(
+  request: RequestShape,
+  plan: PhotoVariationPlan
+): PhotoVariationPlan {
+  const scene = (request.scene ?? "").trim().toLowerCase();
+  const style = (request.photo_style ?? "").toLowerCase();
+  const selfie = /\bselfies?\b|\bself[- ]portrait\b|autorretrato/.test(scene);
+  const mirror = /\bmirror\b|espelho|reflex[ãa]o/.test(scene);
+  const mirrorPhoto = mirror && (selfie || /\b(photo|picture|pic|snapshot)\b|foto|fotografia/.test(scene));
+  const mirrorStyle = style === "mirror";
+  const selfieStyle = style === "selfie";
+  if (!selfie && !mirrorPhoto && !mirrorStyle && !selfieStyle) return plan;
+
+  const facingAwayOnPurpose =
+    /\b(looking away|looking to the side|from behind|rear view|back view|back to camera|turned away|side profile|profile shot)\b|de costas|olhando para o lado|sem mostrar o rosto/.test(scene);
+  const explicitlyWide =
+    /\b(wide shot|wide angle|distant shot|long shot|entire room|whole room)\b|plano aberto|ambiente inteiro/.test(scene);
+  const explicitlyFullBody =
+    /\b(full[- ]body|whole body|entire body|head to toe|head-to-toe|full outfit)\b|corpo inteiro|dos pés à cabeça|look completo/.test(scene);
+  const explicitlyClose =
+    /\b(close[- ]up|headshot|face closeup|face close-up)\b|close no rosto|somente os rostos/.test(scene);
+
+  const mirrorView = mirrorPhoto || mirrorStyle;
+  return {
+    ...plan,
+    // Preserve an explicit request to turn away, rather than overruling it.
+    poseType: facingAwayOnPurpose
+      ? plan.poseType
+      : mirrorView ? "relaxed_mirror_selfie" : "relaxed_phone_selfie",
+    cameraAngle: mirrorView ? "mirror_eye_level" : "phone_eye_level",
+    framing: explicitlyWide ? "environmental_wide"
+      : explicitlyFullBody ? "full_body"
+      : explicitlyClose ? "head_and_shoulders"
+      : mirrorView ? "three_quarter" : "chest_up",
+    compositionType: mirrorView ? "mirror_reflection" : "centered_casual",
+    expression: facingAwayOnPurpose
+      ? plan.expression
+      : request.subject_type === "both"
+        ? "both_faces_clearly_visible_relaxed" : "face_clearly_visible_relaxed",
+  };
+}
+
 function buildPrompt(
   request: RequestShape,
   references: ProviderReference[],
@@ -369,6 +419,18 @@ export const Route = createFileRoute("/api/photo-engine")({
         }
 
         if (!body.request?.id) return jsonError("Missing Photo Engine request.", 400);
+        // The Request option promises a user-chosen moment. With an empty
+        // scene, random camera variation can give "looking away" or an
+        // environmental-wide composition unrelated to the user's intent.
+        // Reject BEFORE job claim, budget reservation and paid provider calls.
+        if (body.request.mode === "request" &&
+            !(typeof body.request.scene === "string" && body.request.scene.trim())) {
+          return jsonError(
+            "Describe the moment in Scene before checking or generating a Request photo (for example, a mirror selfie together). No credits used.",
+            400
+          );
+        }
+
 
         const openRouterKey = envValue("OPENROUTER_API_KEY");
 
@@ -521,7 +583,7 @@ export const Route = createFileRoute("/api/photo-engine")({
           } => Boolean(item.dataUrl)
         );
 
-       const variationPlan = buildPhotoVariationPlan(body.request);
+       const variationPlan = respectRequestedCamera(body.request, buildPhotoVariationPlan(body.request));
 
 const prompt = buildPrompt(
   body.request,
