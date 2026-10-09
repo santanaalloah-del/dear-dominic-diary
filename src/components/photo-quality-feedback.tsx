@@ -7,6 +7,7 @@ const ISSUES = [
   { key: "face_dominic", label: "Dominic's face" },
   { key: "tattoos", label: "Tattoos / placement" },
   { key: "wardrobe", label: "Clothes / shoes" },
+  { key: "framing", label: "Too wide / wrong camera crop" },
   { key: "anatomy", label: "Hands / anatomy" },
   { key: "connection", label: "Expressions / interaction" },
   { key: "room", label: "Room / furniture" },
