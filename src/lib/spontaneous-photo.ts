@@ -319,6 +319,48 @@ export async function getSpontaneousPhotoState(userId: string) {
   return parseState(row?.data?.[SETTINGS_KEY]);
 }
 
+/** Preferences and saved ideas are private Supabase data; no image calls. */
+export async function setSpontaneousPhotoPreferences(userId: string, values: Partial<
+  Pick<SpontaneousPhotoState, "enabled" | "frequency" | "includeCouple" | "useLocationContext">
+>) {
+  const current = await getSpontaneousPhotoState(userId);
+  const next: SpontaneousPhotoState = { ...current, ...values };
+  if (!next.enabled) next.pending = null;
+  await saveState(userId, next);
+  return next;
+}
+
+export async function saveSpontaneousPhotoIdea(userId: string, idea: SpontaneousPhotoOpportunity) {
+  const current = await getSpontaneousPhotoState(userId);
+  const saved: SpontaneousPhotoOpportunity = { ...idea, status: "saved" };
+  const savedIdeas = [...current.savedIdeas.filter(item => item.id !== idea.id), saved].slice(-20);
+  const next = { ...current, savedIdeas,
+    pending: current.pending?.id === idea.id ? null : current.pending,
+    cooldownUntil: new Date(Date.now() + ACCEPT_COOLDOWN_MS).toISOString(),
+    lastDecisionAt: new Date().toISOString(),
+  };
+  await saveState(userId, next);
+  return saved;
+}
+
+export async function removeSavedSpontaneousPhotoIdea(userId: string, ideaId: string) {
+  const current = await getSpontaneousPhotoState(userId);
+  await saveState(userId, { ...current,
+    savedIdeas: current.savedIdeas.filter(item => item.id !== ideaId),
+  });
+}
+
+export async function markSpontaneousPhotoIdeaReviewed(userId: string, idea: SpontaneousPhotoOpportunity) {
+  const current = await getSpontaneousPhotoState(userId);
+  await saveState(userId, {
+    ...current,
+    pending: current.pending?.id === idea.id ? null : current.pending,
+    savedIdeas: current.savedIdeas.filter(item => item.id !== idea.id),
+    cooldownUntil: new Date(Date.now() + ACCEPT_COOLDOWN_MS).toISOString(),
+    lastDecisionAt: new Date().toISOString(),
+  });
+}
+
 export async function evaluateSpontaneousPhotoOpportunity({
   userId,
   dominicState,
@@ -352,18 +394,18 @@ export async function evaluateSpontaneousPhotoOpportunity({
     return null;
   }
 
-  if (
-    current.lastEvaluatedStateStartedAt === dominicState.startedAt &&
-    !force
-  ) {
-    return null;
-  }
+  const dayKey = rioDayKey();
+  const offersToday = current.dayKey === dayKey ? current.offersToday : 0;
+  if (offersToday >= DAY_LIMIT[current.frequency] && !force) return null;
+  const slot = Math.floor(now / CHECK_INTERVAL_MS[current.frequency]);
+  const evaluationKey = dominicState.startedAt + "|" + slot;
+  if (current.lastEvaluatedStateStartedAt === evaluationKey && !force) return null;
 
   if (PRIVATE_ACTIVITIES.has(dominicState.activity)) {
     await saveState(userId, {
       ...current,
       pending: null,
-      lastEvaluatedStateStartedAt: dominicState.startedAt,
+      lastEvaluatedStateStartedAt: evaluationKey,
     });
     return null;
   }
@@ -375,7 +417,7 @@ export async function evaluateSpontaneousPhotoOpportunity({
   const threshold = chanceThreshold(score);
 
   const roll = deterministicPercent(
-    `${userId}|${dominicState.startedAt}|${dominicState.activity}|${dominicState.location}`
+    `${userId}|${evaluationKey}|${dominicState.activity}|${dominicState.location}`
   );
 
   const shouldOffer = force || (threshold > 0 && roll < threshold);
@@ -384,22 +426,45 @@ export async function evaluateSpontaneousPhotoOpportunity({
     await saveState(userId, {
       ...current,
       pending: null,
-      lastEvaluatedStateStartedAt: dominicState.startedAt,
+      lastEvaluatedStateStartedAt: evaluationKey,
     });
     return null;
   }
 
+  // Couple scenes only when real presence data confirms being together.
+  // Otherwise Dominic may send HIS own photo, not invent Alloah at his side.
+  const presence = current.includeCouple ? await resolveDominicPresence(userId).catch(() => null) : null;
+  const together = Boolean(presence?.togetherNow);
+  const subjectType: "dominic" | "both" = together &&
+    deterministicPercent(evaluationKey + "|couple") < 45 ? "both" : "dominic";
+  const styleChoices: SpontaneousPhotoOpportunity["photoStyle"][] =
+    dominicState.activity === "getting_ready" ? ["mirror", "natural_iphone", "candid"]
+    : ["natural_iphone", "candid", "selfie"];
+  const index = deterministicPercent(evaluationKey + "|style|" + (force ? crypto.randomUUID() : ""));
+  const photoStyle = styleChoices[index % styleChoices.length];
+  const sceneBase = sceneForState(dominicState);
+  const scene = subjectType === "both"
+    ? "Alloah and Dominic together in their actual current moment, an unposed candid phone photo. " +
+       sceneBase.replace(/Dominic\s+(sending|taking|casually taking|casually sending)/i, "Dominic")
+    : sceneBase;
+  const note = subjectType === "both"
+    ? "He wanted to remember a small moment together."
+    : "He thought this little part of his day was worth showing you.";
   const createdAt = new Date().toISOString();
 
   const opportunity: SpontaneousPhotoOpportunity = {
     id: crypto.randomUUID(),
     status: "pending",
+    subjectType,
+    photoStyle,
+    note,
     createdAt,
     expiresAt: new Date(now + OPPORTUNITY_LIFETIME_MS).toISOString(),
     stateStartedAt: dominicState.startedAt,
     sourceActivity: dominicState.activity,
     sourceLocation: dominicState.location,
-    scene: sceneForState(dominicState),
+    scene: current.useLocationContext ? scene :
+      "Dominic taking an imperfect, everyday photo of himself in a plausible current moment. Do not invent Alloah's presence or a specific address.",
     mood: dominicState.mood ?? "everyday",
     conversationSummary: cleanedConversation,
   };
@@ -407,7 +472,9 @@ export async function evaluateSpontaneousPhotoOpportunity({
   await saveState(userId, {
     ...current,
     pending: opportunity,
-    lastEvaluatedStateStartedAt: dominicState.startedAt,
+    lastEvaluatedStateStartedAt: evaluationKey,
+    dayKey,
+    offersToday: offersToday + 1,
   });
 
   return opportunity;
