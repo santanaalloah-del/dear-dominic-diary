@@ -382,6 +382,7 @@ export async function evaluateSpontaneousPhotoOpportunity({
   if (!current.enabled) return null;
 
   if (
+    !force &&
     current.pending?.status === "pending" &&
     current.pending.stateStartedAt === dominicState.startedAt &&
     current.pending.sourceActivity === dominicState.activity &&
