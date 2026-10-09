@@ -302,9 +302,31 @@ export function buildPhotoVariationPlan(
   const avoid = safeObject(anti.avoid);
   const context = safeObject(request.context_snapshot);
 
-  // A given request keeps the SAME camera plan for free preflight and paid
-  // generation (its ID is unchanged). A NEW request, even with the SAME short
-  // scene text, is allowed a genuinely different angle and crop.
+  // The free audit sends its validated camera plan with this manual request.
+  // Persisting the chosen plan is necessary: free audits use an in-memory ID,
+  // while paid generation creates a DIFFERENT database request ID and loads
+  // actual anti-repetition history. Otherwise the paid angle could diverge.
+  const previewPlan = safeObject(safeObject(context.custom).photoPreviewPlan);
+  const planKeys = [
+    "poseType", "cameraAngle", "framing",
+    "expression", "lightingType", "compositionType",
+  ] as const;
+  if (request.mode === "request" && planKeys.every((key) =>
+    typeof previewPlan[key] === "string" &&
+    (previewPlan[key] as string).length > 0 &&
+    (previewPlan[key] as string).length <= 70
+  )) {
+    return {
+      poseType: previewPlan.poseType as string,
+      cameraAngle: previewPlan.cameraAngle as string,
+      framing: previewPlan.framing as string,
+      expression: previewPlan.expression as string,
+      lightingType: previewPlan.lightingType as string,
+      compositionType: previewPlan.compositionType as string,
+    };
+  }
+
+  // A NEW photo, even with identical short scene text, uses a new seed.
   const seedBase = hashString(
     [request.id, request.mode ?? "", request.photo_style ?? "",
       request.scene ?? "", request.subject_type ?? ""].join("|")
