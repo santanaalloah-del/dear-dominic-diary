@@ -12,7 +12,6 @@ import {
   type WardrobePhotoContext,
   type WardrobeOwner,
 } from "@/lib/wardrobe-context";
-import apartmentFloorPlanUrl from "@/assets/apartment-floor-plan.png";
 import homeBathroom0200 from "@/assets/home-bathroom-0200.jpeg";
 import homeBathroom0700 from "@/assets/home-bathroom-0700.jpeg";
 import homeBathroom1100 from "@/assets/home-bathroom-1100.jpeg";
@@ -231,16 +230,14 @@ async function homeCanonContext(userId: string, request: PhotoGenerationRequest)
     room,
     timeKey,
     sceneUrl: roomImages[timeKey],
-    floorPlanUrl: apartmentFloorPlanUrl,
     instruction: [
       "SHARED HOME VISUAL CANON:",
       "This is Alloah and Dominic's one shared apartment.",
       `Current room: ${room}. The attached ${room} reference at ${timeKey} is the PRIMARY visual canon for this room: preserve its actual furniture, decor, materials, colors, windows, spatial identity and time-of-day lighting.`,
       homeLightingInstruction(timeKey),
       "Time-of-day lighting is a hard physical constraint, not a stylistic suggestion. Never introduce sunlight or a bright daytime exterior into a nighttime reference.",
-      "The attached apartment floor plan is a SECOND REQUIRED structural reference: read it together with the real room photograph. Preserve wall layout, walking circulation, furniture placement and camera sightlines; it is not a decorative image.",
       room === "living"
-        ? "LIVING ROOM SOFA PLACEMENT: The actual sofa is freestanding / away from the wall, NOT pushed flush against a wall. Keep its real spacing and orientation relative to the other furniture from the room photo and floor plan. Do not reposition it to create a generic staged interior."
+        ? "LIVING ROOM SOFA PLACEMENT: Preserve the ACTUAL sofa, its distance from the walls and orientation to windows and other furniture as depicted in the room photo; do not invent another sofa or move it to fit a camera angle."
         : null,
       objectList.length ? `Persisted room objects: ${objectList.join(" | ")}.` : null,
       "Vary pose, framing and camera angle naturally, but keep the environment recognizably the same canonical apartment. Never replace it with a generic bedroom, living room, kitchen or bathroom.",
@@ -1181,11 +1178,9 @@ export async function generatePhotoProviderPreview({
         isCurrent: true,
       }));
 
-  // The room photo provides appearance/lighting; the floor plan provides
-  // structure. Both are essential EVEN WHEN Currently Wearing boards exist.
-  // Give the pair two guaranteed slots under the same 14-image ceiling.
-  const includeFloorPlan = Boolean(homeCanon);
-  const homeImageSlots = homeCanon ? 2 : 0;
+  // Reserve exactly ONE canonical home photograph for the actual active room.
+  // The floor plan stays stored in the project but is NOT sent to image generation.
+  const homeImageSlots = homeCanon ? 1 : 0;
   const hasCurrentDominicTop = request.use_current_look &&
     wardrobeContexts.some((context) =>
       context.owner === "dominic" &&
@@ -1216,20 +1211,6 @@ export async function generatePhotoProviderPreview({
       lookType: null,
       isCurrent: true,
     });
-    if (includeFloorPlan) {
-    references.push({
-      id: "shared-home-floor-plan",
-      url: new URL(homeCanon.floorPlanUrl, window.location.origin).toString(),
-      subject: "shared_home",
-      title: "Shared apartment floor plan",
-      description: "REQUIRED FLOOR PLAN: keep the original room boundaries, circulation, sofa location and orientation. Use jointly with the actual room photo; this is architecture only, never decoration, faces or clothing.",
-      purposes: ["architecture", "layout", "floor_plan"],
-      strength: "supporting",
-      referenceKind: "scene",
-      lookType: null,
-      isCurrent: true,
-    });
-    }
   }
 
   const identityReferenceUsage: IdentityReferenceUsage[] =
