@@ -394,19 +394,49 @@ export const Route = createFileRoute("/api/photo-engine")({
           (body.request.context_snapshot.custom as Record<string, unknown>).requestedFrom === "dominic-right-now";
 
         const requestedReferences = body.references ?? [];
-        const rightNowHomeScene = requestedReferences.find(
-          (reference) =>
-            reference.subject === "shared_home" &&
-            reference.referenceKind === "scene" &&
-            reference.purposes?.includes("environment")
+        // Dominic's right-now chat photos historically truncated at six
+        // references BEFORE Current Wearing boards were appended. That silently
+        // discarded his selected clothes. Reserve identity, CURRENT hair,
+        // CURRENT clothing and home evidence before any optional filler.
+        const rightNowSubjects = body.request.subject_type === "both"
+          ? ["alloah", "dominic"]
+          : [body.request.subject_type === "me" ? "alloah" : "dominic"];
+        const rightNowFaces = rightNowSubjects.flatMap((subject) =>
+          requestedReferences.filter((reference) =>
+            reference.subject === subject && reference.referenceKind === "identity"
+          ).slice(0, 3)
         );
-        const rightNowIdentity = requestedReferences
-          .filter((reference) => reference.subject !== "shared_home")
-          .slice(0, 6);
-
+        const rightNowLook = requestedReferences.filter((reference) =>
+          rightNowSubjects.includes(reference.subject) &&
+          reference.referenceKind === "current_look" && reference.isCurrent
+        ).slice(0, 2);
+        const rightNowClothing = requestedReferences.filter((reference) =>
+          reference.subject === "wardrobe" &&
+          rightNowSubjects.some((subject) => reference.purposes?.includes(subject))
+        ).slice(0, 4);
+        const rightNowRoom = requestedReferences.filter((reference) =>
+          reference.subject === "shared_home" &&
+          reference.referenceKind === "scene" &&
+          reference.purposes?.includes("environment")
+        ).slice(0, 1);
+        const rightNowPriority = [
+          ...rightNowFaces, ...rightNowLook, ...rightNowClothing, ...rightNowRoom
+        ];
+        const rightNowSeen = new Set<string>();
+        const rightNowBalanced = [
+          ...rightNowPriority,
+          ...requestedReferences.filter((reference) =>
+            rightNowSubjects.includes(reference.subject) &&
+            reference.referenceKind === "identity"
+          ),
+        ].filter((reference) => {
+          if (rightNowSeen.has(reference.id)) return false;
+          rightNowSeen.add(reference.id);
+          return true;
+        });
         const references = (
           isRightNow
-            ? [...rightNowIdentity, ...(rightNowHomeScene ? [rightNowHomeScene] : [])]
+            ? rightNowBalanced.slice(0, Math.min(12, referenceLimit))
             : requestedReferences
         ).slice(0, referenceLimit);
 
