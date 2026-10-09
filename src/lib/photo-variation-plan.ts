@@ -340,9 +340,16 @@ export function buildPhotoVariationPlan(
     request.scene, request.photo_style, request.subject_type
   );
   const sceneText = (request.scene ?? "").toLowerCase();
-  const poseType = sceneIntent.pose ?? choose(
-    pools.poses, safeStrings(avoid.poses), seedBase, "relaxed_seated"
-  );
+  // Passive solo moments are not "hands busy", posed fashion sitting, or
+  // activities invented just to make a more photogenic picture.
+  const quietSoloMoment = request.subject_type !== "both" &&
+    /\b(relaxing|relaxed|lounging|chilling|resting|doing nothing special|taking it easy|doing nothing|watching something|just hanging out)\b/i.test(sceneText);
+  const poseType = quietSoloMoment &&
+    (!sceneIntent.pose || sceneIntent.pose === "relaxed_seated")
+    ? (request.photo_style === "selfie" ? "relaxed_phone_selfie" : "lounging_unposed")
+    : sceneIntent.pose ?? choose(
+        pools.poses, safeStrings(avoid.poses), seedBase, "relaxed_seated"
+      );
   const recentAngles = [
     ...safeStrings(anti.recentCameraAngles).slice(0, 3),
     ...safeStrings(avoid.cameraAngles),
@@ -390,7 +397,10 @@ export function buildPhotoVariationPlan(
     ...safeStrings(avoid.framings),
   ];
   const framing = requestedShotFraming ??
-    (sceneIntent.pose === "making_coffee_candid"
+    (quietSoloMoment
+      ? choose(["chest_up", "waist_up", "close_up"], recentFramings,
+          seedBase >>> 6, "chest_up")
+    : sceneIntent.pose === "making_coffee_candid"
       ? choose(["waist_up", "three_quarter", "medium_wide", "chest_up"],
           recentFramings, seedBase >>> 6, "waist_up")
     : intimateCloseUp
@@ -421,7 +431,12 @@ export function buildPhotoVariationPlan(
   const expression = sceneIntent.faceAway
     ? "natural_turned_away"
     : sceneIntent.expression ??
-      (sceneIntent.pose === "making_coffee_candid"
+      (quietSoloMoment
+        ? choose(["resting_face_unperformed", "soft_unforced_half_smile",
+                  "looking_off_to_side_at_home", "quiet_thoughtful"],
+                 safeStrings(anti.recentExpressions), seedBase >>> 9,
+                 "resting_face_unperformed")
+      : sceneIntent.pose === "making_coffee_candid"
         ? choose(["naturally_focused_on_activity", "quiet_glance_at_partner",
                   "mid_conversation_while_working", "looking_down_at_coffee"],
                  safeStrings(anti.recentExpressions), seedBase >>> 9,
