@@ -1123,7 +1123,8 @@ export async function generatePhotoProviderPreview({
   }
 
   if (auditOnly) {
-    if (body?.auditOnly === true && body.noCreditsUsed === true) return body as PhotoReferenceAudit;
+    const audited = body as PhotoReferenceAudit | null;
+    if (audited?.auditOnly === true && audited.noCreditsUsed === true) return audited;
     throw new Error("Reference audit did not finish; no image was generated.");
   }
 
@@ -1131,11 +1132,10 @@ export async function generatePhotoProviderPreview({
     return { status: "queued", requestId: request.id } as unknown as PhotoProviderPreview;
   }
 
-  if (!("dataUrl" in (body ?? {})) || !("mimeType" in (body ?? {})) || !(body as PhotoProviderPreview | null)?.dataUrl) {
+  const preview = body as PhotoProviderPreview | null;
+  if (!preview?.dataUrl || !preview.mimeType) {
     throw new Error("The image provider returned no image.");
   }
-
-  const preview = body as PhotoProviderPreview;
   return {
     ...preview,
     feature: {
