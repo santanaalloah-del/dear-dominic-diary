@@ -364,7 +364,7 @@ function requestedTattooRegions(
     regions.add("right_leg");
   }
   // Hand and arm tattoos matter in actions such as holding, hugging, or sharing.
-  if (has("joint", "cigarette", "cigarro", "smoking", "holding", "sharing", "cuddling", "cuddle", "hugging", "hug", "embracing", "abraç")) {
+  if (has("joint", "cigarette", "cigarro", "smoking", "holding", "sharing", "cuddling", "cuddle", "hugging", "hug", "embracing") || text.includes("abraç")) {
     regions.add("left_hand"); regions.add("right_hand");
     regions.add("left_arm"); regions.add("right_arm");
   }
@@ -474,6 +474,12 @@ function requestText(request: PhotoGenerationRequest) {
     .toLowerCase();
 }
 
+function sceneContainsTerm(text: string, term: string): boolean {
+  const clean = (value: string) => value.toLowerCase()
+    .replace(/[^a-z0-9À-ÿ]+/g, " ").trim();
+  return (" " + clean(text) + " ").includes(" " + clean(term) + " ");
+}
+
 function requestNeedsProfile(request: PhotoGenerationRequest) {
   const text = requestText(request);
 
@@ -487,7 +493,7 @@ function requestNeedsProfile(request: PhotoGenerationRequest) {
     "turned",
     "over shoulder",
     "mirror",
-  ].some((term) => text.includes(term));
+  ].some((term) => sceneContainsTerm(text, term));
 }
 
 function requestNeedsBody(request: PhotoGenerationRequest) {
@@ -506,7 +512,7 @@ function requestNeedsBody(request: PhotoGenerationRequest) {
     "swim",
     "beach",
     "mirror",
-  ].some((term) => text.includes(term));
+  ].some((term) => sceneContainsTerm(text, term));
 }
 
 function requestNeedsTattoos(request: PhotoGenerationRequest) {
@@ -526,7 +532,7 @@ function requestNeedsTattoos(request: PhotoGenerationRequest) {
     "tank top",
     "swim",
     "beach",
-  ].some((term) => text.includes(term));
+  ].some((term) => sceneContainsTerm(text, term));
 }
 
 type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose";
