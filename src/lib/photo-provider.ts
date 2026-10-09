@@ -67,7 +67,7 @@ export type PhotoReferenceAudit = {
   tattooRegions: string[];
   requestedCount: number;
   warnings: string[];
-  scene: { pose: string; framing: string; lighting: string; expression: string; room: string | null; outdoors: boolean; timeKey: string | null };
+  scene: { pose: string; framing: string; lighting: string; expression: string; room: string | null; outdoors: boolean; timeKey: string | null; actionNotes?: string[] };
   referenceRoles: Array<{ subject: string; title: string | null; purposes: string[] }>;
 };
 
@@ -555,7 +555,7 @@ function requestNeedsTattoos(request: PhotoGenerationRequest) {
   ].some((term) => sceneContainsTerm(text, term));
 }
 
-type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism";
+type PhotoQualityIssue = "face_alloah" | "face_dominic" | "tattoos" | "wardrobe" | "anatomy" | "connection" | "room" | "lighting" | "pose" | "skin_tone" | "realism" | "hair" | "body_placement" | "prop_handling" | "chemistry";
 
 function photoSceneFamily(scene: string | null | undefined): string | null {
   const text = (scene ?? "").toLowerCase();
@@ -589,7 +589,8 @@ async function getMatchingQualityIssues(
   }
   const allowed = new Set<PhotoQualityIssue>([
     "face_alloah", "face_dominic", "tattoos", "wardrobe", "anatomy",
-    "connection", "room", "lighting", "pose", "skin_tone", "realism"
+    "connection", "room", "lighting", "pose", "skin_tone", "realism",
+    "hair", "body_placement", "prop_handling", "chemistry"
   ]);
   const issues = new Set<PhotoQualityIssue>();
   for (const row of (data ?? []) as Array<{
@@ -619,6 +620,10 @@ function photoQualityCorrectionInstruction(issues: Set<PhotoQualityIssue>): stri
     issues.has("face_dominic") ? "Preserve Dominic's real facial geometry from his identity photos over inspiration or styling." : null,
     issues.has("skin_tone") ? "Preserve each person's complexion and undertone from real identity photos, without borrowing skin color from inspiration or room references." : null,
     issues.has("realism") ? "Avoid AI-looking glamour: use handheld phone perspective, realistic skin texture, natural asymmetry and relaxed expressions." : null,
+    issues.has("hair") ? "Preserve the current hairstyle when a Current Look hair image is attached. Do not infer that an old portrait shows today\'s haircut or color." : null,
+    issues.has("body_placement") ? "Honor the explicit relative positions of both people, including lap, above/below and direction of the embrace; never swap them." : null,
+    issues.has("prop_handling") ? "Show the stated prop only once; attach it to a plausible real hand and preserve any explicitly named holder." : null,
+    issues.has("chemistry") ? "Show unforced, mutually attentive interaction and credible touch without vacant stares or artificial symmetry." : null,
     issues.has("tattoos") ? "Respect the attached real tattoo anchors; do not invent, mirror, relocate or erase a visible permanent tattoo." : null,
     issues.has("wardrobe") ? "Match every selected real garment's cut, color, fit, trousers and footwear from the Currently Wearing images." : null,
     issues.has("anatomy") ? "Check hand and limb counts, plausible grips and physically correct contact between bodies." : null,
@@ -763,56 +768,85 @@ function chooseProviderReferences(
   };
 
   const wantsProfile = requestNeedsProfile(request);
+  const sceneIntent = analyzePhotoScene(request.scene, request.photo_style, request.subject_type);
+  const isFullBodyScene = sceneIntent.framing === "full_body";
   const wantsBody = requestNeedsBody(request);
   const wantsTattoos = requestNeedsTattoos(request);
   const requestedRegions = requestedTattooRegions(request);
 
   if (request.subject_type === "both") {
-    // Never exhaust reference slots on six generic portraits before tattoo
-    // anchors are reached. Balance both genuine identities first.
+    // Two true faces per person always come first. Preserve room and wardrobe
+    // slots upstream; only allocate bonus portrait slots when the frame needs them.
     ensureIdentity("alloah", 2);
     ensureIdentity("dominic", 2);
-    if (wantsTattoos || requestedRegions.length)
-      takeOrderedIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), qualityIssues.has("tattoos") ? 3 : 2);
-    // The map, not the blanket "tattoos" tag shared by all 43 identity
-    // uploads, determines dedicated region evidence whenever possible.
-    if (!requestedRegions.length) {
-      takeOrderedIds("dominic", groupsFor("dominic").tattoos, 1);
-    }
+
     if (request.use_current_look) {
-      take((item) => item.reference.subject === "dominic" &&
-        item.reference.reference_kind === "current_look" && item.reference.is_current, 1);
-      take((item) => item.reference.subject === "alloah" &&
-        item.reference.reference_kind === "current_look" && item.reference.is_current, 1);
+      // Hair is temporary: a historical face reference cannot establish the
+      // hairstyle currently worn. Only separately uploaded Current Look evidence
+      // qualifies; do not pretend an old picture is "current".
+      for (const subject of ["alloah", "dominic"] as const) {
+        take((item) => item.reference.subject === subject &&
+          item.reference.reference_kind === "current_look" &&
+          item.reference.look_type === "hair" && item.reference.is_current, 1);
+      }
+      for (const subject of ["alloah", "dominic"] as const) {
+        take((item) => item.reference.subject === subject &&
+          item.reference.reference_kind === "current_look" && item.reference.is_current, 1);
+      }
     }
-    if (wantsBody) {
+
+    if (isFullBodyScene || wantsBody) {
       takeOrderedIds("dominic", groupsFor("dominic").body, 1);
       takeOrderedIds("alloah", groupsFor("alloah").body, 1);
+      take((item) => item.reference.reference_kind === "identity" &&
+        (item.reference.reference_purposes ?? []).includes("body") &&
+        (item.reference.subject === "alloah" || item.reference.subject === "dominic"), 2);
+    }
+
+    if (wantsTattoos || requestedRegions.length) {
+      takeOrderedIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions),
+        qualityIssues.has("tattoos") ? 3 : 2);
+      if (!requestedRegions.length) takeOrderedIds("dominic", groupsFor("dominic").tattoos, 1);
     }
     if (wantsProfile) {
       takeOrderedIds("dominic", groupsFor("dominic").profile, 1);
       takeOrderedIds("alloah", groupsFor("alloah").profile, 1);
     }
-    // A recent negative review of a similar scene allocates ONE extra real
-    // identity slot. The feedback never turns generated images into references.
-    ensureIdentity("alloah", qualityIssues.has("face_alloah") || qualityIssues.has("skin_tone") ? 4 : 3);
-    ensureIdentity("dominic", qualityIssues.has("face_dominic") || qualityIssues.has("skin_tone") ? 4 : 3);
+
+    // Wide frames need bodies and garments, close frames need recognizable
+    // faces. Explicit full-body instruction remains authoritative.
+    ensureIdentity("alloah", isFullBodyScene ? 2 :
+      qualityIssues.has("face_alloah") || qualityIssues.has("skin_tone") ? 4 : 3);
+    ensureIdentity("dominic", isFullBodyScene ? 2 :
+      qualityIssues.has("face_dominic") || qualityIssues.has("skin_tone") ? 4 : 3);
     takeFallbackAnchors("alloah", 1);
     takeFallbackAnchors("dominic", 1);
   } else {
     const subject = request.subject_type === "me" ? "alloah" : "dominic";
     const groups = groupsFor(subject);
-    ensureIdentity(subject, 3);
-    if (subject === "dominic") {
-      if (wantsTattoos || requestedRegions.length)
-        takeOrderedIds(subject, tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), qualityIssues.has("tattoos") ? 4 : 3);
-      takeOrderedIds(subject, groups.tattoos, 2);
+    ensureIdentity(subject, isFullBodyScene ? 2 : 3);
+    if (request.use_current_look) {
+      take((item) => item.reference.subject === subject &&
+        item.reference.reference_kind === "current_look" &&
+        item.reference.look_type === "hair" && item.reference.is_current, 1);
+      take((item) => item.reference.subject === subject &&
+        item.reference.reference_kind === "current_look" && item.reference.is_current, 1);
     }
-    if (wantsBody) takeOrderedIds(subject, groups.body, 1);
+    if (isFullBodyScene || wantsBody) {
+      takeOrderedIds(subject, groups.body, 1);
+      take((item) => item.reference.subject === subject &&
+        item.reference.reference_kind === "identity" &&
+        (item.reference.reference_purposes ?? []).includes("body"), 1);
+    }
+    if (subject === "dominic" && (wantsTattoos || requestedRegions.length)) {
+      takeOrderedIds(subject, tattooRegionAnchorIds(canonFor("dominic"), requestedRegions),
+        qualityIssues.has("tattoos") ? 4 : 3);
+      takeOrderedIds(subject, groups.tattoos, 1);
+    }
     if (wantsProfile) takeOrderedIds(subject, groups.profile, 1);
-    if (request.use_current_look)
-      take((item) => item.reference.subject === subject && item.reference.is_current, 1);
-    ensureIdentity(subject, qualityIssues.has(subject === "alloah" ? "face_alloah" : "face_dominic") || qualityIssues.has("skin_tone") ? 5 : 4);
+    ensureIdentity(subject, isFullBodyScene ? 3 :
+      qualityIssues.has(subject === "alloah" ? "face_alloah" : "face_dominic") ||
+      qualityIssues.has("skin_tone") ? 5 : 4);
     takeFallbackAnchors(subject, 2);
     take((item) => item.reference.subject === subject && identityUseful(item), 2);
   }
