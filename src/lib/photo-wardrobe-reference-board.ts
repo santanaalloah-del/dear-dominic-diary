@@ -112,8 +112,10 @@ export async function makeCurrentlyWearingBoard(
     const label = (garment.category + ": " + garment.title).slice(0, 41);
     ctx.fillText(label, x + 22, y + cellHeight - 42);
   }
-  const board = canvas.toDataURL("image/jpeg", 0.88);
-  // Bound image payload size; fallback individual signed URLs on failure.
-  if (board.length > 7 * 1024 * 1024) return null;
+  // Keep private Vercel request bodies small, even when there are multiple
+  // outfit boards. OpenRouter is never used to create these composites.
+  let board = canvas.toDataURL("image/jpeg", 0.82);
+  if (board.length > 750_000) board = canvas.toDataURL("image/jpeg", 0.66);
+  if (board.length > 900_000) return null;
   return board;
 }
