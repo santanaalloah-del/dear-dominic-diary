@@ -20,5 +20,7 @@ jobs:
         run: bun install
       - name: Check photo scene interpretations without image charges
         run: bun test tests/photo-scene-intent.test.ts tests/photo-variation-plan.test.ts tests/photo-tattoo-boundaries.test.ts
+      - name: Check independent Date, daily outfits and wardrobe selection without API costs
+        run: bun test tests/dominic-date-invitations.test.ts tests/dominic-daily-outfits.test.ts tests/wardrobe-selection.test.ts
       - name: Build
         run: bun run build
