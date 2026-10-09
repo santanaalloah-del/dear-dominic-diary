@@ -247,6 +247,7 @@ function buildPrompt(
   hasSourceImage: boolean,
   variationPlan: PhotoVariationPlan
 ) {
+  const interaction = analyzePhotoScene(request.scene, request.photo_style, request.subject_type);
   const referenceGuide = references.map((reference, index) => {
     const purposes = reference.purposes?.length
       ? reference.purposes.join(", ")
@@ -294,6 +295,7 @@ buildPhotoContextPrompt(request),
 "",
 "SCENE",
     request.scene || "Create a believable everyday moment.",
+    interaction.actionNotes.length ? "EXPLICIT BODY / PROP RELATIONSHIPS: " + interaction.actionNotes.join(" ") : null,
     request.mood ? `Mood: ${request.mood}.` : null,
     request.adjustment_instruction
       ? `Requested adjustment: ${request.adjustment_instruction}`
@@ -454,11 +456,16 @@ export const Route = createFileRoute("/api/photo-engine")({
         const rightNowFaces = rightNowSubjects.flatMap((subject) =>
           faceEvidenceFor(subject).slice(0, 2)
         );
+        // A bulk-uploaded "tattoos" tag is not proof that a portrait
+        // is a close-up of a tattoo. Avoid wasting the remaining slots on
+        // generic duplicates before actual face/body evidence.
         const rightNowTattooDetails = requestedReferences.filter((reference) =>
           reference.subject === "dominic" &&
           reference.referenceKind === "identity" &&
-          reference.purposes?.includes("tattoos")
-        );
+          reference.purposes?.includes("tattoos") &&
+          !reference.purposes?.includes("face") &&
+          !reference.purposes?.includes("body")
+        ).slice(0, 2);
         const rightNowPriority = [
           ...rightNowFaces,
           ...rightNowClothing,
@@ -752,6 +759,18 @@ const prompt = buildPrompt(
           const timeKey = homeImage?.purposes?.find((purpose) =>
             ["0200", "0700", "1100", "1740", "1830", "1910", "2100"].includes(purpose)
           ) ?? sceneIntent.timeKey;
+          for (const person of requiredPeople) {
+            if (body.request.use_current_look && !sceneIntent.faceAway &&
+                people[person]?.currentHairReferences === 0) {
+              warnings.push(person + " has no saved current hair photo. Historical identity hair may differ; add a Hair photo in References > Current Look if the hairstyle matters.");
+            }
+          }
+          if (sceneIntent.propOwnershipAmbiguous) {
+            warnings.push("The scene shares one object but does not specify who holds it at the instant of the photo. The generator will choose one natural holder; name the holder only if it matters.");
+          }
+          if (body.request.subject_type === "both" && sceneIntent.framing === "full_body" && sceneIntent.affectionate) {
+            warnings.push("You requested full-body framing for a close couple moment. Faces may look smaller; the requested framing still wins.");
+          }
           if (attachedReferences.length < references.length) {
             warnings.push((references.length - attachedReferences.length) + " references could not be loaded. Unavailable images are not sent to the generator.");
           }
@@ -781,6 +800,7 @@ const prompt = buildPrompt(
               room: roomName,
               outdoors: sceneIntent.outdoors,
               timeKey,
+              actionNotes: sceneIntent.actionNotes,
             },
             referenceRoles: attachedReferences.map(({ reference }) => ({
               subject: reference.subject,
