@@ -1228,7 +1228,7 @@ export function PhotoEngineScreen() {
               {Object.entries(referenceAudit.outfits).map(([person, detail]) => (
                 <p key={person} style={{ margin: 0, fontSize: 12 }}>
                   <strong>{person === "alloah" ? "Alloah" : "Dominic"} wardrobe:</strong>{" "}
-                  {detail.imageCount} real wardrobe reference(s)
+                  {detail.garmentCount} exact garment(s) in {detail.imageCount} reference board(s)
                   {detail.items.length ? ` · ${detail.items.join(", ")}` : ""}
                 </p>
               ))}
@@ -1236,6 +1236,11 @@ export function PhotoEngineScreen() {
                 Real room images: {referenceAudit.homeReferences} · Visual Canon:{" "}
                 {referenceAudit.canonSubjects.length ? referenceAudit.canonSubjects.join(", ") : "not yet analyzed"}
               </p>
+              {referenceAudit.tattooRegions.length > 0 && (
+                <p style={{ margin: 0, fontSize: 12 }}>
+                  Tattoo regions backed by selected photos: {referenceAudit.tattooRegions.map((region) => region.replaceAll("_", " ")).join(", ")}
+                </p>
+              )}
               <p style={{ margin: 0, fontSize: 12 }}>
                 Camera plan: {referenceAudit.scene.pose.replaceAll("_", " ")} ·{" "}
                 {referenceAudit.scene.framing.replaceAll("_", " ")} ·{" "}
@@ -1244,7 +1249,7 @@ export function PhotoEngineScreen() {
               {referenceAudit.warnings.map((warning, index) => (
                 <p key={index} style={{ margin: 0, fontSize: 12 }} role="note">⚠ {warning}</p>
               ))}
-              <small>These are the actual successfully loaded references for this scene. The AI can still make visual mistakes. This check uses no image generation credits.</small>
+              <small>These are references prepared for this scene. Signed private-storage links are passed to the generator, so the check cannot guarantee the provider will fetch every image or reproduce it faithfully. No image generation credits used.</small>
             </section>
           )}
 
