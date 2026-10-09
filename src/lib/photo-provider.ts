@@ -55,11 +55,25 @@ export type PhotoProviderPreview = {
   feature: PhotoFeatureInput;
 };
 
+export type PhotoReferenceAudit = {
+  auditOnly: true;
+  noCreditsUsed: true;
+  referenceCount: number;
+  people: Record<string, { faceReferences: number; currentHairReferences: number; tattooReferences: number }>;
+  outfits: Record<string, { imageCount: number; items: string[] }>;
+  homeReferences: number;
+  canonSubjects: string[];
+  warnings: string[];
+  scene: { pose: string; framing: string; lighting: string; expression: string };
+  referenceRoles: Array<{ subject: string; title: string | null; purposes: string[] }>;
+};
+
 type GeneratePreviewInput = {
   userId: string;
   request: PhotoGenerationRequest;
   sourceImageDataUrl?: string | null;
   background?: boolean;
+  auditOnly?: boolean;
 };
 
 type ProviderReferencePayload = {
@@ -826,7 +840,8 @@ export async function generatePhotoProviderPreview({
   request,
   sourceImageDataUrl,
   background = false,
-}: GeneratePreviewInput): Promise<PhotoProviderPreview> {
+  auditOnly = false,
+}: GeneratePreviewInput): Promise<PhotoProviderPreview | PhotoReferenceAudit> {
   const [{ data: sessionData }, bundle, canons, wardrobeContexts, homeCanon] =
     await Promise.all([
       supabase.auth.getSession(),
@@ -1024,11 +1039,12 @@ export async function generatePhotoProviderPreview({
       canons: canonPayload(canons.filter(canon => canon.subject !== "couple")),
       sourceImageDataUrl: sourceImageDataUrl ?? null,
       background,
+      auditOnly,
     }),
   });
 
   const body = (await response.json().catch(() => null)) as
-    | (PhotoProviderPreview & { error?: string })
+    | ((PhotoProviderPreview | PhotoReferenceAudit) & { error?: string })
     | null;
 
   if (!response.ok) {
@@ -1037,25 +1053,40 @@ export async function generatePhotoProviderPreview({
     );
   }
 
+  if (auditOnly) {
+    if (body?.auditOnly === true && body.noCreditsUsed === true) return body as PhotoReferenceAudit;
+    throw new Error("Reference audit did not finish; no image was generated.");
+  }
+
   if (background && response.status === 202 && (body as any)?.requestId === request.id) {
     return { status: "queued", requestId: request.id } as unknown as PhotoProviderPreview;
   }
 
-  if (!body?.dataUrl || !body?.mimeType) {
+  if (!("dataUrl" in (body ?? {})) || !("mimeType" in (body ?? {})) || !(body as PhotoProviderPreview | null)?.dataUrl) {
     throw new Error("The image provider returned no image.");
   }
 
+  const preview = body as PhotoProviderPreview;
   return {
-    ...body,
+    ...preview,
     feature: {
-      ...(body.feature ?? {}),
+      ...(preview.feature ?? {}),
       featureData: {
-        ...(body.feature?.featureData ?? {}),
+        ...(preview.feature?.featureData ?? {}),
         identityReferenceUsage,
         identityFeedbackVersion: 1,
       },
     },
   };
+}
+
+export async function auditPhotoProviderReferences(input: {
+  userId: string;
+  request: PhotoGenerationRequest;
+}): Promise<PhotoReferenceAudit> {
+  const report = await generatePhotoProviderPreview({ ...input, background: false, auditOnly: true });
+  if (!("auditOnly" in report) || report.auditOnly !== true) throw new Error("The audit returned an invalid response.");
+  return report;
 }
 
 export function dataUrlToBlob(dataUrl: string): Blob {
