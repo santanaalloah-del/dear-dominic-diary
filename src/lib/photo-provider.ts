@@ -68,7 +68,7 @@ export type PhotoReferenceAudit = {
   tattooRegions: string[];
   requestedCount: number;
   warnings: string[];
-  scene: { pose: string; cameraAngle: string; framing: string; lighting: string; expression: string; room: string | null; outdoors: boolean; timeKey: string | null; actionNotes?: string[] };
+  scene: { pose: string; cameraAngle: string; composition: string; framing: string; lighting: string; expression: string; room: string | null; outdoors: boolean; timeKey: string | null; actionNotes?: string[] };
   referenceRoles: Array<{ subject: string; title: string | null; purposes: string[] }>;
 };
 
