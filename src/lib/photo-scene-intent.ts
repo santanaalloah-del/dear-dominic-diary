@@ -41,9 +41,16 @@ function outsideScene(text: string): boolean {
 }
 
 function explicitTimeKey(text: string): PhotoTimeKey | null {
-  const clock = text.match(/\b(?:at |as |around )?([01]?\d|2[0-3]):([0-5]\d)\b/);
-  if (clock) {
-    const minutes = Number(clock[1]) * 60 + Number(clock[2]);
+  // Accept 24-hour, 12-hour and Brazilian time notations in user scenes.
+  const clock = text.match(/\b([01]?\d|2[0-3]):([0-5]\d)(?:\s*(a\.?m\.?|p\.?m\.?))?/);
+  const brazilian = text.match(/\b([01]?\d|2[0-3])h([0-5]\d)?\b/);
+  const ampm = text.match(/\b(1[0-2]|0?[1-9])\s*(a\.?m\.?|p\.?m\.?)(?![a-z])/);
+  if (clock || brazilian || ampm) {
+    let hour = Number(clock?.[1] ?? brazilian?.[1] ?? ampm?.[1]);
+    const minute = Number(clock?.[2] ?? brazilian?.[2] ?? 0);
+    const meridiem = (clock?.[3] ?? ampm?.[2] ?? "").replaceAll(".", "");
+    if (meridiem) hour = (hour % 12) + (meridiem === "pm" ? 12 : 0);
+    const minutes = hour * 60 + minute;
     const variants: Array<{ key: PhotoTimeKey; minute: number }> = [
       { key: "0200", minute: 120 }, { key: "0700", minute: 420 },
       { key: "1100", minute: 660 }, { key: "1740", minute: 1060 },
