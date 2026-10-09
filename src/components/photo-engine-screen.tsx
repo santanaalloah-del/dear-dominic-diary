@@ -21,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { usePrivateDiario } from "@/components/private-diario";
 import { loadDominicState } from "@/lib/dominic-state";
+import { makeCurrentlyWearingBoard } from "@/lib/photo-wardrobe-reference-board";
+import { getWardrobePhotoContexts, type WardrobeOwner } from "@/lib/wardrobe-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useTimeMood } from "@/lib/time-mood";
 import {
@@ -59,6 +61,13 @@ type ModeOption = {
   label: string;
   note: string;
   icon: typeof Camera;
+};
+
+type WardrobeBoardPreview = {
+  owner: WardrobeOwner;
+  part: number;
+  imageUrl: string;
+  garmentNames: string[];
 };
 
 type PreviewState = {
@@ -223,6 +232,8 @@ export function PhotoEngineScreen() {
   const [checkingConnection, setCheckingConnection] = useState(false);
   const [checkingReferences, setCheckingReferences] = useState(false);
   const [referenceAudit, setReferenceAudit] = useState<PhotoReferenceAudit | null>(null);
+  const [wardrobeBoardPreviews, setWardrobeBoardPreviews] = useState<WardrobeBoardPreview[]>([]);
+  const [wardrobePreviewNote, setWardrobePreviewNote] = useState<string | null>(null);
   const [auditSignature, setAuditSignature] = useState<string | null>(null);
   const [auditError, setAuditError] = useState<string | null>(null);
   const [connectionResult, setConnectionResult] = useState<string | null>(null);
@@ -497,6 +508,8 @@ export function PhotoEngineScreen() {
     setCheckingReferences(true);
     setAuditError(null);
     setReferenceAudit(null);
+    setWardrobeBoardPreviews([]);
+    setWardrobePreviewNote(null);
     const checkedSignature = currentAuditSignature;
     try {
       // Use a temporary in-memory request: no database request, budget
@@ -546,8 +559,61 @@ export function PhotoEngineScreen() {
         updated_at: now,
       };
       const report = await auditPhotoProviderReferences({ userId: session.user.id, request });
+
+      // The server audit deliberately returns only labels/counts, never the
+      // user's private images. Recreate the exact garment composite locally
+      // from the same saved Currently Wearing cutouts for a visual inspection.
+      // This is browser canvas work: no model call, generated photo or credit.
+      const boards: WardrobeBoardPreview[] = [];
+      let boardNote: string | null = null;
+      if (request.use_current_look) {
+        try {
+          const owners: WardrobeOwner[] = request.subject_type === "both"
+            ? ["alloah", "dominic"]
+            : [request.subject_type === "me" ? "alloah" : "dominic"];
+          const wardrobe = await getWardrobePhotoContexts({
+            userId: session.user.id,
+            owners,
+          });
+          for (const ownerContext of wardrobe) {
+            const expected = report.outfits[ownerContext.owner]?.garmentCount ?? 0;
+            if (!expected || expected !== ownerContext.clothing.length) {
+              boardNote = "The wardrobe selection changed or differs from this check. Run the free reference check again.";
+              continue;
+            }
+            for (let index = 0; index < ownerContext.clothing.length; index += 6) {
+              const pieces = ownerContext.clothing.slice(index, index + 6);
+              if (pieces.some((piece) => !piece.imageUrl)) {
+                boardNote = "Some exact clothing images could not be loaded for preview. Check the Wardrobe before generating.";
+                continue;
+              }
+              try {
+                const imageUrl = await makeCurrentlyWearingBoard(ownerContext.owner, pieces);
+                if (imageUrl) {
+                  boards.push({
+                    owner: ownerContext.owner,
+                    part: Math.floor(index / 6) + 1,
+                    imageUrl,
+                    garmentNames: pieces.map((piece) => piece.title),
+                  });
+                } else {
+                  boardNote = "The clothing board preview could not be rendered on this device. The free audit cannot verify its appearance.";
+                }
+              } catch (previewError) {
+                console.warn("Could not display private Currently Wearing preview:", previewError);
+                boardNote = "Could not show the actual outfit boards on this device. No credits used.";
+              }
+            }
+          }
+        } catch (previewError) {
+          console.warn("Wardrobe preview unavailable after free reference audit:", previewError);
+          boardNote = "Could not display wardrobe images. The free reference audit completed, but inspect the clothing in Wardrobe.";
+        }
+      }
       if (!componentActive.current) return;
       setReferenceAudit(report);
+      setWardrobeBoardPreviews(boards);
+      setWardrobePreviewNote(boardNote);
       setAuditSignature(checkedSignature);
     } catch (error) {
       setAuditError(messageFromError(error, "Could not check photo references. No credits used."));
@@ -1242,6 +1308,31 @@ export function PhotoEngineScreen() {
                   {detail.items.length ? ` · ${detail.items.join(", ")}` : ""}
                 </p>
               ))}
+              {wardrobeBoardPreviews.length > 0 && (
+                <div style={{ display: "grid", gap: 12 }}>
+                  <strong style={{ fontSize: 13 }}>Actual Currently Wearing image boards (free preview)</strong>
+                  <small>These images are built locally from your saved clothing photos, just like the visual references prepared for the generator. Check the real shoe shape, color and fit before creating a photo.</small>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 235px), 1fr))", gap: 12 }}>
+                    {wardrobeBoardPreviews.map((board) => (
+                      <figure key={board.owner + "-" + board.part} style={{ margin: 0 }}>
+                        <img
+                          src={board.imageUrl}
+                          alt={`${board.owner === "alloah" ? "Alloah" : "Dominic"} Currently Wearing visual board: ${board.garmentNames.join(", ")}`}
+                          loading="lazy"
+                          style={{ display: "block", width: "100%", height: "auto", borderRadius: 8, border: "1px solid #bc9aa0", background: "#fffaf3" }}
+                        />
+                        <figcaption style={{ marginTop: 5, fontSize: 12 }}>
+                          <strong>{board.owner === "alloah" ? "Alloah" : "Dominic"}</strong>{" "}
+                          · {board.garmentNames.join(" / ")}
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {wardrobePreviewNote && (
+                <p style={{ margin: 0, fontSize: 12 }} role="note">⚠ {wardrobePreviewNote}</p>
+              )}
               <p style={{ margin: 0, fontSize: 12 }}>
                 Real room images: {referenceAudit.homeReferences} · Visual Canon:{" "}
                 {referenceAudit.canonSubjects.length ? referenceAudit.canonSubjects.join(", ") : "not yet analyzed"}
