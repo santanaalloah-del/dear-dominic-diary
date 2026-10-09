@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { analyzePhotoScene, type PhotoTimeKey } from "@/lib/photo-scene-intent";
 import { getWearingSelection } from "@/lib/wardrobe-context";
 import { makeCurrentlyWearingBoard } from "@/lib/photo-wardrobe-reference-board";
 import {
@@ -66,7 +67,7 @@ export type PhotoReferenceAudit = {
   tattooRegions: string[];
   requestedCount: number;
   warnings: string[];
-  scene: { pose: string; framing: string; lighting: string; expression: string };
+  scene: { pose: string; framing: string; lighting: string; expression: string; room: string | null; outdoors: boolean; timeKey: string | null };
   referenceRoles: Array<{ subject: string; title: string | null; purposes: string[] }>;
 };
 
@@ -179,29 +180,35 @@ function closestHomeTimeKey(date = new Date()) {
   }).key;
 }
 
-function homeLightingInstruction(date = new Date()) {
-  const { hour } = rioClock(date);
-  if (hour < 5) {
-    return "It is after midnight in Rio de Janeiro. Exterior windows MUST read as nighttime/dark. ZERO sunlight, ZERO blue-sky daylight, ZERO sunbeams. Interior lamps/screens/flash may illuminate the room naturally.";
+function homeLightingInstruction(timeKey: PhotoTimeKey) {
+  // Use the SAME light period as the attached canonical room photo, rather
+  // than imposing the real current hour on a requested past/future scene.
+  if (timeKey === "0200") {
+    return "The requested room is at night / after midnight. Exterior windows are DARK, never sunlit; realistic indoor lamps, screen light or phone flash can illuminate faces.";
   }
-  if (hour < 7) {
-    return "It is pre-dawn/early morning in Rio de Janeiro. Keep exterior light very dim and cool; no strong direct sunlight.";
+  if (timeKey === "0700") {
+    return "This is an early morning room image. Exterior light is gentle and dim, with no harsh midday sun.";
   }
-  if (hour < 17) {
-    return "It is daytime in Rio de Janeiro. Daylight through windows is physically plausible and should follow the selected timed room reference.";
+  if (timeKey === "1100") {
+    return "This is a daytime room image. Natural window daylight is plausible and should match the reference.";
   }
-  if (hour < 19) {
-    return "It is late afternoon/early evening in Rio de Janeiro. Follow the selected timed room reference for fading exterior light; do not turn it into midday sun.";
+  if (timeKey === "1740" || timeKey === "1830") {
+    return "This is a fading late-afternoon / dusk room image. Preserve the actual reference's sunset-level window brightness.";
   }
-  return "It is nighttime in Rio de Janeiro. Exterior windows MUST be dark/nighttime. ZERO sunlight and ZERO daytime sky. Use believable interior artificial light, phone flash, screens, or practical lamps.";
+  return "This is a nighttime room image. Exterior windows are dark, not bright blue daylight. Use natural indoor household lighting that matches the reference.";
 }
 
 async function homeCanonContext(userId: string, request: PhotoGenerationRequest) {
-  const room = typeof request.context_snapshot?.location === "string" ? request.context_snapshot.location : null;
+  const intent = analyzePhotoScene(request.scene, request.photo_style, request.subject_type);
+  const storedLocation = typeof request.context_snapshot?.location === "string"
+    ? request.context_snapshot.location : null;
+  // The photographer requested the kitchen, not Dominic's old living-room
+  // state; equally, a street/office scene must not receive indoor home art.
+  const room = intent.room ?? (intent.outdoors ? null : storedLocation);
   const roomImages = room ? HOME_ROOM_IMAGES[room] : null;
   if (!room || !roomImages) return null;
 
-  const timeKey = closestHomeTimeKey();
+  const timeKey = intent.timeKey ?? closestHomeTimeKey();
   const { data: objects } = await (supabase as any)
     .from("home_objects")
     .select("name,object_type,room,metadata")
@@ -220,7 +227,7 @@ async function homeCanonContext(userId: string, request: PhotoGenerationRequest)
       "SHARED HOME VISUAL CANON:",
       "This is Alloah and Dominic's one shared apartment.",
       `Current room: ${room}. The attached ${room} reference at ${timeKey} is the PRIMARY visual canon for this room: preserve its actual furniture, decor, materials, colors, windows, spatial identity and time-of-day lighting.`,
-      homeLightingInstruction(),
+      homeLightingInstruction(timeKey),
       "Time-of-day lighting is a hard physical constraint, not a stylistic suggestion. Never introduce sunlight or a bright daytime exterior into a nighttime reference.",
       "The apartment floor plan is a secondary structural reference for room boundaries and circulation.",
       objectList.length ? `Persisted room objects: ${objectList.join(" | ")}.` : null,
@@ -1141,6 +1148,23 @@ export async function generatePhotoProviderPreview({
       isCurrent: Boolean(item.reference.is_current),
     }));
 
+  const sceneIntent = analyzePhotoScene(
+    request.scene, request.photo_style, request.subject_type
+  );
+  const sceneLocation = homeCanon?.room ??
+    (sceneIntent.outdoors ? "outside" : null);
+  const explicitlyDescribed = Boolean(request.scene?.trim());
+  // Only adjust the GENERATOR'S COPY of context, not Dominic's persisted
+  // live state. Old activity/location text must not contradict a new scene.
+  const cleanedContext = {
+    ...(request.context_snapshot ?? {}),
+    ...(sceneLocation ? { location: sceneLocation } : {}),
+    ...(explicitlyDescribed ? { activity: null, dominicState: null } : {}),
+  };
+  const promptRequest = explicitlyDescribed
+    ? { ...request, context_snapshot: cleanedContext }
+    : request;
+
   const response = await fetch("/api/photo-engine", {
     method: "POST",
     headers: {
@@ -1150,7 +1174,7 @@ export async function generatePhotoProviderPreview({
     body: JSON.stringify({
       userId,
       request: {
-        ...request,
+        ...promptRequest,
         adjustment_instruction: [
           request.adjustment_instruction,
           currentOverrideInstruction(request, canons),

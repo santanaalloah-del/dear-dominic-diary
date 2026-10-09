@@ -1,3 +1,5 @@
+import { analyzePhotoScene } from "@/lib/photo-scene-intent";
+
 type VariationRequest = {
   id: string;
   mode?: string | null;
@@ -300,89 +302,95 @@ export function buildPhotoVariationPlan(
   const avoid = safeObject(anti.avoid);
   const context = safeObject(request.context_snapshot);
 
+  // An explicitly described Request should keep its main camera plan
+  // across the free preflight and a later paid request. Surprise/Daily Life
+  // continue varying by job ID, so the app does not become repetitive.
+  const manualSeed = request.mode === "request" && request.scene?.trim()
+    ? request.scene.trim().toLowerCase()
+    : request.id;
   const seedBase = hashString(
-    [
-      request.id,
-      request.mode ?? "",
-      request.photo_style ?? "",
-      request.scene ?? "",
-      request.subject_type ?? "",
-    ].join("|")
+    [manualSeed, request.mode ?? "", request.photo_style ?? "",
+      request.scene ?? "", request.subject_type ?? ""].join("|")
   );
 
   const pools = stylePools(request.photo_style);
 
-  // The user's explicit action overrides the randomized anti-repeat pose.
-  // Otherwise a request to lie down can turn into standing/reaching/sitting.
+  // Scene meaning comes first: a cooking / cuddling / walking photo must
+  // never become a random sitting, standing or looking-away pose.
+  const sceneIntent = analyzePhotoScene(
+    request.scene, request.photo_style, request.subject_type
+  );
   const sceneText = (request.scene ?? "").toLowerCase();
-  const explicitPose = /\b(lying|laying|laid|reclining|reclined|deitad[oa]s?|deitados|deitadas)\b/.test(sceneText) || (/\b(on top of|em cima d[eo]|cuddling on|cuddling in|deitados? no|deitadas? no)\b/.test(sceneText) && /\b(sofa|sofa bed|sofa|couch|sofá)\b/.test(sceneText))
-    ? "lying_relaxed"
-    : /\b(walking|walk together|andando|caminhando|passeando)\b/.test(sceneText)
-      ? "walking_together"
-      : /\b(sitting|seated|sentad[oa]s?)\b/.test(sceneText)
-        ? "relaxed_seated"
-        : /\b(standing|em pé|de pé)\b/.test(sceneText)
-          ? "standing"
-          : null;
-  const poseType = explicitPose ?? choose(
-    pools.poses,
-    safeStrings(avoid.poses),
-    seedBase,
-    "relaxed_seated"
+  const poseType = sceneIntent.pose ?? choose(
+    pools.poses, safeStrings(avoid.poses), seedBase, "relaxed_seated"
+  );
+  const cameraAngle = sceneIntent.cameraAngle ?? choose(
+    pools.cameraAngles, safeStrings(avoid.cameraAngles), seedBase >>> 3, "eye_level"
   );
 
-  const cameraAngle = choose(
-    pools.cameraAngles,
-    safeStrings(avoid.cameraAngles),
-    seedBase >>> 3,
-    "eye_level"
+  // Show two recognizable people, not tiny faces in an accidental room-wide
+  // shot. An expressly requested full-body / wide photo always wins.
+  const intimateCloseUp = request.subject_type === "both" && sceneIntent.affectionate;
+  const naturalCoupleFramings = pools.framings.filter((candidate) =>
+    candidate !== "environmental_wide" && candidate !== "full_body"
   );
-
-  // Close affectionate moments should not turn into tiny faces inside a
-  // distant establishing shot. An explicitly requested wide/full-body view wins.
-  const explicitWide = /\b(wide shot|wide angle|full.body|full body|entire room|whole room|distant camera|long shot|plano aberto|corpo inteiro)\b/.test(sceneText);
-  const intimateCloseUp = request.subject_type === "both" &&
-    /cudd|hug|embrac|kiss|snuggl|on top of|deitad|abraç|beij|carinh|conchinha/.test(sceneText);
-  const framing = intimateCloseUp && !explicitWide
-    ? choose(["chest_up", "waist_up", "three_quarter"], safeStrings(avoid.framings), seedBase >>> 6, "waist_up")
-    : choose(
-        pools.framings,
-        safeStrings(avoid.framings),
-        seedBase >>> 6,
-        "waist_up"
-      );
+  const framing = sceneIntent.framing ??
+    (intimateCloseUp
+      ? choose(["chest_up", "waist_up", "three_quarter"], safeStrings(avoid.framings), seedBase >>> 6, "waist_up")
+      : choose(
+          request.subject_type === "both" && !sceneIntent.faceAway
+            ? naturalCoupleFramings
+            : pools.framings,
+          safeStrings(avoid.framings), seedBase >>> 6, "waist_up"
+        ));
 
   const isTogether = request.subject_type === "both";
   const affection = /cudd|hug|embrac|kiss|lying together|laying together|snuggl|abraç|beij|carinh|conchinha|romantic|flirty|intimate/.test([sceneText, request.mood ?? ""].join(" ").toLowerCase());
-  const expression = isTogether && affection
-    ? choose(["soft_attentive_glance_at_partner", "gentle_smile_at_partner", "natural_mid_laugh_together"], safeStrings(anti.recentExpressions), seedBase >>> 9, "soft_attentive_glance_at_partner")
-    : choose(
-        expressionPool(request.mode, request.mood),
-        safeStrings(anti.recentExpressions),
-        seedBase >>> 9,
-        "neutral_soft"
-      );
+  const expression = sceneIntent.faceAway
+    ? "natural_turned_away"
+    : sceneIntent.expression ??
+      (isTogether && affection
+        ? choose(["soft_attentive_glance_at_partner", "gentle_smile_at_partner", "natural_mid_laugh_together"], safeStrings(anti.recentExpressions), seedBase >>> 9, "soft_attentive_glance_at_partner")
+        : choose(
+            expressionPool(request.mode, request.mood),
+            safeStrings(anti.recentExpressions),
+            seedBase >>> 9,
+            "neutral_soft"
+          ));
 
-  // Indoor night scenes must never randomly receive daytime/streetlight or
-  // harsh flash unless the user explicitly asks for flash.
-  const night = /night|late/.test(String(context.timeOfDay ?? "").toLowerCase());
-  const indoor = /living|bedroom|kitchen|bathroom|home|apartment|sofa|couch|room|quarto|sala|sofá|casa/.test(
-    [String(context.location ?? ""), sceneText].join(" ").toLowerCase()
+  // Explicit "morning in the kitchen" overrides Dominic's current NIGHT
+  // status. Likewise, a street walk stays outside even if he was last home.
+  const statedTime = sceneIntent.timeKey;
+  const night = statedTime
+    ? statedTime === "0200" || statedTime === "2100" || statedTime === "1910"
+    : /night|late/.test(String(context.timeOfDay ?? "").toLowerCase());
+  const indoors = !sceneIntent.outdoors && (
+    Boolean(sceneIntent.room) ||
+    /living|bedroom|kitchen|bathroom|home|apartment|sofa|couch|room|quarto|sala|sofá|casa/.test(
+      [String(context.location ?? ""), sceneText].join(" ").toLowerCase()
+    )
   );
-  const lightingType = night && indoor && request.photo_style !== "flash"
-    ? choose(["warm_lamp", "low_light_phone", "soft_room_lighting"], safeStrings(anti.recentLightingTypes), seedBase >>> 12, "warm_lamp")
-    : choose(
-        lightingPool(request.photo_style, context),
-        safeStrings(anti.recentLightingTypes),
-        seedBase >>> 12,
-        "window_daylight"
-      );
+  const lightingType = request.photo_style === "flash"
+    ? "direct_phone_flash"
+    : statedTime && (statedTime === "0700" || statedTime === "1100")
+      ? choose(indoors ? ["window_daylight", "soft_room_lighting"] : ["outdoor_daylight", "window_daylight"],
+          safeStrings(anti.recentLightingTypes), seedBase >>> 12, "window_daylight")
+      : statedTime && (statedTime === "1740" || statedTime === "1830")
+        ? choose(indoors ? ["warm_lamp", "soft_room_lighting"] : ["golden_hour", "outdoor_daylight"],
+            safeStrings(anti.recentLightingTypes), seedBase >>> 12, "warm_lamp")
+        : night && indoors
+          ? choose(["warm_lamp", "low_light_phone", "soft_room_lighting"],
+              safeStrings(anti.recentLightingTypes), seedBase >>> 12, "warm_lamp")
+          : night
+            ? choose(["street_light", "low_light_phone"],
+                safeStrings(anti.recentLightingTypes), seedBase >>> 12, "street_light")
+            : choose(
+                lightingPool(request.photo_style, context),
+                safeStrings(anti.recentLightingTypes), seedBase >>> 12, "window_daylight"
+              );
 
-  const compositionType = choose(
-    pools.compositions,
-    safeStrings(avoid.compositions),
-    seedBase >>> 15,
-    "off_center"
+  const compositionType = sceneIntent.composition ?? choose(
+    pools.compositions, safeStrings(avoid.compositions), seedBase >>> 15, "off_center"
   );
 
   return {
@@ -411,6 +419,6 @@ export function photoVariationInstruction(
     `Lighting: ${humanize(plan.lightingType)}.`,
     `Composition: ${humanize(plan.compositionType)}.`,
     "Treat these as natural photographic directions, not rigid studio posing.",
-    "Identity fidelity, the user's explicitly requested body positions and interactions, and the real apartment lighting always OVERRIDE any shot variation. Never change who is lying on whom, swap a hand, or invent an unrelated gesture. Keep both people engaged with each other, not gazing vacantly into space unless specifically requested.",
+    "Identity fidelity and the user's explicit action, room and time ALWAYS override variation. Keep attention true to the moment: toward the phone in a selfie, toward each other in an embrace, eyes closed while sleeping, and toward the activity in a candid photograph. Never swap body positions, hands or props.",
   ].join(" ");
 }

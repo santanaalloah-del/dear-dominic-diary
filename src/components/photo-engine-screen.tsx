@@ -505,6 +505,11 @@ export function PhotoEngineScreen() {
 
   async function checkPhotoReferences() {
     if (!session?.user?.id || creating || checkingReferences) return;
+    if (mode === "request" && !scene.trim()) {
+      setAuditError("Add a Scene first so the free check can inspect your actual photo instead of a random moment.");
+      setReferenceAudit(null);
+      return;
+    }
     setCheckingReferences(true);
     setAuditError(null);
     setReferenceAudit(null);
@@ -652,6 +657,32 @@ export function PhotoEngineScreen() {
 
   async function createPhotos() {
     if (!session?.user?.id || creating) return;
+
+    // Manual Request photos require a current ZERO-CREDIT preflight, with
+    // the real garment boards visibly inspected before creating a job.
+    if (mode === "request") {
+      if (!scene.trim()) {
+        setError("Describe the moment in Scene first. No credits used.");
+        return;
+      }
+      if (!referenceAudit || auditSignature !== currentAuditSignature) {
+        setError("Run Check photo references (free) for this exact scene before creating a paid photo. No credits used.");
+        return;
+      }
+      if (useCurrentLook) {
+        const owners = subjectType === "both" ? ["alloah", "dominic"]
+          : [subjectType === "me" ? "alloah" : "dominic"];
+        const missingOutfit = owners.some((owner) => {
+          const expected = referenceAudit.outfits[owner]?.imageCount ?? 0;
+          const displayed = wardrobeBoardPreviews.filter((board) => board.owner === owner).length;
+          return expected === 0 || displayed !== expected;
+        });
+        if (missingOutfit || wardrobePreviewNote) {
+          setError("Some Currently Wearing images are missing from the free preview. Check the outfit boards and retry before creating a paid photo. No credits used.");
+          return;
+        }
+      }
+    }
 
     setCreating(true);
     setError(null);
@@ -1342,6 +1373,17 @@ export function PhotoEngineScreen() {
                   Tattoo regions backed by selected photos: {referenceAudit.tattooRegions.map((region) => region.replaceAll("_", " ")).join(", ")}
                 </p>
               )}
+              {referenceAudit.scene.room && (
+                <p style={{ margin: 0, fontSize: 12 }}>
+                  Actual home reference: {referenceAudit.scene.room}
+                  {referenceAudit.scene.timeKey ? ` · light reference ${referenceAudit.scene.timeKey}` : ""}
+                </p>
+              )}
+              {referenceAudit.scene.outdoors && (
+                <p style={{ margin: 0, fontSize: 12 }}>
+                  Location: outdoors / away from the shared apartment (no home-room reference expected)
+                </p>
+              )}
               <p style={{ margin: 0, fontSize: 12 }}>
                 Example camera plan (final variation may differ): {referenceAudit.scene.pose.replaceAll("_", " ")} ·{" "}
                 {referenceAudit.scene.framing.replaceAll("_", " ")} ·{" "}
@@ -1365,6 +1407,12 @@ export function PhotoEngineScreen() {
             </section>
           )}
 
+          {mode === "request" && (
+            <p className="photo-engine-footer-note" style={{ margin: "8px 0" }}>
+              Before a paid Request photo, describe the scene and run Check photo references (free).
+              Check the real outfit boards, faces and room first.
+            </p>
+          )}
           <Button
             type="button"
             className="photo-engine-create-button"
