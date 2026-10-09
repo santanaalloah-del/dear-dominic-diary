@@ -24,5 +24,7 @@ jobs:
         run: bun test tests/dominic-date-invitations.test.ts tests/dominic-daily-outfits.test.ts tests/wardrobe-selection.test.ts
       - name: Check empty Supabase budget RPC responses without AI calls
         run: bun test tests/budget-rpc-response.test.ts
+      - name: Check sticky chat dates without AI/image usage
+        run: bun test tests/chat-day-heading.test.ts
       - name: Build
         run: bun run build

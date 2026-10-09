@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { chatCalendarDayKey, chatDayHeading } from "@/lib/chat-day-heading";
 import { SpontaneousPhotoOpportunity, SpontaneousPhotoPreferencesPanel } from "@/components/spontaneous-photo-opportunity";
 import { DateModeChatBridge } from "@/components/date-mode-chat-bridge";
 import "@/components/date-mode-chat-context.css";
@@ -5168,7 +5169,6 @@ const recentConversationForPhoto = () =>
 
       <Conversation className="live-conversation messenger-conversation">
         <ConversationContent className="live-messages messenger-messages">
-          <div className="messenger-day-divider"><span>Today</span></div>
           {loading ? (
             <div className="history-loading">
               <span>finding your conversation</span>
@@ -5180,9 +5180,14 @@ const recentConversationForPhoto = () =>
               <span>say something to him, {preferredName}.</span>
             </ConversationEmptyState>
           ) : (
-            messages.map((message) => (
+            messages.map((message, index) => (
+              <Fragment key={message.id}>
+                {(index === 0 || chatCalendarDayKey(messages[index - 1].createdAt) !== chatCalendarDayKey(message.createdAt)) && (
+                  <div className="messenger-day-divider messenger-day-divider-sticky" role="separator" aria-label={chatDayHeading(message.createdAt)}>
+                    <span>{chatDayHeading(message.createdAt)}</span>
+                  </div>
+                )}
               <Popover
-                key={message.id}
                 open={messageActionTarget === message.id}
                 onOpenChange={(open) => setMessageActionTarget(open ? message.id : null)}
               >
@@ -5478,6 +5483,7 @@ const recentConversationForPhoto = () =>
                 </button>
               </PopoverContent>
               </Popover>
+              </Fragment>
             ))
           )}
           <SpontaneousPhotoOpportunity

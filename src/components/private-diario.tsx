@@ -40,6 +40,26 @@ export function usePrivateDiario() {
 
 const biometricKey = (userId: string) => `diario-biometric-v1:${userId}`;
 
+const DEVICE_GRACE_MS = 15 * 60 * 1000;
+const deviceGraceKey = (userId: string) => `diario-faceid-grace-v1:${userId}`;
+
+function deviceRecentlyVerified(userId: string): boolean {
+  try {
+    const at = Number(localStorage.getItem(deviceGraceKey(userId)));
+    const elapsed = Date.now() - at;
+    return at > 0 && elapsed >= 0 && elapsed < DEVICE_GRACE_MS;
+  } catch {
+    return false;
+  }
+}
+function rememberDeviceVerification(userId: string) {
+  try { localStorage.setItem(deviceGraceKey(userId), String(Date.now())); } catch {}
+}
+function forgetDeviceVerification(userId: string) {
+  try { localStorage.removeItem(deviceGraceKey(userId)); } catch {}
+}
+
+
 function decodeCredentialId(encoded: string): Uint8Array {
   const binary = atob(encoded);
   return Uint8Array.from(binary, character => character.charCodeAt(0));
@@ -153,26 +173,42 @@ export function PrivateDiario({
     }
     const enabled = Boolean(localStorage.getItem(biometricKey(userId)));
     setBiometricEnabled(enabled);
-    setDeviceLocked(enabled);
+    setDeviceLocked(enabled && !deviceRecentlyVerified(userId));
   }, [session?.user?.id]);
 
   useEffect(() => {
-    const lockOnReturn = () => {
-      const userId = session?.user?.id;
-      if (userId && localStorage.getItem(biometricKey(userId))) {
+    const userId = session?.user?.id;
+    if (!userId || !biometricEnabled) return;
+    let hiddenSince: number | null = null;
+
+    const onLeaving = () => {
+      hiddenSince = Date.now();
+      // The separate PrivacyCover still hides the Diary immediately
+      // in the iOS app switcher. Keep the biometric grant briefly usable.
+      if (!deviceLocked) rememberDeviceVerification(userId);
+    };
+    const onReturning = () => {
+      if (document.visibilityState !== "visible") return;
+      const elapsed = hiddenSince === null ? 0 : Date.now() - hiddenSince;
+      hiddenSince = null;
+      if (elapsed >= DEVICE_GRACE_MS || !deviceRecentlyVerified(userId)) {
+        forgetDeviceVerification(userId);
         setDeviceLocked(true);
       }
     };
     const onVisibility = () => {
-      if (document.visibilityState === "hidden") lockOnReturn();
+      if (document.visibilityState === "hidden") onLeaving();
+      else onReturning();
     };
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("pagehide", lockOnReturn);
+    window.addEventListener("pagehide", onLeaving);
+    window.addEventListener("pageshow", onReturning);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("pagehide", lockOnReturn);
+      window.removeEventListener("pagehide", onLeaving);
+      window.removeEventListener("pageshow", onReturning);
     };
-  }, [session?.user?.id]);
+  }, [session?.user?.id, biometricEnabled, deviceLocked]);
 
   // Request platform verification on opening or returning to the app.
   // Safari may require a user gesture: the Unlock button remains as fallback.
@@ -188,7 +224,10 @@ export function PrivateDiario({
       setUnlockError(null);
       try {
         await verifyDeviceUnlock(session.user.id);
-        if (!cancelled) setDeviceLocked(false);
+        if (!cancelled) {
+          rememberDeviceVerification(session.user.id);
+          setDeviceLocked(false);
+        }
       } catch {
         // Passkey requests may require a tap on iOS. Avoid repeated prompts.
       } finally {
@@ -376,6 +415,7 @@ export function PrivateDiario({
 
         signOut: async () => {
           clearAppShellContinuity();
+          forgetDeviceVerification(session.user.id);
           await supabase.auth.signOut();
         },
       }}
@@ -396,6 +436,7 @@ export function PrivateDiario({
               setUnlockError(null);
               try {
                 await verifyDeviceUnlock(session.user.id);
+                rememberDeviceVerification(session.user.id);
                 setDeviceLocked(false);
               } catch {
                 setUnlockError("Could not unlock. Try again or sign in with your password.");
@@ -406,6 +447,7 @@ export function PrivateDiario({
             {unlockError && <p className="private-error" role="alert">{unlockError}</p>}
             <Button variant="outline" onClick={async () => {
               clearAppShellContinuity();
+              forgetDeviceVerification(session.user.id);
               await supabase.auth.signOut();
             }}>Use account password</Button>
           </section>
@@ -415,6 +457,7 @@ export function PrivateDiario({
           <Button variant="outline" onClick={async () => {
             try {
               await enrollDeviceUnlock(session.user.id);
+              forgetDeviceVerification(session.user.id);
               setBiometricEnabled(true);
               setDeviceLocked(true);
             } catch {
