@@ -103,18 +103,30 @@ export function analyzePhotoScene(
 
   // Resolve relative bodies and object ownership from a SHORT everyday prompt.
   // No paid LLM call is needed; keep the exact scene as the authority.
-  const alloahAboveDominic = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:on top of|straddling)\s+(?:dominic|him)\b/.test(text);
-  const dominicAboveAlloah = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:on top of|straddling)\s+(?:alloah|her|me)\b/.test(text);
+  const alloahAboveDominic = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:(?:lying|laying|reclining|reclined)\s+)?(?:on top of|straddling|lying across|laying across)\s+(?:dominic|him)\b/.test(text);
+  const dominicAboveAlloah = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:(?:lying|laying|reclining|reclined)\s+)?(?:on top of|straddling|lying across|laying across)\s+(?:alloah|her|me)\b/.test(text);
   const alloahOnLap = /\b(?:alloah|i|me)\s+(?:(?:am|is)\s+)?(?:on|in|sitting on)\s+(?:dominic'?s|his)\s+lap\b/.test(text);
   const dominicOnLap = /\b(?:dominic|he)\s+(?:(?:is)\s+)?(?:on|in|sitting on)\s+(?:alloah'?s|her|my)\s+lap\b/.test(text);
   const explicitBodyPlacement = alloahAboveDominic || dominicAboveAlloah || alloahOnLap || dominicOnLap;
+  const lyingWords = /\b(lying|laying|reclining|reclined|sprawled|deitado|deitada|deitados|deitadas|recostado|recostada)\b/.test(text);
+  const explicitUpright = /\b(straddling|sitting|seated|sit on top|sat on top|sentada|sentado|montada|no colo)\b/.test(text);
+  // "cuddling on the couch, Alloah on top of Dominic" means reclining
+  // close contact, NOT sitting on his lap or perched on the sofa arm.
+  const inferredReclined = (lyingWords || (room === "living" && affectionate &&
+    /\bon top of\b/.test(text))) && !explicitUpright;
+  const alloahReclinedOnDominic = alloahAboveDominic && inferredReclined;
+  const dominicReclinedOnAlloah = dominicAboveAlloah && inferredReclined;
   const sharedProp = /\b(?:sharing|share|passing|pass)\s+(?:(?:a|the|one)\s+)?(?:joint|cigarette|phone|drink|cup|bottle)\b/.test(text);
   const namedProp = /\b(joint|cigarette|phone|drink|cup|bottle)\b/.test(text);
   const namedHolder = /\b(?:alloah|dominic|i|he|she)\s+(?:(?:am|is)\s+)?(?:holding|holds|passing|passes|carrying|carries)\s+(?:(?:a|the|one)\s+)?(?:joint|cigarette|phone|drink|cup|bottle)\b/.test(text);
   const propOwnershipAmbiguous = namedProp && sharedProp && !namedHolder;
   const actionNotes = [
-    alloahAboveDominic ? "Alloah is physically above Dominic in the requested close pose. Preserve who is on top; Dominic stays underneath. Keep their arms and legs attached to the correct person." : null,
-    dominicAboveAlloah ? "Dominic is physically above Alloah in the requested close pose. Preserve who is on top; Alloah stays underneath. Keep their arms and legs attached to the correct person." : null,
+    alloahReclinedOnDominic
+      ? "Alloah is LYING DOWN lengthwise ON TOP OF Dominic on the couch; both bodies are reclining along the seat cushions, torso to torso in a horizontal cuddle. Dominic is underneath. NOT sitting upright, NOT straddling, NOT perched on the couch arm or back. Preserve correct limbs and believable weight."
+      : alloahAboveDominic ? "Alloah is physically on top of Dominic in the explicitly requested pose. Keep their relative positions and avoid moving either person to the couch arm or back." : null,
+    dominicReclinedOnAlloah
+      ? "Dominic is LYING DOWN lengthwise ON TOP OF Alloah on the couch; both bodies recline along the cushions in a horizontal cuddle. Alloah is underneath. NOT upright, not on the couch arm or back."
+      : dominicAboveAlloah ? "Dominic is on top of Alloah in the explicitly requested pose. Keep their relative positions." : null,
     alloahOnLap ? "Alloah is seated on Dominic's lap. Do not reverse their seats or substitute two people sitting side by side." : null,
     dominicOnLap ? "Dominic is seated on Alloah's lap. Do not reverse their seats or substitute two people sitting side by side." : null,
     sharedProp ? "They are SHARING one real object during the moment. Depict only one physical object, passed or held by one believable hand at a time; do not duplicate it or invent extra fingers." : null,
@@ -126,7 +138,8 @@ export function analyzePhotoScene(
   // remains walking instead of an unrelated reaching pose.
   let pose: string | null = null;
   if (/\b(sleeping|asleep|dormindo|cochilando|napping)\b/.test(text)) pose = "sleeping_relaxed";
-  else if (/\b(lying|laying|reclining|reclined|sprawled|deitado|deitada|deitados|deitadas|recostado|recostada)\b/.test(text)) pose = "lying_relaxed";
+  else if (alloahReclinedOnDominic || dominicReclinedOnAlloah) pose = "reclining_on_partner";
+  else if (lyingWords) pose = "lying_relaxed";
   else if (/\b(walking|strolling|walking together|andando|caminhando|passeando|passeio a pe)\b/.test(text)) pose = "walking_together";
   else if (explicitBodyPlacement) pose = "cuddling_close";
   else if (/\b(sitting|seated|senta|sentado|sentada|sentados|sentadas)\b/.test(text)) pose = "relaxed_seated";
@@ -145,7 +158,6 @@ export function analyzePhotoScene(
     : explicitFullBody || shoesVisible ? "full_body"
     : explicitClose ? "head_and_shoulders"
     : selfie ? (mirrorSelfie ? "three_quarter" : "chest_up")
-    : affectionate ? "waist_up"
     : lookingAtCamera ? "chest_up" : null;
 
   let expression: string | null = null;
