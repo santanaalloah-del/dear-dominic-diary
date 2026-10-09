@@ -378,12 +378,28 @@ function tattooRegionAnchorIds(
   if (!canon || !requestedRegions.length) return [];
 
   const entries = tattooRegionsFromProfile(canon.profile ?? {});
-  // requestedRegions is already prioritized by the explicit description:
-  // shirtless => chest/abdomen first; hugging/holding => hands/arms first.
-  // Never push all hand images ahead of a specifically requested chest tattoo.
-  return Array.from(new Set(requestedRegions.flatMap((region) =>
-    entries.filter((entry) => entry.region === region).flatMap((entry) => entry.anchorIds)
-  )));
+  // Round-robin the requested anatomical regions. For a joint held between
+  // two people, do not consume every tattoo slot with the LEFT hand before
+  // giving the right hand and arms a chance. A specifically named left hand
+  // or a bare chest still appears first in requestedRegions.
+  const byRegion = requestedRegions.map((region) =>
+    Array.from(new Set(entries
+      .filter((entry) => entry.region === region)
+      .flatMap((entry) => entry.anchorIds)))
+  );
+  const chosen: string[] = [];
+  const seen = new Set<string>();
+  const max = Math.max(0, ...byRegion.map((ids) => ids.length));
+  for (let index = 0; index < max; index += 1) {
+    for (const ids of byRegion) {
+      const id = ids[index];
+      if (id && !seen.has(id)) {
+        chosen.push(id);
+        seen.add(id);
+      }
+    }
+  }
+  return chosen;
 }
 
 function canonSubjectsForRequest(
@@ -656,16 +672,24 @@ function chooseProviderReferences(
   };
 
   const ensureIdentity = (subject: "alloah" | "dominic", minimum: number) => {
-    const countIdentity = () => chosen.filter((item) =>
-      item.reference.subject === subject && item.reference.reference_kind === "identity"
-    ).length;
-    if (countIdentity() >= minimum) return;
-    takeOrderedIds(subject, groupsFor(subject).face, minimum - countIdentity());
-    if (countIdentity() < minimum) take((item) =>
+    const groups = groupsFor(subject);
+    const portraitAnchors = new Set(groups.face);
+    const tattooOnlyAnchors = new Set([
+      ...groups.tattoos,
+      ...tattooRegionsFromProfile(canonFor(subject)?.profile ?? {})
+        .flatMap((entry) => entry.anchorIds),
+    ].filter((id) => !portraitAnchors.has(id)));
+    const isFaceEvidence = (item: (typeof pool)[number]) =>
       item.reference.subject === subject &&
       item.reference.reference_kind === "identity" &&
-      (item.reference.reference_purposes ?? []).includes("face"),
-      minimum - countIdentity());
+      (item.reference.reference_purposes ?? []).includes("face") &&
+      !tattooOnlyAnchors.has(item.reference.id);
+    const countFaces = () => chosen.filter(isFaceEvidence).length;
+    if (countFaces() >= minimum) return;
+    takeOrderedIds(subject, groups.face, minimum - countFaces());
+    if (countFaces() < minimum) {
+      take(isFaceEvidence, minimum - countFaces());
+    }
   };
 
   const takeFallbackAnchors = (
@@ -694,7 +718,11 @@ function chooseProviderReferences(
     ensureIdentity("dominic", 2);
     if (wantsTattoos || requestedRegions.length)
       takeOrderedIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), qualityIssues.has("tattoos") ? 3 : 2);
-    takeOrderedIds("dominic", groupsFor("dominic").tattoos, 1);
+    // The map, not the blanket "tattoos" tag shared by all 43 identity
+    // uploads, determines dedicated region evidence whenever possible.
+    if (!requestedRegions.length) {
+      takeOrderedIds("dominic", groupsFor("dominic").tattoos, 1);
+    }
     if (request.use_current_look) {
       take((item) => item.reference.subject === "dominic" &&
         item.reference.reference_kind === "current_look" && item.reference.is_current, 1);
