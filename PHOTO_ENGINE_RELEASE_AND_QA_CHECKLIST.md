@@ -110,3 +110,24 @@ The working branch already contains many fixes:
 
 ## Do not forget
 The user's priority is authenticity across the WHOLE APP. Face resemblance in the last Dominic solo photo is a partial win, NOT permission to ignore invented background, hair/accessories, garment shape/graphics or robotic body pose. Do not ask the user to repair generic engine failures through long hand-written prompts.
+
+
+## 2026-10-09 — NEW COUPLE COUCH RESULT, urgent regression fixes
+
+Supabase request ID: `41026cb5-e38c-462d-ae95-81b71acc7c04`. User examined latest generated photo after production e77fe44.
+
+USER-VERIFIED IMPROVEMENTS: Dominic's face/large shirt graphic/tattoos were closer; couple position and laughter felt less artificially posed. THIS IS NOT VISUAL APPROVAL.
+
+USER-VERIFIED FAILURES (ALL MUST REMAIN REGISTERED): Alloah's face became a DIFFERENT woman (priority P0); printed sentence on her CURRENT actual shirt disappeared; Alloah gained tattoos she does not have; historical accessories/jewelry were copied into the picture; a pair of shoes became mismatched (wrong color/shoe on one foot) and overemphasized; sofa and furniture location invented again; fake music-credit/date/website writing was printed at the bottom of image; framing too wide, showcasing entire clothes/shoes despite desire for natural, close personal photos.
+
+USER'S EXPLICIT DESIGN DECISION: For ALL future Photo Engine generations, send the REAL PHOTO OF THE ACTIVE ROOM and **DO NOT SEND the apartment floor-plan image**. The floor-plan asset may continue existing elsewhere in the app; simply remove its inclusion from model references, selection budget and prompt language. One room photo saves one scarce 14-reference slot for actual identity.
+
+NEW GLOBAL PHOTO REQUIREMENTS:
+- Both people's actual recognizable faces are indispensable; Alloah's face should have at least the priority Dominic's receives. Quality feedback `face_alloah` should weight her verified face anchor references (never use screenshots of poor generated photos as identity canon).
+- Copy garment prints and wording from current saved top images; NEVER invent a different print or erase readable original text.
+- Preserve exactly one matched, correct pair of shoes per person; shoes may fall naturally OUTSIDE a closer camera crop. Never invent or swap shoes or add extra feet.
+- Never invent tattoos on Alloah, extra necklaces, or other accessories from historical photos.
+- A final PHOTO contains no generated caption, copyright notice, music credit, watermark, URL, date or decorative text. Genuine saved T-shirt lettering is the only exception.
+- Style "Natural iPhone" should be natural IN THE ACTUAL PIXELS, not just the name of a 14-ref prompt. Do not randomize medium-wide/full-body for ordinary couple couch scenes. A newly added CAMERA FRAMING setting (automatic, close-up, head/shoulders, chest-up, waist-up, three-quarter, full-body, room-wide) must affect BOTH free preflight and paid photo request; explicit full-body is still honored.
+- No more paid image generation in testing without the user's express approval. Compiler/unit-tests/preflight can establish wiring and reference selection, but CANNOT guarantee Seedream correctly reproduces exact faces, room, clothes and pose.
+- Before next deploy, check **last actual Vercel production SHA**, current GitHub main and feature branch, and last successful CI. The last known published baseline was `e77fe44b4b1782d399a649976d8920e3148f2734`. Never overwrite later changes or auto-deploy an old SHA.
