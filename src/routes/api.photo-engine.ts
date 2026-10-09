@@ -839,6 +839,7 @@ const prompt = buildPrompt(
             scene: {
               pose: variationPlan.poseType,
               cameraAngle: variationPlan.cameraAngle,
+              composition: variationPlan.compositionType,
               framing: variationPlan.framing,
               lighting: variationPlan.lightingType,
               expression: variationPlan.expression,
