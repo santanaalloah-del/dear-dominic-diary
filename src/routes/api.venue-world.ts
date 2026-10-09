@@ -1,3 +1,4 @@
+import { parseBudgetRpcResponse } from "@/lib/budget-rpc-response";
 import { createFileRoute } from "@tanstack/react-router";
 
 const DEFAULT_MODEL = "google/gemini-3.8-flash";
@@ -859,7 +860,7 @@ export const Route =
             const rpc=async(name:string,body:Record<string,unknown>)=>{
               const result=await fetch(`${budgetUrl}/rest/v1/rpc/${name}`,{method:"POST",headers:{"Content-Type":"application/json",apikey:budgetKey,Authorization:`Bearer ${budgetKey}`},body:JSON.stringify(body)});
               if(!result.ok)throw new Error("AI budget service unavailable");
-              return result.json();
+              return parseBudgetRpcResponse(result);
             };
             const budgetId=await rpc("reserve_ai_budget",{p_source:"vercel-venue-world",p_estimated_usd:0.05});
             if(!budgetId)return jsonError("Monthly AI budget reached.",429);

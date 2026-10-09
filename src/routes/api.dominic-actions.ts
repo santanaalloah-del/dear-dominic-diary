@@ -1,3 +1,4 @@
+import { parseBudgetRpcResponse } from "@/lib/budget-rpc-response";
 import {
   createFileRoute,
 } from "@tanstack/react-router";
@@ -1455,7 +1456,7 @@ export const Route =
                   body: JSON.stringify(body),
                 });
                 if (!response.ok) throw new Error("Budget check failed");
-                return response.json();
+                return parseBudgetRpcResponse(response);
               };
               const budgetId = await rpc("reserve_ai_budget", { p_source: "dominic-actions", p_estimated_usd: 0.04 });
               if (!budgetId) return Response.json({ actions: [], budgetExhausted: true });

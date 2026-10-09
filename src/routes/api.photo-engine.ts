@@ -1,3 +1,4 @@
+import { parseBudgetRpcResponse } from "@/lib/budget-rpc-response";
 import { createFileRoute } from "@tanstack/react-router";
 import { buildPhotoContextPrompt } from "@/lib/photo-prompt-context";
 import {
@@ -906,7 +907,7 @@ const prompt = buildPrompt(
             body: JSON.stringify(body)
           });
           if (!res.ok) throw new Error("AI budget service unavailable");
-          return res.json();
+          return parseBudgetRpcResponse(res);
         };
         if (body.background === true) {
           const result = await fetch(budgetUrl + "/functions/v1/photo-background-worker", {

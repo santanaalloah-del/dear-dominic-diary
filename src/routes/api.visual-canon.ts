@@ -1,3 +1,4 @@
+import { parseBudgetRpcResponse } from "@/lib/budget-rpc-response";
 import { createFileRoute } from "@tanstack/react-router";
 
 const DEFAULT_CANON_MODEL = "google/gemini-3.8-flash";
@@ -756,7 +757,7 @@ async function callOpenRouter({
       body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error("AI budget check failed");
-    return response.json();
+    return parseBudgetRpcResponse(response);
   };
   const budgetId = await rpc("reserve_ai_budget", { p_source: "vercel-visual-canon", p_estimated_usd: 0.35 });
   if (!budgetId) throw new Error("Monthly AI budget reached.");

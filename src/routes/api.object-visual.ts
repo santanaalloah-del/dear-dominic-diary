@@ -1,3 +1,4 @@
+import { parseBudgetRpcResponse } from "@/lib/budget-rpc-response";
 import { createFileRoute } from "@tanstack/react-router";
 
 const IMAGE_MODEL = "openai/gpt-image-2.5-sunburst";
@@ -147,7 +148,7 @@ export const Route = createFileRoute("/api/object-visual")({
             body: JSON.stringify(body)
           });
           if (!res.ok) throw new Error("Budget RPC failed");
-          return res.json();
+          return parseBudgetRpcResponse(res);
         };
         const budgetId = await budgetRpc("reserve_ai_budget", {
           p_source: "vercel-object-visual", p_estimated_usd: 0.40
