@@ -338,12 +338,19 @@ export function buildPhotoVariationPlan(
     "eye_level"
   );
 
-  const framing = choose(
-    pools.framings,
-    safeStrings(avoid.framings),
-    seedBase >>> 6,
-    "waist_up"
-  );
+  // Close affectionate moments should not turn into tiny faces inside a
+  // distant establishing shot. An explicitly requested wide/full-body view wins.
+  const explicitWide = /\b(wide shot|wide angle|full.body|full body|entire room|whole room|distant camera|long shot|plano aberto|corpo inteiro)\b/.test(sceneText);
+  const intimateCloseUp = request.subject_type === "both" &&
+    /cudd|hug|embrac|kiss|snuggl|on top of|deitad|abraç|beij|carinh|conchinha/.test(sceneText);
+  const framing = intimateCloseUp && !explicitWide
+    ? choose(["chest_up", "waist_up", "three_quarter"], safeStrings(avoid.framings), seedBase >>> 6, "waist_up")
+    : choose(
+        pools.framings,
+        safeStrings(avoid.framings),
+        seedBase >>> 6,
+        "waist_up"
+      );
 
   const isTogether = request.subject_type === "both";
   const affection = /cudd|hug|embrac|kiss|lying together|laying together|snuggl|abraç|beij|carinh|conchinha|romantic|flirty|intimate/.test([sceneText, request.mood ?? ""].join(" ").toLowerCase());
