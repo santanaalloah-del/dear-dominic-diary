@@ -215,7 +215,7 @@ function canonBlock(canons: VisualCanonPayload[]) {
         ? `Distinctive details: ${distinctiveDetails.join(" | ")}`
         : null,
       tattoosOrMarks.length
-        ? `Tattoos / marks: ${tattoosOrMarks.join(" | ")}`
+        ? `Permanent SKIN marks only (never decorative prints on clothing; covered marks are invisible): ${tattoosOrMarks.join(" | ")}`
         : null,
       generationRules.length
         ? `Generation rules: ${generationRules.join(" | ")}`
@@ -281,7 +281,9 @@ function buildPrompt(
           ? reference.purposes?.includes("floor_plan")
             ? "REQUIRED ARCHITECTURAL FLOOR PLAN — GEOMETRY ONLY, NOT DECOR OR LIGHT"
             : "REQUIRED ACTUAL ROOM PHOTO — FURNITURE, POSITION AND LIGHT"
-          : "PERSON IDENTITY";
+          : reference.purposes?.includes("tattoos")
+            ? "PERSON IDENTITY + ANATOMICAL SKIN TATTOO EVIDENCE — SKIN ONLY, NEVER CLOTHING PRINT"
+            : "PERSON IDENTITY";
     // Give the model a short image-role index. Long repeated descriptions
     // overwhelmed the actual short scene (20K+ characters in one real job).
     const fullNote = reference.description ?? "";
@@ -296,7 +298,9 @@ function buildPrompt(
           ? "Only the explicitly saved current styling detail; never replace face identity."
           : reference.subject === "couple"
             ? "Other people's pose/composition only; never copy their identity."
-            : "Identity evidence. Preserve the correct subject's face and real features.";
+            : reference.purposes?.includes("tattoos")
+              ? "This photo may show INK on the person's SKIN; map it to the SAME exposed body region. Tattoos are NEVER shirt prints or fabric art. Do not copy historical clothes."
+              : "Identity evidence. Preserve the correct subject's face and real features; do not copy historical clothing.";
     return `Image ${index + (hasSourceImage ? 2 : 1)}: ROLE=${role}; subject=${
       reference.subject
     }; purposes=${purposes}; strength=${reference.strength}; current=${
@@ -322,6 +326,7 @@ function buildPrompt(
     photoVariationInstruction(variationPlan),
     cameraOperator,
     "THE CHOSEN CROP IS A HARD BOUNDARY: a waist-up image must NOT become a head-to-toe portrait to show shoes or the whole kitchen. If the chosen crop omits shoes or tattoos, that is correct. Subjects do NOT both stand symmetrically smiling with props at the camera unless the user expressly requested a posed picture.",
+    "STRICT SKIN / FABRIC SEPARATION: Tattoos, face marks and piercings belong to the PERSON'S BODY only, and only on skin actually exposed in the finished image. The Current Wearing T-shirt is OPAQUE fabric: chest and back tattoos covered by it are INVISIBLE, not transferred to its front as a decorative motif. A snake, symbol, cross, tattoo lettering or other ink from a skin reference must NEVER appear as a new print on a plain saved shirt. Exposed arm, face, neck or hand tattoos retain their actual anchored positions. Clothing prints come EXCLUSIVELY from saved Wardrobe garment cutouts, not skin reference images.",
     "EXACT WARDROBE: the ACTUAL saved garment photographs control cut, print, logos, visible lettering and color, not generic clothing titles or historical identity outfits. Alloah's print must not disappear; Dominic must not gain a random decorative shirt emblem. If reference lettering is illegible, avoid fabricating different words.",
     "EXACT HOME LIGHT: reproduce the actual attached room's light and ordinary handheld phone exposure. No lifted shadowless HDR, perfect beauty fill, professional softboxes, artificial window glow or cinematic grading.",
     "",
