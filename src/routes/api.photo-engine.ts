@@ -594,7 +594,7 @@ const prompt = buildPrompt(
         // claiming the request, reserving budget or calling OpenRouter.
         if (body.auditOnly === true) {
           const people: Record<string, { faceReferences: number; faceCanonAnchors: number; currentHairReferences: number; tattooReferences: number }> = {};
-          const outfits: Record<string, { imageCount: number; items: string[] }> = {};
+          const outfits: Record<string, { imageCount: number; garmentCount: number; items: string[] }> = {};
           const warnings: string[] = [];
           const referenceIds = new Set(attachedReferences.map(({ reference }) => reference.id));
           for (const person of requiredPeople) {
@@ -639,8 +639,16 @@ const prompt = buildPrompt(
             );
             outfits[person] = {
               imageCount: wardrobe.length,
+              garmentCount: wardrobe.reduce((count, { reference }) => {
+                const marker = reference.purposes?.find((value) => value.startsWith("garment_count:"));
+                const pieces = marker ? Number(marker.slice("garment_count:".length)) : 1;
+                return count + (Number.isInteger(pieces) && pieces > 0 && pieces <= 6 ? pieces : 1);
+              }, 0),
               items: wardrobe.map(({ reference }) => reference.title || "Clothing"),
             };
+            if (!canons.some((canon) => canon.subject === person)) {
+              warnings.push(person + " Visual Canon is pending. Saved identity photos and past reference ratings are used instead.");
+            }
             if (body.request.use_current_look && wardrobe.length === 0) {
               warnings.push(person + " has no Currently Wearing visual reference. Select an outfit in Wardrobe.");
             }
