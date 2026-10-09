@@ -612,12 +612,16 @@ function chooseProviderReferences(
     if (wantsTattoos) {
       takeIds("dominic", tattooRegionAnchorIds(canonFor("dominic"), requestedRegions), 2);
       takeIds("dominic", dominicGroups.tattoos, 1);
-      take(
-        (item) => item.reference.subject === "dominic" &&
-          item.reference.reference_purposes?.includes("tattoos"),
-        1
-      );
     }
+    // Tattoo markings are part of Dominic's permanent identity, even when
+    // the user didn't explicitly say the word "tattoo". The visual canon
+    // analyzer may be unavailable, so use a real tagged tattoo reference.
+    take(
+      (item) => item.reference.subject === "dominic" &&
+        item.reference.reference_kind === "identity" &&
+        item.reference.reference_purposes?.includes("tattoos"),
+      1
+    );
     takeFallbackAnchors("alloah", 1);
     takeFallbackAnchors("dominic", 1);
   } else {
@@ -866,10 +870,10 @@ export async function generatePhotoProviderPreview({
     throw new Error("Your session expired. Please sign in again.");
   }
 
-  // Reserve slots for the REAL chosen wardrobe photos, not just their
-  // text titles. Keep 14 max images total, including the room and source.
-  // Preserve up to three pieces per person so shoes aren't silently omitted.
-  // In a two-person scene, favor the existing chosen pieces of both people.
+  // Reserve image slots according to what the camera can actually see:
+  // faces/skin/tattoos dominate sofa close-ups; full-body and outfit scenes
+  // use the real wardrobe cutouts, including pants and footwear when relevant.
+  // All subjects and shared spaces remain constrained by the model's 14 images.
   const clothingWithPhotos = request.use_current_look
     ? wardrobeContexts.flatMap((context) =>
         context.clothing
@@ -877,11 +881,20 @@ export async function generatePhotoProviderPreview({
           .map((piece) => ({ owner: context.owner, piece }))
       )
     : [];
+  const sceneDescription = [request.scene ?? "", request.shot_type ?? "", request.photo_style ?? ""].join(" ").toLowerCase();
+  const wideOutfitScene = /full.body|full body|standing|walking|outfit|mirror|street|feet|foot|shoes|sneakers|boots|calça|pants|jeans|shoes|tenis|tênis|pé|pernas/.test(sceneDescription);
   const wardrobePhotos = (
     request.subject_type === "both"
-      ? clothingWithPhotos.filter(({ owner }) => owner === "alloah").slice(0, 3)
-          .concat(clothingWithPhotos.filter(({ owner }) => owner === "dominic").slice(0, 3))
-      : clothingWithPhotos.slice(0, 4)
+      ? wideOutfitScene
+        ? clothingWithPhotos.filter(({ owner }) => owner === "alloah").slice(0, 2)
+            .concat(clothingWithPhotos.filter(({ owner }) => owner === "dominic").slice(0, 3))
+        : clothingWithPhotos
+            .filter(({ piece }) => piece.category === "top" || piece.category === "outerwear" || piece.category === "dress")
+            .sort((a, b) => (a.owner === "alloah" ? 0 : 1) - (b.owner === "alloah" ? 0 : 1))
+            .slice(0, 2)
+      : wideOutfitScene
+        ? clothingWithPhotos.slice(0, 4)
+        : clothingWithPhotos.filter(({ piece }) => piece.category === "top" || piece.category === "outerwear" || piece.category === "dress").slice(0, 2)
   ).slice(0, 5);
 
   // When clothing is attached, the selected room photo is more useful than a
