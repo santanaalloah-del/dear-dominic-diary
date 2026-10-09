@@ -327,12 +327,10 @@ function requestedTattooRegions(
   const text = requestText(request);
   const regions = new Set<TattooRegion>();
 
-  // Word boundaries avoid matching arm inside "warm" and hand inside
-  // unrelated words, which incorrectly requested tattoo anchors.
-  const has = (...terms: string[]) => terms.some((term) => {
-    const normalized = term.replace(/[.*+?^${}()|[\]\\]/g, "\\  const has = (...terms: string[]) => terms.some((term) => text.includes(term));");
-    return new RegExp("(^|[^a-z])" + normalized + "(?=$|[^a-z])", "i").test(text);
-  });
+  // Fixed phrases only; do not match "arm" in "warm", or "hand" within another word.
+  const has = (...terms: string[]) => terms.some((term) =>
+    new RegExp("(^|[^a-z])" + term + "(?=$|[^a-z])", "i").test(text)
+  );
 
   if (has("face tattoo", "face tattoos", "cheek tattoo", "under eye", "under-eye")) {
     regions.add("face");
