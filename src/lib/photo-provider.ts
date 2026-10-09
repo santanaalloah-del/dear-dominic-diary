@@ -705,7 +705,13 @@ function chooseProviderReferences(
       !tattooOnlyAnchors.has(item.reference.id);
     const countFaces = () => chosen.filter(isFaceEvidence).length;
     if (countFaces() >= minimum) return;
-    takeOrderedIds(subject, groups.face, minimum - countFaces());
+    // Canon face anchors can contain a HAIR-only current-look reference.
+    // It helps with styling but must never steal a slot reserved for a
+    // real face photograph. Hair is scheduled separately below.
+    const verifiedFaceAnchorIds = groups.face.filter((id) =>
+      pool.some((item) => item.reference.id === id && isFaceEvidence(item))
+    );
+    takeOrderedIds(subject, verifiedFaceAnchorIds, minimum - countFaces());
     if (countFaces() < minimum) {
       take(isFaceEvidence, minimum - countFaces());
     }
