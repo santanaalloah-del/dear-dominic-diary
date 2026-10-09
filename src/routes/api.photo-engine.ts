@@ -291,10 +291,26 @@ function buildPrompt(
     }`;
   });
 
+  const cameraOperator = interaction.selfie || request.photo_style === "selfie"
+    ? "SELFIE CAMERA: only the person actually taking the selfie controls the phone; use plausible arm length and close perspective, no invisible second photographer."
+    : request.photo_style === "mirror"
+      ? "MIRROR CAMERA: camera and reflection must agree; no invisible extra photographer."
+      : "UNPOSED CANDID CAMERA: this is an ordinary handheld photo taken from a believable nearby viewpoint; the photographer is out of frame. The subjects are busy with their real activity, not presenting themselves or objects to a camera. No second visible photographer or artificial studio camera.";
+  const roomRule = interaction.room === "living"
+    ? "In this particular living room the real sofa stands AWAY from the wall; preserve that spacing exactly."
+    : null;
   return [
-    "Generate ONE photorealistic personal phone photograph. Attached images have DIFFERENT ROLES: personal identity, optional Pinterest-inspired composition, and real room references.",
+    "Generate ONE authentic private iPhone photo, not a catalog portrait. The final picture is ONE imperfect instant from an actual day.",
+    "BINDING PHOTO BRIEF — action, exact camera crop, saved people, garments and real room outweigh aesthetics:",
+    request.scene || "Create one believable everyday moment.",
+    interaction.actionNotes.length ? "Required physical action: " + interaction.actionNotes.join(" ") : null,
+    photoVariationInstruction(variationPlan),
+    cameraOperator,
+    "THE CHOSEN CROP IS A HARD BOUNDARY: a waist-up image must NOT become a head-to-toe portrait to show shoes or the whole kitchen. If the chosen crop omits shoes or tattoos, that is correct. Subjects do NOT both stand symmetrically smiling with props at the camera unless the user expressly requested a posed picture.",
+    "EXACT WARDROBE: the ACTUAL saved garment photographs control cut, print, logos, visible lettering and color, not generic clothing titles or historical identity outfits. Alloah's print must not disappear; Dominic must not gain a random decorative shirt emblem. If reference lettering is illegible, avoid fabricating different words.",
+    "EXACT HOME LIGHT: reproduce the actual attached room's light and ordinary handheld phone exposure. No lifted shadowless HDR, perfect beauty fill, professional softboxes, artificial window glow or cinematic grading.",
     "",
-    "ABSOLUTE PRIORITY — IDENTITY FIDELITY",
+    "IDENTITY FIDELITY",
     subjectDescription(request.subject_type),
     "Only Alloah identity references depict Alloah; only Dominic identity references depict Dominic. Those images show each subject at different times, angles, expressions and styling.",
     "Use identity images of Alloah and Dominic to preserve each person's recognizable facial geometry and proportions: face shape, eyes, nose, lips, jaw, cheekbones, hair, skin, body proportions, tattoos, piercings and persistent marks.",
@@ -306,31 +322,26 @@ function buildPrompt(
     "EXPLICIT SCENE OVERRIDES VARIATION: First fulfill WHO is doing WHAT, WHERE, and the described relative body positions. Never substitute a different pose for the requested action. Do not invent coats, sleeves, gloves or layers to hide anatomy. Clothing worn on an arm must connect to the same person's selected garment at the shoulder.",
     "HANDS AND OBJECTS: Show a small named prop only once and in a physically coherent grip; do not duplicate, cross, or deform it. Prioritize accurate people, arms and hands over decorative prop details.",
     "NATURAL CONNECTION: For an affectionate interaction, show believable attention between partners instead of vacant eyes or forced symmetrical poses.",
-    "CANONICAL ROOM GEOMETRY: Use BOTH the real room PHOTO and the matching FLOOR PLAN as FIXED spatial evidence. They describe the same apartment, not alternate room designs. Reconstruct where furniture actually sits before placing people. The sofa stays at its actual distance from walls; in the shared living room it stands AWAY from the wall, not pushed against it. Preserve positions of walls, doorways, windows, rug, chairs and shelving. The phone camera may move around the REAL furniture, but furniture must not be rearranged for the photo.",
+    "CANONICAL ROOM GEOMETRY: When supplied, real room PHOTO and matching FLOOR PLAN are the same home's FIXED spatial evidence, not interchangeable scene ideas. Preserve walls, windows, furniture locations, visible materials and circulation; change only the photographer's position.",
+    roomRule,
     "CAMERA VARIETY WITHOUT REDECORATION: A side view, diagonal view, doorway angle or close crop is allowed and desirable when consistent with the selected camera plan. Do not fall back to the same centered, face-on couple portrait. Different angles reveal different parts of the SAME room; do not generate a new room behind the couple.",
     "WARDROBE VISUAL CANON: Wardrobe references contain the real Currently Wearing garment cutouts. A wardrobe board may show separate labeled panels for each person: top, bottom, outerwear and shoes. Interpret each panel as its own exact garment; NEVER as a person. Apply pieces to the correct owner, preserving silhouette, fit, construction, fabric and color. Do not replace wide/baggy jeans with slim jeans, or sneakers with sandals. Even if shoes or trousers are partly out of frame, NEVER invent a contradictory outfit. The real face references govern identity.",
-    "FRAMING FOR TWO PEOPLE: Prioritize the actual interaction and the selected camera angle, not a standardized couple portrait. Faces can appear in natural three-quarter view or partial side profile; do not turn everyone toward the camera just for identity checks. Keep any VISIBLE facial features faithful to real identity evidence. A medium-wide view may show the sofa's proper layout; a closer side view may crop clothes, shoes or tattoos without inventing them.",
+    "FRAMING FOR TWO PEOPLE: Faces may be in natural profile or turned toward an activity, with asymmetrical bodies and hands. Never widen a selected close crop merely to display complete reference outfits or an establishing view of the kitchen.",
     hasSourceImage
       ? "Image 1 is an existing generated preview being adjusted. Preserve scene continuity while correcting the person toward the identity references."
       : null,
     canonBlock(canons),
 buildPhotoContextPrompt(request),
-"",
-"SCENE",
-    request.scene || "Create a believable everyday moment.",
-    interaction.actionNotes.length ? "EXPLICIT BODY / PROP RELATIONSHIPS: " + interaction.actionNotes.join(" ") : null,
-    request.mood ? `Mood: ${request.mood}.` : null,
+    request.mood ? `Requested mood: ${request.mood}.` : null,
     request.adjustment_instruction
       ? `Requested adjustment: ${request.adjustment_instruction}`
       : null,
-
-    photoVariationInstruction(variationPlan),
     
     "",
     "CAMERA / REALISM",
     `Photo style: ${styleDescription(request.photo_style)}.`,
     request.shot_type ? `Requested shot: ${request.shot_type}.` : null,
-    "The result should look like a real personal photo someone actually took or sent in chat.",
+    "The result should look like a real personal phone photo someone actually took or sent in chat, without subjects performing for the camera.",
     "ORDINARY IPHONE PHYSICS: The phone is handheld by a plausible person from the selected camera position. Use natural near-camera perspective, realistic exposure and white balance, minor optical softness away from the focus plane, and ordinary low-light sensor noise only when the room is genuinely dim. Keep the visible faces recognizable; do not blur them to imitate realism.",
     "A BELIEVABLE IN-BETWEEN MOMENT: Capture an interrupted conversation, a relaxed glance or an imperfectly timed gesture when compatible with the requested action. No simultaneous camera-ready smiles, mirrored arm poses, theatrical flirting, artificial skin gloss, oversharpened edges, forced portrait lighting or fake HDR halos.",
     "THE 2K OUTPUT IS ENOUGH: Favor believable optics and faithful source evidence over synthetic microdetail. Do not paint invented freckles, extra tattoo lines, fake fabric logos, decorative clutter, phone timestamps, watermarks or simulated camera UI.",
