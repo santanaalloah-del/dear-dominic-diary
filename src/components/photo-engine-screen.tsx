@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PhotoIdentityFeedback } from "@/components/photo-identity-feedback";
 import { PhotoQualityFeedback } from "@/components/photo-quality-feedback";
+import { auditPhotoProviderReferences, type PhotoReferenceAudit } from "@/lib/photo-provider";
 import {
   Camera,
   Check,
@@ -220,6 +221,9 @@ export function PhotoEngineScreen() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkingConnection, setCheckingConnection] = useState(false);
+  const [checkingReferences, setCheckingReferences] = useState(false);
+  const [referenceAudit, setReferenceAudit] = useState<PhotoReferenceAudit | null>(null);
+  const [auditError, setAuditError] = useState<string | null>(null);
   const [connectionResult, setConnectionResult] = useState<string | null>(null);
   const [previews, setPreviews] = useState<PreviewState[]>([]);
   const [showRecentPreviews, setShowRecentPreviews] = useState(false);
@@ -279,9 +283,9 @@ export function PhotoEngineScreen() {
         .from("photo_generation_requests")
         .select("*")
         .eq("user_id", userId)
-        .gte("created_at", new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString())
+        .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(12);
       if (cancelled || !data) return;
       const requestIds = (data as PhotoGenerationRequest[]).map(request => request.id);
       const { data: existingPhotos } = requestIds.length
@@ -480,6 +484,68 @@ export function PhotoEngineScreen() {
       setConnectionResult(messageFromError(nextError, "Could not verify the photo connection.") + " No image was requested.");
     } finally {
       setCheckingConnection(false);
+    }
+  }
+
+  async function checkPhotoReferences() {
+    if (!session?.user?.id || creating || checkingReferences) return;
+    setCheckingReferences(true);
+    setAuditError(null);
+    setReferenceAudit(null);
+    try {
+      // Use a temporary in-memory request: no database request, budget
+      // reservation, Edge worker dispatch or OpenRouter call can happen.
+      const current = await loadDominicState(session.user.id).catch(() => null);
+      const now = new Date().toISOString();
+      const sourceContext = sourceContextOverride ?? modeSource(mode);
+      const request: PhotoGenerationRequest = {
+        id: crypto.randomUUID(),
+        user_id: session.user.id,
+        photo_item_id: null,
+        parent_request_id: null,
+        parent_photo_item_id: null,
+        batch_id: null,
+        batch_index: null,
+        mode,
+        subject_type: subjectType,
+        source_context: sourceContext,
+        scene: scene.trim() || null,
+        mood: mood.trim() || null,
+        shot_type: photoStyle === "natural_iphone" ? null : photoStyle,
+        photo_style: photoStyle,
+        closeness_level: subjectType === "both" ? closeness : null,
+        spontaneity_level: "medium",
+        use_current_look: useCurrentLook,
+        avoid_recent_poses: true,
+        avoid_recent_locations: true,
+        avoid_recent_compositions: true,
+        context_snapshot: {
+          source: sourceContext,
+          timeOfDay: time.mood,
+          location: current?.location ?? null,
+          activity: current?.activity ?? null,
+          conversationSummary: conversationSummary.trim() || null,
+          localTime: now,
+        },
+        anti_repeat_snapshot: {},
+        reference_ids: [],
+        adjustment_instruction: null,
+        provider: null,
+        provider_model: null,
+        provider_job_id: null,
+        final_prompt: null,
+        status: "queued",
+        error_message: null,
+        created_at: now,
+        updated_at: now,
+      };
+      const report = await auditPhotoProviderReferences({ userId: session.user.id, request });
+      if (!componentActive.current) return;
+      setReferenceAudit(report);
+    } catch (error) {
+      setAuditError(messageFromError(error, "Could not check photo references. No credits used."));
+    } finally {
+      if (componentActive.current) setCheckingReferences(false);
     }
   }
 
@@ -1139,6 +1205,46 @@ export function PhotoEngineScreen() {
             {checkingConnection ? "Checking connection…" : "Check photo connection (free)"}
           </Button>
           {connectionResult && <p className="photo-engine-error" role="status">{connectionResult}</p>}
+
+          <Button type="button" variant="outline" onClick={() => void checkPhotoReferences()} disabled={checkingReferences || creating}>
+            {checkingReferences ? "Checking real references…" : "Check photo references (free)"}
+          </Button>
+          {auditError && <p className="photo-engine-error" role="alert">{auditError}</p>}
+          {referenceAudit && (
+            <section className="photo-engine-block" role="status" aria-label="Zero credit photo audit results">
+              <div className="photo-engine-block-heading">
+                <small>FREE PHOTO PREFLIGHT · NO IMAGE GENERATED</small>
+                <strong>{referenceAudit.referenceCount} / 14 usable images</strong>
+              </div>
+              {Object.entries(referenceAudit.people).map(([person, detail]) => (
+                <p key={person} style={{ margin: 0, fontSize: 12 }}>
+                  <strong>{person === "alloah" ? "Alloah" : "Dominic"}:</strong>{" "}
+                  {detail.faceReferences} face refs · {detail.currentHairReferences} current hair refs
+                  {person === "dominic" ? ` · ${detail.tattooReferences} tattoo-tagged refs` : ""}
+                </p>
+              ))}
+              {Object.entries(referenceAudit.outfits).map(([person, detail]) => (
+                <p key={person} style={{ margin: 0, fontSize: 12 }}>
+                  <strong>{person === "alloah" ? "Alloah" : "Dominic"} wardrobe:</strong>{" "}
+                  {detail.imageCount} real wardrobe reference(s)
+                  {detail.items.length ? ` · ${detail.items.join(", ")}` : ""}
+                </p>
+              ))}
+              <p style={{ margin: 0, fontSize: 12 }}>
+                Real room images: {referenceAudit.homeReferences} · Visual Canon:{" "}
+                {referenceAudit.canonSubjects.length ? referenceAudit.canonSubjects.join(", ") : "not yet analyzed"}
+              </p>
+              <p style={{ margin: 0, fontSize: 12 }}>
+                Camera plan: {referenceAudit.scene.pose.replaceAll("_", " ")} ·{" "}
+                {referenceAudit.scene.framing.replaceAll("_", " ")} ·{" "}
+                {referenceAudit.scene.lighting.replaceAll("_", " ")}
+              </p>
+              {referenceAudit.warnings.map((warning, index) => (
+                <p key={index} style={{ margin: 0, fontSize: 12 }} role="note">⚠ {warning}</p>
+              ))}
+              <small>These are the actual successfully loaded references for this scene. The AI can still make visual mistakes. This check uses no image generation credits.</small>
+            </section>
+          )}
 
           <Button
             type="button"
