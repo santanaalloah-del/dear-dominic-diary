@@ -533,6 +533,38 @@ export function photoFramingBoundary(framing: string): string {
   }
 }
 
+/**
+ * Strict geometric crop instructions. Merely saying "close_up" previously
+ * produced head-to-toe staged kitchen portraits despite the free audit.
+ * The model still has limitations, but it now receives camera-space rules
+ * BEFORE any optional details are described.
+ */
+export function photoFramingContract(plan: PhotoVariationPlan, style: string, subject: string) {
+  const crop: Record<string, string> = {
+    close_up: "TIGHT CLOSE-UP: faces and upper shoulders fill the frame. Do NOT include legs, knees, feet or a head-to-toe view. Background is partial.",
+    head_and_shoulders: "HEAD AND SHOULDERS ONLY: crop below the upper chest. No waist, trousers or shoes in view.",
+    chest_up: "CHEST-UP SNAPSHOT: crop below the chest or upper ribs. Legs and shoes entirely outside the frame.",
+    waist_up: "WAIST-UP SNAPSHOT: crop around waists or hips. NO visible knees or shoes; do not step backward to show entire bodies.",
+    three_quarter: "THREE-QUARTER SNAPSHOT: crop around mid-thigh or above the knees. Feet and complete full outfits are NOT required.",
+    medium_wide: "MEDIUM-WIDE CANDID: show upper bodies, active hands and enough of the real setting to explain the activity; frame cuts off lower legs or feet. Not a head-to-toe portrait.",
+    full_body: "FULL-BODY PHOTO: visible shoes allowed because the full-body framing was selected. Keep the physical action and human proportions natural.",
+    environmental_wide: "ENVIRONMENTAL WIDE: the actual room or scene may fill much of the image; people remain naturally proportioned and situated.",
+  };
+  const isSelfie = style === "selfie" || style === "mirror";
+  const candid = !isSelfie && (style === "natural_iphone" || style === "candid");
+  return [
+    "NON-NEGOTIABLE COMPOSITION / CAMERA CROP:",
+    crop[plan.framing] ?? crop.waist_up,
+    "Keep the chosen camera angle: " + humanize(plan.cameraAngle) + ". Camera moves through physically reachable space; the apartment furniture does NOT move.",
+    candid && subject === "both"
+      ? "A natural observation of two people IN THE MIDDLE of doing something. One can be in partial profile or naturally partly cropped. They do not stop, stand shoulder-to-shoulder, pose for a group portrait or present objects toward the lens. Focus and eyes follow the shared task, not the photographer."
+      : candid
+      ? "Capture an unperformed moment, not a person posed for a head-to-toe outfit check."
+      : "Follow the requested selfie, mirror or consciously posed photo format when specified.",
+    "The visible crops determine which clothes, shoes, tattoos and furniture need to appear. Never back the camera up just to display all saved references.",
+  ].filter(Boolean).join(" ");
+}
+
 export function photoVariationInstruction(
   plan: PhotoVariationPlan
 ) {
