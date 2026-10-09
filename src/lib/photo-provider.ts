@@ -978,10 +978,9 @@ export async function generatePhotoProviderPreview({
     }
   }
 
-  // Reserve image slots according to what the camera can actually see:
-  // faces/skin/tattoos dominate sofa close-ups; full-body and outfit scenes
-  // use the real wardrobe cutouts, including pants and footwear when relevant.
-  // All subjects and shared spaces remain constrained by the model's 14 images.
+  // Current wardrobe contains ONLY the user's explicitly selected items.
+  // Pack each person's exact clothing cutouts into small visual boards so
+  // faces and mapped tattoos keep their own independent reference slots.
   const clothingWithPhotos = request.use_current_look
     ? wardrobeContexts.flatMap((context) =>
         context.clothing
@@ -989,28 +988,7 @@ export async function generatePhotoProviderPreview({
           .map((piece) => ({ owner: context.owner, piece }))
       )
     : [];
-  const sceneDescription = [request.scene ?? "", request.shot_type ?? "", request.photo_style ?? ""].join(" ").toLowerCase();
-  const wideOutfitScene = /full.body|full body|standing|walking|outfit|mirror|street|feet|foot|shoes|sneakers|boots|calça|pants|jeans|shoes|tenis|tênis|pé|pernas/.test(sceneDescription);
-  // The stored wardrobe context contains ONLY exact Currently Wearing IDs.
-  // Fill one photo per person first. For close sofa selfies, show their real
-  // tops; for full body/mirror scenes, preserve bottoms and shoes too.
-  const allowed = wideOutfitScene
-    ? ["top", "outerwear", "dress", "bottom", "shoes"]
-    : ["top", "outerwear", "dress"];
-  const relevant = clothingWithPhotos.filter(({ piece }) => allowed.includes(piece.category));
-  const weight = (category: string) =>
-    ({ top: 0, outerwear: 1, dress: 2, bottom: 3, shoes: 4 } as Record<string, number>)[category] ?? 9;
   const owners = wardrobeOwnersForRequest(request.subject_type);
-  const byPerson = owners.map((owner) => relevant.filter((item) => item.owner === owner)
-    .sort((a, b) => weight(a.piece.category) - weight(b.piece.category)));
-  const wardrobePhotos: typeof clothingWithPhotos = [];
-  const maxPieces = wideOutfitScene ? (owners.length > 1 ? 5 : 4) : (owners.length > 1 ? 2 : 2);
-  for (let index = 0; wardrobePhotos.length < maxPieces &&
-    byPerson.some((items) => index < items.length); index += 1) {
-    for (const items of byPerson) {
-      if (items[index] && wardrobePhotos.length < maxPieces) wardrobePhotos.push(items[index]);
-    }
-  }
 
   // One free, local garment board can hold six ACTUAL clothing cutouts.
   // Split long outfits into additional boards instead of silently cropping
