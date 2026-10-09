@@ -2561,7 +2561,6 @@ export function WardrobeExperienceScreen() {
                   )
                 }
                 placeholder="Name"
-                autoFocus
               />
 
               <select
