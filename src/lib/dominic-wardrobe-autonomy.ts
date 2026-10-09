@@ -577,30 +577,27 @@ export async function syncDominicWardrobeAutonomy({
       null
     );
 
-  if (!shouldDominicConsiderOutfitChange({
-    state,
-    lastChangeAt: marker?.changedAt ?? null,
-  })) return;
-
-  const seed =
-    stableHash(
-      `${state.startedAt}:${state.activity}:${state.location}`
-    );
-
   const [
     current,
     looks,
-  ] =
-    await Promise.all([
-      getWearingSelection({
-        userId,
-        owner:
-          "dominic",
-      }),
-      loadDominicLooks(
-        userId
-      ),
-    ]);
+  ] = await Promise.all([
+    getWearingSelection({ userId, owner: "dominic" }),
+    loadDominicLooks(userId),
+  ]);
+
+  // A manual selection made today should stay in place: Dominic must not
+  // overwrite the user's recently curated Currently Wearing outfit when
+  // the Chat refreshes. The automatic selector may act another day.
+  const lastChoiceAt = [marker?.changedAt, current?.updatedAt]
+    .filter((date): date is string => Boolean(date) && Number.isFinite(Date.parse(date)))
+    .sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null;
+  if (!shouldDominicConsiderOutfitChange({
+    state, lastChangeAt: lastChoiceAt,
+  })) return;
+
+  const seed = stableHash(
+    `${state.startedAt}:${state.activity}:${state.location}`
+  );
 
   if (
     looks.length >
