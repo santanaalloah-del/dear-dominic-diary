@@ -410,8 +410,29 @@ Deno.serve(async (req) => {
 
     const userId =
       claimed.user_id;
+    let persistedMessageId: number | null = null;
 
     try {
+      // Find an earlier committed message before any new paid model call.
+      const { data: priorMessages, error: priorError } = await supabase
+        .from("messages").select("id").eq("user_id", userId)
+        .contains("attachment_context", {
+          source: "proactive-brain",
+          proactive_event_id: event.id,
+        }).limit(1);
+      if (priorError) throw priorError;
+      if (priorMessages?.length) {
+        const existingMessageId = priorMessages[0].id;
+        const { error: finalizeError } = await supabase
+          .from("proactive_events")
+          .update({status: "sent", message_id: existingMessageId,
+            processed_at: new Date().toISOString(),
+            decision_reason: "recovered_existing_proactive_message"})
+          .eq("id", event.id).eq("status", "processing");
+        if (finalizeError) throw finalizeError;
+        return jsonResponse({ok: true, processed: true, decision: "already_sent",
+          event_id: event.id, message_id: existingMessageId});
+      }
       /*
        * Brain2 is the sole character/world
        * source for proactive behavior.
@@ -967,6 +988,10 @@ Decide whether Dominic naturally initiates contact now.
             message,
           speaker_name:
             "Dominic",
+          attachment_context: {
+            source: "proactive-brain",
+            proactive_event_id: event.id,
+          },
         })
         .select(
           "id, created_at",
@@ -977,6 +1002,21 @@ Decide whether Dominic naturally initiates contact now.
         messageInsertError
       ) {
         throw messageInsertError;
+      }
+
+      persistedMessageId = insertedMessage.id;
+      // Mark real Chat delivery before notifications or lived-event enrichment.
+      const { data: committed, error: deliveryError } = await supabase
+        .from("proactive_events")
+        .update({
+          status: "sent",
+          message_id: insertedMessage.id,
+          processed_at: new Date().toISOString(),
+          decision_reason: decision.reason,
+        })
+        .eq("id", event.id).eq("status", "processing").select("id");
+      if (deliveryError || !committed?.length) {
+        throw deliveryError ?? new Error("Persisted message could not be finalized.");
       }
 
       /*
@@ -999,7 +1039,7 @@ Decide whether Dominic naturally initiates contact now.
       );
 
       if (livedEventError) {
-        throw livedEventError;
+        console.error("Proactive lived-event enrichment failed:", livedEventError);
       }
 
       const {
@@ -1023,40 +1063,8 @@ Decide whether Dominic naturally initiates contact now.
           userId,
         );
 
-      if (
-        conversationUpdateError
-      ) {
-        throw conversationUpdateError;
-      }
-
-      const {
-        error:
-          eventUpdateError,
-      } = await supabase
-        .from("proactive_events")
-        .update({
-          status: "sent",
-          message_id:
-            insertedMessage.id,
-          decision_reason:
-            decision.reason,
-          processed_at:
-            new Date()
-              .toISOString(),
-        })
-        .eq(
-          "id",
-          event.id,
-        )
-        .eq(
-          "status",
-          "processing",
-        );
-
-      if (
-        eventUpdateError
-      ) {
-        throw eventUpdateError;
+      if (conversationUpdateError) {
+        console.error("Proactive conversation timestamp update failed:", conversationUpdateError);
       }
 
       /*
@@ -1089,10 +1097,9 @@ Decide whether Dominic naturally initiates contact now.
           },
         });
 
-      if (
-        pushOutboxError
-      ) {
-        throw pushOutboxError;
+      if (pushOutboxError) {
+        // An auxiliary push failure never undoes or resends a real message.
+        console.error("Proactive push enqueue failed; message remains sent:", pushOutboxError);
       }
 
       return jsonResponse({
@@ -1111,6 +1118,19 @@ Decide whether Dominic naturally initiates contact now.
         "proactive-brain processing:",
         processingError,
       );
+      if (persistedMessageId !== null) {
+        // Never retry a billable send once the original message exists.
+        const { error: recoverError } = await supabase.from("proactive_events")
+          .update({status: "sent", message_id: persistedMessageId,
+            processed_at: new Date().toISOString(),
+            decision_reason: "recovered_after_message_persisted"})
+          .eq("id", event.id).eq("status", "processing");
+        if (recoverError) {
+          console.error("Persisted proactive message needs reconciliation:", recoverError);
+        }
+        return jsonResponse({ok: true, processed: true, decision: "send",
+          event_id: event.id, message_id: persistedMessageId, delivery_warning: true});
+      }
 
       /*
        * Provider quota/outage is not a
