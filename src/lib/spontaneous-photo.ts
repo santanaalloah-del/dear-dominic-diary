@@ -22,6 +22,8 @@ export type SpontaneousPhotoState = {
   frequency: "rare" | "balanced" | "often";
   includeCouple: boolean;
   useLocationContext: boolean;
+  backgroundSuggestions: boolean;
+  notifyOffApp: boolean;
   pending: SpontaneousPhotoOpportunity | null;
   savedIdeas: SpontaneousPhotoOpportunity[];
   lastEvaluatedStateStartedAt: string | null;
@@ -99,6 +101,8 @@ function defaultState(): SpontaneousPhotoState {
     frequency: "balanced",
     includeCouple: true,
     useLocationContext: true,
+    backgroundSuggestions: false,
+    notifyOffApp: false,
     pending: null,
     savedIdeas: [],
     dayKey: null,
@@ -158,6 +162,8 @@ function parseState(value: unknown): SpontaneousPhotoState {
     frequency: raw.frequency === "rare" || raw.frequency === "often" ? raw.frequency : "balanced",
     includeCouple: raw.includeCouple !== false,
     useLocationContext: raw.useLocationContext !== false,
+    backgroundSuggestions: raw.backgroundSuggestions === true,
+    notifyOffApp: raw.notifyOffApp === true,
     pending: parseOpportunity(raw.pending),
     savedIdeas: Array.isArray(raw.savedIdeas) ? raw.savedIdeas
       .map(parseOpportunity)
@@ -310,11 +316,12 @@ export async function getSpontaneousPhotoState(userId: string) {
 
 /** Preferences and saved ideas are private Supabase data; no image calls. */
 export async function setSpontaneousPhotoPreferences(userId: string, values: Partial<
-  Pick<SpontaneousPhotoState, "enabled" | "frequency" | "includeCouple" | "useLocationContext">
+  Pick<SpontaneousPhotoState, "enabled" | "frequency" | "includeCouple" | "useLocationContext" | "backgroundSuggestions" | "notifyOffApp">
 >) {
   const current = await getSpontaneousPhotoState(userId);
   const next: SpontaneousPhotoState = { ...current, ...values };
   if (!next.enabled || (values.useLocationContext === false && current.useLocationContext)) next.pending = null;
+  if (!next.backgroundSuggestions) next.notifyOffApp = false;
   await saveState(userId, next);
   return next;
 }
