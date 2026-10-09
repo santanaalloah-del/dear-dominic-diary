@@ -57,17 +57,18 @@ export function PhotoIdentityFeedback({
   userId,
   request,
   preview,
+  featureData,
 }: {
   userId: string;
   request: PhotoGenerationRequest;
-  preview: PhotoProviderPreview;
+  preview?: PhotoProviderPreview | null;
+  featureData?: unknown;
 }) {
   const references = useMemo(
-    () =>
-      identityReferenceUsageFromFeatureData(
-        preview.feature?.featureData
-      ),
-    [preview]
+    () => identityReferenceUsageFromFeatureData(
+      featureData ?? preview?.feature?.featureData
+    ),
+    [featureData, preview]
   );
 
   const subjects = useMemo(
