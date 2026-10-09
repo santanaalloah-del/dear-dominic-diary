@@ -155,6 +155,20 @@ const styleOptions: Array<{ id: PhotoStyle; label: string }> = [
   { id: "memory_like", label: "Memory-like" },
 ];
 
+type CameraFraming = "automatic" | "close_up" | "head_and_shoulders" |
+  "chest_up" | "waist_up" | "three_quarter" | "full_body" | "environmental_wide";
+
+const framingOptions: Array<{ id: CameraFraming; label: string }> = [
+  { id: "automatic", label: "Natural variety (automatic)" },
+  { id: "close_up", label: "Close-up · faces" },
+  { id: "head_and_shoulders", label: "Head & shoulders" },
+  { id: "chest_up", label: "Chest-up · no legs" },
+  { id: "waist_up", label: "Waist-up · no shoes" },
+  { id: "three_quarter", label: "Three-quarter · above knees" },
+  { id: "full_body", label: "Full body · when requested" },
+  { id: "environmental_wide", label: "Room-wide · show setting" },
+];
+
 const closenessOptions: Array<{ id: PhotoCloseness; label: string }> = [
   { id: "casual", label: "Casual" },
   { id: "sweet", label: "Sweet" },
@@ -222,6 +236,7 @@ export function PhotoEngineScreen() {
   const [scene, setScene] = useState("");
   const [mood, setMood] = useState("everyday");
   const [photoStyle, setPhotoStyle] = useState<PhotoStyle>("natural_iphone");
+  const [framing, setFraming] = useState<CameraFraming>("automatic");
   const [closeness, setCloseness] = useState<PhotoCloseness>("casual");
   const [useCurrentLook, setUseCurrentLook] = useState(true);
   const [dailyCount, setDailyCount] = useState<1 | 2 | 3 | 4 | 5>(1);
@@ -244,7 +259,7 @@ export function PhotoEngineScreen() {
   const [previews, setPreviews] = useState<PreviewState[]>([]);
   const [showRecentPreviews, setShowRecentPreviews] = useState(false);
   const currentAuditSignature = JSON.stringify([
-    mode, subjectType, scene, mood, photoStyle, closeness, useCurrentLook,
+    mode, subjectType, scene, mood, photoStyle, framing, closeness, useCurrentLook,
     conversationSummary, sourceContextOverride, memoryId, time.mood
   ]);
   const activeRequestIds = useRef(new Set<string>());
@@ -447,6 +462,7 @@ export function PhotoEngineScreen() {
           requestedFrom: spontaneousIdeaId ? "dominic-spontaneous-initiative" : "photo-engine-screen",
           ...(spontaneousIdeaId ? { spontaneousPhotoIdeaId: spontaneousIdeaId, initiatedBy: "dominic" } : {}),
           defaultCameraLanguage: "natural imperfect phone photo",
+          ...(framing === "automatic" ? {} : { framingOverride: framing }),
           // Carry EXACTLY the camera plan shown in the free preflight.
           // That audit has a different temporary request ID and no persisted
           // anti-repeat history; copying the plan avoids bait-and-switch.
@@ -576,6 +592,7 @@ export function PhotoEngineScreen() {
           activity: current?.activity ?? null,
           conversationSummary: conversationSummary.trim() || null,
           localTime: now,
+          custom: framing === "automatic" ? {} : { framingOverride: framing },
         },
         anti_repeat_snapshot: { ...antiRepeat },
         reference_ids: [],
@@ -1307,6 +1324,22 @@ export function PhotoEngineScreen() {
                       </option>
                     ))}
                   </select>
+                </label>
+
+                <label>
+                  <span>Camera framing</span>
+                  <select
+                    value={framing}
+                    onChange={(event) => setFraming(event.target.value as CameraFraming)}
+                    aria-label="Camera framing"
+                  >
+                    {framingOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <small>Automatic favors natural close crops. Manual framing changes the free preflight and the generation request, though the model may still make mistakes.</small>
                 </label>
 
                 {subjectType === "both" && (
