@@ -835,7 +835,8 @@ function tattooRegionInstruction(
 
   const requested = new Set(regions);
   const entries = tattooRegionsFromProfile(canon.profile ?? {}).filter((entry) =>
-    requested.has(entry.region)
+    requested.has(entry.region) &&
+    entry.anchorIds.some((id) => availableReferenceIds.has(id))
   );
 
   if (!entries.length) return null;
@@ -1134,7 +1135,7 @@ export async function generatePhotoProviderPreview({
         adjustment_instruction: [
           request.adjustment_instruction,
           currentOverrideInstruction(request, canons),
-          tattooRegionInstruction(request, canons),
+          tattooRegionInstruction(request, canons, new Set(selectedReferences.map((item) => item.reference.id))),
           wardrobeInstruction(request, wardrobeContexts),
           homeCanon?.instruction ?? null,
         ]
