@@ -278,7 +278,9 @@ function buildPrompt(
       : isInspiration
         ? "OPTIONAL POSE/COMPOSITION INSPIRATION — NOT THESE PEOPLE'S IDENTITY"
         : reference.subject === "shared_home"
-          ? "REAL ROOM REFERENCE"
+          ? reference.purposes?.includes("floor_plan")
+            ? "REQUIRED ARCHITECTURAL FLOOR PLAN — GEOMETRY ONLY, NOT DECOR OR LIGHT"
+            : "REQUIRED ACTUAL ROOM PHOTO — FURNITURE, POSITION AND LIGHT"
           : "PERSON IDENTITY";
     return `Image ${index + (hasSourceImage ? 2 : 1)}: ROLE=${role}; subject=${
       reference.subject
@@ -304,9 +306,10 @@ function buildPrompt(
     "EXPLICIT SCENE OVERRIDES VARIATION: First fulfill WHO is doing WHAT, WHERE, and the described relative body positions. Never substitute a different pose for the requested action. Do not invent coats, sleeves, gloves or layers to hide anatomy. Clothing worn on an arm must connect to the same person's selected garment at the shoulder.",
     "HANDS AND OBJECTS: Show a small named prop only once and in a physically coherent grip; do not duplicate, cross, or deform it. Prioritize accurate people, arms and hands over decorative prop details.",
     "NATURAL CONNECTION: For an affectionate interaction, show believable attention between partners instead of vacant eyes or forced symmetrical poses.",
-    "CANONICAL ROOM GEOMETRY: Preserve the actual location and orientation of the sofa relative to walls, windows, doors and major furniture from the attached room photo. Never move furniture to improve composition. Vary only the plausible phone-camera position.",
+    "CANONICAL ROOM GEOMETRY: Use BOTH the real room PHOTO and the matching FLOOR PLAN as FIXED spatial evidence. They describe the same apartment, not alternate room designs. Reconstruct where furniture actually sits before placing people. The sofa stays at its actual distance from walls; in the shared living room it stands AWAY from the wall, not pushed against it. Preserve positions of walls, doorways, windows, rug, chairs and shelving. The phone camera may move around the REAL furniture, but furniture must not be rearranged for the photo.",
+    "CAMERA VARIETY WITHOUT REDECORATION: A side view, diagonal view, doorway angle or close crop is allowed and desirable when consistent with the selected camera plan. Do not fall back to the same centered, face-on couple portrait. Different angles reveal different parts of the SAME room; do not generate a new room behind the couple.",
     "WARDROBE VISUAL CANON: Wardrobe references contain the real Currently Wearing garment cutouts. A wardrobe board may show separate labeled panels for each person: top, bottom, outerwear and shoes. Interpret each panel as its own exact garment; NEVER as a person. Apply pieces to the correct owner, preserving silhouette, fit, construction, fabric and color. Do not replace wide/baggy jeans with slim jeans, or sneakers with sandals. Even if shoes or trousers are partly out of frame, NEVER invent a contradictory outfit. The real face references govern identity.",
-    "FRAMING FOR TWO PEOPLE: Unless explicitly requesting a rear view or extremely wide establishing shot, show recognizable faces for BOTH people at a size that makes their identity evaluable. Preserve the scene and room but do not let the entire apartment dominate the image.",
+    "FRAMING FOR TWO PEOPLE: Prioritize the actual interaction and the selected camera angle, not a standardized couple portrait. Faces can appear in natural three-quarter view or partial side profile; do not turn everyone toward the camera just for identity checks. Keep any VISIBLE facial features faithful to real identity evidence. A medium-wide view may show the sofa's proper layout; a closer side view may crop clothes, shoes or tattoos without inventing them.",
     hasSourceImage
       ? "Image 1 is an existing generated preview being adjusted. Preserve scene continuity while correcting the person toward the identity references."
       : null,
@@ -451,6 +454,10 @@ export const Route = createFileRoute("/api/photo-engine")({
           reference.referenceKind === "scene" &&
           reference.purposes?.includes("environment")
         ).slice(0, 1);
+        const rightNowLayout = requestedReferences.filter((reference) =>
+          reference.subject === "shared_home" &&
+          reference.purposes?.includes("floor_plan")
+        ).slice(0, 1);
         const rightNowLook = requestedReferences.filter((reference) =>
           rightNowSubjects.includes(reference.subject) &&
           reference.referenceKind === "current_look" && reference.isCurrent
@@ -490,6 +497,7 @@ export const Route = createFileRoute("/api/photo-engine")({
           ...rightNowFaces,
           ...rightNowClothing,
           ...rightNowRoom,
+          ...rightNowLayout,
           ...rightNowLook,
           ...rightNowTattooDetails,
           ...rightNowSubjects.flatMap((subject) => faceEvidenceFor(subject)),
@@ -651,6 +659,17 @@ const prompt = buildPrompt(
             400
           );
         }
+        const missingLayout = requestedReferences.some((reference) =>
+          reference.subject === "shared_home" &&
+          reference.purposes?.includes("floor_plan") &&
+          !actualReferenceIds.has(reference.id)
+        );
+        if (missingLayout) {
+          return jsonError(
+            "The real apartment floor plan could not be loaded. The generator will not invent the layout or charge credits for this attempt.",
+            400
+          );
+        }
 
         const identityReferenceUsage = attachedReferences
           .filter(({ reference }) =>
@@ -809,12 +828,17 @@ const prompt = buildPrompt(
             people,
             outfits,
             homeReferences: attachedReferences.filter(({ reference }) =>
-              reference.subject === "shared_home").length,
+              reference.subject === "shared_home" &&
+              reference.purposes?.includes("environment")).length,
+            layoutReferences: attachedReferences.filter(({ reference }) =>
+              reference.subject === "shared_home" &&
+              reference.purposes?.includes("floor_plan")).length,
             canonSubjects: canons.filter((canon) => canon.subject !== "couple").map((canon) => canon.subject),
             tattooRegions,
             warnings,
             scene: {
               pose: variationPlan.poseType,
+              cameraAngle: variationPlan.cameraAngle,
               framing: variationPlan.framing,
               lighting: variationPlan.lightingType,
               expression: variationPlan.expression,
