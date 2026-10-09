@@ -9,6 +9,33 @@ function planned(id: string, scene: string, subject_type = "both", shot_type: st
 }
 
 describe("natural iPhone framing and candid scenes", () => {
+  test("quiet solo living-room moments keep relaxed non-posed close framing", () => {
+    const scene = "Dominic sending a relaxed at-home phone photo while doing nothing special. Context detail: chilling on the couch.";
+    for (let i = 0; i < 30; i++) {
+      const shot = planned("quiet-" + i, scene, "dominic", "candid", "candid");
+      expect(shot.poseType).toBe("lounging_unposed");
+      expect(["chest_up", "waist_up", "close_up"]).toContain(shot.framing);
+      expect(shot.poseType).not.toBe("hands_busy");
+      expect(shot.poseType).not.toBe("relaxed_seated");
+    }
+  });
+
+  test("coffee or other explicit activity overrides generic relaxation", () => {
+    const shot = planned("doing-coffee", "Dominic making coffee in the kitchen, relaxed but busy making coffee", "dominic");
+    expect(shot.poseType).toBe("making_coffee_candid");
+  });
+
+  test("explicit user request for full-body solo portrait is still honored", () => {
+    const shot = planned("outfit-portrait", "Dominic chilling on the couch", "dominic", "full-body");
+    expect(shot.framing).toBe("full_body");
+  });
+
+  test("handheld solo selfie while lounging stays close", () => {
+    const shot = planned("selfie-quiet", "Dominic taking a relaxed selfie while chilling on the couch", "dominic", "selfie", "selfie");
+    expect(shot.poseType).toBe("relaxed_phone_selfie");
+    expect(shot.framing).toBe("chest_up");
+  });
+
   test("the coffee couple scene stays mid-action without whole-body shots", () => {
     const options = new Set(["chest_up", "waist_up", "three_quarter", "medium_wide"]);
     const camera = new Set([
