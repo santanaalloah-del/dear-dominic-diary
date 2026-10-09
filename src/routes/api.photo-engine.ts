@@ -555,21 +555,42 @@ const prompt = buildPrompt(
         // image references as generation, then return roles/counts WITHOUT
         // claiming the request, reserving budget or calling OpenRouter.
         if (body.auditOnly === true) {
-          const people: Record<string, { faceReferences: number; currentHairReferences: number; tattooReferences: number }> = {};
+          const people: Record<string, { faceReferences: number; faceCanonAnchors: number; currentHairReferences: number; tattooReferences: number }> = {};
           const outfits: Record<string, { imageCount: number; items: string[] }> = {};
           const warnings: string[] = [];
           const referenceIds = new Set(attachedReferences.map(({ reference }) => reference.id));
           for (const person of requiredPeople) {
             const photos = attachedReferences.filter(({ reference }) => reference.subject === person);
+            const canon = canons.find((item) => item.subject === person);
+            const anchorGroups = (canon?.profile?.anchor_groups && typeof canon.profile.anchor_groups === "object" &&
+              !Array.isArray(canon.profile.anchor_groups))
+              ? canon.profile.anchor_groups as Record<string, unknown> : {};
+            const realFaceAnchors = new Set(
+              Array.isArray(anchorGroups.face) ? anchorGroups.face.filter((id): id is string => typeof id === "string") : []
+            );
+            const regions = Array.isArray(canon?.profile?.tattoo_regions) ? canon.profile.tattoo_regions : [];
+            const realTattooAnchors = new Set<string>();
+            for (const region of regions) {
+              if (!region || typeof region !== "object") continue;
+              const ids = (region as { anchor_ids?: unknown }).anchor_ids;
+              if (Array.isArray(ids)) {
+                for (const id of ids) if (typeof id === "string") realTattooAnchors.add(id);
+              }
+            }
             people[person] = {
               faceReferences: photos.filter(({ reference }) =>
                 reference.referenceKind === "identity" && reference.purposes?.includes("face")
               ).length,
+              faceCanonAnchors: photos.filter(({ reference }) =>
+                reference.referenceKind === "identity" && realFaceAnchors.has(reference.id)
+              ).length,
               currentHairReferences: photos.filter(({ reference }) =>
                 reference.isCurrent && reference.purposes?.includes("hair")
               ).length,
+              // Count only location-specific canon references. Generic
+              // tagging of all Dominic uploads as tattoos is not evidence.
               tattooReferences: photos.filter(({ reference }) =>
-                reference.purposes?.includes("tattoos")
+                realTattooAnchors.has(reference.id)
               ).length,
             };
             if (people[person].faceReferences < 2) {
