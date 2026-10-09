@@ -368,6 +368,19 @@ function requestedTattooRegions(
     regions.add("left_hand"); regions.add("right_hand");
     regions.add("left_arm"); regions.add("right_arm");
   }
+
+  // Dominic's facial marks are PERMANENT. They must not disappear just
+  // because a normal selfie or portrait doesn't say "face tattoo".
+  // Add these AFTER explicitly exposed body regions so a shirtless/hands
+  // scene still gets its own detailed tattoo photos first.
+  const showsDominic = request.subject_type !== "me";
+  const faceHidden = /only the back|rear view|back of (his|dominic)|face not visible|faces? (?:hidden|out of frame)|sem mostrar o rosto|de costas|from behind/.test(text);
+  if (showsDominic && !faceHidden) {
+    regions.add("face");
+    if (has("selfie", "portrait", "neck", "headshot", "chest", "shirtless", "topless", "mirror", "waist", "shoulders", "ombros", "pescoço", "retrato")) {
+      regions.add("neck");
+    }
+  }
   return Array.from(regions);
 }
 
