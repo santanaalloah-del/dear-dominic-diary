@@ -2891,27 +2891,42 @@ if (
   return;
 }
       
-      const { data } =
-        await supabase
+      // Supabase/PostgREST caps each response (typically 1,000 rows).
+      // Page through the entire conversation so newer messages never
+      // disappear when a history refresh replaces optimistic chat state.
+      const messageQuery = () =>
+        supabase
           .from("messages")
-          .select(
-            "id,role,content,created_at,reply_to_message_id"
-          )
-          .eq(
-            "user_id",
-            session.user.id
-          )
-          .eq(
-            "conversation_id",
-            conversation.id
-          )
-          .in("role", [
-            "user",
-            "assistant",
-          ])
-          .order("created_at", {
-            ascending: true,
-          });
+          .select("id,role,content,created_at,reply_to_message_id")
+          .eq("user_id", session.user.id)
+          .eq("conversation_id", conversation.id)
+          .in("role", ["user", "assistant"])
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true });
+
+      const pageSize = 500;
+      const { data: firstPage, error: firstPageError } =
+        await messageQuery().range(0, pageSize - 1);
+      if (firstPageError) {
+        console.error("Could not load chat history:", firstPageError);
+        setLoading(false);
+        return;
+      }
+      const data = [...(firstPage ?? [])];
+      let nextPage = firstPage ?? [];
+      let offset = pageSize;
+      while (nextPage.length === pageSize) {
+        const { data: page, error: pageError } =
+          await messageQuery().range(offset, offset + pageSize - 1);
+        if (pageError) {
+          console.error("Could not finish loading chat history:", pageError);
+          setLoading(false);
+          return;
+        }
+        nextPage = page ?? [];
+        data.push(...nextPage);
+        offset += pageSize;
+      }
 
     const matchedSharedMediaIds =
   new Set<string>();
