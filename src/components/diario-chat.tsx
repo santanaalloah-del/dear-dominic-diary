@@ -1,4 +1,4 @@
-import { syncLiveDateFromChat } from "@/lib/date-chat-continuity";
+import { syncDateFromConversation } from "@/lib/date-chat-continuity";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { chatCalendarDayKey, chatDayHeading } from "@/lib/chat-day-heading";
 import { firstVisibleChatTimestamp } from "@/lib/chat-visible-day";
@@ -2818,6 +2818,14 @@ if (
         offset += pageSize;
       }
 
+      // Reuse persisted messages, not another model call. This also repairs
+      // an already-agreed outing missed by earlier versions when Chat opens.
+      // Only inspect the recent tail, keeping the history render independent.
+      void syncDateFromConversation(session.user.id, data.slice(-160))
+        .catch((dateError) => {
+          console.warn("Date continuity could not reconcile:", dateError);
+        });
+
     const matchedSharedMediaIds =
   new Set<string>();
 
@@ -3709,16 +3717,6 @@ const liveDateContext =
   if (replies.length === 0) {
     throw new Error("Missing reply");
   }
-
-  // Only explicit, completed movement in Alloah\'s message can change an
-  // already-live Date. Never infer acceptance or arrival from Dominic\'s reply.
-  void syncLiveDateFromChat(
-    session.user.id,
-    combinedMessage,
-    messages.filter((item) => item.role === "assistant").slice(-6).map((item) => item.content).join(" "),
-  ).catch((dateError) => {
-    console.warn("Date continuity sync skipped:", dateError);
-  });
 
   setMessages(
     (current) => [
