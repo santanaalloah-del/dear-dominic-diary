@@ -40,10 +40,16 @@ function dateKey(value: Date): string {
 }
 
 function acceptsGoing(text: string): boolean {
-  const value = normalize(text);
-  if (/\b(?:not|never|don't|didn't|won't|tomorrow|yesterday|later|maybe|pretend|imagine|what if)\b/.test(value)) return false;
-  if (/let'?s go (?:to sleep|back to bed|to work|home|shower|before we)/.test(value)) return false;
-  return /\b(?:let'?s go(?:!|\.|,|\s|$)|we(?:'re| are) (?:leaving|heading out|going out)(?: now)?\b|you lead the way(?: then)?\b|let'?s head out\b|(?:let'?s|we can) (?:have|grab|get) (?:brunch|breakfast|lunch|dinner|coffee)\b)/.test(value);
+  // Look at each sentence separately: "I'm never mean! lets go!" is an
+  // acceptance, even though a previous, unrelated clause says "never".
+  const invitationResponse = /\b(?:let'?s go(?:!|\.|,|\s|$)|we(?:'re| are) (?:leaving|heading out|going out)(?: now)?\b|you lead the way(?: then)?\b|let'?s head out\b|(?:let'?s|we can) (?:have|grab|get) (?:brunch|breakfast|lunch|dinner|coffee)\b)/;
+  for (const clause of normalize(text).split(/[.!?]+/)) {
+    if (!invitationResponse.test(clause)) continue;
+    if (/\b(?:not|never|don't|didn't|won't|tomorrow|yesterday|later|maybe|pretend|imagine|what if)\b/.test(clause)) continue;
+    if (/let'?s go (?:to sleep|back to bed|to work|home|shower|before we)/.test(clause)) continue;
+    return true;
+  }
+  return false;
 }
 
 function describesOuting(text: string): boolean {
