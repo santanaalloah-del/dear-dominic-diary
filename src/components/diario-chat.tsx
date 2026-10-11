@@ -3217,7 +3217,24 @@ const combined = [
     ).getTime()
 );
       
-      setMessages(combined);
+      // Keep optimistic user messages visible when the Edge Function fails
+      // before persisting them. Never mistake an optimistic bubble for a saved row.
+      setMessages((current) => {
+        const pending = current.filter(
+          (item) =>
+            item.role === "user" &&
+            item.id.startsWith("local-") &&
+            !combined.some(
+              (saved) =>
+                saved.role === "user" &&
+                saved.content === item.content &&
+                Math.abs(new Date(saved.createdAt).getTime() - new Date(item.createdAt).getTime()) < 120_000
+            )
+        );
+        return [...combined, ...pending].sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      });
       setLoading(false);
     },
     [session.user.id]
