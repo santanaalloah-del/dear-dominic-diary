@@ -6,6 +6,9 @@ import {
 } from "react";
 import {
   Heart,
+  ChevronLeft,
+  ChevronRight,
+  X,
   Image as ImageIcon,
   Sparkles,
   Trash2,
@@ -29,6 +32,7 @@ import {
   setCurrentLook,
   updatePhotoReference,
 } from "@/lib/photo-engine";
+import { createPortal } from "react-dom";
 import "../photo-references.css";
 
 type ReferenceMode = "identity" | "current-look";
@@ -177,6 +181,7 @@ export function VisualReferencesScreen() {
     useState<CurrentLookType>("nails");
 
   const [references, setReferences] = useState<VisualReferenceWithUrl[]>([]);
+  const [viewingReferenceId, setViewingReferenceId] = useState<string | null>(null);
   const [currentLookReferences, setCurrentLookReferences] =
     useState<VisualReferenceWithUrl[]>([]);
 
@@ -708,6 +713,9 @@ export function VisualReferencesScreen() {
       );
 
       setReferences(remaining);
+      setViewingReferenceId((current) =>
+        current === item.reference.id ? null : current
+      );
 
       if (subject !== "couple" && remaining.length === 0) {
         await clearCanon(subject);
@@ -761,6 +769,17 @@ export function VisualReferencesScreen() {
       setRemovingReferenceId(null);
     }
   }
+
+  const selectedReferenceIndex = references.findIndex(
+    (item) => item.reference.id === viewingReferenceId
+  );
+  const selectedReference = selectedReferenceIndex >= 0
+    ? references[selectedReferenceIndex]
+    : null;
+
+  useEffect(() => {
+    setViewingReferenceId(null);
+  }, [subject, mode]);
 
   const activeSubject = referenceSubjects.find((item) => item.id === subject);
   const activeLookType = currentLookTypes.find(
@@ -899,47 +918,26 @@ export function VisualReferencesScreen() {
                 </Button>}
               </section>
 
-              <div className="reference-grid">
-                {references.map((item) => (
-                  <article key={item.reference.id} className="reference-card">
+              <div className="reference-grid reference-gallery-grid" aria-label={`${activeSubject?.label ?? "Identity"} reference photos`}>
+                {references.map((item, index) => (
+                  <button
+                    key={item.reference.id}
+                    type="button"
+                    className="reference-gallery-tile"
+                    onClick={() => setViewingReferenceId(item.reference.id)}
+                    aria-label={`View ${activeSubject?.label ?? "identity"} reference ${index + 1} of ${references.length}`}
+                  >
                     <img
                       src={item.url}
                       alt={item.reference.title ?? "Visual reference"}
+                      loading="lazy"
                     />
-                    <div>
-                      <strong>{activeSubject?.label}</strong>
-                      <div className="reference-card-actions">
-                        <button
-                          type="button"
-                          className={item.reference.is_favorite ? "active" : ""}
-                          onClick={() => void toggleReferenceFavorite(item)}
-                          disabled={removingReferenceId === item.reference.id}
-                        >
-                          <Heart
-                            size={16}
-                            fill={
-                              item.reference.is_favorite
-                                ? "currentColor"
-                                : "none"
-                            }
-                          />
-                          Favorite
-                        </button>
-
-                        <button
-                          type="button"
-                          className="danger"
-                          onClick={() => void removeIdentityReference(item)}
-                          disabled={removingReferenceId === item.reference.id}
-                        >
-                          <Trash2 size={15} />
-                          {removingReferenceId === item.reference.id
-                            ? "Removing..."
-                            : "Remove"}
-                        </button>
-                      </div>
-                    </div>
-                  </article>
+                    {item.reference.is_favorite && (
+                      <span className="reference-gallery-favorite" aria-label="Favorite">
+                        <Heart size={16} fill="currentColor" />
+                      </span>
+                    )}
+                  </button>
                 ))}
               </div>
             </>
@@ -1111,6 +1109,84 @@ export function VisualReferencesScreen() {
             </section>
           )}
         </>
+      )}
+
+      {mode === "identity" && selectedReference && typeof document !== "undefined" && createPortal(
+        <div
+          className="reference-photo-viewer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="View identity reference photo"
+          onClick={() => setViewingReferenceId(null)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setViewingReferenceId(null);
+            if (event.key === "ArrowLeft" && selectedReferenceIndex > 0)
+              setViewingReferenceId(references[selectedReferenceIndex - 1].reference.id);
+            if (event.key === "ArrowRight" && selectedReferenceIndex < references.length - 1)
+              setViewingReferenceId(references[selectedReferenceIndex + 1].reference.id);
+          }}
+        >
+          <div className="reference-photo-viewer-panel" onClick={(event) => event.stopPropagation()}>
+            <div className="reference-photo-viewer-header">
+              <span>{activeSubject?.label} · {selectedReferenceIndex + 1} / {references.length}</span>
+              <button
+                type="button"
+                onClick={() => setViewingReferenceId(null)}
+                aria-label="Close photo"
+              >
+                <X size={22} />
+              </button>
+            </div>
+            <div className="reference-photo-viewer-image">
+              <img
+                src={selectedReference.url}
+                alt={selectedReference.reference.title ?? "Identity reference enlarged"}
+              />
+              {selectedReferenceIndex > 0 && (
+                <button
+                  type="button"
+                  className="reference-photo-viewer-prev"
+                  aria-label="Previous reference"
+                  onClick={() => setViewingReferenceId(references[selectedReferenceIndex - 1].reference.id)}
+                >
+                  <ChevronLeft size={22} />
+                </button>
+              )}
+              {selectedReferenceIndex < references.length - 1 && (
+                <button
+                  type="button"
+                  className="reference-photo-viewer-next"
+                  aria-label="Next reference"
+                  onClick={() => setViewingReferenceId(references[selectedReferenceIndex + 1].reference.id)}
+                >
+                  <ChevronRight size={22} />
+                </button>
+              )}
+            </div>
+            <div className="reference-photo-viewer-actions">
+              <button
+                type="button"
+                onClick={() => void toggleReferenceFavorite(selectedReference)}
+              >
+                <Heart
+                  size={17}
+                  fill={selectedReference.reference.is_favorite ? "currentColor" : "none"}
+                />
+                {selectedReference.reference.is_favorite ? "Favorited" : "Favorite"}
+              </button>
+              <button
+                type="button"
+                className="danger"
+                onClick={() => void removeIdentityReference(selectedReference)}
+                disabled={removingReferenceId === selectedReference.reference.id}
+              >
+                <Trash2 size={17} />
+                {removingReferenceId === selectedReference.reference.id ? "Removing..." : "Remove"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </section>
   );
