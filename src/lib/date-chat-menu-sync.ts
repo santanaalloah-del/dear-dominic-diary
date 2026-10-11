@@ -32,7 +32,7 @@ export async function syncChatMenu(
       .eq("user_id", userId)
       .eq("kind", "date")
       .eq("id", date.id)
-      .eq("data", JSON.stringify(date.data))
+      .eq("updated_at", date.updated_at)
       .select("*")
       .maybeSingle();
     if (writeError) throw writeError;
