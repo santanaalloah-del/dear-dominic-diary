@@ -3,7 +3,7 @@ import { createContextualDate, finishDate, startDate } from "@/lib/date-flow";
 import { notifyDateExperienceChanged } from "@/lib/date-live-events";
 import { getPlaces } from "@/lib/diario-world";
 
-let starting = false;
+let starting = false; // prevent overlapping chat transitions
 
 /**
  * Free, conservative chat-to-Date bridge. No additional AI inference.
