@@ -1,3 +1,4 @@
+import { syncChatMenu } from '@/lib/date-chat-menu-sync';
 import {
   arriveAtChatDatePlace,
   beginDateExperience,
@@ -22,7 +23,7 @@ const processed = new Map<string, string>();
  * Requires Alloah's assent, an outing context and a confirmed departure
  * narrated by Dominic. Running on chat load also repairs older missed outings.
  */
-export async function syncDateFromConversation(
+async function syncDateMovementFromConversation(
   userId: string,
   messages: DateChatLine[],
 ): Promise<boolean> {
@@ -116,4 +117,11 @@ export async function syncDateFromConversation(
   } finally {
     inFlight.delete(userId);
   }
+}
+
+// Run menu replay even when there is no new movement evidence.
+export async function syncDateFromConversation(userId: string, messages: DateChatLine[]): Promise<boolean> {
+  const changed = await syncDateMovementFromConversation(userId, messages);
+  await syncChatMenu(userId, messages);
+  return changed;
 }

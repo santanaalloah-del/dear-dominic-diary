@@ -38,5 +38,7 @@ jobs:
         run: bun test tests/alloah-wearing-awareness.test.ts
       - name: Verify complete Chat bubble renders without streaming fragmentation
         run: bun test tests/chat-static-response.test.ts
+      - name: Verify free Date movement and narrative menu replay
+        run: bun test tests/date-chat-observation.test.ts tests/date-chat-menu.test.ts
       - name: Build
         run: bun run build

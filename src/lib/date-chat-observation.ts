@@ -73,7 +73,7 @@ function homeAgain(text: string): boolean {
 
 function placeDescription(utterances: string[]): string | null {
   const joined = utterances.map(normalize).join(" ");
-  if (/\bbakery\b/.test(joined)) return /\b(?:outdoor table|terrace|striped awning)\b/.test(joined) ? "Bakery · outdoor terrace" : "Bakery (name not yet known)";
+  if (/\bbakery\b/.test(joined)) return /\b(?:outdoor tables?|terrace|striped awning)\b/.test(joined) ? "Bakery · outdoor terrace" : "Bakery (name not yet known)";
   if (/\b(?:cafe|café)\b/.test(joined)) return "Café (name not yet known)";
   if (/\brestaurant\b/.test(joined)) return "Restaurant (name not yet known)";
   return null;

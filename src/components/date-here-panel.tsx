@@ -1,3 +1,4 @@
+import { DateChatMenuPanel } from './date-chat-menu-panel';
 import {
   MapPin,
   Navigation,
@@ -118,9 +119,7 @@ export function DateHerePanel({
         date={
           date
         }
-        saving={
-          saving
-        }
+        {...(saving !== undefined ? { saving } : {})}
         onDateUpdated={
           onDateUpdated
         }
@@ -133,7 +132,7 @@ export function DateHerePanel({
         <div role="note" className="date-here-chat-venue-note" style={{ padding: "11px 13px", border: "1px dashed var(--divider)", marginBlock: 12 }}>
           <strong style={{ display: "block", fontSize: 12, marginBottom: 4 }}>A stop from your conversation</strong>
           <p style={{ margin: 0, fontSize: 11, lineHeight: 1.5 }}>
-            This place is described in chat, but its real name and menu haven't been saved. We'll show the stop without making up an address, prices or menu items.
+            This stop comes from our conversation. Its business name and address have not been verified.
           </p>
         </div>
       )}
@@ -150,7 +149,9 @@ export function DateHerePanel({
             </strong>
           </div>
 
-          <DateVenueWorldPanel
+          <DateChatMenuPanel userId={userId} date={date} onDateUpdated={onDateUpdated} />
+
+          {experience.currentPlaceId && <DateVenueWorldPanel allowCatalogGeneration={false}
             userId={
               userId
             }
@@ -160,9 +161,11 @@ export function DateHerePanel({
             onDateUpdated={
               onDateUpdated
             }
-          />
+          />}
         </div>
       )}
+
+      {walking && <DateChatMenuPanel userId={userId} date={date} onDateUpdated={onDateUpdated} />}
 
       <DateHistoryPanel
         date={
