@@ -872,7 +872,7 @@ export function VisualReferencesScreen() {
             </section>
           ) : (
             <>
-              <section className="current-look-summary">
+              <section className="current-look-summary reference-identity-summary">
                 <small>
                   {subject === "couple"
                     ? "pose inspiration"
