@@ -633,159 +633,6 @@ function voiceDuration(content: string) {
   return `0:${String(Math.min(seconds, 59)).padStart(2, "0")}`;
 }
 
-function dominicPresenceCopy(
-  state:
-    DominicState | null
-) {
-  if (!state) {
-    return "loading his day…";
-  }
-
-  const room: Record<
-    string,
-    string
-  > = {
-    living:
-      "living room",
-    bedroom:
-      "bedroom",
-    kitchen:
-      "kitchen",
-    bathroom:
-      "bathroom",
-    hall:
-      "hall",
-    out:
-      "out",
-  };
-
-  const activity: Record<
-    string,
-    string
-  > = {
-    sleeping:
-      "asleep",
-    waking_up:
-      "waking up",
-    showering:
-      "in the shower",
-    getting_dressed:
-      "getting dressed",
-    making_coffee:
-      "making coffee",
-    cooking:
-      "cooking",
-    eating:
-      "eating",
-    washing_dishes:
-      "doing the dishes",
-    cleaning:
-      "cleaning up",
-    doing_laundry:
-      "doing laundry",
-    watching_something:
-      "watching something",
-    listening_to_music:
-      "listening to music",
-    playing_guitar:
-      "playing guitar",
-    writing_music:
-      "writing music",
-    recording:
-      "recording",
-    reading:
-      "reading",
-    scrolling:
-      "on his phone",
-    on_the_phone:
-      "on a call",
-    relaxing:
-      "taking it easy",
-    napping:
-      "having a nap",
-    getting_ready:
-      "getting ready",
-    leaving_home:
-      "heading out",
-    coming_home:
-      "coming home",
-    walking:
-      "out walking",
-    getting_food:
-      "getting food",
-    shopping:
-      "out shopping",
-    at_a_cafe:
-      "at a café",
-    with_friends:
-      "with friends",
-    working:
-      "working",
-    at_the_studio:
-      "at the studio",
-    rehearsing:
-      "rehearsing",
-    performing:
-      "performing",
-    backstage:
-      "backstage",
-    traveling:
-      "traveling",
-    driving:
-      "driving",
-    idle:
-      "around",
-  };
-
-  const action =
-    activity[
-      state.activity
-    ] ??
-    state.activity
-      .replaceAll(
-        "_",
-        " "
-      );
-
-  if (
-    state.detail?.trim()
-  ) {
-    return `${action} · ${state.detail.trim()}`;
-  }
-
-  const place =
-    room[
-      state.location
-    ] ??
-    state.location;
-
-  if (
-    state.location ===
-      "out" &&
-    [
-      "walking",
-      "getting_food",
-      "shopping",
-      "at_a_cafe",
-      "with_friends",
-      "working",
-      "at_the_studio",
-      "rehearsing",
-      "performing",
-      "backstage",
-      "traveling",
-      "recording",
-      "driving",
-    ].includes(
-      state.activity
-    )
-  ) {
-    return action;
-  }
-
-  return `${action} · ${place}`;
-}
-
 function DiarioVoiceNote({
   src,
   transcript,
@@ -4836,14 +4683,6 @@ setMessages((current) => [
             )
         )
       : [];
- const statusCopy = useMemo(
-  () =>
-    dominicPresenceCopy(
-      dominicState
-    ),
-  [dominicState]
-);
-
   const clearActiveListeningTrack = () => {
   if (typeof window !== "undefined") {
     window.localStorage.removeItem(
@@ -5028,30 +4867,6 @@ const recentConversationForPhoto = () =>
                   D
                 </span>
               )}
-              <span
-                className={`presence-dot ${
-                  dominicState?.activity === "sleeping"
-                    ? "is-asleep"
-                    : dominicState?.location === "out"
-                      ? "is-away"
-                      : [
-                          "showering",
-                          "recording",
-                          "rehearsing",
-                          "performing",
-                          "on_the_phone",
-                        ].includes(dominicState?.activity ?? "")
-                        ? "is-occupied"
-                        : "is-available"
-                }`}
-                title={
-                  dominicState?.activity === "sleeping"
-                    ? "asleep"
-                    : dominicState?.location === "out"
-                      ? "away"
-                      : "available"
-                }
-              />
             </button>
           </SheetTrigger>
 
@@ -5065,9 +4880,6 @@ const recentConversationForPhoto = () =>
             owner="dominic"
             fallbackPhoto={
               dominic
-            }
-            statusCopy={
-              statusCopy
             }
             onSaved={
               updateProfile
@@ -5085,33 +4897,6 @@ const recentConversationForPhoto = () =>
             </span>
             <span className="messenger-person-heart" aria-hidden="true">♡</span>
           </h1>
-          <p>
-            {statusCopy}
-          </p>
-
-          {(dominicState?.mood ||
-            dominicWearingLabel) && (
-            <div className="messenger-presence-meta">
-              {dominicState?.mood && (
-                <span>
-                  {dominicState.mood}
-                </span>
-              )}
-
-              {dominicWearingLabel && (
-                <span
-                  className="messenger-wearing"
-                  title={
-                    dominicWearingLabel
-                  }
-                >
-                  wearing · {
-                    dominicWearingLabel
-                  }
-                </span>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="messenger-header-actions">
@@ -6239,7 +6024,7 @@ function ChatProfileSheet({
     ChatProfileOwner;
   fallbackPhoto:
     string | null;
-  statusCopy:
+  statusCopy?:
     string;
   onSaved:
     (
@@ -6673,9 +6458,9 @@ function ChatProfileSheet({
             {displayName}
           </strong>
 
-          <small>
-            {statusCopy}
-          </small>
+          {statusCopy && (
+            <small>{statusCopy}</small>
+          )}
         </div>
       </section>
 
