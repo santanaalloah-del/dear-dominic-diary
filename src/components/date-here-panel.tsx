@@ -150,7 +150,7 @@ export function DateHerePanel({
           </div>
 
           <DateChatMenuPanel userId={userId} date={date} onDateUpdated={onDateUpdated}
-            showFictionalMenu={!experience.currentPlaceId} />
+            showFictionalMenu />
 
           {experience.currentPlaceId && <DateVenueWorldPanel allowCatalogGeneration={false}
             userId={
