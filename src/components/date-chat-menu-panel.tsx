@@ -6,40 +6,100 @@ import { syncChatMenu } from "@/lib/date-chat-menu-sync";
 import { readDateExperience } from "@/lib/date-experience";
 import "./date-chat-menu-panel.css";
 
+type MenuSection = "From the kitchen" | "Coffee & drinks" | "From the oven" | "Other mentions";
+
+const menuSectionOrder: MenuSection[] = [
+  "From the oven",
+  "Coffee & drinks",
+  "From the kitchen",
+  "Other mentions",
+];
+
+function sectionForMention(name: string): MenuSection {
+  if (/\b(?:eggs?|scrambled|sandwich|toastie|gruy[eè]re)\b/i.test(name)) {
+    return "From the kitchen";
+  }
+  if (/\b(?:americano|espresso|latte|cappuccino|coffees?|brew|juice|tea)\b/i.test(name)) {
+    return "Coffee & drinks";
+  }
+  if (/\b(?:croissant|muffin|pastry|bread)\b/i.test(name)) {
+    return "From the oven";
+  }
+  return "Other mentions";
+}
+
+/** The physical-looking menu is a VIEW of saved chat evidence, never a new inventory. */
 function StopMenu({ stop }: { stop: ChatMenuStop }) {
+  const grouped = new Map<MenuSection, ChatMenuStop["items"]>();
+  for (const item of stop.items) {
+    const section = sectionForMention(item.name);
+    grouped.set(section, [...(grouped.get(section) ?? []), item]);
+  }
+
   return (
     <div className="date-chat-menu-stop">
-      <ul>
-        {stop.items.map((item) => (
-          <li key={item.id}>
-            <strong>{item.name}</strong>
-            <details>
-              <summary>From our conversation</summary>
-              <p>{item.evidence.text}</p>
-            </details>
-          </li>
-        ))}
-      </ul>
-      <h4>Orders confirmed in chat</h4>
-      {stop.orders.length ? (
-        stop.orders.map((order) => (
-          <blockquote key={order.messageId}>
-            <p>{order.text}</p>
-            <small>
-              {new Date(order.at).toLocaleTimeString("en-US", {
-                timeZone: "America/Sao_Paulo",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </small>
-          </blockquote>
-        ))
-      ) : (
-        <p>No confirmed orders yet. Suggestions and plans stay on the menu.</p>
+      {stop.items.length > 0 && (
+        <div className="date-chat-menu-sheet" aria-label="Fictional café menu from our conversation">
+          <div className="date-chat-menu-sheet-inner">
+            <div className="date-chat-menu-sheet-heading">
+              <small>AN IN-WORLD MENU</small>
+              <h4>Our little café</h4>
+              <p>{stop.name}</p>
+            </div>
+            <div className="date-chat-menu-ornament" aria-hidden="true" />
+            {menuSectionOrder.map((section) => {
+              const items = grouped.get(section);
+              if (!items?.length) return null;
+              return (
+                <section className="date-chat-menu-section" key={section} aria-label={section}>
+                  <h5>{section}</h5>
+                  <ul>
+                    {items.map((item) => (
+                      <li key={item.id}>
+                        <strong>{item.name}</strong>
+                        <details className="date-chat-menu-evidence">
+                          <summary>From Dominic's words</summary>
+                          <p>{item.evidence.text}</p>
+                        </details>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+            <div className="date-chat-menu-sheet-footer">
+              <span>Only things mentioned in our chat</span>
+              <span>No prices provided</span>
+            </div>
+          </div>
+        </div>
       )}
+      <section className="date-chat-menu-orders" aria-label="Orders confirmed in chat">
+        <h4>At our table</h4>
+        <small>ORDERS CONFIRMED IN CHAT</small>
+        {stop.orders.length ? (
+          <div className="date-chat-menu-order-list">
+            {stop.orders.map((order) => (
+              <blockquote key={order.messageId}>
+                <p>{order.text}</p>
+                <time dateTime={order.at}>
+                  {new Date(order.at).toLocaleTimeString("en-US", {
+                    timeZone: "America/Sao_Paulo",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </time>
+              </blockquote>
+            ))}
+          </div>
+        ) : (
+          <p>Nothing ordered yet. Talking about something doesn't place an order.</p>
+        )}
+      </section>
     </div>
   );
 }
+
 export function DateChatMenuPanel({
   userId,
   date,
@@ -95,12 +155,12 @@ export function DateChatMenuPanel({
   return (
     <section className="date-chat-menu" aria-label="Menu mentioned in chat">
       <header>
-        <small>MENTIONED IN CHAT</small>
-        <h3>At our table</h3>
+        <small>FROM OUR CONVERSATION</small>
+        <h3>The café menu</h3>
       </header>
       <p>
-        Options described by Dominic in our conversation. This is a narrative menu, not a verified
-        official menu. Prices are unknown.
+        A little fictional menu made from what Dominic has actually mentioned. Not a verified
+        venue menu; no items or orders are added to the story.
       </p>
       {loading && <p role="status">Catching up with our conversation…</p>}
       {error && (
@@ -114,11 +174,11 @@ export function DateChatMenuPanel({
       {current?.items.length ? (
         <StopMenu stop={current} />
       ) : (
-        <p>New options will appear here as Dominic mentions them.</p>
+        <p>Our menu will take shape as Dominic mentions things to eat or drink.</p>
       )}
       {older.map((stop) => (
         <details key={stop.id}>
-          <summary>Earlier stop · {stop.name}</summary>
+          <summary>Previous café menu · {stop.name}</summary>
           <StopMenu stop={stop} />
         </details>
       ))}
@@ -132,10 +192,10 @@ export function DateChatMenuHistory({ date }: { date: DiarioItem }) {
   return (
     <section className="date-chat-menu" aria-label="Menu and orders from this Date">
       <header>
-        <small>FROM OUR CONVERSATION</small>
-        <h3>At our tables</h3>
+        <small>KEPT FROM OUR DATE</small>
+        <h3>The menus we found</h3>
       </header>
-      <p>Narrative menus and order confirmations from chat. Not verified official menus.</p>
+      <p>Fictional menus assembled from our conversation, with original order confirmations. Not official venue menus.</p>
       {stops.map((stop) => (
         <details key={stop.id}>
           <summary>{stop.name}</summary>
