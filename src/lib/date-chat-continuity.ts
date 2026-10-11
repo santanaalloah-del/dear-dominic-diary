@@ -1,86 +1,119 @@
-import { arriveAtDatePlace, beginDateExperience, finishDateExperience, getLiveDateExperience, leaveCurrentDatePlace, readDateExperience } from "@/lib/date-experience";
-import { createContextualDate, finishDate, startDate } from "@/lib/date-flow";
+import {
+  arriveAtChatDatePlace,
+  beginDateExperience,
+  finishDateExperience,
+  getLiveDateExperience,
+  leaveCurrentDatePlace,
+  readDateExperience,
+} from "@/lib/date-experience";
+import { createContextualDate, finishDate, getDateFlowState, startDate } from "@/lib/date-flow";
 import { notifyDateExperienceChanged } from "@/lib/date-live-events";
-import { getPlaces } from "@/lib/diario-world";
+import { getDates, type DiarioItem } from "@/lib/diario-world";
+import { observeDateConversation, type DateChatLine } from "@/lib/date-chat-observation";
 
-let starting = false; // prevent overlapping chat transitions
+// Avoid duplicate writes during overlapping history refreshes within a tab.
+const inFlight = new Set<string>();
+const processed = new Map<string, string>();
 
 /**
- * Free, conservative chat-to-Date bridge. No additional AI inference.
- * Only an explicit present-tense departure, after Dominic suggested an
- * outing, can create a Date. A suggestion alone never creates one.
+ * Brings Dates up to date from the existing, persisted dialogue.
+ *
+ * No extra model calls, no invented geolocation or venue/menu catalogue.
+ * Requires Alloah's assent, an outing context and a confirmed departure
+ * narrated by Dominic. Running on chat load also repairs older missed outings.
  */
-export async function syncLiveDateFromChat(
+export async function syncDateFromConversation(
   userId: string,
-  message: string,
-  recentDominicText = "",
+  messages: DateChatLine[],
 ): Promise<boolean> {
-  const text = message.trim().replace(/[\u2018\u2019]/g, "'").replace(/\s+/g, " ");
-  if (!text || text.length > 350 || starting) return false;
+  const observation = observeDateConversation(messages);
+  if (!observation) return false;
 
-  const departure = /^(?:\*\s*)?(?:we(?:'re| are) (?:leaving|heading out|on our way|walking (?:out|there)) now|(?:let's|let us) (?:head out|go now|leave now|go get (?:coffee|food|breakfast|lunch|dinner))|(?:we(?:'ve| have) just left|we just left))(?:[.!*\s]|$)/i;
-  // A short, affirmative "let's go!" is meaningful only with the existing
-  // recent-Dominic-invitation guard. Do not match "let's go to sleep" or a
-  // future/conditional plan as a departure.
-  const goAcceptance = /^(?:\*\s*)?(?:(?:yes|yeah|yep|okay|ok|alright|sure)[,!\s]+)?(?:let's go|let us go)(?:\s+(?:now|then))?[.!*\s]*$/i;
-  const isDeparture = departure.test(text) || goAcceptance.test(text);
-  const negated = /\b(?:not|never|don't|didn't|won't|tomorrow|later|yesterday|if|maybe|pretend|imagine|what if)\b/i;
-  if (negated.test(text)) return false;
+  const signature = [
+    observation.acceptanceId,
+    observation.lastEvidenceId,
+    observation.locationMode,
+    observation.finished ? "finished" : "ongoing",
+  ].join(":");
 
-  const explicitFinish = /^(?:\*\s*)?(?:we(?:'re| are) (?:back home|home now)|(?:we(?:'ve| have) (?:gotten|arrived) home)|(?:the date is over|our date is over|we finished our date))(?:[.!*\s]|$)/i;
-  const explicitArrival = /^(?:\*\s*)?(?:we(?:'re| are) (?:at|inside) |we (?:just )?arrived at |we (?:just )?got to )(?:the )?(.+?)(?:[.!*]|$)/i;
-  if (!isDeparture && !explicitFinish.test(text) && !explicitArrival.test(text)) return false;
+  if (inFlight.has(userId) || processed.get(userId) === signature) return false;
 
-  starting = true;
+  inFlight.add(userId);
   try {
-    let date = await getLiveDateExperience(userId);
-    if (!date) {
-      // Don't create a Date from a casual departure unrelated to a mutual
-      // outing. Dominic's recent proposal is required, not merely a place name.
-      const proposedOuting = /\b(?:we could|let's|wanna|want to|how about|maybe we|shall we|should we)\b.{0,120}\b(?:go out|outside|walk|coffee|eat|food|restaurant|breakfast|lunch|dinner|date)\b/i;
-      if (!proposedOuting.test(recentDominicText)) return false;
+    const dates = await getDates(userId);
+    const previous = dates.find((date) =>
+      String(date.data?.chat_source_message_id ?? "") === observation.acceptanceId
+    ) ?? null;
 
-      date = await createContextualDate({
-        userId,
-        title: "Our day out",
-        note: "Started naturally together in chat.",
-      });
-      date = await startDate({ userId, dateId: date.id });
-      date = await beginDateExperience({ userId, date });
-      notifyDateExperienceChanged(date.id);
-      return true;
-    }
-
-    if (explicitFinish.test(text)) {
-      const finished = await finishDateExperience({ userId, date });
-      await finishDate({ userId, dateId: finished.id });
-      notifyDateExperienceChanged(finished.id);
-      return true;
-    }
-
-    const arrival = text.match(explicitArrival);
-    if (arrival) {
-      const named = arrival[1]?.replace(/\*+$/, "").trim().toLocaleLowerCase("en-US");
-      if (!named || named.length < 3 || named.length > 80 || /^(?:surprise|somewhere|there|home|work|a place|the place)$/i.test(named)) return false;
-      // Only accept a place already saved in the diary; never invent a
-      // venue from arbitrary conversation or expose a secret destination.
-      const places = await getPlaces(userId);
-      const matched = places.find((place) => place.title?.trim().toLocaleLowerCase("en-US") === named);
-      if (!matched) return false;
-      const arrived = await arriveAtDatePlace({ userId, date, place: matched });
-      if (arrived.id !== date.id || readDateExperience(arrived).events.length > readDateExperience(date).events.length) {
-        notifyDateExperienceChanged(arrived.id);
-        return true;
-      }
+    // A completed, chat-started outing must not be recreated simply because
+    // the user reopens chat on the same calendar day.
+    if (previous && getDateFlowState(previous) === "past") {
+      processed.set(userId, signature);
       return false;
     }
 
-    const experience = readDateExperience(date);
-    if (!isDeparture || experience.currentLocationMode === "walking") return false;
-    const updated = await leaveCurrentDatePlace({ userId, date });
-    notifyDateExperienceChanged(updated.id);
-    return true;
+    const active = await getLiveDateExperience(userId);
+    if (active && (!previous || previous.id !== active.id)) {
+      // Never hijack a manually initiated Date or a different live outing.
+      processed.set(userId, signature);
+      return false;
+    }
+
+    let date: DiarioItem;
+    let changed = false;
+
+    if (previous) {
+      date = previous;
+      if (getDateFlowState(previous) !== "live") {
+        date = await startDate({ userId, dateId: previous.id });
+        changed = true;
+      }
+    } else {
+      date = await createContextualDate({
+        userId,
+        title: "Brunch together",
+        note: "A spontaneous outing agreed in chat. The venue name is not yet known.",
+        chatSourceMessageId: observation.acceptanceId,
+      });
+      date = await startDate({ userId, dateId: date.id });
+      changed = true;
+    }
+
+    if (!readDateExperience(date).events.some((entry) => entry.type === "date_started")) {
+      date = await beginDateExperience({ userId, date });
+      changed = true;
+    }
+
+    const state = readDateExperience(date);
+    if (observation.finished) {
+      date = await finishDateExperience({ userId, date });
+      date = await finishDate({ userId, dateId: date.id });
+      changed = true;
+    } else if (observation.locationMode === "place" && observation.venueLabel) {
+      if (state.currentLocationMode !== "place" ||
+          (!state.currentPlaceId && state.currentPlaceName !== observation.venueLabel)) {
+        date = await arriveAtChatDatePlace({
+          userId,
+          date,
+          placeName: observation.venueLabel,
+        });
+        changed = true;
+      }
+    } else if (state.currentLocationMode === "between_places") {
+      date = await leaveCurrentDatePlace({ userId, date });
+      changed = true;
+    } else if (state.currentLocationMode === "place" &&
+               !state.currentPlaceId) {
+      // Only a chat-mentioned stop may be left automatically by chat evidence;
+      // saved real Places remain controlled by Date Mode's own movement tools.
+      date = await leaveCurrentDatePlace({ userId, date });
+      changed = true;
+    }
+
+    processed.set(userId, signature);
+    if (changed) notifyDateExperienceChanged(date.id);
+    return changed;
   } finally {
-    starting = false;
+    inFlight.delete(userId);
   }
 }
