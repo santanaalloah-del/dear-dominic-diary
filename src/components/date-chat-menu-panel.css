@@ -1,66 +1,310 @@
 .date-chat-menu {
   min-width: 0;
-  padding: 16px;
-  margin: 12px 0;
-  border: 1px solid var(--divider);
-  background: var(--paper);
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
   color: var(--foreground);
 }
-.date-chat-menu header small {
+
+.date-chat-menu > header {
+  padding: 0 3px;
+}
+
+.date-chat-menu > header small {
   color: var(--wine);
   font-size: 10px;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.17em;
 }
-.date-chat-menu h3 {
-  margin: 5px 0 10px;
-  font: 24px var(--font-display);
+
+.date-chat-menu > header h3 {
+  margin: 4px 0 0;
+  font: 26px/1.15 var(--font-display);
 }
-.date-chat-menu p {
+
+.date-chat-menu > p,
+.date-chat-menu > [role="status"],
+.date-chat-menu > [role="alert"] {
+  margin: 0 3px;
+  color: var(--muted-foreground);
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.55;
   overflow-wrap: anywhere;
 }
-.date-chat-menu ul {
-  list-style: none;
-  padding: 0;
+
+.date-chat-menu-stop {
+  display: grid;
+  gap: 15px;
+  min-width: 0;
+}
+
+.date-chat-menu-sheet {
+  --menu-ink: #62333e;
+  --menu-muted: #8f6970;
+  --menu-gold: #a78363;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #c9b29e;
+  background: #e5d2c0;
+  box-shadow: 2px 5px 15px rgba(65, 28, 37, 0.09);
+  color: var(--menu-ink);
+}
+
+.date-chat-menu-sheet-inner {
+  min-width: 0;
+  padding: 25px clamp(13px, 5vw, 27px) 17px;
+  border: 1px solid rgba(136, 86, 76, 0.26);
+  background:
+    radial-gradient(ellipse at 12% 4%, rgba(255, 255, 255, 0.7), transparent 48%),
+    repeating-linear-gradient(0deg, rgba(122, 73, 65, 0.015) 0 1px, transparent 1px 5px),
+    #f9f0e5;
+}
+
+.date-chat-menu-sheet-heading {
+  text-align: center;
+}
+
+.date-chat-menu-sheet-heading small {
+  color: var(--menu-gold);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.23em;
+}
+
+.date-chat-menu-sheet-heading h4 {
+  margin: 9px 0 5px;
+  color: var(--menu-ink);
+  font: italic 34px/1.08 var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+.date-chat-menu-sheet-heading p {
+  margin: 0;
+  color: var(--menu-muted);
+  font: 12px/1.5 var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.date-chat-menu-ornament {
+  position: relative;
+  display: block;
+  width: 62%;
+  max-width: 210px;
+  height: 13px;
+  margin: 15px auto 21px;
+  border-top: 1px solid rgba(167, 131, 99, 0.5);
+}
+
+.date-chat-menu-ornament::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: calc(50% - 4px);
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  border: 1px solid var(--menu-gold);
+  background: #f9f0e5;
+}
+
+.date-chat-menu-section + .date-chat-menu-section {
+  margin-top: 19px;
+}
+
+.date-chat-menu-section h5 {
+  margin: 0 0 9px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(167, 131, 99, 0.35);
+  color: var(--menu-ink);
+  font: italic 19px/1.15 var(--font-display);
+  text-align: center;
+}
+
+.date-chat-menu-section ul {
   display: grid;
   gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.date-chat-menu li {
+
+.date-chat-menu-section li {
   min-width: 0;
-  padding: 12px;
-  border: 1px solid var(--divider);
-  border-radius: 6px;
+  padding: 0 1px 9px;
+  border-bottom: 1px dotted rgba(167, 131, 99, 0.24);
 }
-.date-chat-menu li strong {
+
+.date-chat-menu-section li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.date-chat-menu-section li strong {
+  display: block;
+  color: var(--menu-ink);
+  font: 17px/1.25 var(--font-display);
   text-transform: capitalize;
-  font: 17px var(--font-display);
+  overflow-wrap: anywhere;
 }
-.date-chat-menu summary {
+
+.date-chat-menu-evidence {
+  margin-top: 2px;
+}
+
+.date-chat-menu-evidence summary,
+.date-chat-menu > details > summary {
+  list-style: none;
   cursor: pointer;
-  font-size: 11px;
-  padding: 9px 0;
-  color: var(--wine);
 }
-.date-chat-menu details p {
+
+.date-chat-menu-evidence summary::-webkit-details-marker,
+.date-chat-menu > details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.date-chat-menu-evidence summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  color: var(--menu-muted);
+  font: 10px/1.4 var(--font-body);
+  text-decoration: underline dotted rgba(143, 105, 112, 0.48);
+  text-underline-offset: 3px;
+}
+
+.date-chat-menu-evidence summary::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-right: 1px solid var(--menu-gold);
+  border-bottom: 1px solid var(--menu-gold);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+
+.date-chat-menu-evidence[open] summary::before {
+  transform: rotate(45deg);
+}
+
+.date-chat-menu-evidence p {
+  margin: 5px 0 7px;
+  padding: 8px 10px;
+  border-left: 2px solid rgba(167, 131, 99, 0.4);
+  background: rgba(207, 176, 149, 0.13);
+  color: var(--menu-ink);
+  font: 11px/1.55 var(--font-body);
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
-.date-chat-menu h4 {
-  font: 18px var(--font-display);
-  margin: 20px 0 8px;
+
+.date-chat-menu-sheet-footer {
+  display: grid;
+  gap: 3px;
+  margin-top: 23px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(167, 131, 99, 0.4);
+  color: var(--menu-muted);
+  font: 9px/1.45 var(--font-body);
+  letter-spacing: 0.07em;
+  text-align: center;
+  text-transform: uppercase;
 }
-.date-chat-menu blockquote {
-  margin: 8px 0;
-  border-left: 2px solid var(--wine);
-  padding: 4px 12px;
+
+.date-chat-menu-orders {
+  padding: 14px 15px;
+  border: 1px solid var(--divider);
+  background: var(--paper);
 }
-.date-chat-menu blockquote small {
-  font-size: 10px;
+
+.date-chat-menu-orders h4 {
+  margin: 0 0 3px;
+  color: var(--wine);
+  font: 21px/1.15 var(--font-display);
+}
+
+.date-chat-menu-orders > small {
   color: var(--muted-foreground);
+  font-size: 9px;
+  letter-spacing: 0.14em;
 }
+
+.date-chat-menu-orders > p {
+  margin: 11px 0 0;
+  color: var(--muted-foreground);
+  font: 12px/1.5 var(--font-body);
+}
+
+.date-chat-menu-order-list {
+  display: grid;
+  gap: 11px;
+  margin-top: 12px;
+}
+
+.date-chat-menu-order-list blockquote {
+  margin: 0;
+  padding: 9px 11px;
+  border-left: 2px solid var(--wine);
+  background: rgba(117, 69, 85, 0.06);
+}
+
+.date-chat-menu-order-list p {
+  margin: 0 0 5px;
+  color: var(--foreground);
+  font: 12px/1.55 var(--font-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.date-chat-menu-order-list time {
+  color: var(--muted-foreground);
+  font: 10px/1.4 var(--font-body);
+}
+
+.date-chat-menu > details {
+  padding: 9px 12px;
+  border: 1px solid var(--divider);
+  background: var(--paper);
+}
+
+.date-chat-menu > details > summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  color: var(--wine);
+  font: 13px/1.5 var(--font-body);
+}
+
+.date-chat-menu > details > summary::after {
+  content: "+";
+  flex: 0 0 auto;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.date-chat-menu > details[open] > summary::after {
+  content: "−";
+}
+
+.date-chat-menu > details > .date-chat-menu-stop {
+  margin-top: 12px;
+}
+
 .date-chat-menu button {
-  padding: 8px;
+  padding: 6px 9px;
   border: 1px solid var(--divider);
   background: var(--paper);
   color: var(--wine);
+  font: 12px var(--font-body);
+}
+
+@media (max-width: 360px) {
+  .date-chat-menu-sheet-heading h4 {
+    font-size: 29px;
+  }
+  .date-chat-menu-sheet-inner {
+    padding-inline: 12px;
+  }
 }
