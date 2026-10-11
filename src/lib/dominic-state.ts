@@ -1062,7 +1062,7 @@ export async function recordDominicAction(
     .eq("character_name", "Dominic")
     .eq("source_type", "autonomy_engine")
     .eq("source_id", "dominic")
-    .eq("status", "active");
+    .eq("status", "processing");
 
   const { error } =
     await supabase
@@ -1071,10 +1071,11 @@ export async function recordDominicAction(
         user_id: userId,
         character_name: "Dominic",
         action_type: state.activity,
-        agency_class: "autonomous",
+        // Values must satisfy public.character_actions CHECK constraints.
+        agency_class: "self",
         agency_valid: true,
-        motive_type: "ambient_life",
-        status: "active",
+        motive_type: "internal",
+        status: "processing",
 
         title:
           state.activity.replaceAll(
@@ -2454,6 +2455,14 @@ if (!state) {
 }
   
   let changes = 0;
+
+  // After long offline gaps, do not manufacture dozens of historical actions.
+  // Resume from the current clock with one plausible state transition instead.
+  if (new Date(state.nextChangeAt).getTime() < now.getTime() - 3 * 60 * 60_000) {
+    state = createNextDominicState(state, now, worldContext, recentActions, commitments);
+    await recordDominicAction(userId, state);
+    changes = 1;
+  }
 
   while (
     new Date(
