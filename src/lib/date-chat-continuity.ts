@@ -1,6 +1,7 @@
-import { beginDateExperience, getLiveDateExperience, leaveCurrentDatePlace, readDateExperience } from "@/lib/date-experience";
-import { createContextualDate, startDate } from "@/lib/date-flow";
+import { arriveAtDatePlace, beginDateExperience, finishDateExperience, getLiveDateExperience, leaveCurrentDatePlace, readDateExperience } from "@/lib/date-experience";
+import { createContextualDate, finishDate, startDate } from "@/lib/date-flow";
 import { notifyDateExperienceChanged } from "@/lib/date-live-events";
+import { getPlaces } from "@/lib/diario-world";
 
 let starting = false;
 
@@ -19,7 +20,11 @@ export async function syncLiveDateFromChat(
 
   const departure = /^(?:\*\s*)?(?:we(?:'re| are) (?:leaving|heading out|on our way|walking (?:out|there)) now|(?:let's|let us) (?:head out|go now|leave now|go get (?:coffee|food|breakfast|lunch|dinner))|(?:we(?:'ve| have) just left|we just left))(?:[.!*\s]|$)/i;
   const negated = /\b(?:not|never|don't|didn't|won't|tomorrow|later|yesterday|if|maybe|pretend|imagine|what if)\b/i;
-  if (!departure.test(text) || negated.test(text)) return false;
+  if (negated.test(text)) return false;
+
+  const explicitFinish = /^(?:\\*\\s*)?(?:we(?:\\u0027re| are) (?:back home|home now)|(?:we(?:\\u0027ve| have) (?:gotten|arrived) home)|(?:the date is over|our date is over|we finished our date))(?:[.!*\\s]|$)/i;
+  const explicitArrival = /^(?:\\*\\s*)?(?:we(?:\\u0027re| are) (?:at|inside) |we (?:just )?arrived at |we (?:just )?got to )(?:the )?(.+?)(?:[.!*\\s]|$)/i;
+  if (!departure.test(text) && !explicitFinish.test(text) && !explicitArrival.test(text)) return false;
 
   starting = true;
   try {
@@ -41,8 +46,32 @@ export async function syncLiveDateFromChat(
       return true;
     }
 
+    if (explicitFinish.test(text)) {
+      const finished = await finishDateExperience({ userId, date });
+      await finishDate({ userId, dateId: finished.id });
+      notifyDateExperienceChanged(finished.id);
+      return true;
+    }
+
+    const arrival = text.match(explicitArrival);
+    if (arrival) {
+      const named = arrival[1]?.replace(/\\*+$/, "").trim().toLocaleLowerCase("en-US");
+      if (!named || named.length < 3 || named.length > 80 || /^(?:surprise|somewhere|there|home|work|a place|the place)$/i.test(named)) return false;
+      // Only accept a place already saved in the diary; never invent a
+      // venue from arbitrary conversation or expose a secret destination.
+      const places = await getPlaces(userId);
+      const matched = places.find((place) => place.title?.trim().toLocaleLowerCase("en-US") === named);
+      if (!matched) return false;
+      const arrived = await arriveAtDatePlace({ userId, date, place: matched });
+      if (arrived.id !== date.id || readDateExperience(arrived).events.length > readDateExperience(date).events.length) {
+        notifyDateExperienceChanged(arrived.id);
+        return true;
+      }
+      return false;
+    }
+
     const experience = readDateExperience(date);
-    if (experience.currentLocationMode === "walking") return false;
+    if (!departure.test(text) || experience.currentLocationMode === "walking") return false;
     const updated = await leaveCurrentDatePlace({ userId, date });
     notifyDateExperienceChanged(updated.id);
     return true;
