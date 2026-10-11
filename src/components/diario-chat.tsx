@@ -3865,7 +3865,11 @@ const liveDateContext =
 
   // Only explicit, completed movement in Alloah\'s message can change an
   // already-live Date. Never infer acceptance or arrival from Dominic\'s reply.
-  void syncLiveDateFromChat(session.user.id, combinedMessage).catch((dateError) => {
+  void syncLiveDateFromChat(
+    session.user.id,
+    combinedMessage,
+    messages.filter((item) => item.role === "assistant").slice(-6).map((item) => item.content).join(" "),
+  ).catch((dateError) => {
     console.warn("Date continuity sync skipped:", dateError);
   });
 
