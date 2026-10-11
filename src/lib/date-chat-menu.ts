@@ -8,6 +8,9 @@ export type ChatMenuStop = {
   name: string;
   items: ChatMenuItem[];
   orders: Evidence[];
+  /** Optional choices belong to this arrival, never to the Date globally. */
+  myPicks?: string[];
+  manualOrders?: { itemId: string; itemName: string; at: string }[];
 };
 export type ChatMenu = { version: 1; stops: ChatMenuStop[] };
 const key = (s: string) =>

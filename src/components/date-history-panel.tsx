@@ -28,6 +28,9 @@ import {
   formatVenuePrice,
 } from "@/lib/venue-world";
 
+import { readChatMenu } from "@/lib/date-chat-menu";
+import { readFictionalMenuOrders, type FictionalMenuOrder } from "@/lib/date-fictional-menu";
+
 import "./date-history-panel.css";
 
 type DateHistoryEntry =
@@ -36,6 +39,13 @@ type DateHistoryEntry =
       kind: "experience";
       happenedAt: string;
       event: DateExperienceEvent;
+    }
+  | {
+      id: string;
+      kind: "fictional_order";
+      happenedAt: string;
+      order: FictionalMenuOrder;
+      placeName: string;
     }
   | {
       id: string;
@@ -316,6 +326,15 @@ export function DateHistoryPanel({
           })
         ),
 
+      ...readChatMenu(date).stops.flatMap((stop) =>
+        readFictionalMenuOrders(stop).map((order) => ({
+          id: "menu-order:" + stop.id + ":" + order.itemId,
+          kind: "fictional_order" as const,
+          happenedAt: order.at,
+          order,
+          placeName: stop.name,
+        }))),
+
       ...venueWorld
         .purchases
         .map(
@@ -395,6 +414,24 @@ export function DateHistoryPanel({
             entry,
             index
           ) => {
+            if (entry.kind === "fictional_order") {
+              return (
+                <article key={entry.id} className="date-history-entry venue">
+                  <div className="date-history-rail">
+                    <span className="date-history-dot"><ShoppingBag size={14} /></span>
+                    {index < entries.length - 1 && <span className="date-history-line" />}
+                  </div>
+                  <div className="date-history-copy">
+                    <div className="date-history-entry-top">
+                      <strong>You recorded ordering {entry.order.itemName}</strong>
+                      <time>{formatHistoryTime(entry.happenedAt)}</time>
+                    </div>
+                    <p>{entry.placeName} · Fictional in-world menu</p>
+                  </div>
+                </article>
+              );
+            }
+
             if (
               entry.kind ===
               "venue"

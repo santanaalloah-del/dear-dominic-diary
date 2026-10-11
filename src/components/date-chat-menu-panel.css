@@ -308,3 +308,103 @@
     padding-inline: 12px;
   }
 }
+
+
+/* Full in-world venue menu: the same physical paper language as chat keepsakes. */
+.date-fictional-menu {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.date-fictional-menu-disclaimer {
+  max-width: 350px;
+  margin: -6px auto 23px;
+  color: #91747a;
+  font: 11px/1.55 var(--font-body);
+  text-align: center;
+}
+
+.date-fictional-menu-item {
+  display: grid;
+  gap: 4px;
+}
+
+.date-fictional-menu-item-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-fictional-menu-item-top strong {
+  flex: 1 1 145px;
+}
+
+.date-fictional-menu-item-top small {
+  display: inline-block;
+  color: #8e5963;
+  font: italic 11px/1.35 var(--font-display);
+  white-space: nowrap;
+}
+
+.date-fictional-menu-item > p {
+  margin: 1px 0 7px;
+  color: #86676e;
+  font: 11px/1.45 var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.date-fictional-menu-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.date-fictional-menu-actions button {
+  min-height: 31px;
+  padding: 6px 10px;
+  border: 1px solid rgba(105, 52, 65, 0.35);
+  background: transparent;
+  color: #6b3745;
+  font: 11px/1.2 var(--font-body);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.date-fictional-menu-actions button.selected,
+.date-fictional-menu-actions button.date-fictional-menu-confirm {
+  background: #713948;
+  border-color: #713948;
+  color: #fff6eb;
+}
+
+.date-fictional-menu-actions button:focus-visible {
+  outline: 2px solid #713948;
+  outline-offset: 2px;
+}
+
+.date-fictional-menu-actions button:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.date-fictional-menu-ordered {
+  color: #76505a;
+  font: italic 13px/1.3 var(--font-display);
+}
+
+.date-fictional-menu-error {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid rgba(146, 53, 68, 0.3);
+  background: var(--paper);
+  color: #963a4d;
+  font: 12px/1.5 var(--font-body);
+}
+
+@media (max-width: 360px) {
+  .date-fictional-menu-item-top strong { flex-basis: 100%; }
+}
