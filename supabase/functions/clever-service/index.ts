@@ -741,10 +741,16 @@ Reality and privacy rules:
       },
     ];
 
-    // Reserve enough for the chat response, optional presence repair and memory pass.
-    // Treat the estimate as a conservative allowance, not a measured provider cost.
+    // Reservations are temporary allowances, NOT billed prices. Historically
+    // measured October 2026: 196 primary calls max $0.010865 each; 196 extras
+    // max $0.002342. Reserve a multiple of those observed costs instead of
+    // blocking the final $0.10 of the user's existing $10 monthly cap.
+    // Do NOT increase the cap or bypass reserve_ai_budget's atomic check.
+    // Re-evaluate these allowances before switching to a pricier model.
+    const PRIMARY_CHAT_RESERVATION_USD = 0.03;
+    const OPTIONAL_CHAT_RESERVATION_USD = 0.015;
     const budgetClient=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const {data:budgetId,error:budgetError}=await budgetClient.rpc("reserve_ai_budget",{p_source:"clever-service-chat",p_estimated_usd:0.10});
+    const {data:budgetId,error:budgetError}=await budgetClient.rpc("reserve_ai_budget",{p_source:"clever-service-chat",p_estimated_usd:PRIMARY_CHAT_RESERVATION_USD});
     if(budgetError)throw new Error("Monthly AI budget unavailable");
     if(!budgetId)return new Response(JSON.stringify({error:"Monthly AI budget reached. Try next month."}),{status:429,headers:{...corsHeaders,"Content-Type":"application/json"}});
     let budgetProviderCalled=false;
@@ -754,7 +760,7 @@ Reality and privacy rules:
     const paidFetch=async(input:string,init:RequestInit):Promise<Response>=>{
       const isPrimary=primaryRequestPending;
       primaryRequestPending=false;
-      const estimate=isPrimary?0.10:0.06;
+      const estimate=isPrimary?PRIMARY_CHAT_RESERVATION_USD:OPTIONAL_CHAT_RESERVATION_USD;
       let currentId=budgetId;
       if(!isPrimary){
         const {data:extraId,error:extraError}=await budgetClient.rpc("reserve_ai_budget",{
