@@ -1,0 +1,66 @@
+.date-chat-menu {
+  min-width: 0;
+  padding: 16px;
+  margin: 12px 0;
+  border: 1px solid var(--divider);
+  background: var(--paper);
+  color: var(--foreground);
+}
+.date-chat-menu header small {
+  color: var(--wine);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+.date-chat-menu h3 {
+  margin: 5px 0 10px;
+  font: 24px var(--font-display);
+}
+.date-chat-menu p {
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.date-chat-menu ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.date-chat-menu li {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+}
+.date-chat-menu li strong {
+  text-transform: capitalize;
+  font: 17px var(--font-display);
+}
+.date-chat-menu summary {
+  cursor: pointer;
+  font-size: 11px;
+  padding: 9px 0;
+  color: var(--wine);
+}
+.date-chat-menu details p {
+  white-space: pre-wrap;
+}
+.date-chat-menu h4 {
+  font: 18px var(--font-display);
+  margin: 20px 0 8px;
+}
+.date-chat-menu blockquote {
+  margin: 8px 0;
+  border-left: 2px solid var(--wine);
+  padding: 4px 12px;
+}
+.date-chat-menu blockquote small {
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+.date-chat-menu button {
+  padding: 8px;
+  border: 1px solid var(--divider);
+  background: var(--paper);
+  color: var(--wine);
+}

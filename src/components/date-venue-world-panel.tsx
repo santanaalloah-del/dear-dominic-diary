@@ -58,6 +58,7 @@ const db =
   supabase as any;
 
 type DateVenueWorldPanelProps = {
+  allowCatalogGeneration?: boolean;
   userId: string;
 
   date: DiarioItem;
@@ -770,6 +771,7 @@ function DateVenueItemCard({
 }
 
 export function DateVenueWorldPanel({
+  allowCatalogGeneration = true,
   userId,
   date,
   onDateUpdated,
@@ -916,6 +918,7 @@ export function DateVenueWorldPanel({
 
   useEffect(() => {
     if (
+      !allowCatalogGeneration ||
       !place ||
       catalog ||
       attemptedCatalogPlaceId.current ===
@@ -1101,6 +1104,7 @@ export function DateVenueWorldPanel({
     catalog,
     userId,
     buildRetry,
+    allowCatalogGeneration,
   ]);
 
   const sections =
@@ -1243,6 +1247,8 @@ export function DateVenueWorldPanel({
   ) {
     return null;
   }
+
+  if (!catalog && !allowCatalogGeneration) return null;
 
   if (
     !catalog
