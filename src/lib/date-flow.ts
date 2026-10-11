@@ -288,6 +288,7 @@ export async function createContextualDate({
   timeHint,
   note,
   itinerary,
+  chatSourceMessageId,
 }: {
   userId: string;
   title?: string;
@@ -297,6 +298,7 @@ export async function createContextualDate({
   timeHint?: string | null;
   note?: string;
   itinerary?: string;
+  chatSourceMessageId?: string;
 }): Promise<DiarioItem> {
   if (
     !hasDateContent({
@@ -394,6 +396,8 @@ export async function createContextualDate({
 
           flow_state:
             flowState,
+
+          ...(chatSourceMessageId ? { chat_source_message_id: chatSourceMessageId } : {}),
 
           time_known:
             Boolean(

@@ -110,9 +110,13 @@ export function readDateExperience(
     schemaVersion: 1,
     currentLocationMode,
     currentPlaceId:
-      cleanString(value.currentPlaceId) ?? fallback.currentPlaceId,
+      Object.prototype.hasOwnProperty.call(value, "currentPlaceId")
+        ? cleanString(value.currentPlaceId)
+        : fallback.currentPlaceId,
     currentPlaceName:
-      cleanString(value.currentPlaceName) ?? fallback.currentPlaceName,
+      Object.prototype.hasOwnProperty.call(value, "currentPlaceName")
+        ? cleanString(value.currentPlaceName)
+        : fallback.currentPlaceName,
     events,
   };
 }
@@ -654,6 +658,41 @@ export async function arriveAtDatePlace({
           placeName,
         }),
       ],
+    },
+  });
+}
+
+/** A location described in chat, not a discovered/verified business.
+ * No fake Place record, coordinates, address, prices or menu are created. */
+export async function arriveAtChatDatePlace({
+  userId,
+  date,
+  placeName,
+}: {
+  userId: string;
+  date: DiarioItem;
+  placeName: string;
+}): Promise<DiarioItem> {
+  const name = placeName.trim().slice(0, 100);
+  if (!name) return date;
+  const current = readDateExperience(date);
+  if (current.currentLocationMode === "place" &&
+      !current.currentPlaceId &&
+      current.currentPlaceName === name) return date;
+
+  return persistDateExperience({
+    userId,
+    date,
+    experience: {
+      ...current,
+      currentLocationMode: "place",
+      currentPlaceId: null,
+      currentPlaceName: name,
+      events: [...current.events, event({
+        type: "arrived",
+        placeName: name,
+        note: "Location described in chat; venue not verified",
+      })],
     },
   });
 }

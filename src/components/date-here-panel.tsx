@@ -129,6 +129,15 @@ export function DateHerePanel({
         }
       />
 
+      {!walking && !experience.currentPlaceId && placeName && (
+        <div role="note" className="date-here-chat-venue-note" style={{ padding: "11px 13px", border: "1px dashed var(--divider)", marginBlock: 12 }}>
+          <strong style={{ display: "block", fontSize: 12, marginBottom: 4 }}>A stop from your conversation</strong>
+          <p style={{ margin: 0, fontSize: 11, lineHeight: 1.5 }}>
+            This place is described in chat, but its real name and menu haven't been saved. We'll show the stop without making up an address, prices or menu items.
+          </p>
+        </div>
+      )}
+
       {!walking && (
         <div className="date-here-world">
           <div className="date-here-world-label">

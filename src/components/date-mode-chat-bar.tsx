@@ -242,30 +242,12 @@ export function DateModeChatBar({
         ) ||
         "Together";
 
-  const lastEvent =
-    experience
-      .events
-      .at(-1) ??
-    null;
-
   const contextLine =
-    lastEvent?.type ===
-    "arrived"
-      ? `Arrived at ${
-          lastEvent
-            .placeName ??
-          location
-        }`
-      : lastEvent?.type ===
-          "left_place"
-        ? `Left ${
-            lastEvent
-              .placeName ??
-            "the last place"
-          }`
-        : walking
-          ? "Between places"
-          : "Here together";
+    walking
+      ? "Between places"
+      : experience.currentLocationMode === "between_places"
+        ? "Choosing our next stop"
+        : "Here together";
 
   return (
     <section
