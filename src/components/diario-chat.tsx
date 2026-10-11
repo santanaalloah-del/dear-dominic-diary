@@ -4897,6 +4897,22 @@ const recentConversationForPhoto = () =>
             </span>
             <span className="messenger-person-heart" aria-hidden="true">♡</span>
           </h1>
+
+          {(dominicState?.mood || dominicWearingLabel) && (
+            <div className="messenger-presence-meta">
+              {dominicState?.mood && (
+                <span>{dominicState.mood}</span>
+              )}
+              {dominicWearingLabel && (
+                <span
+                  className="messenger-wearing"
+                  title={dominicWearingLabel}
+                >
+                  wearing · {dominicWearingLabel}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="messenger-header-actions">
