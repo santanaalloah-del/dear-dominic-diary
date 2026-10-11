@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { DOMINIC_LIVE_STATE_SOURCE_TYPES, recoverDominicStateTimes } from "@/lib/dominic-live-state";
 import {
   syncDominicWardrobeAutonomy,
 } from "@/lib/dominic-wardrobe-autonomy";
@@ -200,11 +201,13 @@ export async function loadDominicState(
 ): Promise<DominicState | null> {
   const { data: lifeContext, error: lifeContextError } = await supabase
     .from("active_context")
-    .select("activity,place,state,last_activity_at")
+    .select("activity,place,state,last_activity_at,source_type")
     .eq("user_id", userId)
     .eq("context_type", "dominic_live_state")
     .eq("source_id", "dominic")
-    .eq("source_type", "dominic_life_loop")
+    // Autonomous updates use "autonomy_engine"; event updates use
+    // "dominic_life_loop". Both are real persisted Dominic states.
+    .in("source_type", [...DOMINIC_LIVE_STATE_SOURCE_TYPES])
     .eq("status", "active")
     .order("last_activity_at", { ascending: false })
     .limit(1)
@@ -227,18 +230,9 @@ export async function loadDominicState(
       DOMINIC_ACTIVITIES.some((item) => item.activity === activity) &&
       ["living", "bedroom", "kitchen", "bathroom", "hall", "out"].includes(location)
     ) {
-      const startedAt =
-        typeof raw.updated_at === "string"
-          ? raw.updated_at
-          : lifeContext.last_activity_at;
-      const nextChangeAt =
-        typeof raw.next_change_at === "string"
-          ? raw.next_change_at
-          : typeof raw.nextChangeAt === "string"
-            ? raw.nextChangeAt
-            : new Date(
-                new Date(startedAt).getTime() + 20 * 60 * 1000
-              ).toISOString();
+      const { startedAt, nextChangeAt } = recoverDominicStateTimes(
+        raw, lifeContext.last_activity_at
+      );
 
       const current: DominicState = {
         activity,
@@ -247,7 +241,10 @@ export async function loadDominicState(
         mood: typeof raw.mood === "string" ? raw.mood as DominicMood : undefined,
         startedAt,
         nextChangeAt,
-        source: "event",
+        source:
+          raw.source === "event" || raw.source === "autonomous" || raw.source === "manual"
+            ? raw.source
+            : lifeContext.source_type === "dominic_life_loop" ? "event" : "autonomous",
       };
       // The chat uses loadDominicState rather than getCurrentDominicState,
       // so its previous wardrobe hook never fired. Keep clothing in sync
