@@ -836,14 +836,27 @@ function HomeScreen({
       return;
     }
     let cancelled = false;
+    let refreshing = false;
 
     const refresh = async () => {
+      // The autonomous refresh can fail on a database write. Always show the
+      // last persisted, timestamped state rather than an endless spinner.
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        const lastReported = await loadDominicState(session.user.id);
+        if (!cancelled && lastReported) setDominicState(lastReported);
+      } catch (error) {
+        console.error("Could not read Dominic's last reported presence:", error);
+      }
       try {
         const state = await getCurrentDominicState(session.user.id);
         if (!cancelled && state) setDominicState(state);
       } catch (error) {
-        // A temporary read error must not remove the location from Home.
+        // Keep the last known activity with its honest LAST REPORTED label.
         console.error("Could not refresh Dominic's Home presence:", error);
+      } finally {
+        refreshing = false;
       }
     };
 
