@@ -1173,3 +1173,115 @@
 .wardrobe-remove-piece:hover, .wardrobe-remove-piece:focus-visible {
   background: color-mix(in oklab, var(--blush) 35%, var(--paper));
 }
+
+
+/* Currently Wearing · two-up outfit contact sheet (Alloah + Dominic).
+ * Four garments show as a 2 x 2 set on a phone, with their actual images
+ * fully visible. Only this panel is affected; Closet and saved Looks remain
+ * unchanged, as does the photo/wardrobe selection data.
+ */
+.wardrobe-wearing-panel {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  grid-template-columns: minmax(0, 1fr);
+}
+.wardrobe-wearing-panel .wardrobe-wearing-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.wardrobe-wearing-panel .wardrobe-wearing-list > p {
+  grid-column: 1 / -1;
+}
+.wardrobe-wearing-panel .wardrobe-wearing-piece {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  max-width: 100%;
+  padding: 7px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in oklab, var(--wine) 22%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--paper) 93%, var(--cream));
+  overflow: hidden;
+}
+.wardrobe-wearing-panel .wardrobe-wearing-media {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  height: clamp(125px, 36vw, 174px);
+  max-height: 174px;
+  padding: 6px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--cream) 72%, var(--paper));
+  color: var(--muted-foreground);
+  overflow: hidden;
+}
+.wardrobe-wearing-panel .wardrobe-wearing-media > img.wardrobe-wearing-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+.wardrobe-wearing-panel .wardrobe-wearing-meta {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 3px 3px;
+  box-sizing: border-box;
+}
+.wardrobe-wearing-panel .wardrobe-wearing-meta > strong {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+  font: 600 11px/1.25 var(--font-body);
+  color: var(--foreground);
+}
+.wardrobe-wearing-panel .wardrobe-wearing-meta > small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 9px/1.2 var(--font-body);
+  color: var(--muted-foreground);
+}
+.wardrobe-wearing-panel .wardrobe-wearing-piece > .wardrobe-remove-piece {
+  position: absolute;
+  z-index: 2;
+  top: 11px;
+  right: 11px;
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  min-width: 33px;
+  min-height: 33px;
+  padding: 0;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--paper) 91%, transparent);
+  box-shadow: 0 2px 9px color-mix(in oklab, var(--wine) 12%, transparent);
+}
+@media (max-width: 360px) {
+  .wardrobe-wearing-panel .wardrobe-wearing-list { gap: 7px; }
+  .wardrobe-wearing-panel .wardrobe-wearing-piece { padding: 5px; }
+  .wardrobe-wearing-panel .wardrobe-wearing-media { height: clamp(115px, 34vw, 145px); }
+  .wardrobe-wearing-panel .wardrobe-wearing-piece > .wardrobe-remove-piece {
+    top: 9px;
+    right: 9px;
+  }
+}
