@@ -15,16 +15,21 @@ export async function syncLiveDateFromChat(
   message: string,
   recentDominicText = "",
 ): Promise<boolean> {
-  const text = message.trim().replace(/\s+/g, " ");
+  const text = message.trim().replace(/[\u2018\u2019]/g, "'").replace(/\s+/g, " ");
   if (!text || text.length > 350 || starting) return false;
 
   const departure = /^(?:\*\s*)?(?:we(?:'re| are) (?:leaving|heading out|on our way|walking (?:out|there)) now|(?:let's|let us) (?:head out|go now|leave now|go get (?:coffee|food|breakfast|lunch|dinner))|(?:we(?:'ve| have) just left|we just left))(?:[.!*\s]|$)/i;
+  // A short, affirmative "let's go!" is meaningful only with the existing
+  // recent-Dominic-invitation guard. Do not match "let's go to sleep" or a
+  // future/conditional plan as a departure.
+  const goAcceptance = /^(?:\*\s*)?(?:(?:yes|yeah|yep|okay|ok|alright|sure)[,!\s]+)?(?:let's go|let us go)(?:\s+(?:now|then))?[.!*\s]*$/i;
+  const isDeparture = departure.test(text) || goAcceptance.test(text);
   const negated = /\b(?:not|never|don't|didn't|won't|tomorrow|later|yesterday|if|maybe|pretend|imagine|what if)\b/i;
   if (negated.test(text)) return false;
 
   const explicitFinish = /^(?:\*\s*)?(?:we(?:'re| are) (?:back home|home now)|(?:we(?:'ve| have) (?:gotten|arrived) home)|(?:the date is over|our date is over|we finished our date))(?:[.!*\s]|$)/i;
   const explicitArrival = /^(?:\*\s*)?(?:we(?:'re| are) (?:at|inside) |we (?:just )?arrived at |we (?:just )?got to )(?:the )?(.+?)(?:[.!*]|$)/i;
-  if (!departure.test(text) && !explicitFinish.test(text) && !explicitArrival.test(text)) return false;
+  if (!isDeparture && !explicitFinish.test(text) && !explicitArrival.test(text)) return false;
 
   starting = true;
   try {
@@ -71,7 +76,7 @@ export async function syncLiveDateFromChat(
     }
 
     const experience = readDateExperience(date);
-    if (!departure.test(text) || experience.currentLocationMode === "walking") return false;
+    if (!isDeparture || experience.currentLocationMode === "walking") return false;
     const updated = await leaveCurrentDatePlace({ userId, date });
     notifyDateExperienceChanged(updated.id);
     return true;
