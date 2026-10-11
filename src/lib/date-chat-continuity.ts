@@ -23,7 +23,7 @@ export async function syncLiveDateFromChat(
   if (negated.test(text)) return false;
 
   const explicitFinish = /^(?:\*\s*)?(?:we(?:'re| are) (?:back home|home now)|(?:we(?:'ve| have) (?:gotten|arrived) home)|(?:the date is over|our date is over|we finished our date))(?:[.!*\s]|$)/i;
-  const explicitArrival = /^(?:\*\s*)?(?:we(?:'re| are) (?:at|inside) |we (?:just )?arrived at |we (?:just )?got to )(?:the )?(.+?)(?:[.!*\s]|$)/i;
+  const explicitArrival = /^(?:\*\s*)?(?:we(?:'re| are) (?:at|inside) |we (?:just )?arrived at |we (?:just )?got to )(?:the )?(.+?)(?:[.!*]|$)/i;
   if (!departure.test(text) && !explicitFinish.test(text) && !explicitArrival.test(text)) return false;
 
   starting = true;
