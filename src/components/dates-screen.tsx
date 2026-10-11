@@ -1,3 +1,4 @@
+import { DateChatMenuHistory } from './date-chat-menu-panel';
 import {
   useEffect,
   useRef,
@@ -2782,9 +2783,10 @@ export function DatesExperienceScreen({
               )}
 
            {state === "past" && (
-  <DateHistoryPanel
-    date={selectedDate}
-  />
+  <>
+    <DateHistoryPanel date={selectedDate} />
+    <DateChatMenuHistory date={selectedDate} />
+  </>
 )}
 
           </section>

@@ -125,3 +125,23 @@ export function DateChatMenuPanel({
     </section>
   );
 }
+
+export function DateChatMenuHistory({ date }: { date: DiarioItem }) {
+  const stops = readChatMenu(date).stops.filter((s) => s.items.length || s.orders.length);
+  if (!stops.length) return null;
+  return (
+    <section className="date-chat-menu" aria-label="Menu and orders from this Date">
+      <header>
+        <small>FROM OUR CONVERSATION</small>
+        <h3>At our tables</h3>
+      </header>
+      <p>Narrative menus and order confirmations from chat. Not verified official menus.</p>
+      {stops.map((stop) => (
+        <details key={stop.id}>
+          <summary>{stop.name}</summary>
+          <StopMenu stop={stop} />
+        </details>
+      ))}
+    </section>
+  );
+}
