@@ -768,6 +768,7 @@ function HomeScreen({
 }) {
   const { session } = usePrivateDiario();
   const [dominicState, setDominicState] = useState<DominicState | null>(null);
+  const [dominicPresenceError, setDominicPresenceError] = useState(false);
   const [rioWeather, setRioWeather] = useState<RioWeather | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -839,11 +840,20 @@ function HomeScreen({
 
     const refresh = async () => {
       try {
+        // Render the saved presence even if the subsequent state advancement fails.
+        const saved = await loadDominicState(session.user.id);
+        if (!cancelled && saved) {
+          setDominicState(saved);
+          setDominicPresenceError(false);
+        }
         const state = await getCurrentDominicState(session.user.id);
-        if (!cancelled && state) setDominicState(state);
+        if (!cancelled) {
+          if (state) setDominicState(state);
+          setDominicPresenceError(false);
+        }
       } catch (error) {
-        // A temporary read error must not remove the location from Home.
         console.error("Could not refresh Dominic's Home presence:", error);
+        if (!cancelled) setDominicPresenceError(true);
       }
     };
 
@@ -1110,7 +1120,7 @@ function HomeScreen({
             ? (dominicState.location === "out"
               ? "away from the apartment"
               : rooms.find((room) => room.id === dominicState.location)?.title.toLowerCase() ?? "at home")
-            : "Location updating"}</small>
+            : (dominicPresenceError ? "Status unavailable" : "Location updating")}</small>
         </div>
 
         <button
