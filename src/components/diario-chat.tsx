@@ -980,6 +980,48 @@ onOpen: (
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
+  const [failedReason, setFailedReason] = useState<"budget" | "connection" | null>(null);
+  const failedDraftKey = `diario-unsent-message:${session.user.id}`;
+
+  // An unsent message is a draft, not a database-confirmed chat message.
+  // Keep a user-scoped copy across iPhone reloads without sending anything.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(failedDraftKey);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (typeof draft?.text !== "string" || !draft.text.trim()
+          || typeof draft?.savedAt !== "number"
+          || Date.now() - draft.savedAt > 7 * 24 * 60 * 60_000) {
+        window.localStorage.removeItem(failedDraftKey);
+        return;
+      }
+      setFailedMessage(draft.text);
+      setFailedReason(draft.reason === "budget" ? "budget" : "connection");
+    } catch {
+      // The current chat still works without local storage.
+    }
+  }, [failedDraftKey]);
+
+  const rememberFailedMessage = (message: string, error: unknown) => {
+    const reason = error instanceof Error && error.message === "AI_BUDGET_REACHED"
+      ? "budget" as const : "connection" as const;
+    setFailedMessage(message);
+    setFailedReason(reason);
+    try {
+      window.localStorage.setItem(failedDraftKey, JSON.stringify({
+        text: message, reason, savedAt: Date.now(),
+      }));
+    } catch {
+      // Still keep the failed text in memory if private storage is unavailable.
+    }
+  };
+
+  const forgetFailedMessage = () => {
+    setFailedMessage(null);
+    setFailedReason(null);
+    try { window.localStorage.removeItem(failedDraftKey); } catch {}
+  };
   const [replyTarget, setReplyTarget] = useState<ChatMessage | null>(null);
   const [swipingMessageId, setSwipingMessageId] = useState<string | null>(null);
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -3807,16 +3849,17 @@ const liveDateContext =
           )
         : [];
 
-  if (
-    error ||
-    replies.length === 0
-  ) {
-    throw (
-      error ??
-      new Error(
-        "Missing reply"
-      )
-    );
+  if (error) {
+    // Edge returns HTTP 429 when its existing monthly cost guard refuses
+    // a reservation. This is not a network failure and repeated retries
+    // cannot restore credits.
+    if ((error as { context?: { status?: number } }).context?.status === 429) {
+      throw new Error("AI_BUDGET_REACHED");
+    }
+    throw error;
+  }
+  if (replies.length === 0) {
+    throw new Error("Missing reply");
   }
 
   setMessages(
@@ -4010,6 +4053,7 @@ async function flushPendingMessages() {
       queuedPhoto,
       queuedReply
     );
+    forgetFailedMessage();
   } catch (
     error
   ) {
@@ -4018,9 +4062,7 @@ async function flushPendingMessages() {
       error
     );
 
-    setFailedMessage(
-      combinedMessage
-    );
+    rememberFailedMessage(combinedMessage, error);
   } finally {
     processingQueueRef.current =
       false;
@@ -4075,6 +4117,7 @@ async function retryFailedMessage() {
     await requestDominicReply(
       clean
     );
+    forgetFailedMessage();
   } catch (
     error
   ) {
@@ -4083,9 +4126,7 @@ async function retryFailedMessage() {
       error
     );
 
-    setFailedMessage(
-      clean
-    );
+    rememberFailedMessage(clean, error);
   } finally {
     processingQueueRef.current =
       false;
@@ -5613,25 +5654,31 @@ const recentConversationForPhoto = () =>
     role="status"
   >
     <span>
-      couldn’t reach him.
-      try again.
+      {failedReason === "budget"
+        ? "Monthly AI budget reached. Your message was not sent."
+        : "Couldn't reach Dominic. Your message was not confirmed."}
     </span>
-
     <Button
       type="button"
       variant="ghost"
       size="sm"
-      onClick={() =>
-        void retryFailedMessage()
-      }
-      disabled={
-        sending
-      }
+      onClick={() => { void navigator.clipboard?.writeText(failedMessage); }}
     >
-      <RotateCcw />
-
-      Retry
+      Copy message
     </Button>
+
+    {failedReason !== "budget" && (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => void retryFailedMessage()}
+        disabled={sending}
+      >
+        <RotateCcw />
+        Retry
+      </Button>
+    )}
   </div>
 )}
         {voiceNotice && <div className={`voice-transcription-status ${voiceStatus}`}>{voiceNotice}</div>}
