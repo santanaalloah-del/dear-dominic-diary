@@ -1,3 +1,4 @@
+import { syncLiveDateFromChat } from "@/lib/date-chat-continuity";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { chatCalendarDayKey, chatDayHeading } from "@/lib/chat-day-heading";
 import { firstVisibleChatTimestamp } from "@/lib/chat-visible-day";
@@ -3861,6 +3862,16 @@ const liveDateContext =
   if (replies.length === 0) {
     throw new Error("Missing reply");
   }
+
+  // Only explicit, completed movement in Alloah\'s message can change an
+  // already-live Date. Never infer acceptance or arrival from Dominic\'s reply.
+  void syncLiveDateFromChat(
+    session.user.id,
+    combinedMessage,
+    messages.filter((item) => item.role === "assistant").slice(-6).map((item) => item.content).join(" "),
+  ).catch((dateError) => {
+    console.warn("Date continuity sync skipped:", dateError);
+  });
 
   setMessages(
     (current) => [
