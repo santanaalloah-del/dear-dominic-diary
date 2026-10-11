@@ -2433,29 +2433,31 @@ export function WardrobeExperienceScreen() {
 
                       return (
                         <article key={item.id} className="wardrobe-wearing-piece">
-                          {mediaByItemId[item.id] ? (
-                            <img
-                              className="wardrobe-wearing-thumb"
-                              src={mediaByItemId[item.id]}
-                              alt=""
-                            />
-                          ) : (
-                            <Shirt
-                              size={19}
-                              strokeWidth={
-                                1.3
-                              }
-                            />
-                          )}
+                          <div className="wardrobe-wearing-media">
+                            {mediaByItemId[item.id] ? (
+                              <img
+                                className="wardrobe-wearing-thumb"
+                                src={mediaByItemId[item.id]}
+                                alt={item.title ?? "Clothing item"}
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            ) : (
+                              <Shirt
+                                size={36}
+                                strokeWidth={1.3}
+                                aria-hidden="true"
+                              />
+                            )}
+                          </div>
 
-                          <span>
-                            <strong>
-                              {item.title ??
-                                "Untitled"}
+                          <span className="wardrobe-wearing-meta">
+                            <strong title={item.title ?? "Untitled"}>
+                              {item.title ?? "Untitled"}
                             </strong>
-
                             <small>{category}</small>
                           </span>
+
                           <button
                             type="button"
                             className="wardrobe-remove-piece"
@@ -2464,7 +2466,7 @@ export function WardrobeExperienceScreen() {
                             disabled={updatingWearing}
                             onClick={() => void removeWearingItem(item.id)}
                           >
-                            <X size={15} />
+                            <X size={16} />
                           </button>
                         </article>
                       );
