@@ -359,67 +359,164 @@
   font: 10px/1.4 var(--font-body);
 }
 
-
-/* References: prevent the identity gallery from extending beyond phone screens.
-   Keep the image and both actions fully visible without horizontal scrolling. */
-.photo-reference-screen,
-.photo-reference-screen .reference-grid,
-.photo-reference-screen .reference-card {
+/* References identity photos: Gallery-style contact sheet, but two larger
+   portrait thumbnails per row so faces stay visible on small iPhones.
+   Scope to this screen; never change the global Gallery or Current Look. */
+.photo-reference-screen {
   min-width: 0;
+  width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  overflow-x: clip;
 }
-
-.photo-reference-screen .reference-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
-  gap: 14px;
+.photo-reference-screen .reference-grid.reference-gallery-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 12px 0 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+.photo-reference-screen .reference-gallery-tile {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
   width: 100%;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--paper-deep);
+  box-shadow: none;
+  cursor: zoom-in;
 }
-
-.photo-reference-screen .reference-card {
+.photo-reference-screen .reference-gallery-tile > img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  object-fit: cover !important;
+  object-position: center 35%;
+  background: var(--paper-deep);
+}
+.photo-reference-screen .reference-gallery-tile:focus-visible {
+  outline: 3px solid var(--wine);
+  outline-offset: 2px;
+}
+.photo-reference-screen .reference-gallery-favorite {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--wine);
+  background: color-mix(in oklab, var(--paper) 88%, transparent);
+}
+/* Full-photo viewer is portaled to document.body to avoid transformed
+   mobile shell clipping and to show the real face without thumbnail cropping. */
+.reference-photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
+  background: rgba(28, 12, 17, .84);
+  box-sizing: border-box;
+}
+.reference-photo-viewer-panel {
   display: flex;
   flex-direction: column;
+  width: min(100%, 720px);
+  min-width: 0;
+  max-height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+  border-radius: 16px;
+  background: var(--paper);
   overflow: hidden;
 }
-
-.photo-reference-screen .reference-card > img {
+.reference-photo-viewer-header,
+.reference-photo-viewer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.reference-photo-viewer-header {
+  padding: 2px 4px 10px;
+  color: var(--wine);
+  font: 14px var(--font-display);
+}
+.reference-photo-viewer-header button,
+.reference-photo-viewer-actions button,
+.reference-photo-viewer-image button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 40px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--cream) 86%, transparent);
+  color: var(--wine);
+  cursor: pointer;
+}
+.reference-photo-viewer-image {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  flex: 1 1 auto;
+  background: var(--paper-deep);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.reference-photo-viewer-image > img {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 5;
+  max-height: min(78dvh, 860px);
   object-fit: contain;
-  background: color-mix(in oklab, var(--paper) 86%, var(--cream));
 }
-
-.photo-reference-screen .reference-card > div {
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
+.reference-photo-viewer-image .reference-photo-viewer-prev,
+.reference-photo-viewer-image .reference-photo-viewer-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: color-mix(in oklab, var(--paper) 88%, transparent);
 }
-
-.photo-reference-screen .reference-card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.photo-reference-screen .reference-card-actions button {
-  flex: 1 1 auto;
+.reference-photo-viewer-prev { left: 4px; }
+.reference-photo-viewer-next { right: 4px; }
+.reference-photo-viewer-actions {
   justify-content: center;
-  min-width: 0;
+  padding-top: 10px;
 }
-
-@media (max-width: 640px) {
-  .photo-reference-screen .reference-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .photo-reference-screen .reference-card {
-    grid-template-columns: none;
-  }
-
-  .photo-reference-screen .reference-card > img {
-    max-height: 440px;
-  }
+.reference-photo-viewer-actions button {
+  flex: 1 1 0;
+  max-width: 220px;
+  border-radius: 999px;
+  background: var(--cream);
+  font: 12px var(--font-body);
+}
+.reference-photo-viewer-actions button.danger {
+  border: 1px solid var(--border);
+}
+@media (max-width: 360px) {
+  .photo-reference-screen .reference-grid.reference-gallery-grid { gap: 6px !important; }
 }
