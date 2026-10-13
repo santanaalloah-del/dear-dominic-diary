@@ -828,6 +828,7 @@ onOpen: (
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
+  const [failedSendId, setFailedSendId] = useState<string | null>(null);
   const [failedReason, setFailedReason] = useState<"budget" | "connection" | null>(null);
   const failedDraftKey = `diario-unsent-message:${session.user.id}`;
 
@@ -845,20 +846,26 @@ onOpen: (
         return;
       }
       setFailedMessage(draft.text);
+      setFailedSendId(typeof draft.clientSendId === "string" ? draft.clientSendId : null);
       setFailedReason(draft.reason === "budget" ? "budget" : "connection");
     } catch {
       // The current chat still works without local storage.
     }
   }, [failedDraftKey]);
 
-  const rememberFailedMessage = (message: string, error: unknown) => {
+  const rememberFailedMessage = (
+    message: string,
+    error: unknown,
+    clientSendId: string
+  ) => {
     const reason = error instanceof Error && error.message === "AI_BUDGET_REACHED"
       ? "budget" as const : "connection" as const;
     setFailedMessage(message);
+    setFailedSendId(clientSendId);
     setFailedReason(reason);
     try {
       window.localStorage.setItem(failedDraftKey, JSON.stringify({
-        text: message, reason, savedAt: Date.now(),
+        text: message, clientSendId, reason, savedAt: Date.now(),
       }));
     } catch {
       // Still keep the failed text in memory if private storage is unavailable.
@@ -867,6 +874,7 @@ onOpen: (
 
   const forgetFailedMessage = () => {
     setFailedMessage(null);
+    setFailedSendId(null);
     setFailedReason(null);
     try { window.localStorage.removeItem(failedDraftKey); } catch {}
   };
@@ -904,6 +912,7 @@ onOpen: (
   useRef<
     {
       text: string;
+      clientSendId: string;
       kind: MessageKind;
       photoContext?: {
         storagePath: string;
@@ -2787,7 +2796,7 @@ if (
       const messageQuery = () =>
         supabase
           .from("messages")
-          .select("id,role,content,created_at,reply_to_message_id")
+          .select("id,role,content,created_at,reply_to_message_id,attachment_context")
           .eq("user_id", session.user.id)
           .eq("conversation_id", conversation.id)
           .in("role", ["user", "assistant"])
@@ -3115,13 +3124,25 @@ const combined = [
     ).getTime()
 );
       
-      // Keep optimistic user messages visible when the Edge Function fails
-      // before persisting them. Never mistake an optimistic bubble for a saved row.
+      // A late server acknowledgement may arrive 30+ minutes after the
+      // optimistic bubble was created. Match persisted sends by their UUID,
+      // not by a fragile two-minute window or a text-only comparison.
+      const confirmedSendIds = new Set(
+        data.filter((item) => item.role === "user")
+          .map((item) => {
+            const context = item.attachment_context;
+            return context && typeof context === "object" && !Array.isArray(context)
+              && typeof (context as Record<string, unknown>).client_send_id === "string"
+              ? String((context as Record<string, unknown>).client_send_id) : null;
+          })
+          .filter((id): id is string => Boolean(id))
+      );
       setMessages((current) => {
         const pending = current.filter(
           (item) =>
             item.role === "user" &&
             item.id.startsWith("local-") &&
+            !confirmedSendIds.has(item.id.slice("local-".length)) &&
             !combined.some(
               (saved) =>
                 saved.role === "user" &&
@@ -3499,7 +3520,8 @@ async function requestDominicReply(
     id: string;
     role: "user" | "assistant";
     content: string;
-  } | null
+  } | null,
+  clientSendId: string = crypto.randomUUID()
 ) {
   const liveNearbyCommitments =
     await loadNearbyCommitmentsNow()
@@ -3540,6 +3562,9 @@ const liveDateContext =
         body: {
           message:
             combinedMessage,
+
+          // Stable across Retry, unlike the UUID generated for a new message.
+          clientSendId,
 
           photoContext:
             photoContext ?? null,
@@ -3713,6 +3738,13 @@ const liveDateContext =
       throw new Error("AI_BUDGET_REACHED");
     }
     throw error;
+  }
+  if (data?.replayed === true) {
+    // The original attempt already saved the user text and reply. A lost
+    // network acknowledgement is not a new conversation turn: reload what
+    // actually exists, and do not re-run local voice or world actions.
+    await loadHistory(false);
+    return;
   }
   if (replies.length === 0) {
     throw new Error("Missing reply");
@@ -3903,11 +3935,16 @@ async function flushPendingMessages() {
       )
       ?.photoContext;
 
+  const clientSendId = queuedMessages.length === 1
+    ? queuedMessages[0].clientSendId
+    : crypto.randomUUID();
+
   try {
     await requestDominicReply(
       combinedMessage,
       queuedPhoto,
-      queuedReply
+      queuedReply,
+      clientSendId
     );
     forgetFailedMessage();
   } catch (
@@ -3918,7 +3955,7 @@ async function flushPendingMessages() {
       error
     );
 
-    rememberFailedMessage(combinedMessage, error);
+    rememberFailedMessage(combinedMessage, error, clientSendId);
   } finally {
     processingQueueRef.current =
       false;
@@ -3969,9 +4006,14 @@ async function retryFailedMessage() {
     null
   );
 
+  const clientSendId = failedSendId ?? crypto.randomUUID();
+
   try {
     await requestDominicReply(
-      clean
+      clean,
+      undefined,
+      undefined,
+      clientSendId
     );
     forgetFailedMessage();
   } catch (
@@ -3982,7 +4024,7 @@ async function retryFailedMessage() {
       error
     );
 
-    rememberFailedMessage(clean, error);
+    rememberFailedMessage(clean, error, clientSendId);
   } finally {
     processingQueueRef.current =
       false;
@@ -4032,6 +4074,15 @@ async function sendMessage(
     return;
   }
 
+  // If the user pastes the SAME failed message instead of tapping Retry,
+  // preserve its logical send ID. The server can then replay a confirmed
+  // response without charging for a second model call or saving two turns.
+  const isResendingFailedAttempt = kind === "text" && !sharedItem &&
+    failedMessage?.trim() === clean && Boolean(failedSendId);
+  const clientSendId = isResendingFailedAttempt
+    ? failedSendId!
+    : crypto.randomUUID();
+
   const activeReply = replyTarget
     ? {
         id: replyTarget.id,
@@ -4056,13 +4107,13 @@ async function sendMessage(
     );
   }
 
-  if (!options?.silentLocal) {
+  if (!options?.silentLocal && !isResendingFailedAttempt) {
     setMessages(
       (current) => [
         ...current,
         {
           id:
-            `local-${crypto.randomUUID()}`,
+            `local-${clientSendId}`,
 
           role:
             "user",
@@ -4106,6 +4157,7 @@ async function sendMessage(
       text:
         clean,
 
+      clientSendId,
       kind,
       photoContext,
       replyTo: activeReply,
@@ -5466,7 +5518,7 @@ const recentConversationForPhoto = () =>
     <span>
       {failedReason === "budget"
         ? "Monthly AI budget reached. Your message was not sent."
-        : "Couldn't reach Dominic. Your message was not confirmed."}
+        : "Couldn't confirm Dominic's reply. Retry checks the original message without sending it twice."}
     </span>
     <Button
       type="button"

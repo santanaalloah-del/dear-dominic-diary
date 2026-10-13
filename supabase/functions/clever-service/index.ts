@@ -207,6 +207,11 @@ function splitDominicReply(rawReply: string) {
 }
 
 Deno.serve(async (req) => {
+  // Keep the idempotency receipt outside the main try so an error before a
+  // paid provider call can safely release it for a real retry.
+  let receiptOwner: string | null = null;
+  let receiptSendId: string | null = null;
+  let modelCallStarted = false;
   if (req.method === "OPTIONS") {
     return new Response("ok", {
       headers: corsHeaders,
@@ -431,6 +436,109 @@ const liveDatePrompt =
       }
 
       conversation = created;
+    }
+
+    // A transient iPhone failure must not turn a resend into a second
+    // user turn or a second paid OpenRouter request. The authenticated user
+    // and unique UUID scope every logical send. This claim is independent
+    // of message content, so intentionally repeated words remain possible.
+    const rawSendId = body?.clientSendId;
+    const clientSendId = typeof rawSendId === "string"
+      && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(rawSendId)
+      ? rawSendId.toLowerCase() : null;
+    const receiptDb = clientSendId
+      ? createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+          { auth: { persistSession: false } }
+        )
+      : null;
+
+    if (clientSendId && receiptDb) {
+      const encoded = new TextEncoder().encode(message);
+      const digest = Array.from(
+        new Uint8Array(await crypto.subtle.digest("SHA-256", encoded)),
+        (byte) => byte.toString(16).padStart(2, "0")
+      ).join("");
+      const { error: claimError } = await receiptDb
+        .from("chat_delivery_receipts")
+        .insert({
+          user_id: user.id,
+          client_send_id: clientSendId,
+          conversation_id: conversation.id,
+          message_digest: digest,
+          status: "processing"
+        });
+      if (claimError?.code === "23505") {
+        const { data: previous, error: previousError } = await receiptDb
+          .from("chat_delivery_receipts")
+          .select("status,conversation_id,message_digest,replies,modality")
+          .eq("user_id", user.id)
+          .eq("client_send_id", clientSendId)
+          .maybeSingle();
+        if (previousError || !previous) throw new Error("Could not verify the previous message attempt.");
+        if (previous.message_digest !== digest || previous.conversation_id !== conversation.id) {
+          return new Response(JSON.stringify({error: "Retry ID belongs to different text. Send a new message instead."}),{
+            status: 409, headers: {...corsHeaders,"Content-Type":"application/json"}
+          });
+        }
+        if (previous.status === "completed" && Array.isArray(previous.replies)) {
+          const replies = previous.replies.filter((text: unknown): text is string => typeof text === "string");
+          return new Response(JSON.stringify({
+            reply: replies.join("\n\n"), replies,
+            modality: previous.modality === "voice" ? "voice" : "text",
+            replayed: true,
+            noCreditsUsed: true,
+          }), { headers: {...corsHeaders, "Content-Type":"application/json"} });
+        }
+        // If the HTTP connection failed just after the actual message rows
+        // were stored, the receipt may still say "processing". Recover from
+        // the original user row and its consecutive assistant rows; never
+        // ask the model again or duplicate the user message.
+        const { data: originalUser } = await receiptDb.from("messages")
+          .select("id")
+          .eq("user_id",user.id)
+          .eq("conversation_id",conversation.id)
+          .eq("role","user")
+          .contains("attachment_context",{client_send_id:clientSendId})
+          .order("id",{ascending:false}).limit(1).maybeSingle();
+        if (originalUser?.id) {
+          const {data: nextUser} = await receiptDb.from("messages")
+            .select("id").eq("user_id",user.id)
+            .eq("conversation_id",conversation.id).eq("role","user")
+            .gt("id",originalUser.id).order("id",{ascending:true})
+            .limit(1).maybeSingle();
+          let repliesQuery = receiptDb.from("messages")
+            .select("content").eq("user_id",user.id)
+            .eq("conversation_id",conversation.id).eq("role","assistant")
+            .gt("id",originalUser.id).order("id",{ascending:true}).limit(8);
+          if (nextUser?.id) repliesQuery = repliesQuery.lt("id",nextUser.id);
+          const {data: savedReplies,error:readError} = await repliesQuery;
+          if (!readError && savedReplies?.length) {
+            const replies = savedReplies.map(row=>row.content)
+              .filter((content):content is string=>typeof content==="string"&&Boolean(content));
+            if (replies.length) {
+              await receiptDb.from("chat_delivery_receipts").update({
+                status:"completed",user_message_id:originalUser.id,replies,
+                modality:"text",updated_at:new Date().toISOString()
+              }).eq("user_id",user.id).eq("client_send_id",clientSendId);
+              return new Response(JSON.stringify({
+                reply:replies.join("\n\n"),replies,modality:"text",
+                replayed:true,noCreditsUsed:true
+              }),{headers:{...corsHeaders,"Content-Type":"application/json"}});
+            }
+          }
+        }
+        // Never launch a second provider request while an older attempt may
+        // still be saving its reply, or may already have been billed.
+        return new Response(JSON.stringify({
+          error: "Your previous message attempt is still being confirmed. Reload Chat before retrying. No new AI call was made.",
+          pendingDelivery: true, noCreditsUsed: true
+        }), { status: 409, headers: {...corsHeaders,"Content-Type":"application/json"} });
+      }
+      if (claimError) throw claimError;
+      receiptOwner = user.id;
+      receiptSendId = clientSendId;
     }
 
     // Load recent chat
@@ -752,7 +860,15 @@ Reality and privacy rules:
     const budgetClient=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const {data:budgetId,error:budgetError}=await budgetClient.rpc("reserve_ai_budget",{p_source:"clever-service-chat",p_estimated_usd:PRIMARY_CHAT_RESERVATION_USD});
     if(budgetError)throw new Error("Monthly AI budget unavailable");
-    if(!budgetId)return new Response(JSON.stringify({error:"Monthly AI budget reached. Try next month."}),{status:429,headers:{...corsHeaders,"Content-Type":"application/json"}});
+    if(!budgetId){
+      if(receiptDb && clientSendId) {
+        await receiptDb.from("chat_delivery_receipts")
+          .delete().eq("user_id",user.id).eq("client_send_id",clientSendId)
+          .eq("status","processing");
+        receiptOwner=null;receiptSendId=null;
+      }
+      return new Response(JSON.stringify({error:"Monthly AI budget reached. Try next month."}),{status:429,headers:{...corsHeaders,"Content-Type":"application/json"}});
+    }
     let budgetProviderCalled=false;
     let primaryRequestPending=true;
     // Every independent OpenRouter request gets a separate atomic reservation.
@@ -796,6 +912,9 @@ Reality and privacy rules:
       }
       return response;
     };
+    // Even a network timeout after this line might have incurred a charge.
+    // Never automatically start the same logical send again after this point.
+    modelCallStarted = true;
     // Generate Dominic's reply
     const openRouterResponse =
       await paidFetch(
@@ -1060,6 +1179,7 @@ Reality and privacy rules:
         role: "user",
         content: message,
         reply_to_message_id: replyToMessageId,
+        ...(clientSendId ? { attachment_context: { client_send_id: clientSendId } } : {}),
       })
       .select("id")
       .single();
@@ -1097,6 +1217,26 @@ Reality and privacy rules:
 
     if (replyMessageError) {
       throw replyMessageError;
+    }
+
+    // Commit the successful send receipt BEFORE optional voice/memory/world
+    // work, which can fail or time out after the actual chat is safely saved.
+    // A lost HTTP response is now replayed from this receipt, without model
+    // calls, duplicate messages or repeated downstream actions.
+    if (receiptDb && clientSendId) {
+      const {error: receiptError} = await receiptDb
+        .from("chat_delivery_receipts")
+        .update({
+          status: "completed",
+          user_message_id: savedUserMessage.id,
+          replies: visibleReplies,
+          modality: responseModality,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id",user.id)
+        .eq("client_send_id",clientSendId)
+        .eq("status","processing");
+      if (receiptError) console.error("Could not finalize chat receipt:",receiptError);
     }
 
     /*
@@ -1434,6 +1574,29 @@ Each object must be:
     );
   } catch (error) {
     console.error(error);
+    if (receiptOwner && receiptSendId) {
+      try {
+        const admin = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+          { auth: { persistSession: false } }
+        );
+        if (!modelCallStarted) {
+          // Provider was never invoked; safe to retry the SAME send ID.
+          await admin.from("chat_delivery_receipts").delete()
+            .eq("user_id", receiptOwner).eq("client_send_id", receiptSendId)
+            .eq("status", "processing");
+        } else {
+          // Provider billing/delivery is uncertain: protect from double spend.
+          await admin.from("chat_delivery_receipts").update({
+            status: "uncertain", updated_at: new Date().toISOString()
+          }).eq("user_id", receiptOwner).eq("client_send_id", receiptSendId)
+            .eq("status", "processing");
+        }
+      } catch (cleanupError) {
+        console.error("Chat receipt cleanup failed:", cleanupError);
+      }
+    }
 
     return new Response(
       JSON.stringify({
