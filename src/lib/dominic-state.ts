@@ -200,11 +200,13 @@ export async function loadDominicState(
 ): Promise<DominicState | null> {
   const { data: lifeContext, error: lifeContextError } = await supabase
     .from("active_context")
-    .select("activity,place,state,last_activity_at")
+    .select("activity,place,state,last_activity_at,source_type")
     .eq("user_id", userId)
     .eq("context_type", "dominic_live_state")
     .eq("source_id", "dominic")
-    .eq("source_type", "dominic_life_loop")
+    // Both the life loop and the autonomy engine persist Dominic's presence.
+    // Restrict by context and source ID; accept either trusted producer.
+    .in("source_type", ["dominic_life_loop", "autonomy_engine"])
     .eq("status", "active")
     .order("last_activity_at", { ascending: false })
     .limit(1)
@@ -228,9 +230,11 @@ export async function loadDominicState(
       ["living", "bedroom", "kitchen", "bathroom", "hall", "out"].includes(location)
     ) {
       const startedAt =
-        typeof raw.updated_at === "string"
-          ? raw.updated_at
-          : lifeContext.last_activity_at;
+        typeof raw.startedAt === "string"
+          ? raw.startedAt
+          : typeof raw.updated_at === "string"
+            ? raw.updated_at
+            : lifeContext.last_activity_at;
       const nextChangeAt =
         typeof raw.next_change_at === "string"
           ? raw.next_change_at
@@ -247,7 +251,9 @@ export async function loadDominicState(
         mood: typeof raw.mood === "string" ? raw.mood as DominicMood : undefined,
         startedAt,
         nextChangeAt,
-        source: "event",
+        source: lifeContext.source_type === "autonomy_engine"
+          ? "autonomous"
+          : "event",
       };
       // The chat uses loadDominicState rather than getCurrentDominicState,
       // so its previous wardrobe hook never fired. Keep clothing in sync
