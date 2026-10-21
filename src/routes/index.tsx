@@ -45,6 +45,12 @@ import { ConnectedMemoriesScreen } from "@/components/connected-memories-screen"
 import { ConnectedCalendarScreen } from "@/components/connected-calendar-screen";
 import { ConnectedTimelineScreen } from "@/components/connected-timeline-screen";
 import { ConnectedObjectDetailScreen } from "@/components/connected-object-detail-screen";
+import {
+  DiaryPageComposer,
+  emptyDiaryComposition,
+  readDiaryComposition,
+  type DiaryComposition,
+} from "@/components/diary-page-composer";
 import "@/components/world-objects-interaction.css";
 import { DatesExperienceScreen } from "@/components/dates-screen";
 import {
@@ -2191,6 +2197,15 @@ function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
 
 function DiaryScreen() {
   const { session } = usePrivateDiario();
+  const [composition, setComposition] = useState<DiaryComposition>(emptyDiaryComposition());
+  const [galleryForPages, setGalleryForPages] = useState<Awaited<ReturnType<typeof getGalleryPhotos>>>([]);
+  useEffect(() => {
+    let current = true;
+    getGalleryPhotos(session.user.id)
+      .then(photos => { if (current) setGalleryForPages(photos); })
+      .catch(error => console.warn("Diary gallery references unavailable", error));
+    return () => { current = false; };
+  }, [session.user.id]);
 
   const [owner, setOwner] =
     useState<"alloah" | "dominic">("alloah");
@@ -2239,6 +2254,7 @@ function DiaryScreen() {
     setError(null);
     setEditing(false);
     setDraft("");
+    setComposition(emptyDiaryComposition());
 
     getDiaryPages(
       session.user.id,
@@ -2272,6 +2288,7 @@ function DiaryScreen() {
 
   const startWriting = () => {
     setDraft(todayPage?.body ?? "");
+    setComposition(readDiaryComposition(todayPage?.data?.page_composition));
     setEditing(true);
     setError(null);
   };
@@ -2290,6 +2307,8 @@ function DiaryScreen() {
           owner: "alloah",
           body: draft,
           localDate: todayKey,
+          previousData: todayPage?.data ?? {},
+          composition: composition as unknown as Record<string, unknown>,
           eventAt:
             todayPage?.event_at ??
             new Date().toISOString(),
@@ -2412,16 +2431,13 @@ function DiaryScreen() {
         ) : editing &&
           owner === "alloah" ? (
           <div className="diary-empty-page diary-editor">
-            <textarea
-              value={draft}
-              onChange={(event) =>
-                setDraft(
-                  event.target.value
-                )
-              }
-              placeholder="Write what happened today…"
-              rows={12}
-              autoFocus
+            <DiaryPageComposer
+              editing
+              body={draft}
+              composition={composition}
+              photos={galleryForPages}
+              onBodyChange={setDraft}
+              onCompositionChange={setComposition}
             />
 
             <div className="diary-editor-actions">
@@ -2455,9 +2471,11 @@ function DiaryScreen() {
           </div>
         ) : todayPage ? (
           <div className="diary-empty-page diary-written-page">
-            <p className="diary-page-body">
-              {todayPage.body}
-            </p>
+            <DiaryPageComposer
+              body={todayPage.body ?? ""}
+              composition={readDiaryComposition(todayPage.data?.page_composition)}
+              photos={galleryForPages}
+            />
 
             {owner === "alloah" && (
               <button
