@@ -47,6 +47,8 @@ type SaveDiaryPageInput = {
   body: string;
   localDate: string;
   eventAt: string;
+  previousData?: Record<string, unknown>;
+  composition?: Record<string, unknown>;
 };
 
 const diarioSupabase =
@@ -353,6 +355,8 @@ export async function saveDiaryPage({
   body,
   localDate,
   eventAt,
+  previousData,
+  composition,
 }: SaveDiaryPageInput): Promise<DiarioItem> {
   const cleanBody = body.trim();
 
@@ -371,7 +375,9 @@ export async function saveDiaryPage({
     body: cleanBody,
     event_at: eventAt,
     data: {
+      ...(previousData ?? {}),
       local_date: localDate,
+      ...(composition ? { page_composition: composition } : {}),
     },
   };
 

@@ -182,7 +182,7 @@ async function callGemini(
       },
       body: JSON.stringify({
         model: PROACTIVE_MODEL,
-        max_tokens: 700,
+        max_tokens: 450,
         temperature: 0.7,
         usage: { include: true },
         response_format: { type: "json_object" },
@@ -228,6 +228,9 @@ async function callGemini(
   if (parsed.decision === "send" && !parsed.message?.trim()) {
     throw new Error("Provider chose send but returned an empty message.");
   }
+  parsed.reason = typeof parsed.reason === "string" && parsed.reason.trim()
+    ? parsed.reason.trim().slice(0, 220)
+    : "No specific grounded reason to initiate at this opportunity.";
   if (parsed.decision === "skip") {
     parsed.message = null;
     parsed.reschedule_minutes = null;
@@ -574,7 +577,7 @@ Deno.serve(async (req) => {
             "created_at",
             { ascending: false },
           )
-          .limit(30),
+          .limit(12),
 
         supabase
           .from("proactive_events")
@@ -640,6 +643,21 @@ Deno.serve(async (req) => {
       const brazilNow =
         getBrazilDateTime(now);
 
+      // A scheduled check is never permission to spend AI credits
+      // while the same conversation is already active.
+      const genericOpportunity = event.context?.generated_by === "proactive-scheduler";
+      const latestChatAt = lastMessage?.created_at
+        ? Date.parse(String(lastMessage.created_at)) : 0;
+      if (genericOpportunity && latestChatAt > 0 &&
+          now.getTime() - latestChatAt < 90 * 60_000) {
+        await supabase.from("proactive_events").update({
+          status: "skipped",
+          processed_at: now.toISOString(),
+          decision_reason: "recent_active_conversation_free_skip",
+        }).eq("id", event.id).eq("status", "processing");
+        return jsonResponse({ok:true,processed:true,decision:"skip",cost_usd:0});
+      }
+
       const systemInstruction = `
 ${staticPrompt}
 
@@ -656,9 +674,16 @@ Your job is NOT to maximize engagement.
 Your job is NOT to make Alloah feel constantly attended to.
 Your job is NOT to prove affection.
 
-Silence is a valid outcome.
+Silence is a valid outcome, but perpetual silence despite grounded open conversations and opportunities is not natural either.
 
 A proactive message should happen only when Dominic has a plausible reason to initiate something himself.
+You may naturally continue an unresolved thread from a recent real conversation,
+ask a specific question about something you actually discussed, or share an original
+thought about your existing interests. You do NOT need a dramatic milestone.
+After a long interval, evaluate whether you genuinely have one concrete thought
+worth sharing. No generic check-ins, fabricated events, quotas or automatic sends.
+When a verified life-consequence or music share inspired the opportunity, weigh
+its concrete motive rather than treating a valid initiative as routine maintenance.
 
 DATE INVITATION OPPORTUNITIES
 If opportunity_context.source is dominic_date_idea, Dominic has already saved an unconfirmed Date IDEA,
@@ -811,14 +836,26 @@ Decide whether Dominic naturally initiates contact now.
       const budgetMonth=part("year")+"-"+part("month")+"-01";
       const brazilDay=Number(part("day"));
       const {data:proactiveRows,error:proactiveError}=await supabase.from("ai_budget_reservations")
-        .select("estimated_usd,actual_usd,status").eq("month_start",budgetMonth)
+        .select("estimated_usd,actual_usd,status,created_at").eq("month_start",budgetMonth)
         .eq("source","proactive-brain").neq("status","released");
       if(proactiveError)throw proactiveError;
       const proactiveConsumed=(proactiveRows??[]).reduce((sum,row)=>sum+Number(row.status==="settled"?row.actual_usd??row.estimated_usd:row.estimated_usd),0);
       // Keep a small reserve for invitations motivated by an already-created
       // Date idea or a lived personal moment, without forcing messages.
       const momentSource=event.context?.source;
-      const monthlyProactiveAllowance=0.60;
+      const monthlyProactiveAllowance=0.35;
+      // Never pay repeatedly for generic check-in decisions on the same day.
+      // Consequences already earned in-world may still be evaluated separately.
+      const lastGenericPaid = (proactiveRows??[]).some((row:any) =>
+        row.created_at && Date.now()-Date.parse(row.created_at) < 24*60*60_000
+      );
+      if (genericOpportunity && lastGenericPaid) {
+        await supabase.from("proactive_events").update({
+          status: "skipped",processed_at:new Date().toISOString(),
+          decision_reason:"daily_proactive_ai_guard_free_skip"
+        }).eq("id",event.id).eq("status","processing");
+        return jsonResponse({ok:true,processed:true,decision:"skip",cost_usd:0});
+      }
       if(proactiveConsumed+0.03>monthlyProactiveAllowance*brazilDay/31){
         await supabase.from("proactive_events").update({
           status:"pending",scheduled_for:new Date(Date.now()+24*60*60_000).toISOString(),
