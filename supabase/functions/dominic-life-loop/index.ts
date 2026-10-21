@@ -26,13 +26,19 @@ Deno.serve(async (req)=>{
       .select("limit_usd,committed_usd,reserved_usd")
       .eq("month_start",brNow.slice(0,7)+"-01").maybeSingle();
     if(monthlyBudgetError){out.push({user_id:uid,error:"monthly_budget_lookup_failed"});continue;}
-    const monthlyAutonomyAllowance=1.00*localPacingDay/31;
+    // Hard, separate cap for offscreen life simulation; the chat budget is independent.
+    const monthlyAutonomyAllowance=0.70;
     const {data:autonomyReservations,error:autonomyReservationsError}=await sb.from("ai_budget_reservations")
-      .select("estimated_usd,actual_usd,status").eq("month_start",brNow.slice(0,7)+"-01")
+      .select("estimated_usd,actual_usd,status,created_at").eq("month_start",brNow.slice(0,7)+"-01")
       .in("source",["dominic-life-loop","dominic-life-loop-retry"]).neq("status","released");
     if(autonomyReservationsError){out.push({user_id:uid,error:"autonomy_budget_lookup_failed"});continue;}
     const autonomySpend=(autonomyReservations??[]).reduce((sum:number,row:any)=>sum+Number(row.status==="settled"?row.actual_usd??row.estimated_usd:row.estimated_usd),0);
     const autonomyBudgetAvailable=autonomySpend+0.06<=monthlyAutonomyAllowance;
+    const lastLifeAiAt=(autonomyReservations??[])
+      .map((r:any)=>Date.parse(String(r.created_at||"")))
+      .filter((n:number)=>Number.isFinite(n))
+      .sort((a:number,b:number)=>b-a)[0]??0;
+    const lifeAiCooldown=lastLifeAiAt>0 && Date.now()-lastLifeAiAt<36*60*60_000;
     const {data:musicBacklog,error:musicBacklogError}=await sb.from("character_actions").select("id,result")
       .eq("user_id",uid).eq("source_type","dominic_life_loop").eq("status","completed")
       .not("payload->music_intent","is",null).or("result->music_autonomy->>done.is.null,result->music_autonomy->>done.eq.false")
@@ -88,8 +94,9 @@ Deno.serve(async (req)=>{
       .in("kind",["song","place","date","story_memory"]).in("owner",["dominic","shared"])
       .order("updated_at",{ascending:false}).limit(80);
     if(catalogError){out.push({user_id:uid,error:"catalog_read_failed"});continue;}
-    if(!autonomyBudgetAvailable){
-      out.push({user_id:uid,decision:"deferred",reason:"autonomy_monthly_pacing"});
+    if(!autonomyBudgetAvailable || lifeAiCooldown){
+      out.push({user_id:uid,decision:"deferred",
+        reason:!autonomyBudgetAvailable?"autonomy_monthly_hard_cap":"life_ai_36h_cooldown"});
       continue;
     }
     const {data:window,error:we}=await sb.rpc("get_brain2_offscreen_window",{p_user_id:uid});
@@ -128,7 +135,9 @@ Hard rules:
 - Repeating "still on the couch", "still playing guitar", "still relaxing", "still scrolling", or equivalent across long windows is a bug-like freeze and should be avoided.
 - Use "state" for ordinary lived transitions that should update current presence without becoming a canonical lived event: changing rooms, eating, showering, napping, relaxing, scrolling, getting dressed, routine household activity, or continuing the day in a meaningfully different immediate state.
 - Do not freeze presence merely because a routine transition is too small for canon. "state" exists specifically for normal life.
-- Use "action" only when the completed event deserves durable continuity/canon. A genuinely completed personal creative practice, specific musical listening choice, or meaningful private reflection can qualify; do not reduce every real independent experience to a temporary state.
+- Use "action" when a specific solo experience actually completed and deserves continuity/canon.
+A completed personal creative practice, an actual musical listening choice or honest specific private reflection can qualify without being dramatic. If a real solo activity completed, do not always downgrade it to "state".
+Use "state" for ordinary activity/location changes, never invent a completed creative achievement.
 - Never create engagement quotas or contact merely because Alloah was inactive.
 - Never invent Alloah's actions, consent, promises, purchases, dates, places, or shared decisions.
 - Self actions and small environmental actions are allowed. Anything requiring Alloah must not execute here.
@@ -189,7 +198,8 @@ This age belongs to Dominic's current physical state. Use it to decide whether s
 PRIVATE DIARY AUTONOMY:
 A personal diary is separate from chat, memory, and letters. For a completed private lived action that gives him a specific thought, reaction, observation, or creative idea,
 Dominic MAY write a short first-person private reflection, using his actual spontaneous voice, without sharing it. Ordinary meaningful moments qualify; it need not be a major life event.
-No quotas, no filler, no fake shared experiences or unearned intimacy. Never write a diary entry for a mere physical state change. A real completed personal action may inspire both a diary reflection and a separately verified music choice, but neither is mandatory.
+No quotas, no filler, no fake shared experiences or unearned intimacy. Never write a diary entry for a mere physical state change.
+A small but specific thought arising from actual guitar practice, songwriting, reading or music listening can deserve an authentic diary page. No fabricated song releases, gigs, outings or user actions. A real completed personal action may inspire both a diary reflection and a separately verified music choice, but neither is mandatory.
 Return diary_entry as {"write":true,"title":"brief English title","body":"60-2000 characters in Dominic's first-person voice"} when genuinely motivated, or null otherwise.
 Do not use a letter to Alloah as a substitute for a private diary entry.
 
