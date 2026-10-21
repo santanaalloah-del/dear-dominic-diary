@@ -1,0 +1,36 @@
+/* Physical journal canvas; all decorations are part of a saved page, never random UI confetti. */
+.journal-composer{width:100%;max-width:100%;display:grid;gap:12px}
+.journal-toolbar,.journal-elements,.journal-gallery-picker,.journal-object-controls{display:flex;flex-wrap:wrap;align-items:end;gap:8px;padding:10px 0;color:var(--wine,#702c45)}
+.journal-toolbar label,.journal-gallery-picker label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;display:flex;flex-direction:column;gap:5px;flex:1 1 110px;min-width:0}
+.journal-toolbar select,.journal-gallery-picker select{min-width:0;width:100%;font:inherit;letter-spacing:normal;text-transform:none;border:1px solid #a88b7b;border-radius:8px;background:#fffaf3;color:#54283b;padding:9px}
+.journal-paper{position:relative;isolation:isolate;min-height:340px;padding:30px 25px 28px;overflow:hidden;border:1px solid #c8ac9e;box-shadow:0 9px 24px #301b2612, inset 0 0 0 6px #ffffff25;color:#5c2a37;background:linear-gradient(155deg,#faf2e3,#f3e7d2);border-radius:3px}
+.journal-paper--rose{color:#5f3048;background:linear-gradient(145deg,#fbe8e6,#e7c4c9)}
+.journal-paper--wine{color:#fff0de;background:linear-gradient(145deg,#75394b,#3f1e34);border-color:#814960}
+.journal-rule{position:absolute;inset:12px;border:1px solid currentColor;opacity:.14;pointer-events:none}
+.journal-writing{position:relative;z-index:1;display:block;width:100%;min-height:275px;margin:0;padding:6px 2px;background:transparent!important;color:inherit!important;border:0!important;outline:0!important;box-shadow:none!important;resize:vertical;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.85;letter-spacing:.015em}
+.journal-reading{min-height:275px}
+.journal-font--editorial .journal-writing{font-family:Georgia,"Times New Roman",serif}
+.journal-font--handwritten .journal-writing{font-family:"Bradley Hand","Segoe Print","Comic Sans MS",cursive}
+.journal-font--typewriter .journal-writing{font-family:"Courier New",monospace}
+.journal-size--small .journal-writing{font-size:15px}
+.journal-size--regular .journal-writing{font-size:18px}
+.journal-size--large .journal-writing{font-size:23px}
+.journal-align--center .journal-writing{text-align:center}
+.journal-object{position:absolute;z-index:2;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;cursor:grab;color:inherit;touch-action:none;user-select:none;max-width:52%;min-width:38px;min-height:40px}
+.journal-object:disabled{cursor:default;opacity:1}
+.journal-object:active{cursor:grabbing}
+.journal-object.is-selected{outline:1px dashed #b65b72;outline-offset:4px}
+.journal-object--ornament{font-family:Georgia,serif;font-size:42px;filter:drop-shadow(0 1px 1px #0002)}
+.journal-object--photo{background:#fffaf1;padding:7px 7px 16px;box-shadow:0 4px 9px #0002;max-width:140px;min-width:74px;min-height:90px}
+.journal-object--photo img{display:block;max-width:124px;max-height:160px;object-fit:cover;pointer-events:none}
+.journal-missing-photo{font-size:11px;color:#704e58}
+.journal-object--ticket{background:#e9d4b6;border:1px dashed #886648;color:#6d4e3e;padding:12px 10px;max-width:135px;box-shadow:0 2px 7px #0002}
+.journal-ticket{font-family:Georgia,serif;font-size:10px;letter-spacing:.1em;white-space:nowrap}
+.journal-elements-title{font-family:Georgia,serif;font-size:13px;width:100%;font-style:italic}
+.journal-elements button,.journal-gallery-picker button,.journal-object-controls button{border:1px solid #b69b9c;border-radius:6px;background:#f8ece6;color:#633447;padding:7px 11px;min-height:36px;font-size:14px}
+.journal-elements button{min-width:36px}
+.journal-gallery-picker label{flex:1 1 190px}
+.journal-object-controls{border-top:1px solid #ae8f9166}
+.journal-object-controls span{flex:1 1 100%;font-size:12px;line-height:1.5}
+.journal-gallery-picker button:disabled{opacity:.45}
+@media(max-width:430px){.journal-paper{padding:22px 18px}.journal-object--photo{max-width:115px}.journal-object--photo img{max-width:100px;max-height:130px}}
