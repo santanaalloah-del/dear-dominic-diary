@@ -1,0 +1,42 @@
+/*
+ * Global continuous time palette.
+ * The time-mood engine already writes the live palette to <html>.
+ * Older phase selectors on .phone-shell were shadowing those values
+ * with six static palettes. Inherit the live tokens instead.
+ */
+.phone-shell[data-time-theme] {
+  --background: inherit;
+  --foreground: inherit;
+  --card: inherit;
+  --surface: inherit;
+  --surface-raised: inherit;
+  --surface-deep: inherit;
+  --text: inherit;
+  --text-soft: inherit;
+  --muted-foreground: inherit;
+  --interactive: inherit;
+  --accent-soft: inherit;
+  --ink: inherit;
+  --border: inherit;
+  --divider: inherit;
+  --grain-opacity: inherit;
+
+  --cream: var(--surface);
+  --paper: var(--surface-raised);
+  --paper-deep: var(--surface-deep);
+  --blush: color-mix(in srgb, var(--surface) 70%, var(--accent-soft) 30%);
+  --rose: var(--accent-soft);
+  --cherry: var(--interactive);
+  --wine: var(--ink);
+  --brown: var(--text);
+  --primary: var(--ink);
+}
+
+/* Keep the palette transition gentle across every screen, not just Home. */
+.phone-shell,
+.phone-shell :is(.screen-scroll, .bottom-nav, .statusbar) {
+  transition:
+    background-color 900ms cubic-bezier(.2, .8, .2, 1),
+    color 900ms cubic-bezier(.2, .8, .2, 1),
+    border-color 900ms cubic-bezier(.2, .8, .2, 1);
+}
