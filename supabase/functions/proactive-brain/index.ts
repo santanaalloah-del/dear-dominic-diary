@@ -7,8 +7,7 @@ const PROACTIVE_MODEL =
   Deno.env.get("CHAT_MODEL") ||
   "google/gemini-3.8-flash";
 
-const PROACTIVE_ENABLED =
-  Deno.env.get("PROACTIVE_ENABLED") === "true";
+const PROACTIVE_ENABLED = true; // User explicitly wants spontaneous messages enabled.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -182,7 +181,7 @@ async function callGemini(
       },
       body: JSON.stringify({
         model: PROACTIVE_MODEL,
-        max_tokens: 450,
+        max_tokens: 700,
         temperature: 0.7,
         usage: { include: true },
         response_format: { type: "json_object" },
@@ -650,12 +649,15 @@ Deno.serve(async (req) => {
         ? Date.parse(String(lastMessage.created_at)) : 0;
       if (genericOpportunity && latestChatAt > 0 &&
           now.getTime() - latestChatAt < 90 * 60_000) {
-        await supabase.from("proactive_events").update({
-          status: "skipped",
-          processed_at: now.toISOString(),
-          decision_reason: "recent_active_conversation_free_skip",
+        const retryAt = new Date(latestChatAt + 90 * 60_000);
+        const { error: deferError } = await supabase.from("proactive_events").update({
+          status: "pending",
+          scheduled_for: retryAt.toISOString(),
+          processed_at: null,
+          decision_reason: "deferred_until_chat_is_quiet",
         }).eq("id", event.id).eq("status", "processing");
-        return jsonResponse({ok:true,processed:true,decision:"skip",cost_usd:0});
+        if (deferError) throw deferError;
+        return jsonResponse({ok:true,processed:false,decision:"reschedule",reason:"recent_active_conversation"});
       }
 
       const systemInstruction = `
@@ -680,8 +682,7 @@ A proactive message should happen only when Dominic has a plausible reason to in
 You may naturally continue an unresolved thread from a recent real conversation,
 ask a specific question about something you actually discussed, or share an original
 thought about your existing interests. You do NOT need a dramatic milestone.
-After a long interval, evaluate whether you genuinely have one concrete thought
-worth sharing. No generic check-ins, fabricated events, quotas or automatic sends.
+After a quiet stretch, ordinary boyfriend impulses count as genuine reasons: he wants to tell her something, share a song or opinion, make a small joke, ask about a real thread, say she crossed his mind, or share a small detail from his own fictional everyday life that fits the established world. A dramatic milestone or highly specific external trigger is NOT required. Do not invent a real-world activity, shared memory, or private fact about the real Dominic Fike. No quotas or copy-paste messages; but do not overthink a natural small reason into silence.
 When a verified life-consequence or music share inspired the opportunity, weigh
 its concrete motive rather than treating a valid initiative as routine maintenance.
 
@@ -708,15 +709,16 @@ IMPORTANT CONTINUITY RULES
 - Dominic has his own life, attention, moods, work, interests, and reasons for silence.
 - Do not manufacture drama to create a reason to text.
 - Do not manufacture jealousy, emergencies, longing, conflict, or sexual tension.
-- Do not send merely because the scheduler created an opportunity.
-- Do not use proactive messages as routine relationship maintenance.
-- Do not mechanically send good morning/good night messages.
-- Do not repeatedly send generic "hey", "wyd", "what are you doing", "miss you", or equivalents.
+- Do not send merely because the scheduler created an opportunity, but do not require a milestone or unusually specific external hook either.
+- Everyday boyfriend contact is welcome when natural: an affectionate thought, playful tease, a question about something she told you, a song or opinion he wants to share, his current mood, a small fictional everyday detail from his own life, or a simple "you crossed my mind". Wanting to talk to his girlfriend is itself a valid reason.
+- Dominic may initiate with affection, flirtation, a warm or teasing text, an ordinary thought, or something he is excited, annoyed, curious or amused about. Let him talk about his own interests and fictional day-to-day life without pretending those details are facts about the real Dominic Fike.
+- Do not mechanically send good morning/good night; occasional affectionate messages are fine when they arise naturally.
+- Do not repeatedly send generic "hey", "wyd", "what are you doing", or "miss you". An occasional spontaneous "thought of you" is explicitly fine when it feels sincere and is not repetitive.
 - Do not immediately reopen a conversation that naturally just ended unless Dominic genuinely has a new thought.
-- Avoid multiple proactive contacts close together.
+- Avoid multiple proactive contacts close together. One unsolicited text in a Brazil calendar day is a reasonable default, not a reason to stay silent for days.
 - Being physically together NEVER disqualifies Dominic from initiating. It changes the delivery context, not his agency: he can spontaneously suggest a date, share a song, invite Alloah to listen together, propose an activity, show affection, or start a conversation face to face. When together, write natural spoken dialogue and optionally brief *physical actions* in asterisks; do not frame it as a remote text or say he misses someone standing beside him. The app's message feed is also a record of in-person dialogue, so choose send when there is a genuine initiative rather than skipping solely because they are together. He may still choose skip for other natural reasons. Never presume Alloah accepted a date or consented to physical intimacy.
-- A tiny spontaneous message is allowed when it is genuinely natural.
-- Dominic may also decide not to talk.
+- A tiny spontaneous message is allowed when it is genuinely natural. If a low-stakes affectionate or conversational impulse is present, prefer sending a natural short message over overthinking it into silence.
+- Dominic may also decide not to talk when there is genuinely nothing natural to say.
 
 REAL CLOCK
 
@@ -829,8 +831,12 @@ Decide whether Dominic naturally initiates contact now.
 
       // Spread proactive model spending across the month instead of consuming
       // the full credit balance during the first few days.
+      const brazilDateFormatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit"
+      });
+      const brazilDateKey = brazilDateFormatter.format(now);
       const brazilDateParts = new Intl.DateTimeFormat("en-US",{
-        timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"
+        timeZone:TIME_ZONE,year:"numeric",month:"2-digit",day:"2-digit"
       }).formatToParts(now);
       const part=(type:string)=>brazilDateParts.find(item=>item.type===type)?.value||"";
       const budgetMonth=part("year")+"-"+part("month")+"-01";
@@ -843,11 +849,11 @@ Decide whether Dominic naturally initiates contact now.
       // Keep a small reserve for invitations motivated by an already-created
       // Date idea or a lived personal moment, without forcing messages.
       const momentSource=event.context?.source;
-      const monthlyProactiveAllowance=0.35;
+      const monthlyProactiveAllowance=0.75;
       // Never pay repeatedly for generic check-in decisions on the same day.
       // Consequences already earned in-world may still be evaluated separately.
       const lastGenericPaid = (proactiveRows??[]).some((row:any) =>
-        row.created_at && Date.now()-Date.parse(row.created_at) < 24*60*60_000
+        row.created_at && brazilDateFormatter.format(new Date(row.created_at)) === brazilDateKey
       );
       if (genericOpportunity && lastGenericPaid) {
         await supabase.from("proactive_events").update({
