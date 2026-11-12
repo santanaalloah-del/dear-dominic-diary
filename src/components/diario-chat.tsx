@@ -3788,24 +3788,30 @@ const liveDateContext =
     ]
   );
 
-  // Synthesize only the separate complementary thought from the same model turn.
-  // Never read the visible text aloud as a duplicate voice note.
-  const complementaryVoiceTranscript =
-    typeof data?.voice_transcript === "string"
-      ? data.voice_transcript.trim()
-      : "";
+  // Try to turn Dominic's spoken reply into a Cartesia voice note.
+  // The Edge Function enforces the monthly free-budget ceiling before calling Cartesia.
+  const spokenForVoice = replies
+    .flatMap((reply) =>
+      parseDominicReplyParts(reply)
+        .filter((part) => part.kind === "speech")
+        .map((part) => stripInternalReplyDirective(part.content))
+    )
+    .join(" ")
+    .trim();
 
   const dominicReplyModality =
-    data?.modality === "voice" ? "voice" : "text";
+    data?.modality === "voice"
+      ? "voice"
+      : "text";
 
-  if (complementaryVoiceTranscript && dominicReplyModality === "voice") {
+  if (spokenForVoice && dominicReplyModality === "voice") {
     try {
       const { error: voiceError } =
         await supabase.functions.invoke(
           "dominic-voice-tts",
           {
             body: {
-              transcript: complementaryVoiceTranscript,
+              transcript: spokenForVoice,
             },
           }
         );
