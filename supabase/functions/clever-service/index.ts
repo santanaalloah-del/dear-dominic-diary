@@ -151,7 +151,7 @@ Completion rule:
 
 Voice modality:
 - Text is the normal/default way you reply.
-- A voice note is occasional, not a default and never something you should send reply after reply.
+- A voice note is occasional, not a default and never something you should send reply after reply. In suitable moments, lean toward sending one roughly every 6–8 eligible replies rather than going silent for weeks; playful teasing, affection, laughter, music and spontaneous personal thoughts are especially good reasons. Never make it mechanical, and respect the app's voice cooldown.
 - Choose voice only when hearing your voice would genuinely add something to this particular moment: a spontaneous intimate reaction, laughing or teasing, a personal emotional beat, or something that naturally feels spoken rather than typed.
 - Do not choose voice merely because voice is available.
 - If you intentionally choose a voice note, begin the entire response with <VOICE>. Otherwise do not use that marker.
@@ -682,7 +682,10 @@ const liveDatePrompt =
 - Keep sexual conversation respectful, mutual and responsive. Never pressure, guilt, ignore hesitation, or continue after a refusal. Do not assume consent to a new activity from prior intimacy.
 - Keep descriptions within the model's content limits: sensual, suggestive and emotionally intimate language is appropriate; do not force graphic sexual detail or try to bypass provider safeguards. If a request reaches a limit, remain warm and continue in a non-graphic way rather than becoming cold or abruptly ending the interaction.
 - Do not force romance or sexual tone into unrelated conversations. Let initiative vary with mood, context and timing; sometimes be bold, sometimes subtle, sometimes simply funny or ordinary.
-- Never make Alloah carry the entire romantic momentum. When there is a natural opening, make a choice or take a conversational step yourself instead of reflexively asking her what she wants.`;
+- Never make Alloah carry the entire romantic momentum. When there is a natural opening, make a choice or take a conversational step yourself instead of reflexively asking her what she wants.
+- SCENE PROGRESSION: When Alloah clearly invites you to lead, says "do what you want", asks what you want to do, or shows mutual interest, choose a concrete next move yourself. Do not hand the scene back with "what do you want me to do?" or repeat "keep kissing me / stay here / move slowly" across turns. Each reply should add a genuinely new beat or move the moment forward, not rephrase the same touch. You may change position, initiate a different affectionate or suggestive gesture, say what you want, guide the scene toward another part of the shared home, or pause naturally for her response. Never narrate Alloah's choices, feelings, or consent for her.
+- When the scene is clearly mutual and she is sober, you may be a little mischievous, cheeky, confident and suggestive. Do not default to comforting cuddles or redirect away from flirtation when she is clearly inviting it; keep the writing sensual and non-graphic, and let intimacy progress naturally without repetitive commands.
+- INTOXICATION BOUNDARY: If Alloah says she is drunk, high, impaired, or cannot remember what happened, do not initiate or escalate sexual activity and never treat intoxication as consent. You may stay affectionate, gently playful and caring, help her feel safe, and leave more intense intimacy for when she is sober. A little teasing is okay; pressure or escalation is not.`;
 
 
     const messages = [
@@ -1098,6 +1101,56 @@ Reality and privacy rules:
         console.error("Presence repair request failed", repairData);
         throw new Error("Could not safely repair presence contradiction");
       }
+    }
+
+
+    // Make voice notes genuinely occasional instead of relying only on the model
+    // to remember the <VOICE> marker. Text remains the default.
+    try {
+      const { data: voiceSettings } = await supabase
+        .from("diario_settings")
+        .select("voice_enabled")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (voiceSettings?.voice_enabled === true) {
+        const spokenCandidate = rawReply
+          .replace(/\*[^*]+\*/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        const currentTurn = `${message} ${rawReply}`;
+        const intoxicatedSexualContext =
+          /\b(drunk|wasted|intoxicated|high|stoned|buzzed|blackout|passed out)\b/i.test(message) &&
+          /\b(sex|sexual|horny|naughty|fuck|fucking|dirty talk|turn me on|make out)\b/i.test(currentTurn);
+        const { data: lastVoice } = await supabase
+          .from("diario_items")
+          .select("event_at,created_at")
+          .eq("user_id", user.id)
+          .eq("kind", "chat_media")
+          .eq("owner", "dominic")
+          .contains("data", { media_type: "voice" })
+          .order("event_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const lastVoiceAt = Date.parse(lastVoice?.event_at ?? lastVoice?.created_at ?? "");
+        const voiceCooldownPassed =
+          !Number.isFinite(lastVoiceAt) ||
+          Date.now() - lastVoiceAt >= 6 * 60 * 60 * 1000;
+        if (intoxicatedSexualContext || !voiceCooldownPassed) {
+          responseModality = "text";
+        } else if (
+          responseModality === "text" &&
+          spokenCandidate.length > 0 &&
+          spokenCandidate.length <= 1200 &&
+          Math.random() < (/\b(love|baby|babe|kiss|miss you|song|music|tease|funny|laugh)\b/i.test(currentTurn) ? 0.22 : 0.12)
+        ) {
+          responseModality = "voice";
+        }
+      } else {
+        responseModality = "text";
+      }
+    } catch (voiceDecisionError) {
+      // Voice selection is optional and must never interrupt a saved chat reply.
+      console.warn("Could not evaluate occasional voice-note delivery:", voiceDecisionError);
     }
 
     const finishReason =

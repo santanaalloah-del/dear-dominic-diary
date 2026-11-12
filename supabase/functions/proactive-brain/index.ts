@@ -273,6 +273,49 @@ function formatRecentProactive(
     .join("\n");
 }
 
+
+async function maybeSendProactiveVoiceNote(
+  supabase: any,
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  userId: string,
+  transcript: string,
+) {
+  const cleanTranscript = transcript.trim();
+  if (!cleanTranscript || cleanTranscript.length > 1200 || Math.random() >= 0.20) return false;
+
+  const { data: settings, error: settingsError } = await supabase
+    .from("diario_settings").select("voice_enabled").eq("user_id", userId).maybeSingle();
+  if (settingsError) throw settingsError;
+  if (settings?.voice_enabled !== true) return false;
+
+  const { data: lastVoice, error: lastVoiceError } = await supabase
+    .from("diario_items").select("event_at,created_at")
+    .eq("user_id", userId).eq("kind", "chat_media").eq("owner", "dominic")
+    .contains("data", { media_type: "voice" })
+    .order("event_at", { ascending: false }).limit(1).maybeSingle();
+  if (lastVoiceError) throw lastVoiceError;
+
+  const lastVoiceAt = Date.parse(lastVoice?.event_at ?? lastVoice?.created_at ?? "");
+  if (Number.isFinite(lastVoiceAt) && Date.now() - lastVoiceAt < 8 * 60 * 60 * 1000) return false;
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/dominic-voice-tts`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${serviceRoleKey}`,
+      "apikey": serviceRoleKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ transcript: cleanTranscript, user_id: userId }),
+  });
+  if (!response.ok) {
+    const details = await response.text().catch(() => "");
+    console.warn("Optional proactive voice note was not generated:", response.status, details.slice(0, 400));
+    return false;
+  }
+  return true;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(
@@ -1061,6 +1104,15 @@ Decide whether Dominic naturally initiates contact now.
       if (deliveryError || !committed?.length) {
         throw deliveryError ?? new Error("Persisted message could not be finalized.");
       }
+      let proactiveVoiceNoteCreated = false;
+      try {
+        proactiveVoiceNoteCreated = await maybeSendProactiveVoiceNote(
+          supabase, supabaseUrl, serviceRoleKey, userId, message,
+        );
+      } catch (voiceError) {
+        console.error("Proactive voice-note generation failed; keeping text message:", voiceError);
+      }
+
 
       /*
        * A proactive message is something
@@ -1137,6 +1189,7 @@ Decide whether Dominic naturally initiates contact now.
               "proactive-brain",
             proactive_event_id:
               event.id,
+            voice_note: proactiveVoiceNoteCreated,
           },
         });
 
