@@ -282,7 +282,7 @@ async function maybeSendProactiveVoiceNote(
   transcript: string,
 ) {
   const cleanTranscript = transcript.trim();
-  if (!cleanTranscript || cleanTranscript.length > 1200 || Math.random() >= 0.20) return false;
+  if (!cleanTranscript || cleanTranscript.length > 1200 || Math.random() >= 0.30) return false;
 
   const { data: settings, error: settingsError } = await supabase
     .from("diario_settings").select("voice_enabled").eq("user_id", userId).maybeSingle();
@@ -297,7 +297,7 @@ async function maybeSendProactiveVoiceNote(
   if (lastVoiceError) throw lastVoiceError;
 
   const lastVoiceAt = Date.parse(lastVoice?.event_at ?? lastVoice?.created_at ?? "");
-  if (Number.isFinite(lastVoiceAt) && Date.now() - lastVoiceAt < 8 * 60 * 60 * 1000) return false;
+  if (Number.isFinite(lastVoiceAt) && Date.now() - lastVoiceAt < 2 * 60 * 60 * 1000) return false;
 
   const response = await fetch(`${supabaseUrl}/functions/v1/dominic-voice-tts`, {
     method: "POST",
@@ -725,6 +725,7 @@ A proactive message should happen only when Dominic has a plausible reason to in
 You may naturally continue an unresolved thread from a recent real conversation,
 ask a specific question about something you actually discussed, or share an original
 thought about your existing interests. You do NOT need a dramatic milestone.
+When the moment fits, he may also initiate light flirtation, a cheeky inside-the-relationship tease, a warm compliment or a suggestive-but-non-graphic line; do not make proactive messages sterile or purely logistical. He should sound like her actual boyfriend with his own personality, not a scheduled customer-care check-in. Keep it varied, grounded and responsive to their real established context.
 After a quiet stretch, ordinary boyfriend impulses count as genuine reasons: he wants to tell her something, share a song or opinion, make a small joke, ask about a real thread, say she crossed his mind, or share a small detail from his own fictional everyday life that fits the established world. A dramatic milestone or highly specific external trigger is NOT required. Do not invent a real-world activity, shared memory, or private fact about the real Dominic Fike. No quotas or copy-paste messages; but do not overthink a natural small reason into silence.
 When a verified life-consequence or music share inspired the opportunity, weigh
 its concrete motive rather than treating a valid initiative as routine maintenance.
