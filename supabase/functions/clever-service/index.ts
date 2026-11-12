@@ -154,7 +154,9 @@ Voice modality:
 - A voice note is occasional, not a default and never something you should send reply after reply. In suitable moments, lean toward sending one roughly every 4–6 eligible replies rather than going silent for weeks; playful teasing, affection, laughter, music and spontaneous personal thoughts are especially good reasons. Never make it mechanical, and respect the app's voice cooldown.
 - Choose voice only when hearing your voice would genuinely add something to this particular moment: a spontaneous intimate reaction, laughing or teasing, a personal emotional beat, or something that naturally feels spoken rather than typed.
 - Do not choose voice merely because voice is available.
-- If you intentionally choose a voice note, begin the entire response with <VOICE>. Otherwise do not use that marker.
+- If you intentionally choose a voice note, begin the entire response with <VOICE> and include a separate final block exactly as <VOICE_NOTE>your additional spoken thought</VOICE_NOTE>.
+- The visible written reply and voice note are TWO DIFFERENT contributions. The voice note must add a new reaction, aside, laugh, playful observation, affectionate comment, or extra thought not already written. Never read, paraphrase, summarize, repeat, or lightly reword the visible text.
+- Keep the complementary voice note short (usually one or two natural sentences), conversational and in your own voice. If you have nothing genuinely additional to say, do not choose voice. Never put <VOICE_NOTE> content in visible chat bubbles.
 - After recently using voice, return to text for a little while, but do not treat one recent audio as a reason to avoid voice for the rest of the day.
 
 Message rhythm and independence:
@@ -1004,14 +1006,15 @@ Reality and privacy rules:
         : "";
 
     let responseModality =
-      /^<VOICE>\\s*/i.test(generatedReply)
+      /^<VOICE>\s*/i.test(generatedReply)
         ? "voice"
         : "text";
 
     let rawReply =
       generatedReply
-        .replace(/^<VOICE>\\s*/i, "")
+        .replace(/^<VOICE>\s*/i, "")
         .trim();
+    let voiceTranscript: string | null = null;
 
     // Presence is runtime state, not memory. If the model contradicts the
     // authoritative current broad location, repair only that reply before
@@ -1107,8 +1110,22 @@ Reality and privacy rules:
     }
 
 
-    // Make voice notes genuinely occasional instead of relying only on the model
-    // to remember the <VOICE> marker. Text remains the default.
+    // Extract a complementary spoken thought from this SAME completion.
+    // No additional LLM request is made; the existing TTS character budget applies.
+    const voiceNoteMatch = rawReply.match(/<VOICE_NOTE>([\s\S]*?)<\/VOICE_NOTE>/i);
+    if (voiceNoteMatch?.[1]) {
+      const candidate = voiceNoteMatch[1].trim();
+      const normalizeVoice = (value: string) =>
+        value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+      const visible = normalizeVoice(rawReply.replace(/<VOICE_NOTE>[\s\S]*?<\/VOICE_NOTE>/i, ""));
+      const spoken = normalizeVoice(candidate);
+      const duplicate = !spoken || spoken === visible || visible.includes(spoken) || spoken.includes(visible);
+      if (!duplicate && candidate.length <= 1200) voiceTranscript = candidate;
+    }
+    rawReply = rawReply.replace(/\s*<VOICE_NOTE>[\s\S]*?<\/VOICE_NOTE>/i, "").trim();
+
+    // A voice note is sent only when the model explicitly chose voice and
+    // produced genuinely additional speech. Existing cooldowns and free cap remain.
     try {
       const { data: voiceSettings } = await supabase
         .from("diario_settings")
@@ -1116,11 +1133,7 @@ Reality and privacy rules:
         .eq("user_id", user.id)
         .maybeSingle();
       if (voiceSettings?.voice_enabled === true) {
-        const spokenCandidate = rawReply
-          .replace(/\*[^*]+\*/g, " ")
-          .replace(/\s+/g, " ")
-          .trim();
-        const currentTurn = `${message} ${rawReply}`;
+        const currentTurn = message + " " + rawReply;
         const intoxicatedSexualContext =
           /\b(drunk|wasted|intoxicated|high|stoned|buzzed|blackout|passed out)\b/i.test(message) &&
           /\b(sex|sexual|horny|naughty|fuck|fucking|dirty talk|turn me on|make out)\b/i.test(currentTurn);
@@ -1138,22 +1151,18 @@ Reality and privacy rules:
         const voiceCooldownPassed =
           !Number.isFinite(lastVoiceAt) ||
           Date.now() - lastVoiceAt >= 90 * 60 * 1000;
-        if (intoxicatedSexualContext || !voiceCooldownPassed) {
+        if (intoxicatedSexualContext || !voiceCooldownPassed || !voiceTranscript || responseModality !== "voice") {
           responseModality = "text";
-        } else if (
-          responseModality === "text" &&
-          spokenCandidate.length > 0 &&
-          spokenCandidate.length <= 1200 &&
-          Math.random() < (/\b(love|baby|babe|kiss|miss you|song|music|tease|funny|laugh|want you|come here|beautiful|pretty|touch|cuddle)\b/i.test(currentTurn) ? 0.35 : 0.20)
-        ) {
-          responseModality = "voice";
+          voiceTranscript = null;
         }
       } else {
         responseModality = "text";
+        voiceTranscript = null;
       }
     } catch (voiceDecisionError) {
-      // Voice selection is optional and must never interrupt a saved chat reply.
-      console.warn("Could not evaluate occasional voice-note delivery:", voiceDecisionError);
+      responseModality = "text";
+      voiceTranscript = null;
+      console.warn("Could not evaluate optional voice note:", voiceDecisionError);
     }
 
     const finishReason =
@@ -1630,6 +1639,7 @@ Each object must be:
         reply,
         replies: visibleReplies,
         modality: responseModality,
+        voice_transcript: responseModality === "voice" ? voiceTranscript : null,
       }),
       {
         headers: {
