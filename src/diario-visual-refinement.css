@@ -1,0 +1,122 @@
+/* Dear Dominic Diary — global visual refinement
+   Additive layer: preserves existing layout, navigation, data and time-mood engine. */
+:root {
+  --dd-paper-edge: color-mix(in oklab, var(--border) 72%, transparent);
+  --dd-card-radius: 18px;
+  --dd-control-radius: 14px;
+  --dd-focus: 0 0 0 3px color-mix(in oklab, var(--accent-soft) 34%, transparent);
+}
+html[data-diario-time-theme="continuous"] body,
+html[data-diario-time-theme="continuous"] .phone-shell,
+html[data-diario-time-theme="continuous"] .screen-scroll,
+html[data-diario-time-theme="continuous"] .bottom-nav,
+html[data-diario-time-theme="continuous"] .messenger-chat,
+html[data-diario-time-theme="continuous"] .messenger-header,
+html[data-diario-time-theme="continuous"] .messenger-composer {
+  transition: background-color 900ms ease, color 650ms ease, border-color 650ms ease, box-shadow 650ms ease;
+}
+.phone-shell {
+  background: var(--background) !important;
+  color: var(--text);
+}
+.screen-scroll { color: var(--text); }
+:where(.phone-shell, .screen-scroll, .messenger-chat) :where(button, input, textarea, select, a) {
+  transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+:where(button, input, textarea, select, a):focus-visible {
+  outline: none;
+  box-shadow: var(--dd-focus);
+}
+:where(.index-list button, .settings-group, .settings-account, .settings-row, .settings-static-row,
+  .memory-card, .date-card, .place-card, .letter-card, .keepsake-card, .calendar-card,
+  .timeline-card, .gallery-card, .wardrobe-card, .photo-engine-card) {
+  border-color: var(--dd-paper-edge);
+}
+:where(.index-list button, .memory-card, .date-card, .place-card, .letter-card, .keepsake-card,
+  .calendar-card, .timeline-card, .gallery-card, .wardrobe-card, .photo-engine-card) {
+  border-radius: var(--dd-card-radius);
+  box-shadow: var(--paper-shadow-soft);
+}
+:where(input, textarea, select, [role="combobox"]) {
+  border-radius: var(--dd-control-radius);
+}
+:where(.screen-intro h1, .messenger-person-name, .messenger-header h1) {
+  text-wrap: balance;
+}
+:where(.screen-intro, .screen-intro + *) { color: var(--text); }
+
+/* Chat themes remain user-selectable; each has a distinct material character. */
+.messenger-chat {
+  --chat-panel: var(--surface);
+  --chat-ink: var(--text);
+  --chat-accent: var(--interactive);
+  --chat-theirs: var(--surface-raised);
+  --chat-mine: var(--ink);
+  background: var(--chat-panel);
+  color: var(--chat-ink);
+  border-radius: 0;
+}
+.messenger-chat .messenger-header,
+.messenger-chat .messenger-composer {
+  background: color-mix(in oklab, var(--chat-panel) 94%, var(--surface-raised));
+  color: var(--chat-ink);
+  border-color: var(--border);
+}
+.messenger-chat .messenger-bubble,
+.messenger-chat .chat-message-bubble {
+  border-color: color-mix(in oklab, var(--border) 78%, transparent);
+}
+.messenger-chat.chat-theme-diary {
+  --chat-panel: var(--surface);
+  --chat-theirs: var(--surface-raised);
+  --chat-mine: var(--ink);
+}
+.messenger-chat.chat-theme-cherry {
+  --chat-panel: color-mix(in oklab, var(--surface) 86%, var(--accent-soft));
+  --chat-theirs: color-mix(in oklab, var(--surface-raised) 75%, var(--accent-soft));
+  --chat-mine: var(--ink);
+}
+.messenger-chat.chat-theme-old-letter {
+  --chat-panel: color-mix(in oklab, var(--surface) 82%, #b68b62);
+  --chat-theirs: color-mix(in oklab, var(--surface-raised) 75%, #c5a47c);
+  --chat-mine: color-mix(in oklab, var(--ink) 82%, #4a3024);
+}
+.messenger-chat.chat-theme-soft-rose {
+  --chat-panel: color-mix(in oklab, var(--surface) 76%, #e7b8bd);
+  --chat-theirs: color-mix(in oklab, var(--surface-raised) 70%, #f0cbd0);
+  --chat-mine: color-mix(in oklab, var(--ink) 82%, #a75a70);
+}
+.messenger-chat.chat-theme-midnight {
+  --chat-panel: color-mix(in oklab, var(--surface) 82%, #241629);
+  --chat-theirs: color-mix(in oklab, var(--surface-raised) 72%, #39243d);
+  --chat-mine: color-mix(in oklab, var(--ink) 72%, #241629);
+}
+.messenger-chat .letter-connected-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(100%, 320px);
+  margin-top: 7px;
+  padding: 10px 13px;
+  border: 1px solid color-mix(in oklab, var(--chat-accent) 28%, var(--border));
+  border-radius: 15px 15px 15px 5px;
+  background: color-mix(in oklab, var(--chat-theirs) 88%, var(--chat-panel));
+  color: var(--chat-ink);
+  box-shadow: 0 5px 16px color-mix(in oklab, var(--chat-ink) 8%, transparent);
+  font: 500 12px/1.4 var(--font-body);
+  text-align: left;
+}
+.messenger-chat .letter-connected-button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--chat-accent) 52%, var(--border));
+}
+.messenger-chat .letter-connected-button:active { transform: scale(.985); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
