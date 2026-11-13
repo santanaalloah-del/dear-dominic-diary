@@ -23,21 +23,11 @@ type WindowDefinition = {
 };
 
 const WINDOWS: WindowDefinition[] = [
-  {
-    name: "late_morning",
-    startHour: 10,
-    endHour: 12,
-  },
-  {
-    name: "afternoon",
-    startHour: 14,
-    endHour: 17,
-  },
-  {
-    name: "evening",
-    startHour: 18,
-    endHour: 22,
-  },
+  { name: "morning", startHour: 7, endHour: 9 },
+  { name: "late_morning", startHour: 10, endHour: 12 },
+  { name: "afternoon", startHour: 14, endHour: 17 },
+  { name: "evening", startHour: 18, endHour: 21 },
+  { name: "late_evening", startHour: 21, endHour: 23 },
 ];
 
 function jsonResponse(
