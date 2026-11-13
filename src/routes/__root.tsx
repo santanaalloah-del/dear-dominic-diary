@@ -13,6 +13,7 @@ const ONESIGNAL_APP_ID = "16858aa1-a487-41b1-9ac6-1a97684f240b";
 const ONESIGNAL_SAFARI_WEB_ID = "web.onesignal.auto.44737891-769a-4856-a052-0f3c94719003";
 
 import appCss from "../styles.css?url";
+import "../diario-visual-refinement.css";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { useTimeMood } from "../lib/time-mood";
 
