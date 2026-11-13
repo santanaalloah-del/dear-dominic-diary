@@ -13941,11 +13941,6 @@ function SettingsScreen() {
     useState(true);
 
   const [
-    privacyCoverEnabled,
-    setPrivacyCoverEnabled,
-  ] = useState(true);
-
-  const [
     musicIntegration,
     setMusicIntegration,
   ] = useState(false);
@@ -14039,10 +14034,6 @@ const [
 
         setTimeAware(
           settings.time_aware
-        );
-
-        setPrivacyCoverEnabled(
-          settings.privacy_cover
         );
 
         setMusicIntegration(
@@ -14164,8 +14155,7 @@ const handleSpotifyDisconnect =
           userId: session.user.id,
           appearance,
           timeAware,
-          privacyCover:
-            privacyCoverEnabled,
+          privacyCover: false,
           musicEnabled:
             musicIntegration,
           voiceEnabled,
@@ -14177,10 +14167,6 @@ const handleSpotifyDisconnect =
 
       setTimeAware(
         saved.time_aware
-      );
-
-      setPrivacyCoverEnabled(
-        saved.privacy_cover
       );
 
       setMusicIntegration(
@@ -14426,61 +14412,11 @@ const handleSpotifyDisconnect =
             </div>
           </section>
 
-          <section className="settings-group">
+          <section className="settings-group" aria-label="Account session">
             <header>
-              <span>
-                privacy
-              </span>
-
-              <strong>
-                Keep it private
-              </strong>
+              <span>account</span>
+              <strong>Account session</strong>
             </header>
-
-            <button
-              type="button"
-              className="settings-row"
-              onClick={() => {
-                setPrivacyCoverEnabled(
-                  (value) =>
-                    !value
-                );
-                setSettingsSaved(
-                  false
-                );
-              }}
-              aria-pressed={
-                privacyCoverEnabled
-              }
-            >
-              <div>
-                <Heart
-                  size={19}
-                  strokeWidth={1.4}
-                />
-
-                <span>
-                  <strong>
-                    Hide app preview
-                  </strong>
-
-                  <small>
-                    cover private content
-                    when Diário goes into
-                    the background
-                  </small>
-                </span>
-              </div>
-
-              <i
-                className={
-                  privacyCoverEnabled
-                    ? "settings-toggle on"
-                    : "settings-toggle"
-                }
-                aria-hidden="true"
-              />
-            </button>
 
             <div className="settings-static-row">
               <div>

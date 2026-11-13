@@ -11,7 +11,6 @@ import {
 import { BookHeart, Fingerprint, LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { getDiarioSettings } from "@/lib/diario-world";
 import {
   AppShellContinuity,
   clearAppShellContinuity,
@@ -127,14 +126,6 @@ export function PrivateDiario({
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const autoUnlockInFlight = useRef(false);
   const lastAutomaticAttempt = useRef(0);
-
-  const [privacyCover, setPrivacyCover] =
-    useState(false);
-
-  const [
-    privacyCoverEnabled,
-    setPrivacyCoverEnabled,
-  ] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -273,132 +264,18 @@ export function PrivateDiario({
     };
   }, [session]);
 
-  useEffect(() => {
-    if (!session) return;
 
-    let active = true;
 
-    getDiarioSettings(
-      session.user.id
-    )
-      .then((settings) => {
-        if (!active) return;
 
-        setPrivacyCoverEnabled(
-          settings.privacy_cover
-        );
-
-        if (!settings.privacy_cover) {
-          setPrivacyCover(false);
-        }
-      })
-      .catch((error) => {
-        console.error(
-          "Could not load privacy setting:",
-          error
-        );
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [session]);
-
-  useEffect(() => {
-    let revealTimer:
-      | number
-      | undefined;
-
-    const hideContent = () => {
-      if (!privacyCoverEnabled) {
-        setPrivacyCover(false);
-        return;
-      }
-
-      if (revealTimer) {
-        window.clearTimeout(
-          revealTimer
-        );
-      }
-
-      setPrivacyCover(true);
-    };
-
-    const showContent = () => {
-      if (revealTimer) {
-        window.clearTimeout(
-          revealTimer
-        );
-      }
-
-      revealTimer =
-        window.setTimeout(() => {
-          setPrivacyCover(false);
-        }, 250);
-    };
-
-    const handleVisibility = () => {
-      if (
-        document.visibilityState ===
-        "hidden"
-      ) {
-        hideContent();
-        return;
-      }
-
-      if (
-        document.visibilityState ===
-        "visible"
-      ) {
-        showContent();
-      }
-    };
-
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibility
-    );
-
-    window.addEventListener(
-      "pagehide",
-      hideContent
-    );
-
-    window.addEventListener(
-      "pageshow",
-      showContent
-    );
-
-    return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibility
-      );
-
-      window.removeEventListener(
-        "pagehide",
-        hideContent
-      );
-
-      window.removeEventListener(
-        "pageshow",
-        showContent
-      );
-
-      if (revealTimer) {
-        window.clearTimeout(
-          revealTimer
-        );
-      }
-    };
-  }, [privacyCoverEnabled]);
 
   if (!ready) {
     return (
       <main className="private-entry private-entry-loading">
-        <span className="brand-mark">
-          Diário
-        </span>
+        <div className="private-loading-mark" aria-label="Opening Diário">
+          <BookHeart aria-hidden="true" />
+          <span>Diário</span>
+          <small>a little world of ours</small>
+        </div>
       </main>
     );
   }
@@ -467,24 +344,8 @@ export function PrivateDiario({
           {unlockError && <p className="private-error" role="alert">{unlockError}</p>}
         </div>
       ) : null}
-      {privacyCover && !deviceLocked && (
-        <PrivacyCover />
-      )}
-    </PrivateDiarioContext.Provider>
-  );
-}
 
-function PrivacyCover() {
-  return (
-    <main
-      className="privacy-cover"
-      aria-hidden="true"
-    >
-      <div className="privacy-cover-mark">
-        <span>Diário</span>
-        <i>✦</i>
-      </div>
-    </main>
+    </PrivateDiarioContext.Provider>
   );
 }
 
