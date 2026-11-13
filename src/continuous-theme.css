@@ -1,0 +1,176 @@
+/*
+ * Dear Dominic Diary — continuous coquette visual system
+ *
+ * The time-mood engine writes live semantic tokens to <html>.
+ * Keep legacy material tokens in sync at the app shell so every
+ * existing screen receives the same paper / blush / wine palette.
+ * No layout, routing, persistence, or feature behavior is changed here.
+ */
+
+html[data-diario-time-theme="continuous"] .prototype-stage {
+  background:
+    radial-gradient(
+      circle at 50% -12%,
+      color-mix(in srgb, var(--accent-soft) 28%, transparent),
+      transparent 46%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--background) 82%, var(--ink) 18%),
+      color-mix(in srgb, var(--background) 72%, var(--ink) 28%)
+    );
+}
+
+html[data-diario-time-theme="continuous"] .phone-shell {
+  /* Semantic palette supplied by VisualThemeSync on <html>. */
+  --cream: var(--surface);
+  --paper: var(--surface-raised);
+  --paper-deep: var(--surface-deep);
+  --blush: color-mix(in srgb, var(--surface) 68%, var(--accent-soft) 32%);
+  --rose: var(--accent-soft);
+  --cherry: var(--interactive);
+  --wine: var(--ink);
+  --wine-deep: color-mix(in srgb, var(--ink) 82%, var(--background) 18%);
+  --brown: var(--text);
+  --brown-soft: var(--text-soft);
+  --gold: color-mix(in srgb, var(--accent-soft) 24%, #b28a55);
+  --olive: color-mix(in srgb, var(--text-soft) 62%, #78805b);
+  --butter: color-mix(in srgb, var(--surface-raised) 72%, #e7c98e);
+  --primary: var(--ink);
+  --text-on-dark: var(--surface-raised);
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 96%, white 4%),
+      var(--surface)
+    );
+  color: var(--text);
+  border-color: var(--divider);
+}
+
+html[data-diario-time-theme="continuous"] .screen-scroll {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+html[data-diario-time-theme="continuous"] .bottom-nav {
+  border-color: var(--divider);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 90%, transparent),
+      color-mix(in srgb, var(--surface-raised) 96%, transparent)
+    );
+  color: var(--text-soft);
+  box-shadow:
+    0 -8px 28px color-mix(in srgb, var(--ink) 10%, transparent);
+  backdrop-filter: blur(16px) saturate(.88);
+  -webkit-backdrop-filter: blur(16px) saturate(.88);
+}
+
+html[data-diario-time-theme="continuous"] .bottom-nav button.active {
+  color: var(--ink);
+}
+
+html[data-diario-time-theme="continuous"] .bottom-nav button.active::after {
+  background: var(--interactive);
+}
+
+html[data-diario-time-theme="continuous"] .statusbar {
+  color: var(--text);
+}
+
+/* Let the live palette move gently through every existing screen. */
+html[data-diario-time-theme="continuous"] .phone-shell,
+html[data-diario-time-theme="continuous"] .phone-shell :is(
+  .screen-scroll,
+  .bottom-nav,
+  .statusbar,
+  .chat-header,
+  .composer
+) {
+  transition:
+    background-color 900ms cubic-bezier(.2, .8, .2, 1),
+    color 900ms cubic-bezier(.2, .8, .2, 1),
+    border-color 900ms cubic-bezier(.2, .8, .2, 1),
+    box-shadow 900ms cubic-bezier(.2, .8, .2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-diario-time-theme="continuous"] .phone-shell,
+  html[data-diario-time-theme="continuous"] .phone-shell :is(
+    .screen-scroll,
+    .bottom-nav,
+    .statusbar,
+    .chat-header,
+    .composer
+  ) {
+    transition: none;
+  }
+}
+
+
+/* Home · coquette paper details over the living apartment photography. */
+.home-v2 .apartment-home-dominic {
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--interactive) 34%, var(--divider));
+  border-radius: 5px 17px 5px 17px;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface-raised) 92%, transparent),
+      color-mix(in srgb, var(--surface) 84%, var(--accent-soft) 16%)
+    );
+  box-shadow:
+    0 10px 28px color-mix(in srgb, var(--ink) 16%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, white 18%, transparent);
+}
+
+.home-v2 .apartment-home-dominic span {
+  color: var(--interactive);
+  opacity: 1;
+  font-weight: 700;
+}
+
+.home-v2 .apartment-home-dominic small {
+  color: var(--text-soft);
+  opacity: 1;
+}
+
+.home-v2 .apartment-home-room-nav {
+  border: 1px solid color-mix(in srgb, var(--interactive) 26%, var(--divider));
+  border-radius: 13px 25px 13px 25px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+.home-v2 .apartment-home-room-nav button {
+  color: var(--text);
+  font-weight: 500;
+  letter-spacing: .035em;
+}
+
+.home-v2 .apartment-home-room-nav button:first-child,
+.home-v2 .apartment-home-room-nav button.is-active {
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent-soft) 48%, var(--surface-raised));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive) 22%, transparent);
+}
+
+.home-v2-scene-system .apartment-room-things-trigger,
+.home-v2 .apartment-home-actions button,
+.home-v2-scene-system .apartment-floor-plan-trigger {
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--interactive) 30%, var(--divider));
+  border-radius: 6px 16px 6px 16px;
+  background: color-mix(in srgb, var(--surface-raised) 91%, transparent);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--ink) 13%, transparent);
+  backdrop-filter: blur(14px) saturate(.9);
+  -webkit-backdrop-filter: blur(14px) saturate(.9);
+}
+
+.home-v2-scene-system .apartment-room-things-trigger b {
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent-soft) 52%, var(--surface-raised));
+}
