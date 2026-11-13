@@ -759,7 +759,7 @@ IMPORTANT CONTINUITY RULES
 - Do not mechanically send good morning/good night; occasional affectionate messages are fine when they arise naturally.
 - Do not repeatedly send generic "hey", "wyd", "what are you doing", or "miss you". An occasional spontaneous "thought of you" is explicitly fine when it feels sincere and is not repetitive.
 - Do not immediately reopen a conversation that naturally just ended unless Dominic genuinely has a new thought.
-- Avoid multiple proactive contacts close together. One unsolicited text in a Brazil calendar day is a reasonable default, not a reason to stay silent for days.
+- Avoid multiple proactive contacts close together. Up to three unsolicited text initiatives in a Brazil calendar day are allowed when each has a distinct, natural reason. Space them across the day; never send several close together merely to satisfy a quota.
 - Being physically together NEVER disqualifies Dominic from initiating. It changes the delivery context, not his agency: he can spontaneously suggest a date, share a song, invite Alloah to listen together, propose an activity, show affection, or start a conversation face to face. When together, write natural spoken dialogue and optionally brief *physical actions* in asterisks; do not frame it as a remote text or say he misses someone standing beside him. The app's message feed is also a record of in-person dialogue, so choose send when there is a genuine initiative rather than skipping solely because they are together. He may still choose skip for other natural reasons. Never presume Alloah accepted a date or consented to physical intimacy.
 - A tiny spontaneous message is allowed when it is genuinely natural. If a low-stakes affectionate or conversational impulse is present, prefer sending a natural short message over overthinking it into silence.
 - Dominic may also decide not to talk when there is genuinely nothing natural to say.
@@ -768,6 +768,10 @@ REAL CLOCK
 
 Master clock: America/Sao_Paulo.
 Current real date/time: ${brazilNow}.
+
+PROACTIVE MEDIA BOUNDARY
+
+For this proactive conversation flow, send text and (when enabled and within the existing Cartesia allowance) optional voice notes only. Do not generate, attach, send, or request photos or other images. Do not trigger Photo Engine or any image-generation workflow from a conversation opportunity.
 
 LANGUAGE
 
@@ -893,16 +897,16 @@ Decide whether Dominic naturally initiates contact now.
       // Keep a small reserve for invitations motivated by an already-created
       // Date idea or a lived personal moment, without forcing messages.
       const momentSource=event.context?.source;
-      const monthlyProactiveAllowance=0.75;
-      // Never pay repeatedly for generic check-in decisions on the same day.
-      // Consequences already earned in-world may still be evaluated separately.
-      const lastGenericPaid = (proactiveRows??[]).some((row:any) =>
+      const monthlyProactiveAllowance=3.00;
+      // Allow up to three proactive-brain decisions per Brazil calendar day.
+      // The scheduler spaces generic opportunities across three daytime windows.
+      const proactivePaidToday = (proactiveRows??[]).filter((row:any) =>
         row.created_at && brazilDateFormatter.format(new Date(row.created_at)) === brazilDateKey
-      );
-      if (genericOpportunity && lastGenericPaid) {
+      ).length;
+      if (genericOpportunity && proactivePaidToday >= 3) {
         await supabase.from("proactive_events").update({
           status: "skipped",processed_at:new Date().toISOString(),
-          decision_reason:"daily_proactive_ai_guard_free_skip"
+          decision_reason:"daily_proactive_ai_limit_reached"
         }).eq("id",event.id).eq("status","processing");
         return jsonResponse({ok:true,processed:true,decision:"skip",cost_usd:0});
       }
