@@ -824,6 +824,55 @@ onOpen: (
     setMessageActionTarget(null);
   };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [expandedInvitationIds, setExpandedInvitationIds] = useState<string[]>([]);
+  const [invitationResponses, setInvitationResponses] = useState<Record<string, "accepted" | "declined">>({});
+  const [invitationBusyId, setInvitationBusyId] = useState<string | null>(null);
+  const [invitationError, setInvitationError] = useState<string | null>(null);
+
+  const respondToDateInvitation = async (dateId: string, response: "accepted" | "declined") => {
+    if (!dateId || invitationBusyId) return;
+    setInvitationBusyId(dateId);
+    setInvitationError(null);
+    try {
+      const { data: current, error: readError } = await supabase
+        .from("diario_items")
+        .select("id,data,updated_at")
+        .eq("id", dateId)
+        .eq("user_id", session.user.id)
+        .eq("kind", "date")
+        .eq("status", "active")
+        .single();
+      if (readError) throw readError;
+      const details = (current?.data ?? {}) as Record<string, unknown>;
+      if (details.source !== "dominic_chat_invitation" || details.invitation_pending !== true) {
+        throw new Error("This invitation has already been answered or is no longer available.");
+      }
+      const now = new Date().toISOString();
+      const nextData = {
+        ...details,
+        invitation_pending: false,
+        ...(response === "accepted"
+          ? { accepted_at: now, accepted_by: "alloah", user_accepted_idea: true, flow_state: "idea" }
+          : { declined_at: now, declined_by: "alloah", flow_state: "idea" }),
+      };
+      const { data: updated, error: updateError } = await supabase
+        .from("diario_items")
+        .update({ data: nextData })
+        .eq("id", dateId)
+        .eq("user_id", session.user.id)
+        .eq("kind", "date")
+        .eq("status", "active")
+        .eq("updated_at", current.updated_at)
+        .select("id");
+      if (updateError) throw updateError;
+      if (!updated?.length) throw new Error("The invitation changed. Please reopen it and try again.");
+      setInvitationResponses((currentResponses) => ({ ...currentResponses, [dateId]: response }));
+    } catch (error) {
+      setInvitationError(error instanceof Error ? error.message : "Could not save your response.");
+    } finally {
+      setInvitationBusyId(null);
+    }
+  };
   const [visibleChatTimestamp, setVisibleChatTimestamp] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -5326,36 +5375,70 @@ const recentConversationForPhoto = () =>
   </button>
 ) : message.kind ===
 "shared_item" ? (
-  <button
-    type="button"
-    className="letter-connected-button"
-    onClick={() => {
-      if (
-        !message.diaryItemId
-      ) {
-        return;
-      }
-
-      setSelectedChatObjectId(
-        message.diaryItemId
-      );
-    }}
-  >
-    {message.sharedKind ===
-    "song"
-      ? "Shared song"
-      : "Shared item"}
-
-    {" · "}
-
-    {message.sharedTitle ??
-      "Open"}
-
-    {message.sharedSubtitle
-      ? ` · ${message.sharedSubtitle}`
-      : ""}
-  </button>
-) : message.kind ===
+  message.sharedKind === "date" ? (
+    <div className={`date-invitation-card ${expandedInvitationIds.includes(message.id) ? "is-expanded" : ""}`}>
+      <button
+        type="button"
+        className="date-invitation-trigger"
+        aria-expanded={expandedInvitationIds.includes(message.id)}
+        onClick={() => setExpandedInvitationIds((current) =>
+          current.includes(message.id) ? current.filter((id) => id !== message.id) : [...current, message.id]
+        )}
+      >
+        <span className="date-invitation-icon"><Heart size={17} /></span>
+        <span className="date-invitation-heading">
+          <small>A LITTLE DATE IDEA</small>
+          <strong>{(message.sharedTitle ?? "A date idea").replace(/^Date idea\\s*[·—-]\\s*/i, "")}</strong>
+          <em>{invitationResponses[message.diaryItemId ?? ""] === "accepted"
+            ? "You liked his idea"
+            : invitationResponses[message.diaryItemId ?? ""] === "declined"
+              ? "You passed on this idea"
+              : "A little invitation from Dominic"}</em>
+        </span>
+        <span className="date-invitation-chevron"><ChevronRight size={17} /></span>
+      </button>
+      {expandedInvitationIds.includes(message.id) && (
+        <div className="date-invitation-details">
+          {message.sharedSubtitle && <p>{message.sharedSubtitle.replace(/his invitation\\s*[·—-]\\s*not agreed yet/i, "Just an idea — nothing is planned until you both agree.")}</p>}
+          {invitationResponses[message.diaryItemId ?? ""] ? (
+            <div className="date-invitation-response">
+              <Heart size={14} />
+              {invitationResponses[message.diaryItemId ?? ""] === "accepted"
+                ? "You said you'd love the idea. You can figure out the details together."
+                : "You passed on this one. The idea stays safely in your chat history."}
+            </div>
+          ) : (
+            <>
+              <div className="date-invitation-actions">
+                <button type="button" className="date-invitation-accept"
+                  disabled={!message.diaryItemId || invitationBusyId === message.diaryItemId}
+                  onClick={() => message.diaryItemId && void respondToDateInvitation(message.diaryItemId, "accepted")}>
+                  {invitationBusyId === message.diaryItemId ? "Saving…" : "I'd love that ♡"}
+                </button>
+                <button type="button" className="date-invitation-decline"
+                  disabled={!message.diaryItemId || invitationBusyId === message.diaryItemId}
+                  onClick={() => message.diaryItemId && void respondToDateInvitation(message.diaryItemId, "declined")}>
+                  Not this time
+                </button>
+              </div>
+              {invitationError && <small className="date-invitation-error">{invitationError}</small>}
+            </>
+          )}
+          <button type="button" className="date-invitation-open" onClick={() => message.diaryItemId && setSelectedChatObjectId(message.diaryItemId)}>
+            View date details
+          </button>
+        </div>
+      )}
+    </div>
+  ) : (
+    <button type="button" className="letter-connected-button" onClick={() => {
+      if (message.diaryItemId) setSelectedChatObjectId(message.diaryItemId);
+    }}>
+      {message.sharedKind === "song" ? "Shared song" : "Shared item"} · {message.sharedTitle ?? "Open"}
+      {message.sharedSubtitle ? ` · ${message.sharedSubtitle}` : ""}
+    </button>
+  )
+)) : message.kind ===
     "sticker" &&
   message.mediaUrl ? (
   <div className="chat-sticker-message">
