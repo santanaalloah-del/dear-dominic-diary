@@ -218,7 +218,9 @@ function createOpportunityTime(
  * an opportunity is never an automatic message.
  */
 function chooseOpportunityCount() {
-  return 1;
+  // Three spaced opportunities let Dominic initiate naturally throughout
+  // the day without turning every scheduler run into a message.
+  return 3;
 }
 
 Deno.serve(async (req) => {
@@ -377,109 +379,55 @@ Deno.serve(async (req) => {
           );
 
         /*
-         * A generated date is stored inside context as schedule_date.
-         * This value never changes even if proactive-brain later
-         * reschedules the event because of timing or provider retry.
-         *
-         * For old events created before schedule_date existed,
-         * we temporarily fall back to scheduled_for so deployment
-         * does not create a burst of duplicate legacy opportunities.
+         * Each daily window has its own stable slot. This allows several
+         * opportunities per day while keeping scheduler invocations idempotent.
+         * Legacy rows are respected and mapped by their stored window.
          */
         let {
           data: existing,
-          error:
-            existingError,
+          error: existingError,
         } = await supabase
-          .from(
-            "proactive_events",
-          )
-          .select(
-            "id, status, scheduled_for, context",
-          )
-          .eq(
-            "user_id",
-            userId,
-          )
-          .contains(
-            "context",
-            {
-              generated_by:
-                "proactive-scheduler",
-              schedule_date:
-                targetDateKey,
-            },
-          )
-          .neq(
-            "status",
-            "cancelled",
-          );
+          .from("proactive_events")
+          .select("id, status, scheduled_for, context")
+          .eq("user_id", userId)
+          .contains("context", {
+            generated_by: "proactive-scheduler",
+            schedule_date: targetDateKey,
+          })
+          .neq("status", "cancelled");
 
-        if (existingError) {
-          throw existingError;
-        }
+        if (existingError) throw existingError;
 
-        if (
-          (existing?.length ?? 0) ===
-          0
-        ) {
+        if ((existing?.length ?? 0) === 0) {
           const {
-            data:
-              legacyExisting,
-            error:
-              legacyExistingError,
+            data: legacyExisting,
+            error: legacyExistingError,
           } = await supabase
-            .from(
-              "proactive_events",
-            )
-            .select(
-              "id, status, scheduled_for, context",
-            )
-            .eq(
-              "user_id",
-              userId,
-            )
-            .contains(
-              "context",
-              {
-                generated_by:
-                  "proactive-scheduler",
-              },
-            )
-            .gte(
-              "scheduled_for",
-              dayStart.toISOString(),
-            )
-            .lt(
-              "scheduled_for",
-              dayEnd.toISOString(),
-            )
-            .neq(
-              "status",
-              "cancelled",
-            );
+            .from("proactive_events")
+            .select("id, status, scheduled_for, context")
+            .eq("user_id", userId)
+            .contains("context", {
+              generated_by: "proactive-scheduler",
+            })
+            .gte("scheduled_for", dayStart.toISOString())
+            .lt("scheduled_for", dayEnd.toISOString())
+            .neq("status", "cancelled");
 
-          if (legacyExistingError) {
-            throw legacyExistingError;
-          }
-
-          existing =
-            legacyExisting ?? [];
+          if (legacyExistingError) throw legacyExistingError;
+          existing = legacyExisting ?? [];
         }
 
-        if (existingError) {
-          throw existingError;
+        const existingWindows = new Set<string>(
+          (existing ?? [])
+            .map((row: any) => row.context?.window)
+            .filter((value: unknown): value is string => typeof value === "string"),
+        );
+        // An older event without a window still occupies one slot; do not
+        // create a burst of duplicates when upgrading an existing schedule.
+        if ((existing ?? []).some((row: any) => !row.context?.window)) {
+          existingWindows.add(WINDOWS[0].name);
         }
-
-        if (
-          (existing?.length ?? 0) >
-          0
-        ) {
-          alreadyExists +=
-            existing?.length ??
-            0;
-
-          continue;
-        }
+        alreadyExists += existing?.length ?? 0;
 
         /*
          * For TODAY only:
@@ -592,6 +540,7 @@ Deno.serve(async (req) => {
 
         const selectedWindows =
           shuffle(eligibleWindows)
+            .filter((window) => !existingWindows.has(window.name))
             .slice(
               0,
               Math.min(
