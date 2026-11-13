@@ -5438,7 +5438,7 @@ const recentConversationForPhoto = () =>
       {message.sharedSubtitle ? ` · ${message.sharedSubtitle}` : ""}
     </button>
   )
-)) : message.kind ===
+) : message.kind ===
     "sticker" &&
   message.mediaUrl ? (
   <div className="chat-sticker-message">
