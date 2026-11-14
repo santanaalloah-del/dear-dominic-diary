@@ -664,7 +664,6 @@ function DiarioVoiceNote({
             ref={audioRef}
             className="voice-note-native-audio"
             preload="none"
-            src={src}
             onLoadedMetadata={(event) => {
               const next = event.currentTarget.duration;
               setDuration(Number.isFinite(next) ? next : 0);
@@ -700,6 +699,12 @@ function DiarioVoiceNote({
                   return;
                 }
                 setPlaybackError(false);
+                // Do not attach the remote URL until the user presses play.
+                // iOS Safari may fetch audio despite preload="none" when src is present.
+                if (!audio.getAttribute("src") && src) {
+                  audio.src = src;
+                  audio.load();
+                }
                 audio.play().catch(() => {
                   setPlaying(false);
                   setPlaybackError(true);
