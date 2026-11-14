@@ -1,3 +1,4 @@
+import { getCachedSignedUrl } from "@/lib/storage-url-cache";
 import { supabase } from "@/integrations/supabase/client";
 
 const MEDIA_BUCKET = "diario-media";
@@ -108,9 +109,7 @@ export async function generateObjectVisual({
     throw uploadError;
   }
 
-  const { data: signed, error: signedError } = await supabase.storage
-    .from(MEDIA_BUCKET)
-    .createSignedUrl(storagePath, 60 * 60);
+  const { data: signed, error: signedError } = await getCachedSignedUrl(MEDIA_BUCKET, storagePath, 60 * 60);
 
   if (signedError || !signed?.signedUrl) {
     throw signedError ?? new Error("The generated object image could not be opened.");
@@ -134,9 +133,7 @@ export async function signedObjectVisualUrl({
 }): Promise<string | null> {
   if (!storageBucket || !storagePath) return null;
 
-  const { data, error } = await supabase.storage
-    .from(storageBucket)
-    .createSignedUrl(storagePath, 60 * 60);
+  const { data, error } = await getCachedSignedUrl(storageBucket, storagePath, 60 * 60);
 
   if (error || !data?.signedUrl) {
     console.error("Could not sign object visual:", error);
