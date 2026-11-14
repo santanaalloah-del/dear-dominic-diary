@@ -102,7 +102,7 @@ export async function generateObjectVisual({
     .upload(storagePath, blob, {
       upsert: false,
       contentType: mimeType,
-      cacheControl: "3600",
+      cacheControl: "31536000",
     });
 
   if (uploadError) {
