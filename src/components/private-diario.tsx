@@ -587,20 +587,28 @@ function PrivateLogin() {
     setBusy(true);
     setError(null);
 
-    const { error: signInError } =
-      await supabase.auth
-        .signInWithPassword({
-          email,
-          password,
-        });
+    try {
+      const { error: signInError } =
+        await supabase.auth
+          .signInWithPassword({
+            email: email.trim(),
+            password,
+          });
 
-    if (signInError) {
+      if (signInError) {
+        console.error("Diário sign-in failed:", signInError);
+        setError(signInError.message || "Sign-in failed. Please try again.");
+      }
+    } catch (signInException) {
+      console.error("Diário sign-in request failed:", signInException);
       setError(
-        "That didn’t open the door. Check your details and try again."
+        signInException instanceof Error
+          ? signInException.message
+          : "The sign-in request could not be completed. Check your connection and try again."
       );
+    } finally {
+      setBusy(false);
     }
-
-    setBusy(false);
   }
 
   return (
