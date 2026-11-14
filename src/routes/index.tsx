@@ -221,7 +221,7 @@ function DiarioApp() {
   ] =
     useState<Screen[]>([]);
 
-active apartment room state  const scrollRef =
+  const scrollRef =
     useRef<HTMLDivElement>(
       null
     );
