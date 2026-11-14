@@ -1470,6 +1470,49 @@ useEffect(() => {
     }
   }, [preferences]);
 
+  async function optimizeChatPhoto(file: File): Promise<File> {
+    if (
+      !file.type.startsWith("image/") ||
+      file.type === "image/gif" ||
+      file.size < 500 * 1024
+    ) {
+      return file;
+    }
+
+    try {
+      const bitmap = await createImageBitmap(file);
+      const maxDimension = 1800;
+      const scale = Math.min(
+        1,
+        maxDimension / Math.max(bitmap.width, bitmap.height)
+      );
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) {
+        bitmap.close();
+        return file;
+      }
+
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.82)
+      );
+      if (!blob || blob.size >= file.size) return file;
+
+      const baseName = file.name.replace(/\.[^.]+$/, "") || "chat-photo";
+      return new File([blob], baseName + ".jpg", {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+    } catch {
+      return file;
+    }
+  }
+
   async function uploadChatMedia({
     file,
     type,
@@ -1479,8 +1522,10 @@ useEffect(() => {
     type: "photo" | "voice";
     transcript?: string;
   }) {
+    const uploadFile =
+      type === "photo" ? await optimizeChatPhoto(file) : file;
     const extension =
-      file.name.split(".").pop() ||
+      uploadFile.name.split(".").pop() ||
       (type === "photo" ? "jpg" : "webm");
 
     const storagePath =
@@ -1489,11 +1534,11 @@ useEffect(() => {
     const { error: uploadError } =
       await supabase.storage
         .from("diario-media")
-        .upload(storagePath, file, {
+        .upload(storagePath, uploadFile, {
           upsert: false,
-          contentType: file.type,
+          contentType: uploadFile.type,
+          cacheControl: "31536000",
         });
-
     if (uploadError) {
       throw uploadError;
     }
