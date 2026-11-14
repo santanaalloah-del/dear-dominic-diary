@@ -376,8 +376,7 @@ export async function uploadChatProfilePhoto({
         path,
         file,
         {
-          cacheControl:
-            "3600",
+          cacheControl: "31536000",
           upsert:
             false,
           contentType:
