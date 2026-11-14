@@ -1,3 +1,4 @@
+import { getCachedSignedUrl } from "@/lib/storage-url-cache";
 import { supabase } from "@/integrations/supabase/client";
 
 export type WardrobeOwner = "alloah" | "dominic";
@@ -403,9 +404,7 @@ export async function getWardrobePhotoContext({
         typeof piece.storagePath === "string" &&
         piece.storagePath.startsWith(userId + "/wardrobe/")
       ) {
-        const { data, error: imageError } = await supabase.storage
-          .from("diario-media")
-          .createSignedUrl(piece.storagePath, 60 * 60);
+        const { data, error: imageError } = await getCachedSignedUrl("diario-media", piece.storagePath, 60 * 60);
         if (!imageError && data?.signedUrl) {
           imageUrl = data.signedUrl;
         }
