@@ -1,3 +1,4 @@
+import { getCachedSignedUrl } from "@/lib/storage-url-cache";
 import { syncDateFromConversation } from "@/lib/date-chat-continuity";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { chatCalendarDayKey, chatDayHeading } from "@/lib/chat-day-heading";
@@ -2654,12 +2655,7 @@ if (
             data: signedData,
             error: signedError,
           } =
-            await supabase.storage
-              .from(storageBucket)
-              .createSignedUrl(
-                storagePath,
-                60 * 60
-              );
+            await getCachedSignedUrl(storageBucket, storagePath, 60 * 60);
 
           if (signedError) {
             return null;
