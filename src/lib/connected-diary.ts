@@ -1,3 +1,4 @@
+import { getCachedSignedUrl } from "@/lib/storage-url-cache";
 import { supabase } from "@/integrations/supabase/client";
 import type { DiarioItem, DiarioItemKind } from "@/lib/diario-world";
 
@@ -61,9 +62,7 @@ async function mediaUrlForItem(item: DiarioItem): Promise<string | null> {
   const storage = storageInfo(item);
 
   if (storage) {
-    const { data, error } = await db.storage
-      .from(storage.bucket)
-      .createSignedUrl(storage.path, 60 * 60);
+    const { data, error } = await getCachedSignedUrl(storage.bucket, storage.path, 60 * 60);
 
     if (!error && data?.signedUrl) {
       return data.signedUrl;
