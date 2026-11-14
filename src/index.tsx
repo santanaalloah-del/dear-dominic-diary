@@ -193,7 +193,6 @@ export const Route = createFileRoute("/")({
 const navItems: { id: Screen; label: string; icon: typeof Home }[] = [
   { id: "home", label: "Home", icon: Home },
   { id: "chat", label: "Chat", icon: Send },
-  { id: "music", label: "Player", icon: Music2 },
   { id: "diary", label: "Diary", icon: BookOpen },
   { id: "more", label: "More", icon: Menu },
 ];
@@ -201,7 +200,6 @@ const navItems: { id: Screen; label: string; icon: typeof Home }[] = [
 const primaryScreens: Screen[] = [
   "home",
   "chat",
-  "music",
   "diary",
   "more",
 ];
@@ -655,14 +653,6 @@ function DiarioApp() {
             <ConnectedTimelineScreen />
           )}
 
-          {screen ===
-            "music" && (
-            <MusicScreen
-              onShareToChat={
-                shareToChat
-              }
-            />
-          )}
 
           {screen ===
             "dates" && (
@@ -1710,7 +1700,6 @@ function MoreScreen({ onOpen }: { onOpen: (screen: Screen) => void }) {
     { name: "Letters", note: "letters, notes & envelopes", target: "letters", icon: <Mail /> },
     { name: "Calendar", note: "days, plans & what happened", target: "calendar", icon: <CalendarIcon /> },
     { name: "Timeline", note: "our story in order", target: "timeline", icon: <Clock /> },
-    { name: "Music", note: "Mine · Dominic · Ours", target: "music", icon: <Music2 /> },
     { name: "Dates", note: "places, plans & memories", target: "dates", icon: <CalendarIcon /> },
     { name: "Places", note: "saved places & places we've been", target: "places", icon: <MapPin /> },
     { name: "Keepsakes", note: "little things with a history", target: "keepsakes", icon: <BoxIcon /> },
@@ -12715,24 +12704,6 @@ function MorningNightScreen({
       )}
 
     <section className="day-cycle-links">
-  <button
-    type="button"
-    onClick={() => onOpen("music")}
-  >
-    <Music2
-      size={18}
-      strokeWidth={1.35}
-    />
-
-    <span>
-      <strong>Music</strong>
-
-      <small>
-        what was really kept today
-      </small>
-    </span>
-  </button>
-
   <button
     type="button"
     onClick={() => onOpen("diary")}
