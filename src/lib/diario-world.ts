@@ -566,7 +566,7 @@ export async function uploadDiarioItemImage({
     await diarioSupabase.storage
       .from("diario-media")
       .upload(storagePath, file, {
-        cacheControl: "3600",
+        cacheControl: "31536000",
         upsert: false,
         contentType: file.type,
       });
@@ -602,7 +602,7 @@ export async function uploadHomeObjectImage({
     await diarioSupabase.storage
       .from("diario-media")
       .upload(storagePath, file, {
-        cacheControl: "3600",
+        cacheControl: "31536000",
         upsert: false,
         contentType: file.type,
       });
@@ -638,7 +638,7 @@ export async function uploadGalleryPhoto({
       storagePath,
       file,
       {
-        cacheControl: "3600",
+        cacheControl: "31536000",
         upsert: false,
         contentType: file.type,
       }
