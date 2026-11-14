@@ -120,6 +120,7 @@ export function PrivateDiario({
 
   const [ready, setReady] =
     useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
 
   const [deviceLocked, setDeviceLocked] = useState(false);
   const [unlockBusy, setUnlockBusy] = useState(false);
@@ -150,8 +151,9 @@ export function PrivateDiario({
 
     const { data } =
       supabase.auth.onAuthStateChange(
-        (_event, nextSession) => {
+        (event, nextSession) => {
           if (!active) return;
+          if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
 
           setSession(nextSession);
           setReady(true);
@@ -403,6 +405,10 @@ export function PrivateDiario({
     );
   }
 
+  if (recoveryMode && session) {
+    return <PasswordRecovery onComplete={() => setRecoveryMode(false)} />;
+  }
+
   if (!session) {
     return <PrivateLogin />;
   }
@@ -488,6 +494,58 @@ function PrivacyCover() {
   );
 }
 
+
+function PasswordRecovery({ onComplete }: { onComplete: () => void }) {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    if (password.length < 8) {
+      setError("Use at least 8 characters for your new password.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("The passwords do not match.");
+      return;
+    }
+    setBusy(true);
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    setBusy(false);
+    if (updateError) {
+      setError("We couldn't update your password. Request a new recovery link and try again.");
+      return;
+    }
+    onComplete();
+  }
+
+  return (
+    <main className="private-entry">
+      <section className="private-login" aria-labelledby="recovery-title">
+        <LockKeyhole aria-hidden="true" />
+        <p className="private-kicker">account recovery</p>
+        <h1 id="recovery-title">Choose a new password</h1>
+        <p className="private-note">Create a new password for your Diário account.</p>
+        <form onSubmit={onSubmit}>
+          <label>New password
+            <input type="password" autoComplete="new-password" value={password}
+              onChange={(event) => setPassword(event.target.value)} minLength={8} required />
+          </label>
+          <label>Confirm new password
+            <input type="password" autoComplete="new-password" value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)} minLength={8} required />
+          </label>
+          <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save new password"}</Button>
+          {error && <p className="private-error" role="alert">{error}</p>}
+        </form>
+      </section>
+    </main>
+  );
+}
+
 function PrivateLogin() {
   const [email, setEmail] =
     useState("");
@@ -500,6 +558,26 @@ function PrivateLogin() {
 
   const [error, setError] =
     useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+
+  async function onResetPassword() {
+    if (!email.trim()) {
+      setError("Enter your account email first.");
+      return;
+    }
+    setError(null);
+    setResetBusy(true);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin,
+    });
+    setResetBusy(false);
+    if (resetError) {
+      setError("We couldn't send the recovery email. Check the address and try again.");
+      return;
+    }
+    setResetSent(true);
+  }
 
   async function onSubmit(
     event: FormEvent<HTMLFormElement>
@@ -590,6 +668,11 @@ function PrivateLogin() {
               ? "Opening…"
               : "Continue"}
           </Button>
+
+          <button type="button" onClick={() => void onResetPassword()} disabled={resetBusy} className="private-reset-link">
+            {resetBusy ? "Sending…" : "Forgot your password?"}
+          </button>
+          {resetSent && <p role="status">If that address belongs to an account, a password reset link has been sent. Check your inbox and spam folder.</p>}
 
           {error && (
             <p
