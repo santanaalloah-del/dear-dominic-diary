@@ -663,7 +663,7 @@ function DiarioVoiceNote({
           <audio
             ref={audioRef}
             className="voice-note-native-audio"
-            preload="metadata"
+            preload="none"
             src={src}
             onLoadedMetadata={(event) => {
               const next = event.currentTarget.duration;
@@ -5358,6 +5358,8 @@ const recentConversationForPhoto = () =>
     <img
       src={message.mediaUrl}
       alt="Sticker"
+      loading="lazy"
+      decoding="async"
     />
   </div>
 ) : message.kind ===
@@ -5367,6 +5369,8 @@ const recentConversationForPhoto = () =>
     <img
       src={message.mediaUrl}
       alt="Photo sent in chat"
+      loading="lazy"
+      decoding="async"
     />
   </div>
 ) : message.kind ===
