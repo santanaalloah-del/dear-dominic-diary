@@ -1,3 +1,4 @@
+import { getCachedSignedUrl } from "@/lib/storage-url-cache";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PhotoIdentityFeedback } from "@/components/photo-identity-feedback";
 import { PhotoQualityFeedback } from "@/components/photo-quality-feedback";
@@ -363,8 +364,7 @@ export function PhotoEngineScreen() {
           urls.set(requestId, cache.url);
           return;
         }
-        const { data: signed, error: signedError } = await supabase.storage
-          .from("diario-media").createSignedUrl(photo.data.storage_path, 3600);
+        const { data: signed, error: signedError } = await getCachedSignedUrl("diario-media", photo.data.storage_path, 60 * 60);
         if (!signedError && signed?.signedUrl) {
           urls.set(requestId, signed.signedUrl);
           savedPhotoUrlCache.current.set(photo.id, {
