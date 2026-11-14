@@ -1,3 +1,4 @@
+import { getCachedSignedUrl } from "@/lib/storage-url-cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -183,12 +184,7 @@ export async function getVisualReferences({
         reference
       ): Promise<VisualReferenceWithUrl | null> => {
         const { data: signedData, error: signedError } =
-          await diarioSupabase.storage
-            .from(reference.storage_bucket)
-            .createSignedUrl(
-              reference.storage_path,
-              60 * 60
-            );
+          await getCachedSignedUrl(reference.storage_bucket, reference.storage_path, 60 * 60);
 
         if (signedError) {
           console.error(
@@ -280,12 +276,7 @@ export async function createVisualReference({
   }
 
   const { data: signedData, error: signedError } =
-    await diarioSupabase.storage
-      .from("diario-media")
-      .createSignedUrl(
-        storagePath,
-        60 * 60
-      );
+    await getCachedSignedUrl("diario-media", storagePath, 60 * 60);
 
   if (signedError) {
     throw signedError;
@@ -700,12 +691,7 @@ export async function uploadGalleryPhoto({
   const {
     data: signedData,
     error: signedError,
-  } = await diarioSupabase.storage
-    .from("diario-media")
-    .createSignedUrl(
-      storagePath,
-      60 * 60
-    );
+  } = await getCachedSignedUrl("diario-media", storagePath, 60 * 60);
 
   if (signedError) {
     throw signedError;
@@ -758,12 +744,7 @@ export async function getGalleryPhotos(
           const {
             data: signedData,
             error: signedError,
-          } = await diarioSupabase.storage
-            .from("diario-media")
-            .createSignedUrl(
-              storagePath,
-              60 * 60
-            );
+          } = await getCachedSignedUrl("diario-media", storagePath, 60 * 60);
 
           if (signedError) {
             console.error(
@@ -2232,12 +2213,7 @@ export async function getHomeObjects(
       const {
         data: signedData,
         error: signedError,
-      } = await diarioSupabase.storage
-        .from("diario-media")
-        .createSignedUrl(
-          imagePath,
-          60 * 60
-        );
+      } = await getCachedSignedUrl("diario-media", imagePath, 60 * 60);
 
       if (signedError) {
         console.error(
