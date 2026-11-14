@@ -1,3 +1,4 @@
+import { getCachedSignedUrl } from "@/lib/storage-url-cache";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -255,12 +256,7 @@ async function signedReference(
   const {
     data,
     error,
-  } = await db.storage
-    .from(reference.storage_bucket)
-    .createSignedUrl(
-      reference.storage_path,
-      60 * 60
-    );
+  } = await getCachedSignedUrl(reference.storage_bucket, reference.storage_path, 60 * 60);
 
   if (error || !data?.signedUrl) {
     console.error(
@@ -1630,12 +1626,7 @@ export async function saveGeneratedPhoto({
   const {
     data: signedData,
     error: signedError,
-  } = await db.storage
-    .from(MEDIA_BUCKET)
-    .createSignedUrl(
-      storagePath,
-      60 * 60
-    );
+  } = await getCachedSignedUrl(MEDIA_BUCKET, storagePath, 60 * 60);
 
   if (
     signedError ||
