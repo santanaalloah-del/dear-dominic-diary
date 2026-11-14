@@ -170,11 +170,22 @@ export async function enableDiarioPush(userId: string) {
 export async function getDiarioPushStatus(userId: string) {
   const { data, error } = await supabase
     .from("push_devices")
-    .select("id,is_active")
+    .select("id,is_active,last_seen_at")
     .eq("user_id", userId)
     .eq("platform", "onesignal_web")
     .eq("is_active", true)
+    .order("last_seen_at", { ascending: false })
     .limit(1);
   if (error) throw error;
-  return Boolean(data?.length);
+
+  // A stale database row must not permanently disable the user's
+  // ability to refresh an iPhone/Web Push subscription.
+  const lastSeenAt = data?.[0]?.last_seen_at
+    ? Date.parse(data[0].last_seen_at)
+    : 0;
+  const fresh = lastSeenAt > 0 &&
+    Date.now() - lastSeenAt >= 0 &&
+    Date.now() - lastSeenAt < 30 * 24 * 60 * 60 * 1000;
+
+  return Boolean(data?.[0]?.is_active && fresh);
 }
