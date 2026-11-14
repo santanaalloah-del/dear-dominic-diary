@@ -473,7 +473,7 @@ export async function setCurrentLook({
           {
             upsert: false,
             contentType: file.type,
-            cacheControl: "3600",
+            cacheControl: "31536000",
           }
         );
 
@@ -1434,8 +1434,7 @@ export async function saveGeneratedPhoto({
         upsert: false,
         contentType:
           mimeType,
-        cacheControl:
-          "3600",
+        cacheControl: "31536000",
       }
     );
 
