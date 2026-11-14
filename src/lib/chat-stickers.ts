@@ -1,3 +1,4 @@
+import { getCachedSignedUrl } from "@/lib/storage-url-cache";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ChatStickerOwner =
@@ -149,12 +150,7 @@ async function signedUrl(
     data,
     error,
   } =
-    await db.storage
-      .from("diario-media")
-      .createSignedUrl(
-        storagePath,
-        60 * 60
-      );
+    await getCachedSignedUrl("diario-media", storagePath, 60 * 60);
 
   if (error) {
     console.error(
