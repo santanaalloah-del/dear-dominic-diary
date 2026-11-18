@@ -980,10 +980,34 @@ Decide whether Dominic naturally initiates contact now.
           prompt,
         );
 
-        // Last-resort enforcement: if the model writes a message but labels it
-        // skip/reschedule, honor Alloah's explicit send preference for generic
-        // opportunities. A message-less response remains a provider failure,
-        // not a canned or fabricated fallback.
+        // A generic opportunity is already authorized by Alloah. If the model
+        // still tries to skip it, make one focused writing attempt rather than
+        // silently discarding the opportunity. No canned text is substituted.
+        if (genericOpportunity && decision.decision !== "send") {
+          const retryInstruction = `${systemInstruction}
+
+FINAL RETRY INSTRUCTION
+This is an explicitly user-authorized generic Chat opportunity. You MUST write one natural message now. Return decision "send", a non-empty message, and optionally a music_share object. Do not skip or reschedule.`;
+          const retryPrompt = `${prompt}
+
+The prior attempt did not produce a deliverable message. Write the actual concise message Dominic wants to send now. Do not explain the retry.`;
+          const firstCost = decision.measured_cost_usd;
+          decision = await callGemini(
+            geminiApiKey,
+            retryInstruction,
+            retryPrompt,
+          );
+          const retryCost = decision.measured_cost_usd;
+          decision.measured_cost_usd =
+            firstCost !== null && firstCost !== undefined &&
+            retryCost !== null && retryCost !== undefined &&
+            firstCost + retryCost <= 0.03
+              ? firstCost + retryCost
+              : null;
+        }
+
+        // If a model labels a non-empty draft "skip", honor the user's explicit
+        // delivery preference for generic opportunities.
         if (genericOpportunity && decision.decision !== "send" && decision.message?.trim()) {
           decision.decision = "send";
           decision.reason = "User-authorized spontaneous chat delivery";
