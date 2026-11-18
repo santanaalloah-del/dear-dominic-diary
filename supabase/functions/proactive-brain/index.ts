@@ -20,6 +20,7 @@ type ProactiveDecision = {
   reason: string;
   message: string | null;
   reschedule_minutes: number | null;
+  music_share?: { track: string; artist: string } | null;
   measured_cost_usd?: number | null;
 };
 
@@ -230,12 +231,21 @@ async function callGemini(
   parsed.reason = typeof parsed.reason === "string" && parsed.reason.trim()
     ? parsed.reason.trim().slice(0, 220)
     : "No specific grounded reason to initiate at this opportunity.";
+
+  // A music share is optional. Accept only a plain track title and artist;
+  // the backend constructs a safe Spotify search URL itself.
+  const musicTrack = typeof parsed.music_share?.track === "string"
+    ? parsed.music_share.track.trim().slice(0, 120) : "";
+  const musicArtist = typeof parsed.music_share?.artist === "string"
+    ? parsed.music_share.artist.trim().slice(0, 120) : "";
+  parsed.music_share = musicTrack && musicArtist
+    ? { track: musicTrack, artist: musicArtist }
+    : null;
+
   if (parsed.decision === "skip") {
-    parsed.message = null;
     parsed.reschedule_minutes = null;
   }
   if (parsed.decision === "reschedule") {
-    parsed.message = null;
     parsed.reschedule_minutes = clampRescheduleMinutes(parsed.reschedule_minutes);
   }
   const price=payload?.usage?.cost;
@@ -601,6 +611,7 @@ Deno.serve(async (req) => {
         messagesResult,
         recentSentResult,
         profileResult,
+        musicProfileResult,
       ] = await Promise.all([
         supabase
           .from("messages")
@@ -650,6 +661,13 @@ Deno.serve(async (req) => {
             userId,
           )
           .maybeSingle(),
+
+        supabase
+          .from("character_music_profile")
+          .select("favorite_artists,favorite_tracks,favorite_genres,current_artists,current_tracks,dislikes,music_notes")
+          .eq("user_id", userId)
+          .eq("character_name", "Dominic")
+          .maybeSingle(),
       ]);
 
       if (messagesResult.error) {
@@ -663,6 +681,9 @@ Deno.serve(async (req) => {
       if (profileResult.error) {
         throw profileResult.error;
       }
+      if (musicProfileResult.error) {
+        throw musicProfileResult.error;
+      }
 
       const history = [
         ...(messagesResult.data ?? []),
@@ -673,6 +694,9 @@ Deno.serve(async (req) => {
 
       const profile =
         profileResult.data;
+
+      const musicKnowledge =
+        musicProfileResult.data ?? {};
 
       const alloahName =
         profile?.preferred_name ||
@@ -719,7 +743,7 @@ Your job is NOT to maximize engagement.
 Your job is NOT to make Alloah feel constantly attended to.
 Your job is NOT to prove affection.
 
-Silence is a valid outcome, but perpetual silence despite grounded open conversations and opportunities is not natural either.
+Silence can be natural in ordinary life, but this specific generic spontaneous-chat opportunity exists because Alloah explicitly asked Dominic to initiate. For that event, the choice to send has already been made by the user; your job is to decide what he says, not whether he sends anything.
 
 A proactive message should happen only when Dominic has a plausible reason to initiate something himself.
 You may naturally continue an unresolved thread from a recent real conversation,
@@ -736,10 +760,11 @@ not an agreed Date. He may naturally invite Alloah to that specific idea, or ski
 He must not claim she accepted, that anything was booked, that they attended, or that a date/time was agreed.
 Use the existing title and motive for inspiration. No quotas and no pressure.
 
-MUSIC OPPORTUNITIES
-When opportunity_context.source is dominic_music_autonomy, the track was catalog-verified and selected from your own musical identity.
-Saving and sharing are separate. You can still skip or reschedule. If sending, talk naturally about that exact track with your own opinion or reason; do not invent lyrics, past shared listening or her approval.
-Use the provided title/artist and URL; do not substitute a different song. Do not mention catalogs, databases, prompts or technical metadata.
+MUSIC SHARES — OPTIONAL, PERSONAL, NO APP INTEGRATION
+You may occasionally send Alloah a song because it fits what you want to express, because it connects with a real conversation, or because it belongs to the musical world established in your Brain2 knowledge.
+Use the CHARACTER MUSIC KNOWLEDGE and Brain2 canon as your grounding. You may choose a specific track you confidently know by an artist in that profile; do not invent a title, artist, lyrics, past shared listening, or private listening history.
+Do not use songs saved in Diary, Spotify account data, music_items, or any music integration. None is needed.
+When a song genuinely fits, include music_share as { "track": "exact song title", "artist": "exact artist" }. Otherwise set music_share to null. The app will create a Spotify search link from those exact words; never invent a Spotify URL yourself. Make the accompanying message sound like Dominic explaining why he wanted to show her that song, without claiming she has heard or liked it.
 
 IMPORTANT CONTINUITY RULES
 
@@ -753,7 +778,7 @@ IMPORTANT CONTINUITY RULES
 - Dominic has his own life, attention, moods, work, interests, and reasons for silence.
 - Do not manufacture drama to create a reason to text.
 - Do not manufacture jealousy, emergencies, longing, conflict, or sexual tension.
-- Do not send merely because the scheduler created an opportunity, but do not require a milestone or unusually specific external hook either.
+- For generic opportunities generated by proactive-scheduler, do not treat the scheduling event as an arbitrary prompt, but respect that Alloah has explicitly pre-authorized a spontaneous message. The message must be sent.
 - Everyday boyfriend contact is welcome when natural: an affectionate thought, playful tease, a question about something she told you, a song or opinion he wants to share, his current mood, a small fictional everyday detail from his own life, or a simple "you crossed my mind". Wanting to talk to his girlfriend is itself a valid reason.
 - Dominic may initiate with affection, flirtation, a warm or teasing text, an ordinary thought, or something he is excited, annoyed, curious or amused about. Let him talk about his own interests and fictional day-to-day life without pretending those details are facts about the real Dominic Fike.
 - Do not mechanically send good morning/good night; occasional affectionate messages are fine when they arise naturally.
@@ -763,6 +788,13 @@ IMPORTANT CONTINUITY RULES
 - Being physically together NEVER disqualifies Dominic from initiating. It changes the delivery context, not his agency: he can spontaneously suggest a date, share a song, invite Alloah to listen together, propose an activity, show affection, or start a conversation face to face. When together, write natural spoken dialogue and optionally brief *physical actions* in asterisks; do not frame it as a remote text or say he misses someone standing beside him. The app's message feed is also a record of in-person dialogue, so choose send when there is a genuine initiative rather than skipping solely because they are together. He may still choose skip for other natural reasons. Never presume Alloah accepted a date or consented to physical intimacy.
 - A tiny spontaneous message is allowed when it is genuinely natural. If a low-stakes affectionate or conversational impulse is present, prefer sending a natural short message over overthinking it into silence.
 - Dominic may also decide not to talk when there is genuinely nothing natural to say.
+
+USER-REQUESTED DELIVERY OVERRIDE FOR GENERIC CHAT OPPORTUNITIES
+
+${genericOpportunity ? `This event is a generic conversation_opportunity created for Alloah's explicit request. Do NOT decide whether to send. ALWAYS choose decision "send" and write a non-empty message in natural American English. Do not choose "skip" or "reschedule".
+The content is your choice, not a recorded template: it can be an ordinary thought, a playful message, something you genuinely want to show her, a good-morning or good-night message when the current time makes that natural, or a sincere note that you miss her after a longer quiet stretch. Do not use a fixed hour-based script, do not repeat phrases, and do not claim she has been away longer than the actual chat history shows.
+Even when the conversation history gives you no dramatic topic, a small, personal, low-pressure message is enough. The scheduler has already waited for a quiet period; do not stay silent just because the user has not given you a new prompt.
+${'` : ''} 
 
 REAL CLOCK
 
@@ -848,6 +880,10 @@ ${JSON.stringify(
   2,
 )}
 
+CHARACTER MUSIC KNOWLEDGE
+
+${JSON.stringify(musicKnowledge, null, 2)}
+
 LAST MESSAGE
 
 ${
@@ -915,6 +951,23 @@ Decide whether Dominic naturally initiates contact now.
         });
       }
 
+      const { data: budgetReservation, error: budgetReservationError } =
+        await supabase.rpc("reserve_ai_budget", {
+          p_source: "proactive-brain",
+          p_estimated_usd: 0.03,
+        });
+      if (budgetReservationError) throw budgetReservationError;
+      if (!budgetReservation) {
+        const retryAt = new Date(Date.now() + 24 * 60 * 60_000);
+        await supabase.from("proactive_events").update({
+          status: "pending",
+          scheduled_for: retryAt.toISOString(),
+          processed_at: null,
+          decision_reason: "global_ai_budget_unavailable",
+        }).eq("id", event.id).eq("status", "processing");
+        return jsonResponse({ok:true,processed:false,reason:"global_ai_budget_unavailable"});
+      }
+
       let decision: ProactiveDecision;
       try {
         decision = await callGemini(
@@ -922,6 +975,17 @@ Decide whether Dominic naturally initiates contact now.
           systemInstruction,
           prompt,
         );
+
+        // Last-resort enforcement: if the model writes a message but labels it
+        // skip/reschedule, honor Alloah's explicit send preference for generic
+        // opportunities. A message-less response remains a provider failure,
+        // not a canned or fabricated fallback.
+        if (genericOpportunity && decision.decision !== "send" && decision.message?.trim()) {
+          decision.decision = "send";
+          decision.reason = "User-authorized spontaneous chat delivery";
+          decision.reschedule_minutes = null;
+        }
+
         await supabase.rpc("settle_ai_budget",{
           p_id:budgetReservation,
           ...(decision.measured_cost_usd!==null&&decision.measured_cost_usd!==undefined
@@ -1037,9 +1101,14 @@ Decide whether Dominic naturally initiates contact now.
        * SEND
        */
       let message = decision.message!.trim();
-      const musicShare=event.context?.source==="dominic_music_autonomy"?event.context?.music:null;
-      if(musicShare&&typeof musicShare.url==="string"&&/^https:\/\/open\.spotify\.com\/(track|search)\//.test(musicShare.url)&&!message.includes(musicShare.url)){
-        message += "\n\n"+musicShare.url;
+      if (decision.music_share) {
+        const spotifyQuery = encodeURIComponent(
+          `${decision.music_share.artist} ${decision.music_share.track}`,
+        );
+        const spotifySearchUrl = `https://open.spotify.com/search/${spotifyQuery}`;
+        if (!message.includes(spotifySearchUrl)) {
+          message += `\n\n${spotifySearchUrl}`;
+        }
       }
 
       const {
