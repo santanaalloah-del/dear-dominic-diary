@@ -221,6 +221,51 @@ function chooseOpportunityCount() {
   return 1;
 }
 
+/*
+ * Occasionally attach a real, already-saved shared Spotify track to
+ * Dominic's spontaneous opportunity. Never fabricate a Spotify URL,
+ * never use Alloah's private songs, and avoid recently shared tracks.
+ */
+async function chooseOptionalMusicShare(supabase: any, userId: string) {
+  if (Math.random() >= 0.25) return null;
+
+  const [{ data: settings, error: settingsError }, { data: songs, error: songsError }, { data: recent, error: recentError }] =
+    await Promise.all([
+      supabase.from("diario_settings").select("music_enabled").eq("user_id", userId).maybeSingle(),
+      supabase.from("diario_items").select("id,title,data").eq("user_id", userId)
+        .eq("kind", "song").eq("owner", "shared").eq("status", "active").limit(60),
+      supabase.from("proactive_events").select("context,processed_at").eq("user_id", userId)
+        .eq("status", "sent").order("processed_at", { ascending: false }).limit(20),
+    ]);
+
+  if (settingsError) throw settingsError;
+  if (songsError) throw songsError;
+  if (recentError) throw recentError;
+  if (settings?.music_enabled !== true) return null;
+
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const recentlyShared = new Set(
+    (recent ?? [])
+      .filter((event: any) => event.processed_at && Date.parse(event.processed_at) >= cutoff)
+      .map((event: any) => event.context?.music?.url)
+      .filter((url: unknown): url is string => typeof url === "string"),
+  );
+
+  const eligible = (songs ?? []).flatMap((item: any) => {
+    const data = item.data ?? {};
+    const url = typeof data.spotifyUrl === "string" ? data.spotifyUrl : "";
+    if (!/^https:\/\/open\.spotify\.com\/track\/[A-Za-z0-9]+(?:\?.*)?$/.test(url)) return [];
+    if (recentlyShared.has(url)) return [];
+    const title = typeof item.title === "string" ? item.title.trim() : "";
+    const artist = typeof data.artist === "string" ? data.artist.trim() : "";
+    if (!title || !artist) return [];
+    return [{ item_id: item.id, title, artist, url }];
+  });
+
+  if (!eligible.length) return null;
+  return eligible[randomInt(0, eligible.length - 1)];
+}
+
 Deno.serve(async (req) => {
   if (
     req.method === "OPTIONS"
@@ -615,38 +660,29 @@ Deno.serve(async (req) => {
                     window,
                   );
 
+                const opportunityContext: Record<string, unknown> = {
+                  time_zone: TIME_ZONE,
+                  schedule_date: targetDateKey,
+                  window: window.name,
+                  purpose: "natural_proactive_contact",
+                  generated_by: "proactive-scheduler",
+                  architecture: "brain2",
+                };
+
+                // The text message remains the default. A verified Spotify
+                // link is an occasional extra, never a requirement to send.
+                const music = await chooseOptionalMusicShare(supabase, userId);
+                if (music) {
+                  opportunityContext.source = "dominic_music_autonomy";
+                  opportunityContext.music = music;
+                }
+
                 return {
-                  user_id:
-                    userId,
-
-                  event_type:
-                    "conversation_opportunity",
-
-                  status:
-                    "pending",
-
-                  scheduled_for:
-                    scheduledFor.toISOString(),
-
-                  context: {
-                    time_zone:
-                      TIME_ZONE,
-
-                    schedule_date:
-                      targetDateKey,
-
-                    window:
-                      window.name,
-
-                    purpose:
-                      "natural_proactive_contact",
-
-                    generated_by:
-                      "proactive-scheduler",
-
-                    architecture:
-                      "brain2",
-                  },
+                  user_id: userId,
+                  event_type: "conversation_opportunity",
+                  status: "pending",
+                  scheduled_for: scheduledFor.toISOString(),
+                  context: opportunityContext,
                 };
               },
             )
