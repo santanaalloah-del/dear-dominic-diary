@@ -12085,7 +12085,7 @@ select {
    ───────────────────────────────────────── */
 
 .bottom-nav {
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   padding-left: 8px !important;
   padding-right: 8px !important;
 }
@@ -12708,7 +12708,7 @@ select {
   right: max(var(--app-nav-inline), env(safe-area-inset-right));
   bottom: var(--app-nav-bottom);
   height: var(--app-nav-height);
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   padding: 6px;
   border-radius: 26px;
