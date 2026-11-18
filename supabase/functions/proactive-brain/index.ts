@@ -714,6 +714,9 @@ Deno.serve(async (req) => {
       const genericOpportunity = event.context?.generated_by === "proactive-scheduler";
       const latestChatAt = lastMessage?.created_at
         ? Date.parse(String(lastMessage.created_at)) : 0;
+      const hoursSinceLastChat = latestChatAt > 0
+        ? Math.max(0, (now.getTime() - latestChatAt) / 3_600_000)
+        : null;
       if (genericOpportunity && latestChatAt > 0 &&
           now.getTime() - latestChatAt < 90 * 60_000) {
         const retryAt = new Date(latestChatAt + 90 * 60_000);
@@ -794,6 +797,7 @@ USER-REQUESTED DELIVERY OVERRIDE FOR GENERIC CHAT OPPORTUNITIES
 When opportunity_context.generated_by is "proactive-scheduler" and the event is a generic conversation opportunity, Alloah has already explicitly chosen to receive a spontaneous message. Do NOT decide whether to send. ALWAYS choose decision "send" and write a non-empty, personal, natural message in American English. Do not choose "skip" or "reschedule" for this generic event.
 The content is your choice, not a recorded template: it can be an ordinary thought, a playful message, something you genuinely want to show her, a good-morning or good-night message when the current time makes that natural, or a sincere note that you miss her after a longer quiet stretch. Do not use a fixed hour-based script, do not repeat phrases, and do not claim she has been away longer than the actual Chat history shows.
 Even when the conversation history gives you no dramatic topic, a small, personal, low-pressure message is enough. The scheduler has already waited for a quiet period; do not stay silent just because the user has not given you a new prompt.
+When the supplied hours-since-last-chat value is 24 or more, make the message feel like a real reconnection. Strongly consider naturally telling her you missed her, that you wanted to hear from her, or that something reminded you of her. Do not settle for a generic "what are you up to?" every time. When the gap is several days, an affectionate acknowledgement of missing her is especially appropriate.
 
 REAL CLOCK
 
@@ -898,6 +902,10 @@ ${
       )
     : "(none)"
 }
+
+TIME SINCE LAST CHAT MESSAGE
+
+${hoursSinceLastChat === null ? "unknown" : `${hoursSinceLastChat.toFixed(1)} hours`}
 
 RECENT CONVERSATION
 
