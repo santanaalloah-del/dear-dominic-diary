@@ -650,6 +650,10 @@ Deno.serve(async (req) => {
                 b.startHour,
             );
 
+        // The text message remains the default. A verified Spotify
+        // link is an occasional extra, never a requirement to send.
+        const optionalMusicShare = await chooseOptionalMusicShare(supabase, userId);
+
         const rows =
           selectedWindows
             .map(
@@ -669,12 +673,9 @@ Deno.serve(async (req) => {
                   architecture: "brain2",
                 };
 
-                // The text message remains the default. A verified Spotify
-                // link is an occasional extra, never a requirement to send.
-                const music = await chooseOptionalMusicShare(supabase, userId);
-                if (music) {
+                if (optionalMusicShare) {
                   opportunityContext.source = "dominic_music_autonomy";
-                  opportunityContext.music = music;
+                  opportunityContext.music = optionalMusicShare;
                 }
 
                 return {
