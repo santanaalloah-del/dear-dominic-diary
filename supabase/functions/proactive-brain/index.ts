@@ -836,6 +836,14 @@ IF RESCHEDULE
 
 - message = null
 - reschedule_minutes must be 30–720.
+
+${genericOpportunity ? `
+FINAL USER-AUTHORIZED SEND OVERRIDE
+
+This is a generic spontaneous Chat opportunity that Alloah explicitly asked Dominic to use. Do NOT decide whether to send. ALWAYS choose decision "send" and provide a non-empty, personal, natural message in American English. Never choose skip or reschedule for this generic event.
+Choose the content freely using the real chat history, Brain2 character self, canon, runtime context, and the current Brazil clock. After a longer quiet stretch, he may naturally say he misses her. In the morning or evening, a good-morning or good-night message may fit. These are possibilities, not recorded scripts or fixed-time routines. Never claim a longer absence than the actual Chat history supports.
+A low-stakes thought, affectionate note, playful tease, question about an actual conversation, or song he genuinely wants to show her is enough. Do not require a dramatic trigger or invent shared history.
+${'` : ''}
 `.trim();
 
       const prompt = `
@@ -956,14 +964,15 @@ Decide whether Dominic naturally initiates contact now.
           p_source: "proactive-brain",
           p_estimated_usd: 0.03,
         });
-      if (budgetReservationError) throw budgetReservationError;
-      if (!budgetReservation) {
+      if (budgetReservationError || !budgetReservation) {
         const retryAt = new Date(Date.now() + 24 * 60 * 60_000);
         await supabase.from("proactive_events").update({
           status: "pending",
           scheduled_for: retryAt.toISOString(),
           processed_at: null,
-          decision_reason: "global_ai_budget_unavailable",
+          decision_reason: budgetReservationError
+            ? "global_ai_budget_reservation_failed"
+            : "global_ai_budget_unavailable",
         }).eq("id", event.id).eq("status", "processing");
         return jsonResponse({ok:true,processed:false,reason:"global_ai_budget_unavailable"});
       }
