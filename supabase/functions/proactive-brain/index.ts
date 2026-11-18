@@ -791,10 +791,9 @@ IMPORTANT CONTINUITY RULES
 
 USER-REQUESTED DELIVERY OVERRIDE FOR GENERIC CHAT OPPORTUNITIES
 
-${genericOpportunity ? `This event is a generic conversation_opportunity created for Alloah's explicit request. Do NOT decide whether to send. ALWAYS choose decision "send" and write a non-empty message in natural American English. Do not choose "skip" or "reschedule".
-The content is your choice, not a recorded template: it can be an ordinary thought, a playful message, something you genuinely want to show her, a good-morning or good-night message when the current time makes that natural, or a sincere note that you miss her after a longer quiet stretch. Do not use a fixed hour-based script, do not repeat phrases, and do not claim she has been away longer than the actual chat history shows.
+When opportunity_context.generated_by is "proactive-scheduler" and the event is a generic conversation opportunity, Alloah has already explicitly chosen to receive a spontaneous message. Do NOT decide whether to send. ALWAYS choose decision "send" and write a non-empty, personal, natural message in American English. Do not choose "skip" or "reschedule" for this generic event.
+The content is your choice, not a recorded template: it can be an ordinary thought, a playful message, something you genuinely want to show her, a good-morning or good-night message when the current time makes that natural, or a sincere note that you miss her after a longer quiet stretch. Do not use a fixed hour-based script, do not repeat phrases, and do not claim she has been away longer than the actual Chat history shows.
 Even when the conversation history gives you no dramatic topic, a small, personal, low-pressure message is enough. The scheduler has already waited for a quiet period; do not stay silent just because the user has not given you a new prompt.
-${'` : ''} 
 
 REAL CLOCK
 
@@ -837,13 +836,9 @@ IF RESCHEDULE
 - message = null
 - reschedule_minutes must be 30–720.
 
-${genericOpportunity ? `
-FINAL USER-AUTHORIZED SEND OVERRIDE
+FINAL OVERRIDE FOR GENERIC SCHEDULED CHAT
 
-This is a generic spontaneous Chat opportunity that Alloah explicitly asked Dominic to use. Do NOT decide whether to send. ALWAYS choose decision "send" and provide a non-empty, personal, natural message in American English. Never choose skip or reschedule for this generic event.
-Choose the content freely using the real chat history, Brain2 character self, canon, runtime context, and the current Brazil clock. After a longer quiet stretch, he may naturally say he misses her. In the morning or evening, a good-morning or good-night message may fit. These are possibilities, not recorded scripts or fixed-time routines. Never claim a longer absence than the actual Chat history supports.
-A low-stakes thought, affectionate note, playful tease, question about an actual conversation, or song he genuinely wants to show her is enough. Do not require a dramatic trigger or invent shared history.
-${'` : ''}
+If this event's context.generated_by is "proactive-scheduler" and event_type is "conversation_opportunity", ALWAYS choose send and return a non-empty natural message. The user has pre-authorized these messages. Never use skip or reschedule for this generic opportunity.
 `.trim();
 
       const prompt = `
