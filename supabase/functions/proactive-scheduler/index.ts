@@ -24,9 +24,9 @@ type WindowDefinition = {
 
 const WINDOWS: WindowDefinition[] = [
   {
-    name: "late_morning",
-    startHour: 10,
-    endHour: 12,
+    name: "morning",
+    startHour: 8,
+    endHour: 11,
   },
   {
     name: "afternoon",
@@ -35,7 +35,7 @@ const WINDOWS: WindowDefinition[] = [
   },
   {
     name: "evening",
-    startHour: 18,
+    startHour: 19,
     endHour: 22,
   },
 ];
@@ -221,50 +221,6 @@ function chooseOpportunityCount() {
   return 1;
 }
 
-/*
- * Occasionally attach a real, already-saved shared Spotify track to
- * Dominic's spontaneous opportunity. Never fabricate a Spotify URL,
- * never use Alloah's private songs, and avoid recently shared tracks.
- */
-async function chooseOptionalMusicShare(supabase: any, userId: string) {
-  if (Math.random() >= 0.25) return null;
-
-  const [{ data: settings, error: settingsError }, { data: songs, error: songsError }, { data: recent, error: recentError }] =
-    await Promise.all([
-      supabase.from("diario_settings").select("music_enabled").eq("user_id", userId).maybeSingle(),
-      supabase.from("diario_items").select("id,title,data").eq("user_id", userId)
-        .eq("kind", "song").eq("owner", "shared").eq("status", "active").limit(60),
-      supabase.from("proactive_events").select("context,processed_at").eq("user_id", userId)
-        .eq("status", "sent").order("processed_at", { ascending: false }).limit(20),
-    ]);
-
-  if (settingsError) throw settingsError;
-  if (songsError) throw songsError;
-  if (recentError) throw recentError;
-  if (settings?.music_enabled !== true) return null;
-
-  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  const recentlyShared = new Set(
-    (recent ?? [])
-      .filter((event: any) => event.processed_at && Date.parse(event.processed_at) >= cutoff)
-      .map((event: any) => event.context?.music?.url)
-      .filter((url: unknown): url is string => typeof url === "string"),
-  );
-
-  const eligible = (songs ?? []).flatMap((item: any) => {
-    const data = item.data ?? {};
-    const url = typeof data.spotifyUrl === "string" ? data.spotifyUrl : "";
-    if (!/^https:\/\/open\.spotify\.com\/track\/[A-Za-z0-9]+(?:\?.*)?$/.test(url)) return [];
-    if (recentlyShared.has(url)) return [];
-    const title = typeof item.title === "string" ? item.title.trim() : "";
-    const artist = typeof data.artist === "string" ? data.artist.trim() : "";
-    if (!title || !artist) return [];
-    return [{ item_id: item.id, title, artist, url }];
-  });
-
-  if (!eligible.length) return null;
-  return eligible[randomInt(0, eligible.length - 1)];
-}
 
 Deno.serve(async (req) => {
   if (
@@ -650,10 +606,6 @@ Deno.serve(async (req) => {
                 b.startHour,
             );
 
-        // The text message remains the default. A verified Spotify
-        // link is an occasional extra, never a requirement to send.
-        const optionalMusicShare = await chooseOptionalMusicShare(supabase, userId);
-
         const rows =
           selectedWindows
             .map(
@@ -672,11 +624,6 @@ Deno.serve(async (req) => {
                   generated_by: "proactive-scheduler",
                   architecture: "brain2",
                 };
-
-                if (optionalMusicShare) {
-                  opportunityContext.source = "dominic_music_autonomy";
-                  opportunityContext.music = optionalMusicShare;
-                }
 
                 return {
                   user_id: userId,
